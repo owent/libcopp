@@ -1,0 +1,23 @@
+basic controller api:
+1. create
+2. start
+3. yield
+4. resume <=> µÈÍ¬ÓÚstart
+ 
+basic data structure:
+1. caller running stack information
+2. callee coroutine running stack information
+3. stack context coroutine running stack context
+
+process:
+|new
+|create(coroutine_context_callback)
+|start          -@-> coroutine_context_callback
+                                 |
+                                 V
+|start/resume  <-@->        coroutine_run
+                                 |
+                                 V
+|start/resume  <-@-            yield
+|delete
+
