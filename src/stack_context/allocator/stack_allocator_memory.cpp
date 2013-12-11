@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numeric>
 #include <assert.h>
+#include <limits>
 
 #include "libcopp/stack_context/stack_context.h"
 #include "libcopp/stack_context/allocator/stack_allocator_memory.h"

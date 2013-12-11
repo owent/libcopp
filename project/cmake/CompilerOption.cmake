@@ -21,7 +21,7 @@ set(CXX_FLAGS_IN_ONE_COMMON "")
 
 # 编译器选项 (仅做了GCC、VC和Clang兼容)
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_definitions(-Wall -Werror -rdynamic -fPIC -D_FILE_OFFSET_BITS=64)
+        add_definitions(-Wall -Werror -rdynamic)
         # -DSEED_WITH_BOOST_HPP -DSEED_ENABLE_BOOST_FOREACH -DSEED_ENABLE_BOOST_STATIC_ASSERT)
 
         # 检测GCC版本大于等于4.8时，默认-Wno-unused-local-typedefs (普片用于type_traits，故而关闭该警告)
