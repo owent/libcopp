@@ -8,6 +8,7 @@
 
 #include <cstddef>
 
+#include <libcopp/config/features.h>
 #include <libcopp/fcontext/all.hpp>
 #include <libcopp/stack_context/stack_context.h>
 
@@ -19,8 +20,11 @@ namespace copp {
             fcontext::fcontext_t caller_;
             fcontext::fcontext_t* callee_;
 
-            stack_context env_stack_;
             bool preserve_fpu_;
+            stack_context callee_stack_;
+#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+            stack_context caller_stack_;
+#endif
 
         public:
             coroutine_context_base();
@@ -43,6 +47,10 @@ namespace copp {
             virtual void run() = 0;
 
         private:
+            static intptr_t jump_to(fcontext::fcontext_t& from_fcontext, const fcontext::fcontext_t& to_fcontext,
+                stack_context& from_stack, stack_context& to_stack,
+                intptr_t param, bool preserve_fpu);
+
             static void coroutine_context_callback(intptr_t coro_ptr);
         };
     }

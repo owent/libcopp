@@ -73,6 +73,13 @@
 #endif
 // ---------------- compiler abi headers ----------------
 
+
+// ================ function flags ================
+#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#define COPP_MACRO_SEGMENTED_STACK_NUMBER 10
+#endif
+// ---------------- function flags ----------------
+
 #include "errno.h"
 
 #endif
