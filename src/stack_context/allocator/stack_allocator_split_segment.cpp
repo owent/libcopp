@@ -52,7 +52,7 @@ namespace copp {
             return SIGSTKSZ + sizeof(fcontext::fcontext_t) + 15;
         }
 
-        std::size_t stack_allocator_posix::maximum_stacksize() {
+        std::size_t stack_allocator_split_segment::maximum_stacksize() {
             return std::numeric_limits<std::size_t>::max();
         }
 

@@ -90,7 +90,7 @@ namespace copp {
             intptr_t param, bool preserve_fpu)
         {
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            assert(&from_stack != to_stack);
+            assert(&from_stack != &to_stack);
             __splitstack_getcontext( from_stack.segments_ctx);
             __splitstack_setcontext( to_stack.segments_ctx);
 #endif

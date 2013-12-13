@@ -16,7 +16,7 @@ namespace copp {
     namespace detail{
         class coroutine_context_base
         {
-        private:
+        protected:
             fcontext::fcontext_t caller_;
             fcontext::fcontext_t* callee_;
 
