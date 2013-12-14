@@ -1,4 +1,3 @@
-
 # 默认配置选项
 #####################################################################
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
@@ -30,14 +29,14 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
                 message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} Found, -Wno-unused-local-typedefs added.")
         endif()
         if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.7.0" )
-                set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu++11 -Wno-literal-suffix")
+                set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu++11")
                 set(C_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu11")
                 message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=gnu11/gnu++11.")
 				
-				# Linux环境允许自动增长栈
-				if ( UNIX AND NOT CYGWIN )
-					add_definitions(-fsplit-stack)
-				endif()
+                # Linux环境允许自动增长栈
+                if ( UNIX AND NOT CYGWIN )
+                    add_definitions(-fsplit-stack)
+                endif()
 				
         elseif( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.4.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.4.0" )
                 set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu++0x")
