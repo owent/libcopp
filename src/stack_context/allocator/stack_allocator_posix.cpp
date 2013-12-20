@@ -11,7 +11,9 @@ extern "C" {
 
 #include <cstring>
 #include <algorithm>
+#include <numeric>
 #include <assert.h>
+#include <limits>
 
 
 #include "libcopp/stack_context/stack_context.h"
@@ -82,7 +84,8 @@ namespace copp {
         }
 
         std::size_t stack_allocator_posix::maximum_stacksize() {
-            assert(!is_stack_unbound());
+            if(is_stack_unbound())
+                return std::numeric_limits<std::size_t>::max();
             return sys::stacksize_limit().rlim_max;
         }
 

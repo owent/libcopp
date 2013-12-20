@@ -1,6 +1,8 @@
 #include <cstring>
 #include <algorithm>
+#include <numeric>
 #include <assert.h>
+#include <limits>
 
 extern "C" {
 #include <windows.h>
@@ -81,8 +83,8 @@ namespace copp {
         std::size_t stack_allocator_windows::minimum_stacksize() { return MIN_STACKSIZE; }
 
         std::size_t stack_allocator_windows::maximum_stacksize() {
-            assert(!is_stack_unbound());
-            return 1 * 1024 * 1024 * 1024; // 1GB
+            assert(is_stack_unbound());
+            return std::numeric_limits<std::size_t>::max();
         }
 
         void stack_allocator_windows::allocate(stack_context & ctx, std::size_t size)

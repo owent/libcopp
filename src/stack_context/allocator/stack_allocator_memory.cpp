@@ -61,7 +61,7 @@ namespace copp {
         std::size_t stack_allocator_memory::minimum_stacksize() { return MIN_STACKSIZE; }
 
         std::size_t stack_allocator_memory::maximum_stacksize() {
-            assert(!is_stack_unbound());
+            assert(is_stack_unbound());
             return std::numeric_limits<std::size_t>::max();
         }
 
