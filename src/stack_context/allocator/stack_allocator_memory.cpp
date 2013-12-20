@@ -34,9 +34,10 @@ namespace copp {
                 return MIN_STACKSIZE;
             }
 
-            static std::size_t page_count(std::size_t stacksize)
+            static std::size_t round_to_page_size(std::size_t stacksize)
             {
-                return static_cast<std::size_t>((stacksize - 1) / pagesize() + 1);
+                // page size must be 2^N
+                return static_cast<std::size_t>((stacksize + pagesize() - 1) & (~(pagesize() - 1)));
             }
         }
 
@@ -72,8 +73,7 @@ namespace copp {
             size = (std::min)(size, maximum_stacksize());
             size = (std::min)(size, memory_size_);
 
-            std::size_t page_number(sys::page_count(size));
-            std::size_t size_ = page_number * sys::pagesize();
+            std::size_t size_ = sys::round_to_page_size(size);
             assert(size > 0 && size_ > 0 && size_ < memory_size_);
 
             ctx.size = size_;

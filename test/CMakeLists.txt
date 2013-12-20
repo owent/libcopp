@@ -16,3 +16,8 @@ if(COPP_MACRO_USE_SEGMENTED_STACKS)
 	target_link_libraries(coroutine_context_split_segment ${PROJECT_LIBCOPP_LIB_LINK})
 	EchoWithColor(COLOR GREEN "-- segmented stack enabled, add test - coroutine_context_split_segment_test.")
 endif()
+
+# ============ test - coroutine_context_safe_base_test ============
+add_executable(coroutine_context_safe_base_test "${PROJECT_TEST_SRC_DIR}/coroutine_context_safe_base_test.cpp")
+target_link_libraries(coroutine_context_safe_base_test ${PROJECT_LIBCOPP_LIB_LINK})
+

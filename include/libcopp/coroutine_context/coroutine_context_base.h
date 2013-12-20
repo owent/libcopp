@@ -46,7 +46,7 @@ namespace copp {
         private:
             virtual void run() = 0;
 
-        private:
+        protected:
             static intptr_t jump_to(fcontext::fcontext_t& from_fcontext, const fcontext::fcontext_t& to_fcontext,
                 stack_context& from_stack, stack_context& to_stack,
                 intptr_t param, bool preserve_fpu);

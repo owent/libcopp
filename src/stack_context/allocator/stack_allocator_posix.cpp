@@ -37,9 +37,10 @@ namespace copp {
                 return size;
             }
 
-            static std::size_t page_count(std::size_t stacksize)
+            static std::size_t round_to_page_size(std::size_t stacksize)
             {
-                return static_cast<std::size_t>((stacksize - 1) / pagesize() + 1);
+                // page size must be 2^N
+                return static_cast<std::size_t>((stacksize + pagesize() - 1) & (~(pagesize() - 1)));
             }
 
             rlimit stacksize_limit_()
@@ -90,8 +91,7 @@ namespace copp {
             size = (std::max)(size, minimum_stacksize());
             size = (std::min)(size, maximum_stacksize());
 
-            std::size_t page_number(sys::page_count(size) + 1); // add one protected page
-            std::size_t size_ = page_number * sys::pagesize();
+            std::size_t size_ = sys::round_to_page_size(size) + sys::pagesize(); // add one protected page
             assert(size > 0 && size_ > 0);
 
             const int fd(::open("/dev/zero", O_RDONLY));

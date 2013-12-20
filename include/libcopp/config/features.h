@@ -9,12 +9,12 @@
 // ================ select compiler ================
 #if defined(__GCCXML__)
     #define COPP_MACRO_COMPILER_GCCXML 1
+#elif defined (__clang__)
+    #define COPP_MACRO_COMPILER_CLANG 1
 #elif defined(_MSC_VER)
     #define COPP_MACRO_COMPILER_MSVC 1
 #elif defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
     #define COPP_MACRO_COMPILER_INTELC 1
-#elif defined (__clang__)
-    #define COPP_MACRO_COMPILER_CLANG 1
 #elif defined(__GNUC__)
     #define COPP_MACRO_COMPILER_GCC 1
 #elif defined(__BORLANDC__)

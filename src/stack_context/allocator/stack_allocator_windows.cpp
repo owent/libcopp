@@ -54,9 +54,10 @@ namespace copp {
                 return static_cast<std::size_t>(system_info().dwPageSize);
             }
 
-            static std::size_t page_count(std::size_t stacksize)
+            static std::size_t round_to_page_size(std::size_t stacksize)
             {
-                return static_cast<std::size_t>((stacksize - 1) / pagesize() + 1);
+                // page size must be 2^N
+                return static_cast<std::size_t>((stacksize + pagesize() - 1) & (~(pagesize() - 1)));
             }
         }
 
@@ -71,9 +72,9 @@ namespace copp {
             if (is_stack_unbound())
                 return (std::max)(size, minimum_stacksize() );
 
-            assert(maximum_stacksize() >= minimum_stacksize());
-            return maximum_stacksize() == minimum_stacksize()
-                ? minimum_stacksize()
+            assert(is_stack_unbound() || maximum_stacksize() >= minimum_stacksize());
+            return is_stack_unbound() ? 
+                size
                 : (std::min)(size, maximum_stacksize());
         }
 
@@ -87,10 +88,9 @@ namespace copp {
         void stack_allocator_windows::allocate(stack_context & ctx, std::size_t size)
         {
             size = (std::max)(size, minimum_stacksize());
-            size = (std::min)(size, maximum_stacksize());
+            size = is_stack_unbound() ? size: (std::min)(size, maximum_stacksize());
 
-            std::size_t page_number(sys::page_count(size) + 1);
-            std::size_t size_ = page_number * sys::pagesize();
+            std::size_t size_ = sys::round_to_page_size(size) + sys::pagesize();
             assert(size > 0 && size_ > 0);
 
             void* start_ptr = ::VirtualAlloc(0, size_, MEM_COMMIT, PAGE_READWRITE);
