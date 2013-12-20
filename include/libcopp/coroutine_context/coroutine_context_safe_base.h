@@ -34,7 +34,7 @@ namespace copp {
             using coroutine_context_base::preserve_fpu_;
             using coroutine_context_base::callee_stack_;
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            using coroutine_context_base::stack_context caller_stack_;
+            using coroutine_context_base::caller_stack_;
 #endif
 
             utils::spin_lock status_busy_;
