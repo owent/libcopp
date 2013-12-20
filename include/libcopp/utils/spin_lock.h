@@ -23,7 +23,7 @@
 
 namespace copp { 
     namespace utils {
-        // C++ 0x/11°æÊµÏÖ
+        // C++ 0x/11 åˆ†æ”¯
         #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
         class spin_lock
         {
