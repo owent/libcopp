@@ -1,0 +1,34 @@
+safe basic controller api:
+1. create
+2. start
+3. yield
+4. resume <=> µÈÍ¬ÓÚstart
+5. stop
+ 
+basic data structure:
+1. caller running stack information
+2. callee coroutine running stack information
+3. stack context coroutine running stack context
+ 
+safe basic data structure:
+1. busy status (spin lock)
+2. running status
+ 
+process:
+|new [busy status => unlock, running status => INVALID]
+|create(coroutine_context_callback) [running status => START]
+|start          -@-> coroutine_context_callback                     [busy status => lock, running status => RUNNING]
+                                 |
+                                 V
+|start/resume  <-@->        coroutine_run       ---------           [busy status => lock]
+         ^                       |                      |
+         |                       V                      |
+|start/resume  <-@-            yield                    |           [busy status => unlock]
+                                 |                      |
+                                 V                      |
+|               -@-> coroutine_context_callback <--------           [running status => FINISHED]
+                                 |                      
+                                 V
+|start/resume  <-@-            yield                                [busy status => unlock, running status => STOP]
+|delete
+
