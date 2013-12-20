@@ -84,7 +84,7 @@ namespace copp {
 
         std::size_t stack_allocator_windows::maximum_stacksize() {
             assert(is_stack_unbound());
-            return std::numeric_limits<std::size_t>::max();
+            return SIZE_MAX;
         }
 
         void stack_allocator_windows::allocate(stack_context & ctx, std::size_t size)

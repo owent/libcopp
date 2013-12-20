@@ -123,7 +123,7 @@ namespace copp {
 
         int coroutine_context_safe_base::yield()
         {
-            if (EN_CRS_RUNNING != status_running_)
+            if (EN_CRS_RUNNING != status_running_ && EN_CRS_FINISHED != status_running_)
             {
                 return COPP_EC_NOT_READY;
             }
@@ -138,7 +138,7 @@ namespace copp {
             do
             {
                 // check again
-                if (EN_CRS_RUNNING != status_running_)
+                if (EN_CRS_RUNNING != status_running_ && EN_CRS_FINISHED != status_running_)
                 {
                     ret = COPP_EC_NOT_READY;
                     break;
@@ -192,7 +192,7 @@ namespace copp {
             ins_ptr->status_running_ = EN_CRS_FINISHED;
 
             // directly jump back to caller, do not check running status
-            ins_ptr->coroutine_context_base::yield();
+            ins_ptr->yield();
         }
     }
 }
