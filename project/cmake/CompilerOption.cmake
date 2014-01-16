@@ -1,6 +1,5 @@
 # 默认配置选项
 #####################################################################
-option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 
 if (CMAKE_CONFIGURATION_TYPES)
 	message(STATUS "Available Build Type: ${CMAKE_CONFIGURATION_TYPES}")
@@ -34,7 +33,8 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
                 message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=gnu11/gnu++11.")
 				
                 # Linux环境允许自动增长栈
-                if ( UNIX AND NOT CYGWIN )
+                if ( UNIX AND NOT CYGWIN AND LIBCOPP_ENABLE_SEGMENTED_STACKS)
+					set(COPP_MACRO_USE_SEGMENTED_STACKS_GCC TRUE)
                     add_definitions(-fsplit-stack)
                 endif()
 				
