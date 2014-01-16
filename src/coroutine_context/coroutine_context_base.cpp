@@ -34,6 +34,9 @@ namespace copp {
 
         int coroutine_context_base::create(char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
         {
+            if (NULL == func)
+                func = &coroutine_context_base::coroutine_context_callback;
+
             callee_stack_.sp = stack_ptr;
             callee_stack_.size = stack_len;
 
@@ -42,6 +45,9 @@ namespace copp {
 
         int coroutine_context_base::create(void(*func)(intptr_t))
         {
+            if (NULL == func)
+                func = &coroutine_context_base::coroutine_context_callback;
+
             if (NULL == callee_stack_.sp || 0 == callee_stack_.size)
                 return COPP_EC_NOT_INITED;
 

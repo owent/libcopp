@@ -17,23 +17,20 @@ namespace copp {
 
         int coroutine_context_safe_base::create(char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
         {
+            if (NULL == func)
+                func = &coroutine_context_safe_base::coroutine_context_callback;
+
             if (EN_CRS_INVALID != status_running_)
-            {
                 return COPP_EC_ALREADY_INITED;
-            }
 
             // enter critical section
             if (false == status_busy_.try_lock())
-            {
                 return COPP_EC_ACCESS_VIOLATION;
-            }
 
             int ret = COPP_EC_SUCCESS;
-            do
-            {
+            do {
                 // check again
-                if (EN_CRS_INVALID != status_running_)
-                {
+                if (EN_CRS_INVALID != status_running_) {
                     ret = COPP_EC_ALREADY_INITED;
                     break;
                 }
@@ -50,23 +47,20 @@ namespace copp {
 
         int coroutine_context_safe_base::create(void(*func)(intptr_t))
         {
+            if (NULL == func)
+                func = &coroutine_context_safe_base::coroutine_context_callback;
+
             if (EN_CRS_INVALID != status_running_)
-            {
                 return COPP_EC_ALREADY_INITED;
-            }
 
             // enter critical section
             if (false == status_busy_.try_lock())
-            {
                 return COPP_EC_ACCESS_VIOLATION;
-            }
 
             int ret = COPP_EC_SUCCESS;
-            do
-            {
+            do {
                 // check again
-                if (EN_CRS_INVALID != status_running_)
-                {
+                if (EN_CRS_INVALID != status_running_) {
                     ret = COPP_EC_ALREADY_INITED;
                     break;
                 }
@@ -84,27 +78,19 @@ namespace copp {
         int coroutine_context_safe_base::start()
         {
             if ( status_running_ < EN_CRS_START )
-            {
                 return COPP_EC_NOT_INITED;
-            }
 
             if (status_running_ > EN_CRS_RUNNING)
-            {
                 return COPP_EC_NOT_READY;
-            }
 
             // critical section
             if (false == status_busy_.try_lock())
-            {
                 return COPP_EC_SUCCESS;
-            }
 
             int ret = COPP_EC_SUCCESS;
-            do
-            {
+            do {
                 // check again
-                if (status_running_ > EN_CRS_RUNNING)
-                {
+                if (status_running_ > EN_CRS_RUNNING) {
                     ret = COPP_EC_NOT_READY;
                     break;
                 }
@@ -124,22 +110,16 @@ namespace copp {
         int coroutine_context_safe_base::yield()
         {
             if (EN_CRS_RUNNING != status_running_ && EN_CRS_FINISHED != status_running_)
-            {
                 return COPP_EC_NOT_READY;
-            }
 
             // critical section
             if (false == status_busy_.try_unlock())
-            {
                 return COPP_EC_NOT_RUNNING;
-            }
 
             int ret = COPP_EC_SUCCESS;
-            do
-            {
+            do {
                 // check again
-                if (EN_CRS_RUNNING != status_running_ && EN_CRS_FINISHED != status_running_)
-                {
+                if (EN_CRS_RUNNING != status_running_ && EN_CRS_FINISHED != status_running_) {
                     ret = COPP_EC_NOT_READY;
                     break;
                 }
@@ -161,20 +141,14 @@ namespace copp {
         int coroutine_context_safe_base::stop()
         {
             if (status_running_ < EN_CRS_START)
-            {
                 return COPP_EC_NOT_INITED;
-            }
 
             if (status_running_ > EN_CRS_RUNNING)
-            {
                 return COPP_EC_NOT_READY;
-            }
 
             // critical section
             if (false == status_busy_.try_lock())
-            {
                 return COPP_EC_ACCESS_VIOLATION;
-            }
 
             status_running_ = EN_CRS_STOP;
             status_busy_.unlock();

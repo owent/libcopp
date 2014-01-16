@@ -26,8 +26,11 @@ namespace copp {
             std::size_t memory_size_;
 
         public:
+            stack_allocator_memory();
             stack_allocator_memory(void* start_ptr, std::size_t max_size);
             ~stack_allocator_memory();
+
+            void attach(void* start_ptr, std::size_t max_size);
 
             /**
              * is there stack  max size limit?

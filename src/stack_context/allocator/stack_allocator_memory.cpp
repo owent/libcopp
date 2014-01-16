@@ -41,9 +41,16 @@ namespace copp {
             }
         }
 
+        stack_allocator_memory::stack_allocator_memory() : start_ptr_(NULL), memory_size_(0){}
+
         stack_allocator_memory::stack_allocator_memory(void* start_ptr, std::size_t max_size) : start_ptr_(start_ptr), memory_size_(max_size){}
 
         stack_allocator_memory::~stack_allocator_memory() { }
+
+        void stack_allocator_memory::attach(void* start_ptr, std::size_t max_size){
+            start_ptr_ = start_ptr;
+            memory_size_ = max_size;
+        }
 
         bool stack_allocator_memory::is_stack_unbound() { return true; }
 
@@ -74,7 +81,7 @@ namespace copp {
             size = (std::min)(size, memory_size_);
 
             std::size_t size_ = sys::round_to_page_size(size);
-            assert(size > 0 && size_ > 0 && size_ < memory_size_);
+            assert(size > 0 && size_ > 0 && size_ <= memory_size_);
 
             ctx.size = size_;
             ctx.sp = static_cast<char *>(start_ptr_) +ctx.size; // stack down

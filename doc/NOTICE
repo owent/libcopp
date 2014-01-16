@@ -1,4 +1,8 @@
 NOTICE
-    split stack support: if in Linux and user gcc 4.7.0 or upper, add -DCOPP_MACRO_USE_SEGMENTED_STACKS to use split stack supported context.
-
+    split stack support: if in Linux and user gcc 4.7.0 or upper, add -DLIBCOPP_ENABLE_SEGMENTED_STACKS=YES to use split stack supported context.
+	
+	
+Complie Options:
+	-DBUILD_SHARED_LIBS=YES|NO[default=NO] 					enable build dynamic library.
+	-DLIBCOPP_ENABLE_SEGMENTED_STACKS=YES|NO[default=NO] 	enable split stack supported context.
 
