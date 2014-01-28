@@ -27,7 +27,7 @@ task_id_atom_allocator
 -- allocate[atom ++]
 
 
-[多线程时加锁]
+[enable lock when in mulithreads environment]
 task_manager_normal<spin_lock>
 -- init(task_id_allocator*)
 -- create<>
