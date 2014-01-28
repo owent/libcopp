@@ -1,0 +1,60 @@
+en_co_task_status
+-- idel
+-- sleeping
+-- running
+-- finished
+
+co_task_base
+-- id[uint64_t]
+-- run
+-- cancel
+-- state
+-- name
+-- get_id
+-* set_owner
+-* set_state
+friend class task_manager;
+
+co_task_wrapper<task type, context type>
+-- co_task_base
+-- co_context
+
+
+task_id_allocator_impl
+-- allocate
+
+task_id_atom_allocator
+-- allocate[atom ++]
+
+
+[多线程时加锁]
+task_manager_normal<spin_lock>
+-- init(task_id_allocator*)
+-- create<>
+-- count
+-- start(co_task_wrapper<>*)
+-- start(id)
+-- resume(co_task_wrapper<>*)
+-- resume(id)
+-- cancel(co_task_wrapper<>*)
+-- cancel(id)
+
+
+### with time management ###
+co_task_time_allocator
+-- typedef time_t;
+-- init(...) # with var template...
+-- now
+
+co_task_with_timer_base<co_task_time_allocator>: co_task_base
+-- typedef time_info{ create_time, last_active_time, expire_time }
+
+task_manager_with_timer<task_manager_normal<spin_lock>, co_task_time_allocator>: task_manager_normal<spin_lock>
+-- init(task_id_allocator*)
+-- init(task_id_allocator*, ...) # with var template...
+-- create<>
+-- start(co_task_wrapper<>*)
+-- resume(co_task_wrapper<>*)
+-- cancel(co_task_wrapper<>*)
+-- recycle
+-* expire_event_list
