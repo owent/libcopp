@@ -11,11 +11,17 @@
 #include <libcopp/config/features.h>
 #include <libcopp/fcontext/all.hpp>
 #include <libcopp/stack_context/stack_context.h>
+#include <libcopp/coroutine_context/coroutine_runnable_base.h>
+
 
 namespace copp { 
     namespace detail{
         class coroutine_context_base
         {
+        private:
+            int runner_ret_code_;
+            coroutine_runnable_base* runner_;
+
         protected:
             fcontext::fcontext_t caller_;
             fcontext::fcontext_t* callee_;
@@ -27,8 +33,10 @@ namespace copp {
 #endif
 
         public:
+            friend coroutine_runnable_base;
+
             coroutine_context_base();
-            virtual ~coroutine_context_base() = 0;
+            virtual ~coroutine_context_base();
 
             /**
              * create coroutine context at spefic address
@@ -36,15 +44,19 @@ namespace copp {
              * @param stack_ptr stack position address
              * @param stack_len stack len
              */
-            int create(char* stack_ptr, size_t stack_len, void(*func)(intptr_t) = &coroutine_context_base::coroutine_context_callback);
+            virtual int create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t) = &coroutine_context_base::coroutine_context_callback);
 
-            int create(void(*func)(intptr_t) = &coroutine_context_base::coroutine_context_callback);
-            int start();
-            int yield();
-            int resume();
+            virtual int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = &coroutine_context_base::coroutine_context_callback);
+            virtual int start();
+            virtual int yield();
+            virtual int resume();
 
-        private:
-            virtual void run() = 0;
+        protected:
+            virtual void run();
+
+        public:
+            int set_runner(coroutine_runnable_base* runner);
+            inline int get_ret_code() const { return runner_ret_code_; }
 
         protected:
             static intptr_t jump_to(fcontext::fcontext_t& from_fcontext, const fcontext::fcontext_t& to_fcontext,

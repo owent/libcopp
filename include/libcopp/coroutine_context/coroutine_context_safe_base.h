@@ -25,24 +25,15 @@ namespace copp {
             EN_CRS_STOP,
         };
 
-        class coroutine_context_safe_base : private coroutine_context_base
+        class coroutine_context_safe_base : public coroutine_context_base
         {
         protected:
-            using coroutine_context_base::caller_;
-            using coroutine_context_base::callee_;
-
-            using coroutine_context_base::preserve_fpu_;
-            using coroutine_context_base::callee_stack_;
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            using coroutine_context_base::caller_stack_;
-#endif
-
             utils::spin_lock status_busy_;
             int status_running_;
 
         public:
             coroutine_context_safe_base();
-            virtual ~coroutine_context_safe_base() = 0;
+            virtual ~coroutine_context_safe_base();
 
             /**
              * create coroutine context at spefic address
@@ -50,17 +41,18 @@ namespace copp {
              * @param stack_ptr stack position address
              * @param stack_len stack len
              */
-            int create(char* stack_ptr, size_t stack_len, void(*func)(intptr_t) = &coroutine_context_safe_base::coroutine_context_callback);
+            virtual int create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t) = &coroutine_context_safe_base::coroutine_context_callback);
 
-            int create(void(*func)(intptr_t) = &coroutine_context_safe_base::coroutine_context_callback);
-            int start();
-            int yield();
-            int resume();
-            int stop();
+            virtual int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = &coroutine_context_safe_base::coroutine_context_callback);
+            virtual int start();
+            virtual int yield();
+            virtual int resume();
+            virtual int stop();
+
+        public:
+            virtual int set_runner(coroutine_runnable_base* runner);
 
         private:
-            virtual void run() = 0;
-
             static void coroutine_context_callback(intptr_t coro_ptr);
         };
     }

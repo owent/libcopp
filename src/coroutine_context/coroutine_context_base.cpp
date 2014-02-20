@@ -20,6 +20,7 @@ void __splitstack_block_signals_context( void* [COPP_MACRO_SEGMENTED_STACK_NUMBE
 namespace copp { 
     namespace detail{
         coroutine_context_base::coroutine_context_base() :
+            runner_ret_code_(0), runner_(NULL),
             caller_(), callee_(NULL), preserve_fpu_(true), callee_stack_()
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
             ,caller_stack_()
@@ -30,21 +31,26 @@ namespace copp {
 
         coroutine_context_base::~coroutine_context_base()
         {
+            set_runner(NULL);
         }
 
-        int coroutine_context_base::create(char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
+        int coroutine_context_base::create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
         {
+            set_runner(runner);
+
             if (NULL == func)
                 func = &coroutine_context_base::coroutine_context_callback;
 
             callee_stack_.sp = stack_ptr;
             callee_stack_.size = stack_len;
 
-            return create(func);
+            return create(runner, func);
         }
 
-        int coroutine_context_base::create(void(*func)(intptr_t))
+        int coroutine_context_base::create(coroutine_runnable_base* runner, void(*func)(intptr_t))
         {
+            set_runner(runner);
+
             if (NULL == func)
                 func = &coroutine_context_base::coroutine_context_callback;
 
@@ -89,6 +95,29 @@ namespace copp {
         int coroutine_context_base::resume()
         {
             return start();
+        }
+
+        void coroutine_context_base::run()
+        {
+            if (NULL == runner_)
+                return;
+
+            runner_ret_code_ = (*runner_)();
+        }
+
+        int coroutine_context_base::set_runner(coroutine_runnable_base* runner)
+        {
+            if (NULL != runner_) {
+                runner_->coroutine_context_ = NULL;
+            }
+
+            runner_ = runner;
+
+            if (NULL != runner_) {
+                runner_->coroutine_context_ = this;
+            }
+
+            return COPP_EC_SUCCESS;
         }
 
         intptr_t coroutine_context_base::jump_to(fcontext::fcontext_t& from_fcontext, const fcontext::fcontext_t& to_fcontext,

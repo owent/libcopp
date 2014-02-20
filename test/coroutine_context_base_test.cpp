@@ -13,22 +13,23 @@
 typedef copp::detail::coroutine_context_container<
     copp::detail::coroutine_context_base,
     copp::allocator::stack_allocator_memory
-> coroutine_context_test_base_type;
+> coroutine_context_test_type;
 
 int g_status = 0;
 
-class foo_coroutine_context : public coroutine_context_test_base_type
+class foo_runner : public copp::coroutine_runnable_base
 {
 public:
-    virtual void run()
-    {
+    int operator()() {
         puts("co start.");
         CHECK_STATUS(++g_status, 2);
 
-        yield();
+        get_coroutine_context<coroutine_context_test_type>()->yield();
 
         puts("co resumed.");
         CHECK_STATUS(++g_status, 4);
+
+        return 0;
     }
 };
 
@@ -38,9 +39,10 @@ int main() {
     puts("co create.");
     CHECK_STATUS(++g_status, 1);
 
-    foo_coroutine_context co;
+    coroutine_context_test_type co;
+    foo_runner runner;
     co.get_allocator().attach(stack_buff, sizeof(stack_buff));
-    co.create(sizeof(stack_buff));
+    co.create(&runner, sizeof(stack_buff));
     co.start();
 
     puts("co yield.");

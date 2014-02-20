@@ -15,7 +15,7 @@ namespace copp {
         {
         }
 
-        int coroutine_context_safe_base::create(char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
+        int coroutine_context_safe_base::create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
         {
             if (NULL == func)
                 func = &coroutine_context_safe_base::coroutine_context_callback;
@@ -35,7 +35,7 @@ namespace copp {
                     break;
                 }
 
-                ret = coroutine_context_base::create(stack_ptr, stack_len, func);
+                ret = coroutine_context_base::create(runner, stack_ptr, stack_len, func);
                 if (COPP_EC_SUCCESS == ret)
                     status_running_ = EN_CRS_START;
 
@@ -45,7 +45,7 @@ namespace copp {
             return ret;
         }
 
-        int coroutine_context_safe_base::create(void(*func)(intptr_t))
+        int coroutine_context_safe_base::create(coroutine_runnable_base* runner, void(*func)(intptr_t))
         {
             if (NULL == func)
                 func = &coroutine_context_safe_base::coroutine_context_callback;
@@ -65,7 +65,7 @@ namespace copp {
                     break;
                 }
 
-                ret = coroutine_context_base::create(func);
+                ret = coroutine_context_base::create(runner, func);
                 if (COPP_EC_SUCCESS == ret)
                     status_running_ = EN_CRS_START;
 
@@ -154,6 +154,26 @@ namespace copp {
             status_busy_.unlock();
 
             return COPP_EC_SUCCESS;
+        }
+
+        int coroutine_context_safe_base::set_runner(coroutine_runnable_base* runner)
+        {
+            if (status_running_ < EN_CRS_START)
+                return COPP_EC_NOT_INITED;
+
+            if (EN_CRS_RUNNING == status_running_)
+                return COPP_EC_IS_RUNNING;
+
+            // double check, critical section
+            if (false == status_busy_.try_lock())
+                return COPP_EC_IS_RUNNING;
+
+            int ret = coroutine_context_base::set_runner(runner);
+
+            // quit critical section
+            status_busy_.unlock();
+
+            return ret;
         }
 
         void coroutine_context_safe_base::coroutine_context_callback(intptr_t coro_ptr)

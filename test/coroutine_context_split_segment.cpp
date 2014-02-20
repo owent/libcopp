@@ -10,28 +10,7 @@ class foo_coroutine_context : public copp::detail::coroutine_context_base
 private:
     copp::allocator::stack_allocator_split_segment alloc_;
 
-private:
-    void stack_test(int loop) {
-        char a;
-        char b[1024 * 1024];
-        char c;
-        printf("addr rela: %lld, sizeof(b): %d\n", (long long)(&c) - (long long)(&a), (int)(sizeof(b)));
-        if (loop > 0)
-            stack_test(loop - 1);
-    }
-
 public:
-
-    virtual void run() {
-        printf("enter %s.\n", __FUNCTION__);
-
-        stack_test(4);
-
-        yield();
-
-        stack_test(20);
-        puts("co resumed.");
-    }
 
     int create(std::size_t size) {
         alloc_.allocate(callee_stack_, size);
@@ -40,11 +19,38 @@ public:
     }
 };
 
+class foo_runner : public copp::coroutine_runnable_base
+{
+private:
+    void stack_test(int loop) {
+        char a;
+        char b[1024 * 1024];
+        char c;
+        printf("addr rela: %lld, sizeof(b): %d\n", (long long) (&c) - (long long) (&a), (int) (sizeof(b)));
+        if (loop > 0)
+            stack_test(loop - 1);
+    }
+
+public:
+    int operator()() {
+        printf("enter %s.\n", __FUNCTION__);
+
+        stack_test(4);
+
+        get_coroutine_context<foo_coroutine_context>()->yield();
+
+        stack_test(20);
+        puts("co resumed.");
+        return 0;
+    }
+};
+
 int main() {
     puts("co create.");
 
     foo_coroutine_context co;
-    co.create(2 * 1024 * 1024);
+    foo_runner runner;
+    co.create(&runner, 2 * 1024 * 1024);
     co.start();
 
     puts("co yield.");

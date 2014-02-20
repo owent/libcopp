@@ -35,14 +35,14 @@ namespace copp {
             }
 
         public:
-            int create(std::size_t stack_size_, void(*func)(intptr_t) = NULL){
+            int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(intptr_t) = NULL){
                 alloc_.allocate(callee_stack_, stack_size_);
-                return base_type::create(func);
+                return base_type::create(runner, func);
             }
 
-            int create(void(*func)(intptr_t) = NULL){
+            int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = NULL){
                 alloc_.allocate(callee_stack_, alloc_.default_stacksize());
-                return base_type::create(func);
+                return base_type::create(runner, func);
             }
 
         private:

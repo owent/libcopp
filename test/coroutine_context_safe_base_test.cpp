@@ -13,35 +13,37 @@
 typedef copp::detail::coroutine_context_container<
     copp::detail::coroutine_context_safe_base,
     copp::allocator::default_statck_allocator
-    > coroutine_context_test_base_type;
+    > coroutine_context_test_type;
 
 int g_status = 0;
 
-class foo_coroutine_context : public coroutine_context_test_base_type
+class foo_runner : public copp::coroutine_runnable_base
 {
-private:
-    virtual void run() {
+public:
+    int operator()()
+    {
         puts("co run");
         CHECK_STATUS(++g_status, 2);
 
-        resume();
+        get_coroutine_context<coroutine_context_test_type>()->resume();
         puts("co restart.");
         CHECK_STATUS(++g_status, 3);
 
-        yield();
+        get_coroutine_context<coroutine_context_test_type>()->yield();
         puts("co resumed.");
         CHECK_STATUS(++g_status, 5);
-    }
 
-public:
+        return 0;
+    }
 };
 
 int main() {
     puts("co create.");
     CHECK_STATUS(++g_status, 1);
 
-    foo_coroutine_context co;
-    co.create();
+    coroutine_context_test_type co;
+    foo_runner runner;
+    co.create(&runner);
     co.start();
 
     puts("co yield.");
