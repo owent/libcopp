@@ -27,9 +27,14 @@ namespace copp {
 
         class coroutine_context_safe_base : public coroutine_context_base
         {
+        public:
+        	typedef coroutine_context_base base_type;
+        	COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
+
         protected:
             utils::spin_lock status_busy_;
             int status_running_;
+
 
         public:
             coroutine_context_safe_base();

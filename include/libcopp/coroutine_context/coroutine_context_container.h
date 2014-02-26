@@ -23,6 +23,8 @@ namespace copp {
             typedef TCOC base_type;
             typedef TALLOC allocator_type;
 
+        COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
+        public:
             coroutine_context_container() : base_type(), alloc_(){}
             coroutine_context_container(const allocator_type& alloc) : alloc_(alloc){}
 
@@ -33,6 +35,7 @@ namespace copp {
             inline allocator_type& get_allocator() {
                 return alloc_;
             }
+
 
         public:
             int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(intptr_t) = NULL){
