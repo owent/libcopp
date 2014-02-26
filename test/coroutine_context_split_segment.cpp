@@ -12,9 +12,9 @@ private:
 
 public:
 
-    int create(std::size_t size) {
+    int create(copp::coroutine_runnable_base* runner, std::size_t size) {
         alloc_.allocate(callee_stack_, size);
-        copp::detail::coroutine_context_base::create();        
+        copp::detail::coroutine_context_base::create(runner);
         return 0; 
     }
 };

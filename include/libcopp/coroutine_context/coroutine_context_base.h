@@ -13,6 +13,20 @@
 #include <libcopp/stack_context/stack_context.h>
 #include <libcopp/coroutine_context/coroutine_runnable_base.h>
 
+#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+	#define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)\
+		using base_type::caller_stack_;
+#else
+	#define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
+#endif
+
+#define COROUTINE_CONTEXT_BASE_USING_BASE(base_type)	\
+	protected:											\
+	using base_type::caller_;							\
+	using base_type::callee_;							\
+	using base_type::preserve_fpu_;						\
+	using base_type::callee_stack_;						\
+	COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
 namespace copp { 
     namespace detail{
