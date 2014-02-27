@@ -16,6 +16,11 @@
 
 namespace copp {
     namespace detail{
+
+        /**
+         * @brief coroutine container
+         * contain stack context, stack allocator and runtime fcontext
+         */
         template<typename TCOC, typename TALLOC>
         class coroutine_context_container : public TCOC {
         public:
@@ -28,28 +33,49 @@ namespace copp {
             coroutine_context_container() : base_type(), alloc_(){}
             coroutine_context_container(const allocator_type& alloc) : alloc_(alloc){}
 
+            /**
+             * get stack allocator
+             * @return stack allocator
+             */
             inline const allocator_type& get_allocator() const {
                 return alloc_;
             }
 
+            /**
+             * get stack allocator
+             * @return stack allocator
+             */
             inline allocator_type& get_allocator() {
                 return alloc_;
             }
 
 
         public:
+            /**
+             * create and init coroutine with specify runner and specify stack size
+             * @param runner runner
+             * @param stack_size_ stack size
+             * @param func fcontext callback(set NULL to use default callback)
+             * @return COPP_EC_SUCCESS or error code
+             */
             int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(intptr_t) = NULL){
                 alloc_.allocate(callee_stack_, stack_size_);
                 return base_type::create(runner, func);
             }
 
+            /**
+             * create and init coroutine with specify runner and default stack size
+             * @param runner runner
+             * @param func fcontext callback(set NULL to use default callback)
+             * @return COPP_EC_SUCCESS or error code
+             */
             int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = NULL){
                 alloc_.allocate(callee_stack_, alloc_.default_stacksize());
                 return base_type::create(runner, func);
             }
 
         private:
-            allocator_type alloc_;
+            allocator_type alloc_; /** stack allocator **/
         };
     }
 

@@ -19,6 +19,10 @@ namespace copp {
 
     namespace allocator {
 
+        /**
+         * @brief memory allocator
+         * this allocator will create buffer using gcc split segment api
+         */
         class stack_allocator_split_segment
         {
         public:
@@ -36,8 +40,17 @@ namespace copp {
 
             static std::size_t maximum_stacksize();
 
+            /**
+             * allocate memory and attach to stack context [standard function]
+             * @param ctx stack context
+             * @param size stack size of unit
+             */
             void allocate(stack_context &, std::size_t);
 
+            /**
+             * deallocate memory from stack context [standard function]
+             * @param ctx stack context
+             */
             void deallocate(stack_context &);
         };
 

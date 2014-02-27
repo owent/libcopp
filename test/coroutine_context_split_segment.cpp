@@ -5,7 +5,7 @@
 #include <libcopp/coroutine_context/coroutine_context_base.h>
 #include <libcopp/stack_context/allocator/stack_allocator_split_segment.h>
 
-class foo_coroutine_context : public copp::detail::coroutine_context_base
+class test_split_segment_context : public copp::detail::coroutine_context_base
 {
 private:
     copp::allocator::stack_allocator_split_segment alloc_;
@@ -19,7 +19,7 @@ public:
     }
 };
 
-class foo_runner : public copp::coroutine_runnable_base
+class test_split_segment_foo_runner : public copp::coroutine_runnable_base
 {
 private:
     void stack_test(int loop) {
@@ -37,7 +37,7 @@ public:
 
         stack_test(4);
 
-        get_coroutine_context<foo_coroutine_context>()->yield();
+        get_coroutine_context<test_split_segment_context>()->yield();
 
         stack_test(20);
         puts("co resumed.");
@@ -48,8 +48,8 @@ public:
 int main() {
     puts("co create.");
 
-    foo_coroutine_context co;
-    foo_runner runner;
+    test_split_segment_context co;
+    test_split_segment_foo_runner runner;
     co.create(&runner, 2 * 1024 * 1024);
     co.start();
 

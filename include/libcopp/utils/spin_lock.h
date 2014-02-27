@@ -23,37 +23,60 @@
 
 namespace copp { 
     namespace utils {
-        // C++ 0x/11 分支
+        // C++ 0x/11
         #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
+        /**
+         * spin lock
+         */
         class spin_lock
         {
         private:
+        	/**
+        	 * @brief lock status type
+        	 */
             typedef enum { EN_SL_UNLOCKED = 0, EN_SL_LOCKED = 1 } lock_state;
-            std::atomic<lock_state> status_;
+            std::atomic<lock_state> status_; /** lock status **/
 
         public:
             spin_lock() : status_(EN_SL_UNLOCKED) {}
 
+            /**
+             * @brief lock
+             */
             void lock()
             {
                 while (status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED); /* busy-wait */
             }
 
+            /**
+             * @brief unlock
+             */
             void unlock()
             {
                 status_.store(EN_SL_UNLOCKED, std::memory_order_release);
             }
 
+            /**
+             * @return true if locked
+             */
             bool is_locked()
             {
                 return status_.load(std::memory_order_acquire) == EN_SL_LOCKED;
             }
 
+            /**
+             * try lock
+             * @return true if lock success
+             */
             bool try_lock()
             {
                 return status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_UNLOCKED;
             }
 
+            /**
+             * try unlock
+             * @return true if unlock success
+             */
             bool try_unlock()
             {
                 return status_.exchange(EN_SL_UNLOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED;
@@ -94,15 +117,24 @@ namespace copp {
                 #error Currently only gcc, msvc, intel compiler & llvm-clang are supported
             #endif
 
+        /**
+         * spin lock
+         */
         class spin_lock
         {
         private:
+        	/**
+        	 * @brief lock status type
+        	 */
             typedef enum { EN_SL_UNLOCKED = 0, EN_SL_LOCKED = 1 } lock_state;
-            volatile unsigned int status_;
+            volatile unsigned int status_; /** lock status **/
 
         public:
             spin_lock() : status_(EN_SL_UNLOCKED) {}
 
+            /**
+             * @brief lock
+             */
             void lock()
             {
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC
@@ -114,6 +146,9 @@ namespace copp {
             #endif
             }
 
+            /**
+             * @brief unlock
+             */
             void unlock()
             {
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC
@@ -125,6 +160,9 @@ namespace copp {
             #endif
             }
 
+            /**
+             * @return true if locked
+             */
             bool is_locked()
             {
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC
@@ -136,6 +174,10 @@ namespace copp {
             #endif
             }
 
+            /**
+             * try lock
+             * @return true if lock success
+             */
             bool try_lock()
             {
 
@@ -148,6 +190,10 @@ namespace copp {
             #endif
             }
 
+            /**
+             * try unlock
+             * @return true if unlock success
+             */
             bool try_unlock()
             {
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC

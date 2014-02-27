@@ -13,11 +13,11 @@
 typedef copp::detail::coroutine_context_container<
     copp::detail::coroutine_context_safe_base,
     copp::allocator::default_statck_allocator
-    > coroutine_context_test_type;
+    > test_context_safe_base_context_type;
 
 int g_status = 0;
 
-class foo_runner : public copp::coroutine_runnable_base
+class test_context_safe_base_foo_runner : public copp::coroutine_runnable_base
 {
 public:
     int operator()()
@@ -25,11 +25,11 @@ public:
         puts("co run");
         CHECK_STATUS(++g_status, 2);
 
-        get_coroutine_context<coroutine_context_test_type>()->resume();
+        get_coroutine_context<test_context_safe_base_context_type>()->resume();
         puts("co restart.");
         CHECK_STATUS(++g_status, 3);
 
-        get_coroutine_context<coroutine_context_test_type>()->yield();
+        get_coroutine_context<test_context_safe_base_context_type>()->yield();
         puts("co resumed.");
         CHECK_STATUS(++g_status, 5);
 
@@ -41,8 +41,8 @@ int main() {
     puts("co create.");
     CHECK_STATUS(++g_status, 1);
 
-    coroutine_context_test_type co;
-    foo_runner runner;
+    test_context_safe_base_context_type co;
+    test_context_safe_base_foo_runner runner;
     co.create(&runner);
     co.start();
 

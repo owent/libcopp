@@ -14,3 +14,7 @@
 
 # Compiling directory
 build/*
+
+# generated docs
+doc/doxygen/*
+
