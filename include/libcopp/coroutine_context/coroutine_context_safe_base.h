@@ -39,6 +39,7 @@ namespace copp {
             int status_running_; /** status **/
 
 
+
         public:
             coroutine_context_safe_base();
             virtual ~coroutine_context_safe_base();
