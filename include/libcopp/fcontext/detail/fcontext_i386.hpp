@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <stdint.h>
 
-#include "libcopp/config/features.h"
+#include "libcopp/utils/features.h"
 #include "libcopp/fcontext/detail/config.hpp"
 
 namespace copp {

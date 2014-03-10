@@ -8,7 +8,7 @@
 
 #include <cstddef>
 
-#include <libcopp/config/features.h>
+#include <libcopp/utils/features.h>
 
 #if defined(__clang__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 1 ) ) && __cplusplus >= 201103L
 #include <atomic>

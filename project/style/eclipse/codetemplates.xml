@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="true" context="org.eclipse.cdt.core.cHeader.contenttype_context" deleted="false" description="!CodeTemplates.cheaderfile.desc!" enabled="true" id="org.eclipse.cdt.ui.text.codetemplates.cheaderfile" name="默认的 C 头文件模板">${filecomment}
+#ifndef ${include_guard_symbol}
+#define ${include_guard_symbol}
+
+${includes}
+
+${declarations}
+
+#endif /* ${include_guard_symbol} */</template></templates>

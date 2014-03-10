@@ -2,8 +2,8 @@
 #include <cstdio>
 #include <cstring>
 
-#include <libcopp/coroutine_context/coroutine_context_base.h>
-#include <libcopp/stack_context/allocator/stack_allocator_split_segment.h>
+#include <libcopp/coroutine/coroutine_context_base.h>
+#include <libcopp/stack/allocator/stack_allocator_split_segment.h>
 
 class test_split_segment_context : public copp::detail::coroutine_context_base
 {
