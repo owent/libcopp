@@ -12,7 +12,14 @@ namespace copp {
     }
 
 
-    stack_context::~stack_context()
-    {
+    stack_context::~stack_context() {
+    }
+
+    void stack_context::reset() {
+        size = 0;
+        sp = NULL;
+#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+        memset(segments_ctx, 0, sizeof(segments_ctx));
+#endif
     }
 }

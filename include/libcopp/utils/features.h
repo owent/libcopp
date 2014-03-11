@@ -79,6 +79,16 @@
 #define COPP_MACRO_SEGMENTED_STACK_NUMBER 10
 #endif
 
+#ifndef COPP_MACRO_CPP_STD
+    #if defined(__cplusplus) && __cplusplus >= 201103L
+        #define COPP_MACRO_CPP_STD 201103L
+        #define COPP_MACRO_ENABLE_SMART_PTR 1
+    #else
+        #define COPP_MACRO_CPP_STD 199711L
+    #endif
+#endif
+
+
 #if defined(__cplusplus) && __cplusplus >= 201103L
     #define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
 #elif defined(_MSC_VER) && (_MSC_VER >= 1800 && defined(_HAS_CPP0X) && _HAS_CPP0X)

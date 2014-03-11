@@ -33,6 +33,10 @@ namespace copp {
             coroutine_context_container() : base_type(), alloc_(){}
             coroutine_context_container(const allocator_type& alloc) : alloc_(alloc){}
 
+            ~coroutine_context_container() {
+                _reset_stack();
+            }
+
             /**
              * get stack allocator
              * @return stack allocator
@@ -49,6 +53,17 @@ namespace copp {
                 return alloc_;
             }
 
+
+        protected:
+            /**
+             * deallocate stack context
+             */
+            void _reset_stack() {
+                if (NULL == callee_stack_.sp || 0 == callee_stack_.size)
+                    return;
+                alloc_.deallocate(callee_stack_);
+                callee_stack_.reset();
+            }
 
         public:
             /**

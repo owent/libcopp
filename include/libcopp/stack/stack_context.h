@@ -23,6 +23,8 @@ namespace copp {
 
         stack_context();
         ~stack_context();
+
+        void reset();
     };
 }
 

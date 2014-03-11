@@ -15,36 +15,6 @@ namespace copp {
         {
         }
 
-        int coroutine_context_safe_base::create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
-        {
-            if (NULL == func)
-                func = &coroutine_context_safe_base::coroutine_context_callback;
-
-            if (EN_CRS_INVALID != status_running_)
-                return COPP_EC_ALREADY_INITED;
-
-            // enter critical section
-            if (false == status_busy_.try_lock())
-                return COPP_EC_ACCESS_VIOLATION;
-
-            int ret = COPP_EC_SUCCESS;
-            do {
-                // check again
-                if (EN_CRS_INVALID != status_running_) {
-                    ret = COPP_EC_ALREADY_INITED;
-                    break;
-                }
-
-                ret = coroutine_context_base::create(runner, stack_ptr, stack_len, func);
-                if (COPP_EC_SUCCESS == ret)
-                    status_running_ = EN_CRS_START;
-
-            } while (false);
-            status_busy_.unlock();
-
-            return ret;
-        }
-
         int coroutine_context_safe_base::create(coroutine_runnable_base* runner, void(*func)(intptr_t))
         {
             if (NULL == func)

@@ -21,3 +21,7 @@ endif()
 add_executable(coroutine_context_safe_base_test "${PROJECT_TEST_SRC_DIR}/coroutine_context_safe_base_test.cpp")
 target_link_libraries(coroutine_context_safe_base_test ${PROJECT_LIBCOPP_LIB_LINK})
 
+# ============ test - coroutine_manager_test ============
+add_executable(coroutine_manager_test "${PROJECT_TEST_SRC_DIR}/coroutine_manager_test.cpp")
+target_link_libraries(coroutine_manager_test ${PROJECT_LIBCOPP_LIB_LINK})
+

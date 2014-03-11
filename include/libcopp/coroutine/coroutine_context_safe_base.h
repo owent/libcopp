@@ -45,19 +45,6 @@ namespace copp {
             virtual ~coroutine_context_safe_base();
 
             /**
-             * create coroutine context at spefic address
-             * @note stack_ptr is the start or end of stack memory address relation to platform
-             * @param runner runner
-             * @param stack_ptr stack position address
-             * @param stack_len stack len
-             * @param func fcontext callback
-             * @return COPP_EC_SUCCESS or error code
-             *
-             * @see coroutine_context_base::create
-             */
-            virtual int create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t) = &coroutine_context_safe_base::coroutine_context_callback);
-
-            /**
              * create coroutine context at stack context callee_
              * @param runner runner
              * @param func fcontext callback
@@ -91,7 +78,7 @@ namespace copp {
              */
             virtual int stop();
 
-        public:
+        protected:
             /**
              * safety set runner
              * @param runner

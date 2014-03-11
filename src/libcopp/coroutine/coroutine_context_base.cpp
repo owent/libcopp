@@ -34,22 +34,9 @@ namespace copp {
             set_runner(NULL);
         }
 
-        int coroutine_context_base::create(coroutine_runnable_base* runner, char* stack_ptr, size_t stack_len, void(*func)(intptr_t))
-        {
-            set_runner(runner);
-
-            if (NULL == func)
-                func = &coroutine_context_base::coroutine_context_callback;
-
-            callee_stack_.sp = stack_ptr;
-            callee_stack_.size = stack_len;
-
-            return create(runner, func);
-        }
-
         int coroutine_context_base::create(coroutine_runnable_base* runner, void(*func)(intptr_t))
         {
-            set_runner(runner);
+            coroutine_context_base::set_runner(runner);
 
             if (NULL == func)
                 func = &coroutine_context_base::coroutine_context_callback;
