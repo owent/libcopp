@@ -1,4 +1,4 @@
-/*
+﻿/*
  * standard_int_key_allocator.h
  *
  *  Created on: 2014年3月10日

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * test_manager.cpp
  *
  *  Created on: 2014年3月11日
@@ -35,13 +35,13 @@ int test_manager::run() {
         "Running "<< tests_.size()<< " test(s)"<<
         std::endl;
 
-    for(typename test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++ iter) {
+    for(test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++ iter) {
         std::cout<< std::endl<< shell_font::GenerateString("[----------] ", SHELL_FONT_COLOR_GREEN | SHELL_FONT_SPEC_BOLD)<<
             iter->second.size()<< " test case(s) from "<< iter->first<<
             std::endl;
 
         clock_t test_begin_time = clock();
-        for (typename test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++ iter2){
+        for (test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++ iter2){
             std::cout<< shell_font::GenerateString("[ RUN      ] ", SHELL_FONT_COLOR_GREEN)<<
                 iter->first<< "."<< iter2->first<<
                 std::endl;
@@ -84,8 +84,8 @@ int test_manager::run() {
             failed_<< " test(s), listed below:"<<
             std::endl;
 
-        for(typename test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++ iter) {
-            for (typename test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++ iter2){
+        for(test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++ iter) {
+            for (test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++ iter2){
                 if (iter2->second->failed_ > 0) {
                     std::cout<< shell_font::GenerateString("[  FAILED  ] ", SHELL_FONT_COLOR_RED)<<
                         iter->first<< "."<< iter2->first<<

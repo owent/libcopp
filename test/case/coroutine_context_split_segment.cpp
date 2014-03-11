@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <cstdio>
 #include <cstring>
 
@@ -6,6 +6,7 @@
 #include <libcopp/stack/allocator/stack_allocator_split_segment.h>
 
 #include "frame/test_macros.h"
+#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
 
 class test_split_segment_context : public copp::detail::coroutine_context_base
 {
@@ -68,3 +69,5 @@ CASE_TEST(coroutine, context_split_segment_stack)
 
     CASE_EXPECT_GE(dis, 4 * 1024 * 1024);
 }
+
+#endif

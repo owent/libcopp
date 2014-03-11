@@ -9,7 +9,7 @@ int g_test_coroutine_manager_status = 0;
 class test_context_manager_runner1 : public copp::coroutine_manager_runner_base
 {
 public:
-    typedef typename copp::default_coroutine_manager::value_type value_type;
+    typedef copp::default_coroutine_manager::value_type value_type;
 public:
     int operator()() {
         ++ g_test_coroutine_manager_status;
@@ -27,7 +27,7 @@ public:
 class test_context_manager_runner2 : public copp::coroutine_manager_runner_base
 {
 public:
-    typedef typename copp::default_coroutine_manager::value_type value_type;
+    typedef copp::default_coroutine_manager::value_type value_type;
 
     test_context_manager_runner2(uint64_t key, copp::default_coroutine_manager* mgr):
         other_co_key(key), mgr_(mgr){}
@@ -59,7 +59,7 @@ CASE_TEST(coroutine_manager, default_operation)
 {
     copp::default_coroutine_manager g_co_mgr;
     g_test_coroutine_manager_status = 0;
-    typedef typename copp::default_coroutine_manager::value_type co_type;
+    typedef copp::default_coroutine_manager::value_type co_type;
 
     co_type* pco1 = g_co_mgr.create();
     co_type* pco2 = g_co_mgr.create();

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * shell_fonts.h
  *
  *  Created on: 2014年3月11日
@@ -145,7 +145,10 @@ static int _check_term_color_status() {
     color_term.insert("xterm-color");
     color_term.insert("xterm-debian");
 
-    std::string my_term_name = getenv("TERM");
+    std::string my_term_name;
+    char* term_name = getenv("TERM");
+    if (NULL != term_name)
+        my_term_name = term_name;
     std::transform(my_term_name.begin(), my_term_name.end(), my_term_name.begin(), ::tolower);
 
     if (color_term.end() == color_term.find(my_term_name))
