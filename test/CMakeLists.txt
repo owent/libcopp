@@ -1,27 +1,32 @@
 
-
 EchoWithColor(COLOR GREEN "-- Configure Test Projects")
 
-# ============ test - coroutine_context_base_test ============
-add_executable(coroutine_context_base_test "${PROJECT_TEST_SRC_DIR}/coroutine_context_base_test.cpp")
-target_link_libraries(coroutine_context_base_test ${PROJECT_LIBCOPP_LIB_LINK})
+enable_testing()
+find_package(GTest)
+set (PROJECT_LIBCOPP_TEST_LIB_LINK "")
 
-# ============ test - fcontext_test ============
-add_executable(fcontext_test "${PROJECT_TEST_SRC_DIR}/fcontext_test.cpp")
-target_link_libraries(fcontext_test ${PROJECT_LIBCOPP_LIB_LINK})
-
-# ============ test - coroutine_context_split_segment_test ============
-if(COPP_MACRO_USE_SEGMENTED_STACKS_GCC)
-	add_executable(coroutine_context_split_segment "${PROJECT_TEST_SRC_DIR}/coroutine_context_split_segment.cpp")
-	target_link_libraries(coroutine_context_split_segment ${PROJECT_LIBCOPP_LIB_LINK})
-	EchoWithColor(COLOR GREEN "-- segmented stack enabled, add test - coroutine_context_split_segment_test.")
+# =========== find gtest ===========
+if (GTEST_FOUND)
+    EchoWithColor(COLOR GREEN "-- GTest Found: ${GTEST_LIBRARIES}")
+    add_definitions(-DCOPP_MACRO_TEST_ENABLE_GTEST=1)
+    include_directories(${GTEST_INCLUDE_DIRS})
+    set (PROJECT_LIBCOPP_TEST_LIB_LINK ${GTEST_LIBRARIES} pthread)
 endif()
 
-# ============ test - coroutine_context_safe_base_test ============
-add_executable(coroutine_context_safe_base_test "${PROJECT_TEST_SRC_DIR}/coroutine_context_safe_base_test.cpp")
-target_link_libraries(coroutine_context_safe_base_test ${PROJECT_LIBCOPP_LIB_LINK})
+include_directories(${PROJECT_TEST_INC_DIR})
 
-# ============ test - coroutine_manager_test ============
-add_executable(coroutine_manager_test "${PROJECT_TEST_SRC_DIR}/coroutine_manager_test.cpp")
-target_link_libraries(coroutine_manager_test ${PROJECT_LIBCOPP_LIB_LINK})
+file(GLOB_RECURSE COPP_TEST_SRC_LIST 
+    ${PROJECT_TEST_SRC_DIR}/*.h 
+    ${PROJECT_TEST_SRC_DIR}/*.hpp 
+    ${PROJECT_TEST_SRC_DIR}/*.c 
+    ${PROJECT_TEST_SRC_DIR}/*.cpp
+    ${PROJECT_TEST_SRC_DIR}/*.cc 
+    ${PROJECT_TEST_SRC_DIR}/*.cxx
+)
+source_group_by_dir(COPP_TEST_SRC_LIST)
+
+
+# ============ test - coroutine test frame ============
+add_executable(coroutine_test ${COPP_TEST_SRC_LIST})
+target_link_libraries(coroutine_test ${PROJECT_LIBCOPP_LIB_LINK} ${PROJECT_LIBCOPP_TEST_LIB_LINK})
 

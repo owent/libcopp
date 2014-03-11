@@ -5,6 +5,8 @@
 #include <libcopp/coroutine/coroutine_context_base.h>
 #include <libcopp/stack/allocator/stack_allocator_split_segment.h>
 
+#include "frame/test_macros.h"
+
 class test_split_segment_context : public copp::detail::coroutine_context_base
 {
 private:
@@ -23,39 +25,46 @@ class test_split_segment_foo_runner : public copp::coroutine_runnable_base
 {
 private:
     void stack_test(int loop) {
-        char a;
-        char b[1024 * 1024];
-        char c;
-        printf("addr rela: %lld, sizeof(b): %d\n", (long long) (&c) - (long long) (&a), (int) (sizeof(b)));
+        char a = 100;
+        char b[1024 * 1024] = {0};
+        char c = 200;
+        CASE_EXPECT_GT(&a, &c);
+        CASE_EXPECT_GT(&a, b);
+        end_addr_ = (intptr_t)(&c);
         if (loop > 0)
             stack_test(loop - 1);
     }
 
 public:
     int operator()() {
-        printf("enter %s.\n", __FUNCTION__);
+        int a = 0;
+        begin_addr_ = (intptr_t)(&a);
+        end_addr_ = begin_addr_;
 
         stack_test(4);
 
         get_coroutine_context<test_split_segment_context>()->yield();
 
         stack_test(20);
-        puts("co resumed.");
         return 0;
     }
+
+    intptr_t begin_addr_;
+    intptr_t end_addr_;
 };
 
-int main() {
-    puts("co create.");
-
+CASE_TEST(coroutine, context_split_segment_stack)
+{
     test_split_segment_context co;
     test_split_segment_foo_runner runner;
     co.create(&runner, 2 * 1024 * 1024);
     co.start();
 
-    puts("co yield.");
     co.resume();
 
-    puts("co done.");
-    return 0;
+    intptr_t dis = runner.end_addr_ > runner.begin_addr_?
+        runner.end_addr_ - runner.begin_addr_:
+        runner.begin_addr_ - runner.end_addr_;
+
+    CASE_EXPECT_GE(dis, 4 * 1024 * 1024);
 }
