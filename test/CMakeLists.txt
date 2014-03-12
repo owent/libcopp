@@ -35,3 +35,4 @@ source_group_by_dir(COPP_TEST_SRC_LIST)
 add_executable(coroutine_test ${COPP_TEST_SRC_LIST})
 target_link_libraries(coroutine_test ${PROJECT_LIBCOPP_LIB_LINK} ${PROJECT_LIBCOPP_TEST_LIB_LINK})
 
+add_test(test coroutine_test)

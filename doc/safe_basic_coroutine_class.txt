@@ -2,7 +2,7 @@ safe basic controller api:
 1. create
 2. start
 3. yield
-4. resume <=> 等同于start
+4. resume <=> 于start
 5. stop
  
 basic data structure:

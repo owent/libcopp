@@ -2,7 +2,7 @@ basic controller api:
 1. create
 2. start
 3. yield
-4. resume <=> µÈÍ¬ÓÚstart
+4. resume <=> start
  
 basic data structure:
 1. caller running stack information
