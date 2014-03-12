@@ -28,21 +28,21 @@ namespace copp {
 
         public:
             /**
-             * coroutine logic entrance
+             * @brief coroutine logic entrance
              * @note just like int main()
              * @return return code
              */
             virtual int operator()() = 0;
 
             /**
-             * get binded coroutine context
+             * @brief get binded coroutine context
              * @return
              */
             template<typename TCOCTX>
             TCOCTX* get_coroutine_context() { return dynamic_cast<TCOCTX*>(coroutine_context_); }
 
             /**
-             * get binded coroutine context
+             * @brief get binded coroutine context
              * @return
              */
             template<typename TCOCTX>

@@ -56,6 +56,10 @@ namespace copp {
             }
 
         public:
+            /**
+             * @brief get key of this coroutine node
+             * @return key
+             */
             inline key_type get_key() const { return key_; }
 
             bool operator<(const self_type& right) const {
@@ -63,6 +67,12 @@ namespace copp {
             }
 
             #if defined(COPP_MACRO_ENABLE_VARIADIC_TEMPLATE) && COPP_MACRO_ENABLE_VARIADIC_TEMPLATE
+            /**
+             * @brief create runner
+             * @param stack_size stack size of coroutine
+             * @param args... arguments passed to runner construct function
+             * @return ptr or NULL when failed
+             */
             template<typename TRunner, typename... TARGS>
             runner_ptr_type create_runner(std::size_t stack_size, TARGS... args) {
                 runner_ptr_type ret = new TRunner(args...);
@@ -71,6 +81,11 @@ namespace copp {
                 return ret;
             }
             #else
+            /**
+             * @brief create and bind runner
+             * @param stack_size stack size of coroutine
+             * @return runner ptr or NULL when failed
+             */
             template<typename TRunner>
             runner_ptr_type create_runner(std::size_t stack_size) {
                 runner_ptr_type ret = new TRunner();
@@ -78,6 +93,13 @@ namespace copp {
                 base_type::create(ret, stack_size);
                 return ret;
             }
+
+            /**
+             * @brief create and bind runner
+             * @param stack_size stack size of coroutine
+             * @param arg0 first argument passed to runner construct function
+             * @return runner ptr or NULL when failed
+             */
             template<typename TRunner, typename Arg0>
             runner_ptr_type create_runner(std::size_t stack_size, Arg0 arg0){
                 runner_ptr_type ret = new TRunner(arg0);
@@ -85,6 +107,13 @@ namespace copp {
                 base_type::create(ret, stack_size);
                 return ret;
             }
+            /**
+             * @brief create and bind runner
+             * @param stack_size stack size of coroutine
+             * @param arg0 first argument passed to runner construct function
+             * @param arg1 second argument passed to runner construct function
+             * @return runner ptr or NULL when failed
+             */
             template<typename TRunner, typename Arg0, typename Arg1>
             runner_ptr_type create_runner(std::size_t stack_size, Arg0 arg0, Arg1 arg1){
                 runner_ptr_type ret = new TRunner(arg0, arg1);
@@ -92,6 +121,14 @@ namespace copp {
                 base_type::create(ret, stack_size);
                 return ret;
             }
+            /**
+             * @brief create and bind runner
+             * @param stack_size stack size of coroutine
+             * @param arg0 first argument passed to runner construct function
+             * @param arg1 second argument passed to runner construct function
+             * @param arg2 third argument passed to runner construct function
+             * @return runner ptr or NULL when failed
+             */
             template<typename TRunner, typename Arg0, typename Arg1, typename Arg2>
             runner_ptr_type create_runner(std::size_t stack_size, Arg0 arg0, Arg1 arg1, Arg2 arg2){
                 runner_ptr_type ret = new TRunner(arg0, arg1, arg2);
@@ -106,7 +143,15 @@ namespace copp {
         };
 
         /**
-         * data layer adapter
+         * @brief data layer adapter
+         * @see copp::detail::standard_int_key_allocator
+         * @see copp::detail::coroutine_context_base
+         * @see copp::detail::coroutine_context_safe_base
+         * @see copp::allocator::stack_allocator_memory
+         * @see copp::allocator::stack_allocator_posix
+         * @see copp::allocator::stack_allocator_split_segment
+         * @see copp::allocator::stack_allocator_windows
+         * @note data node type is pointer of coroutine_manager_node
          */
         template <typename TKeyAlloc,
             typename TCOC = coroutine_context_safe_base,
@@ -129,7 +174,7 @@ namespace copp {
 
         public:
             /**
-             * insert coroutine node
+             * @brief insert coroutine node
              * @param key key
              * @param val_ptr node pointer
              * @return true if success
@@ -144,7 +189,7 @@ namespace copp {
             }
 
             /**
-             * find coroutine node by key
+             * @brief find coroutine node by key
              * @param key
              * @return NULL or pointer of coroutine node
              */
@@ -156,7 +201,7 @@ namespace copp {
             }
 
             /**
-             * find coroutine node by key
+             * @brief find coroutine node by key
              * @param key
              * @return NULL or pointer of coroutine node
              */
@@ -168,7 +213,7 @@ namespace copp {
             }
 
             /**
-             * remove coroutine node by key
+             * @brief remove coroutine node by key
              * @param key
              */
             void remove(key_type key) {
@@ -176,7 +221,7 @@ namespace copp {
             }
 
             /**
-             * get coroutine number
+             * @brief get coroutine number
              * @return coroutine number
              */
             std::size_t size() const {
@@ -187,6 +232,11 @@ namespace copp {
         };
     }
 
+    /**
+     * @brief coroutine manager
+     * @note container type like copp::detail::container_stl_map
+     * @see copp::detail::container_stl_map
+     */
     template<typename TContainer>
     class coroutine_mamanger {
     public:
@@ -200,6 +250,10 @@ namespace copp {
 
         coroutine_mamanger(){}
 
+        /**
+         * @brief create coroutine object
+         * @return pointer of coroutine object
+         */
         value_ptr_type create() {
             key_type key = key_allocator_.allocate();
             while (NULL != container_.find(key))
@@ -216,24 +270,47 @@ namespace copp {
             return ret;
         }
 
+        /**
+         * @brief remove coroutine object by key
+         * @param key
+         */
         void remove(key_type key) {
             container_.remove(key);
             key_allocator_.deallocate(key);
         }
 
+        /**
+         * @brief get coroutine object by key
+         * @param key
+         * @return coroutine object pointer or NULL when not exists
+         */
         value_ptr_type get_by_key(key_type key) {
             return container_.find(key);
         }
 
+        /**
+         * @brief get coroutine object by key
+         * @param key
+         * @return coroutine object pointer or NULL when not exists
+         */
         const value_ptr_type get_by_key(key_type key) const {
             return container_.find(key);
         }
 
+        /**
+         * @brief get coroutine number
+         * @return coroutine number
+         */
         std::size_t size() const {
             return container_.size();
         }
 
         // ============================================
+        /**
+         * @brief start coroutine by key
+         * @param key
+         * @return 0 or error code
+         */
         int start(key_type key) {
             value_ptr_type co = get_by_key(key);
             if (NULL == co)
@@ -241,6 +318,11 @@ namespace copp {
             return co->start();
         }
 
+        /**
+         * @brief resume coroutine by key
+         * @param key
+         * @return 0 or error code
+         */
         int resume(key_type key) {
             value_ptr_type co = get_by_key(key);
             if (NULL == co)

@@ -22,8 +22,12 @@ namespace copp {
             typedef TKey value_type;
 
         public:
-            static const value_type npos = 0;
+            static const value_type npos = 0; /** invalid key **/
 
+            /**
+             * @brief allocate a key
+             * @return key allocated
+             */
             value_type allocate(){
                 static value_type id_s = npos;
                 ++ id_s;
@@ -32,6 +36,10 @@ namespace copp {
                 return id_s;
             }
 
+            /**
+             * @brief deallocate a key
+             * @param key
+             */
             void deallocate(value_type key){
             }
         };

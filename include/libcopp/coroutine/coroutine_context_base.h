@@ -31,7 +31,7 @@
 namespace copp { 
     namespace detail{
         /**
-         * base type of all coroutine context
+         * @brief base type of all coroutine context
          */
         class coroutine_context_base
         {
@@ -56,7 +56,7 @@ namespace copp {
             virtual ~coroutine_context_base();
 
             /**
-             * create coroutine context at stack context callee_
+             * @brief create coroutine context at stack context callee_
              * @param runner runner
              * @param func fcontext callback
              * @return COPP_EC_SUCCESS or error code
@@ -64,32 +64,32 @@ namespace copp {
             virtual int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = &coroutine_context_base::coroutine_context_callback);
 
             /**
-             * start coroutine
+             * @brief start coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int start();
 
             /**
-             * yield coroutine
+             * @brief yield coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int yield();
 
             /**
-             * resume coroutine
+             * @brief resume coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int resume();
 
         protected:
             /**
-             * coroutine entrance function
+             * @brief coroutine entrance function
              */
             virtual void run();
 
         protected:
             /**
-             * set runner
+             * @brief set runner
              * @param runner
              * @return COPP_EC_SUCCESS or error code
              */
@@ -100,14 +100,14 @@ namespace copp {
 
         public:
             /**
-             * get runner return code
+             * @brief get runner return code
              * @return
              */
             inline int get_ret_code() const { return runner_ret_code_; }
 
         protected:
             /**
-             * call platform jump to asm instruction
+             * @brief call platform jump to asm instruction
              * @param from_fcontext from runtime
              * @param to_fcontext to runtime
              * @param from_stack from runtime stack
@@ -121,7 +121,7 @@ namespace copp {
                 intptr_t param, bool preserve_fpu);
 
             /**
-             * fcontext entrance function
+             * @brief fcontext entrance function
              * @param coro_ptr coroutine intptr
              */
             static void coroutine_context_callback(intptr_t coro_ptr);

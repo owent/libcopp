@@ -38,7 +38,7 @@ namespace copp {
             }
 
             /**
-             * get stack allocator
+             * @brief get stack allocator
              * @return stack allocator
              */
             inline const allocator_type& get_allocator() const {
@@ -46,7 +46,7 @@ namespace copp {
             }
 
             /**
-             * get stack allocator
+             * @brief get stack allocator
              * @return stack allocator
              */
             inline allocator_type& get_allocator() {
@@ -56,7 +56,7 @@ namespace copp {
 
         protected:
             /**
-             * deallocate stack context
+             * @brief deallocate stack context
              */
             void _reset_stack() {
                 if (NULL == callee_stack_.sp || 0 == callee_stack_.size)
@@ -67,7 +67,7 @@ namespace copp {
 
         public:
             /**
-             * create and init coroutine with specify runner and specify stack size
+             * @brief create and init coroutine with specify runner and specify stack size
              * @param runner runner
              * @param stack_size_ stack size
              * @param func fcontext callback(set NULL to use default callback)
@@ -79,7 +79,7 @@ namespace copp {
             }
 
             /**
-             * create and init coroutine with specify runner and default stack size
+             * @brief create and init coroutine with specify runner and default stack size
              * @param runner runner
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code

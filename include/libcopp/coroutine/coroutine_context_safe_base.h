@@ -17,7 +17,7 @@
 namespace copp {
     namespace detail{
         /**
-         * status of safe coroutine context base
+         * @brief status of safe coroutine context base
          */
         enum copp_coroutine_running_status
         {
@@ -45,7 +45,7 @@ namespace copp {
             virtual ~coroutine_context_safe_base();
 
             /**
-             * create coroutine context at stack context callee_
+             * @brief create coroutine context at stack context callee_
              * @param runner runner
              * @param func fcontext callback
              * @return COPP_EC_SUCCESS or error code
@@ -55,32 +55,32 @@ namespace copp {
             virtual int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = &coroutine_context_safe_base::coroutine_context_callback);
 
             /**
-             * safety start coroutine
+             * @brief safety start coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int start();
 
             /**
-             * safety yield coroutine
+             * @brief safety yield coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int yield();
 
             /**
-             * safety resume coroutine
+             * @brief safety resume coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int resume();
 
             /**
-             * safety stop coroutine
+             * @brief safety stop coroutine
              * @return COPP_EC_SUCCESS or error code
              */
             virtual int stop();
 
         protected:
             /**
-             * safety set runner
+             * @brief safety set runner
              * @param runner
              * @return COPP_EC_SUCCESS or error code
              */
@@ -89,7 +89,7 @@ namespace copp {
         private:
 
             /**
-             * safety fcontext entrance function
+             * @brief safety fcontext entrance function
              * @param coro_ptr coroutine intptr
              */
             static void coroutine_context_callback(intptr_t coro_ptr);
