@@ -8,6 +8,9 @@
 #include <map>
 #include <memory>
 
+#if !defined(COPP_MACRO_ENABLE_SMART_PTR) || (!COPP_MACRO_ENABLE_SMART_PTR)
+#include <libcopp/utils/std/smart_ptr.h>
+#endif
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/coroutine/coroutine_runnable_base.h>
@@ -165,7 +168,7 @@ namespace copp {
 #if defined(COPP_MACRO_ENABLE_SMART_PTR) && COPP_MACRO_ENABLE_SMART_PTR
             typedef std::unique_ptr<value_type> value_ptr_type_s;
 #else
-            typedef std::auto_ptr<value_type> value_ptr_type_s;
+            typedef std::shared_ptr<value_type> value_ptr_type_s;
 #endif
             typedef std::map<key_type, value_ptr_type_s> data_type;
             typedef data_type self_type;
