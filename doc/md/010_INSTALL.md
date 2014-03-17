@@ -39,7 +39,7 @@
 
 **4. run test** *[optional]*
 
-    bin/coroutine_test
+    test/coroutine_test
 
 **5. install** *[optional]*
 

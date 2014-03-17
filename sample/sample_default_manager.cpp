@@ -1,11 +1,13 @@
-# USAGE
+/*
+ * sample_default_manager.cpp
+ *
+ *  Created on: 2014年3月17日
+ *      Author: owent
+ *
+ *  Released under the MIT license
+ */
 
-> Just include headers and linking library file of your platform to use libcopp
 
-## Example
-There is a simple example of using coroutine manager below:
-
-```cpp
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
@@ -46,8 +48,4 @@ int main() {
     co_mgr.remove(pco->get_key()); // pco is invalid now.
     return 0;
 }
-
-```
-
-And then, you can custom many function such as set your id type, stack allocator, coroutine type and etc. by set your template parameters of coroutine manager.
 
