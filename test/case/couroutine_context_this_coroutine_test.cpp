@@ -1,4 +1,4 @@
-/*
+﻿/*
  * couroutine_context_this_coroutine_test.cpp
  *
  *  Created on: 2014年3月17日
@@ -7,7 +7,7 @@
  *  Released under the MIT license
  */
 
-#if defined(__cplusplus) && __cplusplus >= 201103L
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 
 #include <iostream>
 #include <cstdio>
@@ -66,7 +66,7 @@ private:
     static int max_thd_count;
 };
 
-std::atomic_int test_this_context_get_cotoutine_runner::cur_thd_count(0);
+std::atomic_int test_this_context_get_cotoutine_runner::cur_thd_count;
 int test_this_context_get_cotoutine_runner::max_thd_count = 0;
 
 void test_this_context_thread_func(copp::default_coroutine_manager& co_mgr,

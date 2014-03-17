@@ -1,4 +1,4 @@
-/**
+﻿/**
  *
  * @file smart_ptr.h
  * @brief 导入智能指针库
@@ -78,4 +78,3 @@
 #endif
 
 #endif
-

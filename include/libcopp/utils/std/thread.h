@@ -1,4 +1,4 @@
-/**
+﻿/**
 * @file thread.h
 * @brief 导入多线程特性支持兼容层
 * Licensed under the MIT licenses.
