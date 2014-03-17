@@ -127,6 +127,11 @@ namespace copp {
             static void coroutine_context_callback(intptr_t coro_ptr);
         };
     }
+
+    namespace this_coroutine {
+        detail::coroutine_context_base* get_cotoutine();
+        int yield();
+    }
 }
 
 #endif

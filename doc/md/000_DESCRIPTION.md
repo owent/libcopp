@@ -1,6 +1,6 @@
 libcopp
 =======
-> coroutine library in c++
+> cross-platform coroutine library of c++
 > 
 > in developing ...
 
