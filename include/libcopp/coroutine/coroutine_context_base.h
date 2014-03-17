@@ -95,10 +95,20 @@ namespace copp {
              */
             virtual int set_runner(coroutine_runnable_base* runner);
 
+        public:
+
+            /**
+             * get runner of this coroutine context
+             * @return NULL of pointer of runner
+             */
             inline coroutine_runnable_base* get_runner() { return runner_; }
+
+            /**
+             * get runner of this coroutine context (const)
+             * @return NULL of pointer of runner
+             */
             inline const coroutine_runnable_base* get_runner() const { return runner_; }
 
-        public:
             /**
              * @brief get runner return code
              * @return
@@ -129,7 +139,17 @@ namespace copp {
     }
 
     namespace this_coroutine {
-        detail::coroutine_context_base* get_cotoutine();
+        /**
+         * @brief get current coroutine
+         * @see detail::coroutine_context_base
+         * @return pointer of current coroutine, if not in coroutine, return NULL
+         */
+        detail::coroutine_context_base* get_coroutine();
+
+        /**
+         * @brief yield current coroutine
+         * @return 0 or error code
+         */
         int yield();
     }
 }

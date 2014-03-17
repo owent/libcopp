@@ -140,12 +140,12 @@ namespace copp {
     }
 
     namespace this_coroutine {
-        detail::coroutine_context_base* get_cotoutine() {
+        detail::coroutine_context_base* get_coroutine() {
             return detail::gt_current_coroutine;
         }
 
         int yield() {
-            detail::coroutine_context_base* pco = get_cotoutine();
+            detail::coroutine_context_base* pco = get_coroutine();
             if (NULL != pco)
                 return pco->yield();
 

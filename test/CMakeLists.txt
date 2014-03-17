@@ -10,7 +10,7 @@ if (GTEST_FOUND)
     EchoWithColor(COLOR GREEN "-- GTest Found: ${GTEST_LIBRARIES}")
 	if ( NOT MSVC )
         add_definitions(-DCOPP_MACRO_TEST_ENABLE_GTEST=1)
-		set (PROJECT_LIBCOPP_TEST_LIB_LINK ${GTEST_LIBRARIES} pthread)
+		set (PROJECT_LIBCOPP_TEST_LIB_LINK ${GTEST_LIBRARIES})
 	else()
 	    add_definitions(/D COPP_MACRO_TEST_ENABLE_GTEST=1)
 		set (PROJECT_LIBCOPP_TEST_LIB_LINK ${GTEST_LIBRARIES})
@@ -30,6 +30,12 @@ file(GLOB_RECURSE COPP_TEST_SRC_LIST
 )
 source_group_by_dir(COPP_TEST_SRC_LIST)
 
+
+# ================ multi thread ================
+if ( NOT MSVC )
+    add_definitions(-D_POSIX_MT_)
+    set (PROJECT_LIBCOPP_TEST_LIB_LINK ${PROJECT_LIBCOPP_TEST_LIB_LINK} pthread)
+endif()
 
 # ============ test - coroutine test frame ============
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/test")

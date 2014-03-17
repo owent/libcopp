@@ -18,6 +18,4 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     
     add_executable("${SAMPLE_SRC_BIN_NAME}" ${SAMPLE_SRC_FILE})
     target_link_libraries("${SAMPLE_SRC_BIN_NAME}" ${PROJECT_LIBCOPP_LIB_LINK})
-    
-    EchoWithColor(COLOR RED "=========== ${SAMPLE_SRC_FILE} -- ${SAMPLE_SRC_BIN_NAME}")
 endforeach()
