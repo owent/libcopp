@@ -26,7 +26,10 @@
  * @note 不支持 C++ Builder 编译器
  */
 
-#if defined(__cplusplus) && __cplusplus >= 201103L
+
+#if defined(__clang__)
+    #define THREAD_TLS __thread
+#elif defined(__cplusplus) && __cplusplus >= 201103L
     #define THREAD_TLS thread_local
 // VC 2003
 #elif defined(_MSC_VER) && (_MSC_VER >= 1300)
