@@ -103,6 +103,10 @@
     #endif
 #endif
 
+
+#if defined(_POSIX_MT_) || defined(_MSC_VER)
+    #define COPP_MACRO_ENABLE_MULTI_THREAD
+#endif
 // ---------------- function flags ----------------
 
 #include "errno.h"

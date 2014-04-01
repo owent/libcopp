@@ -26,7 +26,8 @@ namespace copp {
         static THREAD_TLS coroutine_context_base* gt_current_coroutine = NULL;
 
         coroutine_context_base::coroutine_context_base() :
-            runner_ret_code_(0), runner_(NULL), caller_(), callee_(NULL),
+            runner_ret_code_(0), runner_(NULL), is_finished_(false),
+            caller_(), callee_(NULL),
                 preserve_fpu_(true), callee_stack_()
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
                 , caller_stack_()
@@ -131,8 +132,12 @@ namespace copp {
             intptr_t coro_ptr) {
             coroutine_context_base* ins_ptr = (coroutine_context_base*) coro_ptr;
 
+            ins_ptr->is_finished_ = false;
+
             // run logic code
             ins_ptr->run();
+
+            ins_ptr->is_finished_ = true;
 
             // jump back to caller
             ins_ptr->yield();

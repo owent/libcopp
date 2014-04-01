@@ -58,3 +58,8 @@ task_manager_with_timer<task_manager_normal<spin_lock>, co_task_time_allocator>:
 -- cancel(co_task_wrapper<>*)
 -- recycle
 -* expire_event_list
+
+############# logic controller #############
+then
+wait_any
+wait_all

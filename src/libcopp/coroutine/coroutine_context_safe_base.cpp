@@ -151,9 +151,13 @@ namespace copp {
             coroutine_context_safe_base* ins_ptr = (coroutine_context_safe_base*) coro_ptr;
 
             ins_ptr->status_running_ = EN_CRS_RUNNING;
+            ins_ptr->is_finished_ = false;
+
             // run logic code
             ins_ptr->run();
+
             ins_ptr->status_running_ = EN_CRS_FINISHED;
+            ins_ptr->is_finished_ = true;
 
             // directly jump back to caller, do not check running status
             ins_ptr->yield();

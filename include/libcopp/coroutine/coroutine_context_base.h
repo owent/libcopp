@@ -40,6 +40,9 @@ namespace copp {
             coroutine_runnable_base* runner_; /** coroutine runner **/
 
         protected:
+            bool is_finished_; /** is coroutine finished **/
+
+        protected:
             fcontext::fcontext_t caller_; /** caller runtime context **/
             fcontext::fcontext_t* callee_; /** callee runtime context **/
 
@@ -114,6 +117,12 @@ namespace copp {
              * @return
              */
             inline int get_ret_code() const { return runner_ret_code_; }
+
+            /**
+             * @brief get runner return code
+             * @return true if coroutine has run and finished
+             */
+            inline bool is_finished() const { return is_finished_; }
 
         protected:
             /**
