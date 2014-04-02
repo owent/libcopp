@@ -1,4 +1,4 @@
-/*
+﻿/*
  * non_copyable.h
  *
  *  Created on: 2014年4月2日

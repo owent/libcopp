@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 	$max_param_number = 10;
 	
 function gen_template_params_comment($param_num, $prefix_indent = '', $prefix_msg = '') {

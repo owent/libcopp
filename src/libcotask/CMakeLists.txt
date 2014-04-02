@@ -16,7 +16,7 @@ if( ${SRC_LIST_LENGTH} GREATER 0 )
 endif()
 
 # ========== build library ==========
-source_group_by_dir(COPP_SRC_LIST)
+source_group_by_dir(COTASK_SRC_LIST)
 
 add_library(${PROJECT_LIBCOTASK_LIB_LINK} ${COTASK_SRC_LIST})
 

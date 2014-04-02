@@ -1,4 +1,4 @@
-/**
+﻿/**
  * standard_new_allocator.h
  *
  *  Created on: 2014年4月1日

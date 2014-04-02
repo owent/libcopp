@@ -1,4 +1,4 @@
-/*
+﻿/*
  * id_allocator_impl.h
  *
  *  Created on: 2014年4月1日

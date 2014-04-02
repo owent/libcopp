@@ -17,5 +17,7 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     get_filename_component(SAMPLE_SRC_BIN_NAME "${SAMPLE_SRC_FILE}" NAME_WE)
     
     add_executable("${SAMPLE_SRC_BIN_NAME}" ${SAMPLE_SRC_FILE})
-    target_link_libraries("${SAMPLE_SRC_BIN_NAME}" ${PROJECT_LIBCOPP_LIB_LINK})
+    target_link_libraries("${SAMPLE_SRC_BIN_NAME}" 
+	    ${PROJECT_LIBCOTASK_LIB_LINK} 
+		${PROJECT_LIBCOPP_LIB_LINK})
 endforeach()
