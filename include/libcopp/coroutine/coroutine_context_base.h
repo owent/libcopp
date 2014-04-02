@@ -9,6 +9,7 @@
 #include <cstddef>
 
 #include <libcopp/utils/features.h>
+#include <libcopp/utils/non_copyable.h>
 #include <libcopp/fcontext/all.hpp>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/coroutine/coroutine_runnable_base.h>
@@ -33,7 +34,7 @@ namespace copp {
         /**
          * @brief base type of all coroutine context
          */
-        class coroutine_context_base
+        class coroutine_context_base : utils::non_copyable
         {
         private:
             int runner_ret_code_; /** coroutine return code **/
@@ -57,6 +58,8 @@ namespace copp {
 
             coroutine_context_base();
             virtual ~coroutine_context_base();
+
+        public:
 
             /**
              * @brief create coroutine context at stack context callee_

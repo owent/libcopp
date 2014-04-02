@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <assert.h>
 #include <cstring>
 
@@ -28,7 +29,7 @@ namespace copp {
         coroutine_context_base::coroutine_context_base() :
             runner_ret_code_(0), runner_(NULL), is_finished_(false),
             caller_(), callee_(NULL),
-                preserve_fpu_(true), callee_stack_()
+            preserve_fpu_(true), callee_stack_()
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
                 , caller_stack_()
 #endif
@@ -101,7 +102,7 @@ namespace copp {
 
         int coroutine_context_base::set_runner(
             coroutine_runnable_base* runner) {
-            if (NULL != runner_) {
+            if (NULL != runner_ && this == runner_->coroutine_context_) {
                 runner_->coroutine_context_ = NULL;
             }
 

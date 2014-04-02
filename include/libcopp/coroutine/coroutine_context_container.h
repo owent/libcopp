@@ -90,6 +90,9 @@ namespace copp {
             }
 
         private:
+            coroutine_context_container(const coroutine_context_container&);
+
+        private:
             allocator_type alloc_; /** stack allocator **/
         };
     }

@@ -11,6 +11,7 @@
 #define TEST_MACROS_H_
 
 #include <iostream>
+#include <sstream>
 #include <cstdio>
 
 #ifdef COPP_MACRO_TEST_ENABLE_GTEST
@@ -35,8 +36,8 @@
 #define test_case_obj_name(test_name, case_name) test_obj_test_##test_name##_case_##case_name##_obj
 
 #define CASE_TEST(test_name, case_name) \
-void test_case_func_name(test_name, case_name) (); \
-test_case_base test_case_obj_name(test_name, case_name) (#test_name, #case_name, test_case_func_name(test_name, case_name)); \
+static void test_case_func_name(test_name, case_name) (); \
+static test_case_base test_case_obj_name(test_name, case_name) (#test_name, #case_name, test_case_func_name(test_name, case_name)); \
 void test_case_func_name(test_name, case_name) ()
 
 
@@ -52,7 +53,7 @@ void test_case_func_name(test_name, case_name) ()
 
 #define CASE_EXPECT_TRUE(c) CASE_EXPECT_EXPR(c)
 #define CASE_EXPECT_FALSE(c) CASE_EXPECT_EXPR(!(c))
-#define CASE_EXPECT_EQ(l, r)  CASE_EXPECT_EXPR((l) == (r))
+#define CASE_EXPECT_EQ(l, r) CASE_EXPECT_EXPR((l) == (r))
 #define CASE_EXPECT_NE(l, r) CASE_EXPECT_EXPR((l) != (r))
 #define CASE_EXPECT_LT(l, r) CASE_EXPECT_EXPR((l) < (r))
 #define CASE_EXPECT_LE(l, r) CASE_EXPECT_EXPR((l) <= (r))

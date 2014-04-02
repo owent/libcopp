@@ -69,7 +69,7 @@ private:
 std::atomic_int test_this_context_get_cotoutine_runner::cur_thd_count;
 int test_this_context_get_cotoutine_runner::max_thd_count = 0;
 
-void test_this_context_thread_func(copp::default_coroutine_manager& co_mgr,
+static void test_this_context_thread_func(copp::default_coroutine_manager& co_mgr,
     copp::default_coroutine_manager::value_ptr_type co) {
 
     test_this_context_get_cotoutine_runner* runner = dynamic_cast<test_this_context_get_cotoutine_runner*>(co->get_runner());

@@ -10,7 +10,7 @@ typedef copp::detail::coroutine_context_container<
     copp::allocator::default_statck_allocator
     > test_context_safe_base_context_type;
 
-int g_test_coroutine_safe_base_status = 0;
+static int g_test_coroutine_safe_base_status = 0;
 
 class test_context_safe_base_foo_runner : public copp::coroutine_runnable_base
 {

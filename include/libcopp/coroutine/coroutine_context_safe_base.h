@@ -38,12 +38,11 @@ namespace copp {
             utils::spin_lock status_busy_; /** used in operation atom operation(not really lock) **/
             int status_running_; /** status **/
 
-
-
         public:
             coroutine_context_safe_base();
             virtual ~coroutine_context_safe_base();
 
+        public:
             /**
              * @brief create coroutine context at stack context callee_
              * @param runner runner

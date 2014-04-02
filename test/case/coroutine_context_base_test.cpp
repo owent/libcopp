@@ -11,7 +11,7 @@ typedef copp::detail::coroutine_context_container<
     copp::allocator::stack_allocator_memory
 > test_context_base_coroutine_context_test_type;
 
-int g_test_coroutine_base_status = 0;
+static int g_test_coroutine_base_status = 0;
 
 class test_context_base_foo_runner : public copp::coroutine_runnable_base
 {

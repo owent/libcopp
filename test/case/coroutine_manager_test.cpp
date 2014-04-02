@@ -5,7 +5,7 @@
 #include <libcopp/coroutine/coroutine_manager.h>
 #include "frame/test_macros.h"
 
-int g_test_coroutine_manager_status = 0;
+static int g_test_coroutine_manager_status = 0;
 class test_context_manager_runner1 : public copp::coroutine_manager_runner_base
 {
 public:
