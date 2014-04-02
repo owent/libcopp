@@ -1,15 +1,10 @@
 
 
-EchoWithColor(COLOR GREEN "-- Configure libcopp")
+EchoWithColor(COLOR GREEN "-- Configure libraries")
 
-# ========== build library ==========
-source_group_by_dir(COPP_SRC_LIST)
+add_subdirectory("${PROJECT_ROOT_SRC_DIR}/libcopp")
 
-add_library(${PROJECT_LIBCOPP_LIB_LINK} ${COPP_SRC_LIST})
-
-install(TARGETS ${PROJECT_LIBCOPP_LIB_LINK}
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib${PLATFORM_SUFFIX}
-    ARCHIVE DESTINATION lib${PLATFORM_SUFFIX}
-)
-
+# ========= libcotask =========  
+if (LIBCOTASK_ENABLE)
+    add_subdirectory("${PROJECT_ROOT_SRC_DIR}/libcotask")
+endif()

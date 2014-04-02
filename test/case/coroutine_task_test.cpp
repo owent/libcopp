@@ -1,3 +1,5 @@
+#ifdef COTASK_MACRO_ENABLED
+
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -183,3 +185,6 @@ CASE_TEST(coroutine_task, coroutine_context_yield)
     ++ g_test_coroutine_task_status;
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 }
+
+#endif
+

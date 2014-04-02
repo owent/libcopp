@@ -1,12 +1,9 @@
 # =========== libcopp/src =========== 
-set (PROJECT_LIBCOPP_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-set (PROJECT_LIBCOPP_LIB_LINK copp)
+set (PROJECT_ROOT_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
-# ========== filter sources files ==========
-file(GLOB_RECURSE COPP_SRC_LIST
-    RELATIVE "${PROJECT_LIBCOPP_SRC_DIR}" 
-    ${PROJECT_LIBCOPP_INC_DIR}/*.h 
-    ${PROJECT_LIBCOPP_INC_DIR}/*.hpp
-)
+include("${PROJECT_ROOT_SRC_DIR}/libcopp/libcopp.lib.cmake")
 
-include_macro_recurse(FILTER "*.src.filter.cmake" "${PROJECT_LIBCOPP_SRC_DIR}")
+# ========= libcotask =========  
+if (LIBCOTASK_ENABLE)
+    include("${PROJECT_ROOT_SRC_DIR}/libcotask/libcotask.lib.cmake")
+endif()

@@ -77,3 +77,15 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${ALL_FLAGS_IN
 set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} ${ALL_FLAGS_IN_ONE_MINSIZEREL} ${C_FLAGS_IN_ONE_COMMON}")
 
 # 库文件的附加参数 -fPIC, 多线程附加参数 -pthread -D_POSIX_MT_
+
+
+# 功能函数
+macro(add_compiler_define)
+	foreach(def ${ARGV})
+    	if ( NOT MSVC )
+            add_definitions(-D${def})
+        else()
+            add_definitions("/D ${def}")
+        endif()
+	endforeach()
+endmacro(add_compiler_define)

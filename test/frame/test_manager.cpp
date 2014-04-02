@@ -76,12 +76,12 @@ int test_manager::run() {
         std::endl;
 
     std::cout<< shell_font::GenerateString("[  PASSED  ] ", SHELL_FONT_COLOR_GREEN)<<
-        success_<< " test(s)."<<
+        success_<< " test case(s)."<<
         std::endl;
 
     if (failed_ > 0) {
         std::cout<< shell_font::GenerateString("[  FAILED  ] ", SHELL_FONT_COLOR_RED)<<
-            failed_<< " test(s), listed below:"<<
+            failed_<< " test case(s), listed below:"<<
             std::endl;
 
         for(test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++ iter) {
