@@ -8,3 +8,5 @@ option(LIBCOTASK_ENABLE "Enable libcotask." ON)
 
 # 测试配置选项
 set(GTEST_ROOT "" CACHE STRING "GTest root directory")
+set(BOOST_ROOT "" CACHE STRING "Boost root directory")
+option(LIBCOPP_TEST_ENABLE_BOOST_UNIT_TEST "Enable boost unit test." OFF)

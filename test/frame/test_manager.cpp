@@ -26,6 +26,35 @@ void test_manager::append(const std::string& test_name, const std::string& case_
     tests_[test_name].push_back(std::make_pair(case_name, ptr));
 }
 
+#ifdef COPP_MACRO_TEST_ENABLE_BOOST_TEST
+
+boost::unit_test::test_suite*& test_manager::test_suit() {
+    static boost::unit_test::test_suite* ret = NULL;
+    return ret;
+}
+
+int test_manager::run() {
+    using namespace boost::unit_test;
+
+    for(test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++ iter) {
+        test_suit() = BOOST_TEST_SUITE(iter->first.c_str());
+
+        for (test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++ iter2){
+            test_suit()->add(make_test_case(
+                callback0<>(iter2->second->func_),
+                iter2->first.c_str()
+            ));
+            iter2->second->run();
+        }
+
+        framework::master_test_suite().add(test_suit());
+    }
+
+    return 0;
+}
+
+#else
+
 int test_manager::run() {
     success_ = 0;
     failed_ = 0;
@@ -97,6 +126,8 @@ int test_manager::run() {
 
     return (0 == failed_)? 0: -failed_;
 }
+
+#endif
 
 test_manager& test_manager::me() {
     static test_manager ret;

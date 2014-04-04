@@ -40,6 +40,11 @@ public:
     int* failed_counter_ptr;
 
     static std::string get_expire_time(clock_t begin, clock_t end);
+
+#ifdef COPP_MACRO_TEST_ENABLE_BOOST_TEST
+    static boost::unit_test::test_suite*& test_suit();
+#endif
+
 private:
     test_data_type tests_;
     int success_;

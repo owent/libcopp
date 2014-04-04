@@ -41,24 +41,37 @@ static test_case_base test_case_obj_name(test_name, case_name) (#test_name, #cas
 void test_case_func_name(test_name, case_name) ()
 
 
-#define CASE_EXPECT_EXPR(expr) \
-    if(expr){ \
-        ++(*test_manager::me().success_counter_ptr); \
-    } else { \
-        ++(*test_manager::me().failed_counter_ptr);\
-        printf(shell_font::GenerateString("FAILED => %s:%d\nExpected: %s\n", SHELL_FONT_COLOR_RED).c_str(),\
-            __FILE__, __LINE__, \
-            #expr); \
-    }
+#ifdef COPP_MACRO_TEST_ENABLE_BOOST_TEST
+    #define CASE_EXPECT_TRUE(c)  BOOST_CHECK(c)
+    #define CASE_EXPECT_FALSE(c) BOOST_CHECK(!(c))
+    #define CASE_EXPECT_EQ(l, r) BOOST_CHECK_EQUAL(l, r)
+    #define CASE_EXPECT_NE(l, r) BOOST_CHECK_NE(l, r)
+    #define CASE_EXPECT_LT(l, r) BOOST_CHECK_LT(l, r)
+    #define CASE_EXPECT_LE(l, r) BOOST_CHECK_LE(l, r)
+    #define CASE_EXPECT_GT(l, r) BOOST_CHECK_GT(l, r)
+    #define CASE_EXPECT_GE(l, r) BOOST_CHECK_GE(l, r)
 
-#define CASE_EXPECT_TRUE(c) CASE_EXPECT_EXPR(c)
-#define CASE_EXPECT_FALSE(c) CASE_EXPECT_EXPR(!(c))
-#define CASE_EXPECT_EQ(l, r) CASE_EXPECT_EXPR((l) == (r))
-#define CASE_EXPECT_NE(l, r) CASE_EXPECT_EXPR((l) != (r))
-#define CASE_EXPECT_LT(l, r) CASE_EXPECT_EXPR((l) < (r))
-#define CASE_EXPECT_LE(l, r) CASE_EXPECT_EXPR((l) <= (r))
-#define CASE_EXPECT_GT(l, r) CASE_EXPECT_EXPR((l) > (r))
-#define CASE_EXPECT_GE(l, r) CASE_EXPECT_EXPR((l) >= (r))
+#else
+    #define CASE_EXPECT_EXPR(expr) \
+        if(expr){ \
+            ++(*test_manager::me().success_counter_ptr); \
+        } else { \
+            ++(*test_manager::me().failed_counter_ptr);\
+            printf(shell_font::GenerateString("FAILED => %s:%d\nExpected: %s\n", SHELL_FONT_COLOR_RED).c_str(),\
+                __FILE__, __LINE__, \
+                #expr); \
+        }
+
+    #define CASE_EXPECT_TRUE(c) CASE_EXPECT_EXPR(c)
+    #define CASE_EXPECT_FALSE(c) CASE_EXPECT_EXPR(!(c))
+    #define CASE_EXPECT_EQ(l, r) CASE_EXPECT_EXPR((l) == (r))
+    #define CASE_EXPECT_NE(l, r) CASE_EXPECT_EXPR((l) != (r))
+    #define CASE_EXPECT_LT(l, r) CASE_EXPECT_EXPR((l) < (r))
+    #define CASE_EXPECT_LE(l, r) CASE_EXPECT_EXPR((l) <= (r))
+    #define CASE_EXPECT_GT(l, r) CASE_EXPECT_EXPR((l) > (r))
+    #define CASE_EXPECT_GE(l, r) CASE_EXPECT_EXPR((l) >= (r))
+
+#endif
 
 #endif
 
