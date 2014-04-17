@@ -9,6 +9,7 @@
 
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 
+#include <assert.h>
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -21,23 +22,22 @@
 #include <functional>
 #include <vector>
 
-#include <libcopp/coroutine/coroutine_manager.h>
+#include <libcopp/coroutine/coroutine_context_container.h>
 #include "frame/test_macros.h"
 
-class test_this_context_get_cotoutine_runner : public copp::coroutine_manager_runner_base
+class test_this_context_get_cotoutine_runner : public copp::coroutine_runnable_base
 {
 public:
-    typedef copp::default_coroutine_manager::key_type key_type;
-    typedef copp::default_coroutine_manager::value_type value_type;
-    typedef copp::default_coroutine_manager::value_ptr_type value_ptr_type;
+    typedef copp::coroutine_context_default value_type;
+    typedef value_type* value_ptr_type;
 
 public:
-    test_this_context_get_cotoutine_runner(): my_key_(0), run_(false) {}
+    test_this_context_get_cotoutine_runner(): addr_(NULL), run_(false) {}
     int operator()() {
         ++ cur_thd_count;
 
         value_ptr_type this_co = dynamic_cast<value_ptr_type>(copp::this_coroutine::get_coroutine());
-        CASE_EXPECT_EQ(this_co->get_key(), my_key_);
+        CASE_EXPECT_EQ(addr_, this_co);
         run_ = true;
 
         std::chrono::milliseconds dura( 4 );
@@ -49,8 +49,8 @@ public:
         return 0;
     }
 
-    void set_key(key_type key) {
-        my_key_ = key;
+    void set_co_obj(value_ptr_type addr) {
+        addr_ = addr;
     }
     bool is_run() {
         return run_;
@@ -60,7 +60,7 @@ public:
         return max_thd_count;
     }
 private:
-    key_type my_key_;
+    value_ptr_type addr_;
     bool run_;
     static std::atomic_int cur_thd_count;
     static int max_thd_count;
@@ -69,34 +69,30 @@ private:
 std::atomic_int test_this_context_get_cotoutine_runner::cur_thd_count;
 int test_this_context_get_cotoutine_runner::max_thd_count = 0;
 
-static void test_this_context_thread_func(copp::default_coroutine_manager& co_mgr,
-    copp::default_coroutine_manager::value_ptr_type co) {
+static void test_this_context_thread_func(copp::coroutine_context_default& co) {
 
-    test_this_context_get_cotoutine_runner* runner = dynamic_cast<test_this_context_get_cotoutine_runner*>(co->get_runner());
-    runner->set_key(co->get_key());
+    test_this_context_get_cotoutine_runner* runner = dynamic_cast<test_this_context_get_cotoutine_runner*>(co.get_runner());
+    runner->set_co_obj(&co);
 
     CASE_EXPECT_FALSE(runner->is_run());
 
-    co_mgr.start(co->get_key());
+    co.start();
 
     CASE_EXPECT_TRUE(runner->is_run());
 }
 
 CASE_TEST(this_context, get_coroutine) {
-    typedef copp::default_coroutine_manager::value_type co_type;
-    copp::default_coroutine_manager co_mgr;
+    typedef copp::coroutine_context_default co_type;
 
     std::vector<std::thread> th_pool;
 
-    co_type* pco_arr[5] = { NULL };
-    for(co_type*& pco: pco_arr) {
-        pco = co_mgr.create();
-        pco->create_runner<test_this_context_get_cotoutine_runner>(32 * 1024);
+    co_type co_arr[5];
+    for(co_type& co: co_arr) {
+        co.create(new test_this_context_get_cotoutine_runner(), 32 * 1024);
 
         th_pool.push_back(std::thread(std::bind(
             test_this_context_thread_func,
-            std::ref(co_mgr),
-            pco
+            std::ref(co)
         )));
     }
 
@@ -105,15 +101,19 @@ CASE_TEST(this_context, get_coroutine) {
     }
 
     CASE_EXPECT_LT(1, test_this_context_get_cotoutine_runner::get_max_thd_count());
+
+    for(co_type& co: co_arr) {
+        assert(co.get_runner());
+        delete dynamic_cast<test_this_context_get_cotoutine_runner*>(co.get_runner());
+    }
 }
 
 
-class test_this_context_yield_runner : public copp::coroutine_manager_runner_base
+class test_this_context_yield_runner : public copp::coroutine_runnable_base
 {
 public:
-    typedef copp::default_coroutine_manager::key_type key_type;
-    typedef copp::default_coroutine_manager::value_type value_type;
-    typedef copp::default_coroutine_manager::value_ptr_type value_ptr_type;
+    typedef copp::coroutine_context_default value_type;
+    typedef value_type* value_ptr_type;
 
 public:
     test_this_context_yield_runner(): run_(false), finished_(false) {}
@@ -138,17 +138,19 @@ private:
 };
 
 CASE_TEST(this_context, yield) {
-    typedef copp::default_coroutine_manager::value_type co_type;
-    copp::default_coroutine_manager co_mgr;
+    typedef copp::coroutine_context_default co_type;
 
-    co_type* pco = co_mgr.create();
-    pco->create_runner<test_this_context_yield_runner>(32 * 1024);
+    co_type co;
+    co.create(new test_this_context_yield_runner(), 32 * 1024);
 
-    co_mgr.start(pco->get_key());
+    co.start();
 
-    test_this_context_yield_runner* runner = dynamic_cast<test_this_context_yield_runner*>(pco->get_runner());
+    test_this_context_yield_runner* runner = dynamic_cast<test_this_context_yield_runner*>(co.get_runner());
     CASE_EXPECT_TRUE(runner->is_run());
     CASE_EXPECT_FALSE(runner->is_finished());
+
+    assert(co.get_runner());
+    delete runner;
 }
 
 

@@ -24,7 +24,7 @@ namespace copp {
 
         protected:
             coroutine_runnable_base();
-            virtual ~coroutine_runnable_base() = 0;
+            virtual ~coroutine_runnable_base();
 
         public:
             /**

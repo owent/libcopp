@@ -12,7 +12,7 @@ namespace copp {
 
         coroutine_runnable_base::~coroutine_runnable_base()
         {
-            if (NULL != coroutine_context_)
+            if (NULL != coroutine_context_ && this == coroutine_context_->runner_)
                 coroutine_context_->runner_ = NULL;
         }
     }
