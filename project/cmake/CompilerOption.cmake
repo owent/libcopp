@@ -20,8 +20,11 @@ set(CXX_FLAGS_IN_ONE_COMMON "")
 # 编译器选项 (仅做了GCC、VC和Clang兼容)
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_definitions(-Wall -Werror -rdynamic)
-        # -DSEED_WITH_BOOST_HPP -DSEED_ENABLE_BOOST_FOREACH -DSEED_ENABLE_BOOST_STATIC_ASSERT)
 
+	# gcc 4.9 编译输出颜色支持
+        if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.9.0" )
+                add_definitions(-fdiagnostics-color=auto)
+        endif()
         # 检测GCC版本大于等于4.8时，默认-Wno-unused-local-typedefs (普片用于type_traits，故而关闭该警告)
         if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.8.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.8.0" )
                 add_definitions(-Wno-unused-local-typedefs)
@@ -77,7 +80,6 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${ALL_FLAGS_IN
 set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} ${ALL_FLAGS_IN_ONE_MINSIZEREL} ${C_FLAGS_IN_ONE_COMMON}")
 
 # 库文件的附加参数 -fPIC, 多线程附加参数 -pthread -D_POSIX_MT_
-
 
 # 功能函数
 macro(add_compiler_define)
