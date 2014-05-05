@@ -29,8 +29,7 @@ private:
         char a = 100;
         char b[1024 * 1024] = {0};
         char c = 200;
-        CASE_EXPECT_GT(&a, &c);
-        CASE_EXPECT_GT(&a, b);
+        CASE_EXPECT_TRUE((&a > &c) == (&a > b));
         end_addr_ = (intptr_t)(&c);
         if (loop > 0)
             stack_test(loop - 1);
