@@ -13,6 +13,7 @@
 #include <libcotask/impl/task_action_impl.h>
 
 namespace cotask {
+    // functor
     template<typename Ty>
     class task_action_functor: public impl::task_action_impl
     {
@@ -30,6 +31,7 @@ namespace cotask {
         value_type functor_;
     };
 
+    // function
     template<typename Ty>
     class task_action_function: public impl::task_action_impl
     {
@@ -62,6 +64,44 @@ namespace cotask {
         }
 
     private:
+        value_type func_;
+    };
+
+    // mem function
+    template<typename Ty, typename Tc>
+    class task_action_mem_function: public impl::task_action_impl
+    {
+    public:
+        typedef Ty Tc::* value_type;
+
+    public:
+        task_action_mem_function(value_type func, Tc* inst): instacne_(inst), func_(func){}
+
+        virtual int operator()() {
+            (instacne_->*func_)();
+            return 0;
+        }
+
+    private:
+        Tc* instacne_;
+        value_type func_;
+    };
+
+    template<typename Tc>
+    class task_action_mem_function<int, Tc>: public impl::task_action_impl
+    {
+    public:
+        typedef int Tc::* value_type;
+
+    public:
+        task_action_mem_function(value_type func, Tc* inst): instacne_(inst), func_(func){}
+
+        virtual int operator()() {
+            return (instacne_->*func_)();
+        }
+
+    private:
+        Tc* instacne_;
         value_type func_;
     };
 }

@@ -10,6 +10,9 @@
 #ifndef _COTASK_IMPL_TASK_IMPL_H_
 #define _COTASK_IMPL_TASK_IMPL_H_
 
+#include <libcopp/utils/std/smart_ptr.h>
+
+#include <libcotask/task_actions.h>
 
 namespace cotask {
     enum EN_TASK_STATUS
@@ -25,10 +28,12 @@ namespace cotask {
 
     namespace impl {
 
-        class task_action_impl;
-
-        class task_impl
+        class task_impl: public std::enable_shared_from_this<task_impl>
         {
+        public:
+            typedef std::shared_ptr<task_impl> ptr_t;
+            typedef std::shared_ptr<task_action_impl> action_ptr_t;
+
         private:
             task_impl(const task_impl&);
 
@@ -50,18 +55,18 @@ namespace cotask {
             virtual int kill() = 0;
             virtual int on_finished();
 
-            static task_impl* this_task();
+            static ptr_t this_task();
 
         protected:
-            void _set_action(task_action_impl* action);
-            impl::task_action_impl* _get_action();
+            void _set_action(action_ptr_t action);
+            action_ptr_t _get_action();
 
             inline void _set_status(EN_TASK_STATUS status) { status_ = status; }
 
-            static task_impl* _set_active_task(task_impl*);
+            static ptr_t _set_active_task(ptr_t);
 
         private:
-            impl::task_action_impl* action_;
+            action_ptr_t action_;
             EN_TASK_STATUS status_;
         };
     }

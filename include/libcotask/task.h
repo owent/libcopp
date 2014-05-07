@@ -13,101 +13,154 @@
 #include <stdint.h>
 #include <algorithm>
 
-#include <libcopp/utils/errno.h>
-#include <libcopp/utils/features.h>
-#include <libcopp/coroutine/coroutine_context_container.h>
-#include <libcotask/core/standard_new_allocator.h>
-
-#include <libcotask/task_actions.h>
-#include <libcotask/impl/task_impl.h>
+#include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
 
 namespace cotask {
 
-    template<typename TID = uint64_t,
-        typename ALLOC = core::standard_new_allocator,
-        typename TCO_CONTAINER = copp::coroutine_context_default
+    template<typename TCO_MACRO = macro_coroutine,
+        typename TTASK_MACRO = macro_task
     >
     class task: public impl::task_impl
     {
     public:
-        typedef TID id_t;
-        typedef ALLOC alloc_t;
-        typedef TCO_CONTAINER co_t;
+        typedef task<TCO_MACRO, TTASK_MACRO> self_t;
+        typedef TCO_MACRO macro_coroutine_t;
+        typedef TTASK_MACRO macro_task_t;
+
+        typedef typename macro_coroutine_t::coroutine_t coroutine_t;
+        typedef typename macro_coroutine_t::stack_allocator_t stack_allocator_t;
+        typedef typename macro_coroutine_t::coroutine_container_t coroutine_container_t;
+
+        typedef typename macro_task_t::id_t id_t;
+        typedef typename macro_task_t::id_allocator_t id_allocator_t;
+
+        typedef typename macro_task_t::action_allocator_t action_allocator_t;
+        typedef typename macro_task_t::task_allocator_t task_allocator_t;
+
+        typedef std::shared_ptr<self_t> ptr_t;
+        typedef impl::task_impl::action_ptr_t action_ptr_t;
+
+        friend task_allocator_t;
+    private:
+        task() {
+            id_allocator_t id_alloc_;
+            id_ = id_alloc_.allocate();
+        }
+
+        static void _action_deleter(impl::task_action_impl* action) {
+            action_allocator_t::deallocate(action);
+        }
 
     public:
-
         /**
          * @brief create task with action
          * @param action
-         * @param stack_size
+         * @param stack_size stack size
+         * @return task smart pointer
          */
-        task(impl::task_action_impl* action,
-            size_t stack_size = co_t::allocator_type::default_stacksize()
+        static ptr_t create(action_ptr_t action,
+            size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
-            _set_action(action);
-            coroutine_obj_.create(_get_action(), stack_size);
+            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+            ret->_set_action(action);
+            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            return ret;
         }
 
         /**
          * @brief create task with functor
          * @param action
-         * @param stack_size
+         * @param stack_size stack size
+         * @return task smart pointer
          */
         template<typename Ty>
-        task(Ty* action,
-            size_t stack_size = co_t::allocator_type::default_stacksize()
+        static ptr_t create(Ty functor,
+            size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
-            _set_action(action);
-            coroutine_obj_.create(_get_action(), stack_size);
-        }
-
-        /**
-         * @brief create task with functor
-         * @param action
-         * @param stack_size
-         */
-        template<typename Ty>
-        task(Ty functor,
-            size_t stack_size = co_t::allocator_type::default_stacksize()
-        ) {
-            typedef Ty ap_t;
             typedef task_action_functor<Ty> a_t;
-            _set_action(
-                alloc_.allocate(reinterpret_cast<a_t*>(NULL), functor)
+            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+            ret->_set_action(
+                action_ptr_t(
+                    action_allocator_t::allocate(
+                        reinterpret_cast<a_t*>(NULL),
+                        functor
+                    ),
+                    _action_deleter
+                )
             );
-            coroutine_obj_.create(_get_action(), stack_size);
+            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+
+            return ret;
         }
 
         /**
          * @brief create task with function
          * @param action
-         * @param stack_size
+         * @param stack_size stack size
+         * @return task smart pointer
          */
         template<typename Ty>
-        task(Ty (*func)(),
-            size_t stack_size = co_t::allocator_type::default_stacksize()
+        static ptr_t create(Ty (*func)(),
+            size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
-            typedef Ty (*ap_t)();
             typedef task_action_function<Ty> a_t;
-            _set_action(
-                alloc_.allocate(reinterpret_cast<a_t*>(NULL), func)
+            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+            ret->_set_action(
+                action_ptr_t(
+                    action_allocator_t::allocate(
+                        reinterpret_cast<a_t*>(NULL),
+                        func
+                    ),
+                    _action_deleter
+                )
             );
-            coroutine_obj_.create(_get_action(), stack_size);
+            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            return ret;
         }
 
+        /**
+         * @brief create task with function
+         * @param action
+         * @param stack_size stack size
+         * @return task smart pointer
+         */
+        template<typename Ty, typename TInst>
+        static ptr_t create(Ty (TInst::*func), TInst* instance,
+            size_t stack_size = stack_allocator_t::default_stacksize()
+        ) {
+            typedef task_action_mem_function<Ty, TInst> a_t;
+            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+            ret->_set_action(
+                action_ptr_t(
+                    action_allocator_t::allocate(
+                        reinterpret_cast<a_t*>(NULL),
+                        func,
+                        instance
+                    ),
+                    _action_deleter
+                )
+            );
+            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            return ret;
+        }
+
+
+        /**
+         * get current running task and convert to task object
+         * @return task smart pointer
+         */
+        static ptr_t this_task() {
+            return std::dynamic_pointer_cast<self_t>(impl::task_impl::this_task());
+        }
+    public:
         virtual ~task() {
-            if (NULL != _get_action()) {
-                alloc_.deallocate(_get_action());
-                _set_action(NULL);
-            }
+            id_allocator_t id_alloc_;
+            id_alloc_.deallocate(id_);
         }
 
-        inline alloc_t& get_allocator() { return alloc_; }
-        inline const alloc_t& get_allocator() const { return alloc_; }
-
-        inline co_t& get_coroutine_context() { return coroutine_obj_; }
-        inline const co_t& get_coroutine_context() const { return coroutine_obj_; }
+        inline coroutine_container_t& get_coroutine_context() { return coroutine_obj_; }
+        inline const coroutine_container_t& get_coroutine_context() const { return coroutine_obj_; }
 
         inline id_t get_id() const { return id_; }
 
@@ -121,7 +174,7 @@ namespace cotask {
 //#endif
             _set_status(EN_TS_RUNNING);
 
-            impl::task_impl* origin_task = _set_active_task(this);
+            impl::task_impl::ptr_t origin_task = _set_active_task(shared_from_this());
             int ret = coroutine_obj_.start();
             _set_active_task(origin_task);
 
@@ -176,11 +229,9 @@ namespace cotask {
         }
 
         task(const task&);
-
     private:
-        alloc_t alloc_;
         id_t id_;
-        co_t coroutine_obj_;
+        coroutine_container_t coroutine_obj_;
     };
 }
 

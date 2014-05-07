@@ -25,7 +25,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template<typename Ty, typename... TARGS>
-            Ty* allocate(Ty*, TARGS... args) {
+            static Ty* allocate(Ty*, TARGS... args) {
                 Ty* ret = new Ty(args...);
                 return ret;
             }
@@ -35,7 +35,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty >
-            Ty* allocate(Ty*) {
+            static Ty* allocate(Ty*) {
                 Ty* ret = new Ty();
                 return ret;
             }
@@ -46,7 +46,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0 >
-            Ty* allocate(Ty*, TARG0 arg0) {
+            static Ty* allocate(Ty*, TARG0 arg0) {
                 Ty* ret = new Ty(arg0);
                 return ret;
             }
@@ -58,7 +58,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1) {
                 Ty* ret = new Ty(arg0, arg1);
                 return ret;
             }
@@ -71,7 +71,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2) {
                 Ty* ret = new Ty(arg0, arg1, arg2);
                 return ret;
             }
@@ -85,7 +85,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3) {
                 Ty* ret = new Ty(arg0, arg1, arg2, arg3);
                 return ret;
             }
@@ -100,7 +100,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4) {
                 Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4);
                 return ret;
             }
@@ -116,7 +116,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5) {
                 Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5);
                 return ret;
             }
@@ -133,7 +133,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5, typename TARG6 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6) {
                 Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
                 return ret;
             }
@@ -151,7 +151,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5, typename TARG6, typename TARG7 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7) {
                 Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 return ret;
             }
@@ -170,14 +170,14 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5, typename TARG6, typename TARG7, typename TARG8 >
-            Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7, TARG8 arg8) {
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7, TARG8 arg8) {
                 Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 return ret;
             }
 
 #endif
             template<typename Ty>
-            void deallocate(Ty* pt){
+            static void deallocate(Ty* pt){
                 delete pt;
             }
         };

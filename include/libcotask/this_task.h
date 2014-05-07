@@ -14,7 +14,7 @@
 
 namespace cotask {
     namespace this_task {
-        impl::task_impl* get_task();
+        impl::task_impl::ptr_t get_task();
     }
 }
 

@@ -31,7 +31,7 @@ namespace cotask {
              * @return pointer of new object
              */
             template<typename Ty, typename... TARGS>
-            Ty* allocate(Ty*, TARGS... args) {
+            static Ty* allocate(Ty*, TARGS... args) {
                 Ty* ret = new Ty(args...);
                 return ret;
             }
@@ -44,7 +44,7 @@ function gen_allocate_func($param_num) {?>
              * @return pointer of new object
              */
             template< typename Ty<?php echo gen_template_params_typename($param_num, ','); ?> >
-            Ty* allocate(Ty*<?php echo gen_template_params_type_param($param_num, ', '); ?>) {
+            static Ty* allocate(Ty*<?php echo gen_template_params_type_param($param_num, ', '); ?>) {
                 Ty* ret = new Ty(<?php echo gen_template_params_use_param($param_num); ?>);
                 return ret;
             }
@@ -58,7 +58,7 @@ for ($i = 0; $i < $max_param_number; ++ $i) {
 ?>
 #endif
             template<typename Ty>
-            void deallocate(Ty* pt){
+            static void deallocate(Ty* pt){
                 delete pt;
             }
         };

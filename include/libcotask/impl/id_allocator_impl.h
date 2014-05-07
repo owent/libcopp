@@ -18,9 +18,9 @@ namespace cotask {
         {
         public:
             typedef Ty value_type;
-            virtual ~id_allocator() = 0;
-            virtual value_type allocate() = 0;
-            virtual void deallocate(value_type) = 0;
+            ~id_allocator() {};
+            value_type allocate();
+            void deallocate(value_type);
         };
     }
 }

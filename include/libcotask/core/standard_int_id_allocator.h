@@ -17,16 +17,17 @@
 namespace cotask {
     namespace core {
         template<typename TKey = uint64_t>
-        class standard_int_id_allocator: public cotask::impl::id_allocator
+        class standard_int_id_allocator
         {
         public:
-            typedef typename cotask::impl::id_allocator::value_type value_type;
+            typedef cotask::impl::id_allocator<TKey> base_type;
+            typedef typename base_type::value_type value_type;
 
             static const value_type npos = 0; /** invalid key **/
         public:
-            virtual value_type allocate() {
+            value_type allocate() {
                 static value_type start = 0;
-                static const value_type end = 1 << (sizeof(value_type) * 4);
+                static const value_type end = static_cast<value_type>(1) << (sizeof(value_type) * 4);
                 static value_type time_stamp = static_cast<value_type>(time(NULL));
 
                 value_type ret = npos;
@@ -46,8 +47,7 @@ namespace cotask {
                 return ret;
             }
 
-            virtual void deallocate(value_type) {
-
+            void deallocate(value_type) {
             }
 
         private:

@@ -16,19 +16,10 @@ namespace cotask {
 
     namespace impl {
 
-        class task_impl;
-
         class task_action_impl : public copp::coroutine_runnable_base
         {
         public:
-            task_impl* get_task() { return ref_task_; }
-            const task_impl* get_task() const { return ref_task_; }
-
             virtual int on_finished() { return 0; }
-
-        private:
-            friend class task_impl;
-            task_impl* ref_task_;
         };
     }
 }
