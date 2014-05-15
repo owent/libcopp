@@ -53,6 +53,7 @@ namespace cotask {
             virtual int yield() = 0;
             virtual int cancel() = 0;
             virtual int kill() = 0;
+
             virtual int on_finished();
 
             static ptr_t this_task();

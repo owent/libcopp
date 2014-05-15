@@ -5,6 +5,7 @@
 #include <libcopp/utils/features.h>
 
 #include "allocator/stack_allocator_memory.h"
+#include "allocator/stack_allocator_malloc.h"
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
 #include "allocator/stack_allocator_split_segment.h"

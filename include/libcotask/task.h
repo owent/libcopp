@@ -64,6 +64,7 @@ namespace cotask {
         ) {
             ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
             ret->_set_action(action);
+
             ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
             return ret;
         }
@@ -80,17 +81,17 @@ namespace cotask {
         ) {
             typedef task_action_functor<Ty> a_t;
             ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
-            ret->_set_action(
-                action_ptr_t(
-                    action_allocator_t::allocate(
-                        reinterpret_cast<a_t*>(NULL),
-                        functor
-                    ),
-                    _action_deleter
-                )
+            action_ptr_t action = action_ptr_t(
+                action_allocator_t::allocate(
+                    reinterpret_cast<a_t*>(NULL),
+                    functor
+                ),
+                _action_deleter
             );
-            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
 
+            if (!action) throw std::bad_alloc();
+            ret->_set_action(action);
+            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
             return ret;
         }
 
@@ -106,15 +107,16 @@ namespace cotask {
         ) {
             typedef task_action_function<Ty> a_t;
             ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
-            ret->_set_action(
-                action_ptr_t(
-                    action_allocator_t::allocate(
-                        reinterpret_cast<a_t*>(NULL),
-                        func
-                    ),
-                    _action_deleter
-                )
+            action_ptr_t action = action_ptr_t(
+                action_allocator_t::allocate(
+                    reinterpret_cast<a_t*>(NULL),
+                    func
+                ),
+                _action_deleter
             );
+
+            if (!action) throw std::bad_alloc();
+            ret->_set_action(action);
             ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
             return ret;
         }
@@ -131,16 +133,17 @@ namespace cotask {
         ) {
             typedef task_action_mem_function<Ty, TInst> a_t;
             ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
-            ret->_set_action(
-                action_ptr_t(
-                    action_allocator_t::allocate(
-                        reinterpret_cast<a_t*>(NULL),
-                        func,
-                        instance
-                    ),
-                    _action_deleter
-                )
+            action_ptr_t action = action_ptr_t(
+                action_allocator_t::allocate(
+                    reinterpret_cast<a_t*>(NULL),
+                    func,
+                    instance
+                ),
+                _action_deleter
             );
+
+            if (!action) throw std::bad_alloc();
+            ret->_set_action(action);
             ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
             return ret;
         }

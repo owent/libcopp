@@ -91,7 +91,11 @@ namespace copp {
             /**
              * @brief coroutine entrance function
              */
-            virtual void run();
+            inline void run_and_recv_retcode() {
+                if (NULL == runner_) return;
+
+                runner_ret_code_ = (*runner_)();
+            }
 
         protected:
             /**

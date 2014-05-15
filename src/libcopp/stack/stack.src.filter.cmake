@@ -8,14 +8,18 @@ list(APPEND COPP_SRC_LIST ${SRC_LIST})
 
 # ========== stack allocator ==========
 list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_memory.cpp")
+list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_malloc.cpp")
+
 if(WIN32)
 	EchoWithColor(COLOR GREEN "-- stack allocator: enable windows allocator")
 	list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_windows.cpp")
+	add_compiler_define(COPP_MACRO_SYS_WIN=1)
 endif()
 
 if(NOT WIN32 AND UNIX)
 	EchoWithColor(COLOR GREEN "-- stack allocator: enable posix allocator")
 	list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_posix.cpp")
+	add_compiler_define(COPP_MACRO_SYS_POSIX=1)
 endif()
 
 if(COPP_MACRO_USE_SEGMENTED_STACKS_GCC)

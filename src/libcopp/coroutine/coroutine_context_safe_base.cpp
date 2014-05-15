@@ -154,7 +154,7 @@ namespace copp {
             ins_ptr->is_finished_ = false;
 
             // run logic code
-            ins_ptr->run();
+            ins_ptr->run_and_recv_retcode();
 
             ins_ptr->status_running_ = EN_CRS_FINISHED;
             ins_ptr->is_finished_ = true;

@@ -2,6 +2,7 @@ extern "C" {
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/mman.h>
+#include <errno.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -14,6 +15,7 @@ extern "C" {
 #include <numeric>
 #include <assert.h>
 #include <limits>
+#include <iostream>
 
 
 #include "libcopp/stack/stack_context.h"
@@ -101,12 +103,19 @@ namespace copp {
             assert(-1 != fd);
 
             // conform to POSIX.4 (POSIX.1b-1993, _POSIX_C_SOURCE=199309L)
-            void* start_ptr = ::mmap( 0, size_, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+            void* start_ptr =
+            #if defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
+                ::mmap( 0, size_, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+            #else
+                ::mmap( 0, size_, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+            #endif
             ::close(fd);
 
-            if (!start_ptr) throw std::bad_alloc();
+            if (!start_ptr || MAP_FAILED == start_ptr) {
+                throw std::bad_alloc();
+            }
 
-            memset(start_ptr, 0, size_);
+            // memset(start_ptr, 0, size_);
             ::mprotect( start_ptr, sys::pagesize(), PROT_NONE);
 
             ctx.size = size_;

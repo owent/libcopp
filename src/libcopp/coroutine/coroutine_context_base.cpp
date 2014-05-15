@@ -94,12 +94,6 @@ namespace copp {
             return start();
         }
 
-        void coroutine_context_base::run() {
-            if (NULL == runner_) return;
-
-            runner_ret_code_ = (*runner_)();
-        }
-
         int coroutine_context_base::set_runner(
             coroutine_runnable_base* runner) {
             if (NULL != runner_ && this == runner_->coroutine_context_) {
@@ -136,7 +130,7 @@ namespace copp {
             ins_ptr->is_finished_ = false;
 
             // run logic code
-            ins_ptr->run();
+            ins_ptr->run_and_recv_retcode();
 
             ins_ptr->is_finished_ = true;
 

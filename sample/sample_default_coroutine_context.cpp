@@ -33,7 +33,7 @@ public:
 };
 
 int main() {
-    // create a coroutine manager
+    // create a coroutine
     copp::coroutine_context_default co_obj;
     printf("cortoutine %" PRIxPTR " created.\n", (intptr_t)&co_obj);
 

@@ -1,7 +1,7 @@
 ﻿/*
- * sample_stress_test_coroutine.cpp
+ * sample_stress_test_coroutine_malloc.cpp
  *
- *  Created on: 2014年5月11日
+ *  Created on: 2014年5月15日
  *      Author: owent
  *
  *  Released under the MIT license
@@ -23,6 +23,11 @@
 
 int switch_count = 100;
 
+typedef copp::detail::coroutine_context_container<
+    copp::detail::coroutine_context_safe_base,
+    copp::allocator::stack_allocator_malloc
+> my_cotoutine_t;
+
 // define a coroutine runner
 class my_runner : public copp::detail::coroutine_runnable_base
 {
@@ -30,7 +35,7 @@ public:
     int operator()() {
         // ... your code here ...
         int count = switch_count; // 每个协程N次切换
-        copp::coroutine_context_default* addr = get_coroutine_context<copp::coroutine_context_default>();
+        my_cotoutine_t* addr = get_coroutine_context<my_cotoutine_t>();
 
         while (count -- > 0)
             addr->yield();
@@ -40,8 +45,9 @@ public:
 };
 
 int MAX_COROUTINE_NUMBER = 100000; // 协程数量
-copp::coroutine_context_default* co_arr = NULL;
+my_cotoutine_t* co_arr = NULL;
 my_runner* runner = NULL;
+
 int main(int argc, char* argv[]) {
     if (argc > 1) {
         MAX_COROUTINE_NUMBER = atoi(argv[1]);
@@ -60,7 +66,7 @@ int main(int argc, char* argv[]) {
     clock_t begin_clock = clock();
 
     // create coroutines
-    co_arr = new copp::coroutine_context_default[MAX_COROUTINE_NUMBER];
+    co_arr = new my_cotoutine_t[MAX_COROUTINE_NUMBER];
     runner = new my_runner[MAX_COROUTINE_NUMBER];
 
     time_t end_time = time(NULL);

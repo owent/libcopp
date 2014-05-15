@@ -64,7 +64,7 @@ public:
 };
 
 int main() {
-    // create a coroutine manager
+    // create coroutines
 
     co_context_t co_obj1, co_obj2;
     printf("cortoutine %" PRIxPTR " created.\n", (intptr_t)&co_obj1);

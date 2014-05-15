@@ -1,20 +1,24 @@
+#if defined(COPP_MACRO_SYS_POSIX)
+extern "C" {
+#include <sys/mman.h>
+#define STACK_PROTECT_SUPPORTED 1
+}
+#elif defined(COPP_MACRO_SYS_WIN)
+extern "C" {
+#include <windows.h>
+}
+#define STACK_PROTECT_SUPPORTED 1
+#endif
+
+#include <memory>
 #include <cstring>
 #include <algorithm>
 #include <numeric>
 #include <assert.h>
 #include <limits>
 
-extern "C" {
-#include <windows.h>
-}
-
 #include "libcopp/stack/stack_context.h"
-#include "libcopp/stack/allocator/stack_allocator_windows.h"
-
-# if defined(COPP_MACRO_COMPILER_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4244 4267)
-# endif
+#include "libcopp/stack/allocator/stack_allocator_malloc.h"
 
 // x86_64
 // test x86_64 before i386 because icc might
@@ -38,22 +42,9 @@ namespace copp {
     namespace allocator {
         namespace sys
         {
-            static SYSTEM_INFO system_info_()
-            {
-                SYSTEM_INFO si;
-                ::GetSystemInfo(&si);
-                return si;
-            }
-
-            static SYSTEM_INFO system_info()
-            {
-                static SYSTEM_INFO si = system_info_();
-                return si;
-            }
-
             static std::size_t pagesize()
             {
-                return static_cast<std::size_t>(system_info().dwPageSize);
+                return MIN_STACKSIZE;
             }
 
             static std::size_t round_to_page_size(std::size_t stacksize)
@@ -63,57 +54,64 @@ namespace copp {
             }
         }
 
-        stack_allocator_windows::stack_allocator_windows() { }
+        stack_allocator_malloc::stack_allocator_malloc(){}
+        stack_allocator_malloc::~stack_allocator_malloc() { }
 
-        stack_allocator_windows::~stack_allocator_windows() { }
 
-        bool stack_allocator_windows::is_stack_unbound() { return true; }
+        bool stack_allocator_malloc::is_stack_unbound() { return true; }
 
-        std::size_t stack_allocator_windows::default_stacksize() {
+        std::size_t stack_allocator_malloc::default_stacksize() {
             std::size_t size = 64 * 1024; // 64 KB
             if (is_stack_unbound())
                 return (std::max)(size, minimum_stacksize() );
 
-            assert(is_stack_unbound() || maximum_stacksize() >= minimum_stacksize());
-            return is_stack_unbound() ? 
-                size
+            assert(maximum_stacksize() >= minimum_stacksize());
+            return maximum_stacksize() == minimum_stacksize()
+                ? minimum_stacksize()
                 : (std::min)(size, maximum_stacksize());
         }
 
-        std::size_t stack_allocator_windows::minimum_stacksize() { return MIN_STACKSIZE; }
+        std::size_t stack_allocator_malloc::minimum_stacksize() { return MIN_STACKSIZE; }
 
-        std::size_t stack_allocator_windows::maximum_stacksize() {
+        std::size_t stack_allocator_malloc::maximum_stacksize() {
             assert(is_stack_unbound());
-            return SIZE_MAX;
+            return std::numeric_limits<std::size_t>::max();
         }
 
-        void stack_allocator_windows::allocate(stack_context & ctx, std::size_t size)
+        void stack_allocator_malloc::allocate(stack_context & ctx, std::size_t size)
         {
             size = (std::max)(size, minimum_stacksize());
-            size = is_stack_unbound() ? size: (std::min)(size, maximum_stacksize());
+            size = (std::min)(size, maximum_stacksize());
 
-            std::size_t size_ = sys::round_to_page_size(size) + sys::pagesize();
-            assert(size > 0 && size_ > 0);
+            std::size_t size_ = sys::round_to_page_size(size);
+            #if defined(STACK_PROTECT_SUPPORTED)
+            size_ += sys::pagesize();
+            #endif
 
-            void* start_ptr = ::VirtualAlloc(0, size_, MEM_COMMIT, PAGE_READWRITE);
+            void* start_ptr = malloc(size_);
+
             if (!start_ptr) throw std::bad_alloc();
 
             // memset(start_ptr, 0, size_);
+            #if defined(STACK_PROTECT_SUPPORTED) && defined(COPP_MACRO_SYS_POSIX)
+            ::mprotect( start_ptr, sys::pagesize(), PROT_NONE);
+            #elif defined(STACK_PROTECT_SUPPORTED) && defined(COPP_MACRO_SYS_WIN)
             DWORD old_options;
             ::VirtualProtect(start_ptr, sys::pagesize(), PAGE_READWRITE | PAGE_GUARD, &old_options);
+            #endif
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr) +ctx.size; // stack down
+            ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
         }
 
-        void stack_allocator_windows::deallocate(stack_context & ctx)
+        void stack_allocator_malloc::deallocate(stack_context & ctx)
         {
             assert(ctx.sp);
             assert(minimum_stacksize() <= ctx.size);
             assert(is_stack_unbound() || (maximum_stacksize() >= ctx.size));
 
             void* start_ptr = static_cast< char * >(ctx.sp) - ctx.size;
-            ::VirtualFree(start_ptr, 0, MEM_RELEASE);
+            free(start_ptr);
         }
 
     } 
