@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <iostream>
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -36,11 +37,7 @@ private:
     void loop(int times) {
         char buffer[64 * 1024] = {0};
         co_context_t* pco = get_coroutine_context<co_context_t>();
-        printf("context %" PRIxPTR " => buffer start addr 0x%" PRIxPTR ", end addr 0x%" PRIxPTR ".\n",
-            (intptr_t)pco,
-            (intptr_t)buffer,
-            (intptr_t)(buffer + sizeof(buffer))
-        );
+        std::cout<< "context "<< pco<< " => buffer start addr "<< buffer<< ", end addr "<< (buffer + sizeof(buffer))<< "."<< std::endl;
 
         min_ = std::min<intptr_t>(min_, (intptr_t)buffer);
         max_ = std::max<intptr_t>(max_, (intptr_t)(buffer + sizeof(buffer)));
@@ -67,8 +64,8 @@ int main() {
     // create coroutines
 
     co_context_t co_obj1, co_obj2;
-    printf("cortoutine %" PRIxPTR " created.\n", (intptr_t)&co_obj1);
-    printf("cortoutine %" PRIxPTR " created.\n", (intptr_t)&co_obj2);
+    std::cout<< "cortoutine "<< &co_obj1<< " created.\n"<< std::endl;
+    std::cout<< "cortoutine "<< &co_obj2<< " created.\n"<< std::endl;
 
     // create a runner
     my_runner runner1, runner2;
@@ -91,13 +88,8 @@ int main() {
     }
 
     // print stack distance
-    printf("co_obj1 stack min addr 0x%" PRIxPTR ", max addr 0x%" PRIxPTR ". dis %" PRIu64 "KB.\n",
-        runner1.min_, runner1.max_, (int64_t)(runner1.max_ - runner1.min_) / 1024
-    );
-
-    printf("co_obj2 stack min addr 0x%" PRIxPTR ", max addr 0x%" PRIxPTR ". dis %" PRIu64 "KB.\n",
-        runner2.min_, runner2.max_, (int64_t)(runner2.max_ - runner2.min_) / 1024
-    );
+    std::cout<< "co_obj1 stack min addr "<< runner1.min_<< ", max addr "<< runner1.max_<< ". dis "<< ((runner1.max_ - runner1.min_) / 1024)<<"KB."<<std::endl;
+    std::cout<< "co_obj2 stack min addr "<< runner2.min_<< ", max addr "<< runner2.max_<< ". dis "<< ((runner2.max_ - runner2.min_) / 1024)<<"KB."<<std::endl;
 
     puts("all jobs done.");
     return 0;

@@ -10,6 +10,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -21,12 +22,12 @@ class my_runner : public copp::detail::coroutine_runnable_base
 {
 public:
     int operator()() {
-        // ... your code here ...
+        // ... your code here ...printf("cortoutine %" PRIxPTR " exit and return %d.\n", (intptr_t)&co_obj, co_obj.get_ret_code());
         copp::coroutine_context_default* addr = get_coroutine_context<copp::coroutine_context_default>();
-        printf("cortoutine %" PRIxPTR " is running.\n", (intptr_t)addr);
+        std::cout<< "cortoutine "<< addr<< " is running."<< std::endl;
 
         addr->yield();
-        printf("cortoutine %" PRIxPTR " is resumed.\n", (intptr_t)addr);
+        std::cout<< "cortoutine "<< addr<< " is resumed."<< std::endl;
 
         return 1;
     }
@@ -35,7 +36,7 @@ public:
 int main() {
     // create a coroutine
     copp::coroutine_context_default co_obj;
-    printf("cortoutine %" PRIxPTR " created.\n", (intptr_t)&co_obj);
+    std::cout<< "cortoutine "<< &co_obj<< " is created."<< std::endl;
 
     // create a runner
     my_runner runner;
@@ -47,10 +48,10 @@ int main() {
     co_obj.start();
 
     // yield from runner
-    printf("cortoutine %" PRIxPTR " is yield.\n", (intptr_t)&co_obj);
+    std::cout<< "cortoutine "<< &co_obj<< " is yield."<< std::endl;
     co_obj.resume();
 
-    printf("cortoutine %" PRIxPTR " exit and return %d.\n", (intptr_t)&co_obj, co_obj.get_ret_code());
+    std::cout<< "cortoutine "<< &co_obj<< " exit and return "<< co_obj.get_ret_code()<< "."<< std::endl;
     return 0;
 }
 
