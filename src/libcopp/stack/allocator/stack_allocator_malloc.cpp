@@ -1,15 +1,3 @@
-#if defined(COPP_MACRO_SYS_POSIX)
-extern "C" {
-#include <sys/mman.h>
-#define STACK_PROTECT_SUPPORTED 1
-}
-#elif defined(COPP_MACRO_SYS_WIN)
-extern "C" {
-#include <windows.h>
-}
-#define STACK_PROTECT_SUPPORTED 1
-#endif
-
 #include <memory>
 #include <cstring>
 #include <algorithm>
@@ -84,21 +72,10 @@ namespace copp {
             size = (std::min)(size, maximum_stacksize());
 
             std::size_t size_ = sys::round_to_page_size(size);
-            #if defined(STACK_PROTECT_SUPPORTED)
-            size_ += sys::pagesize();
-            #endif
 
             void* start_ptr = malloc(size_);
 
             if (!start_ptr) throw std::bad_alloc();
-
-            // memset(start_ptr, 0, size_);
-            #if defined(STACK_PROTECT_SUPPORTED) && defined(COPP_MACRO_SYS_POSIX)
-            ::mprotect( start_ptr, sys::pagesize(), PROT_NONE);
-            #elif defined(STACK_PROTECT_SUPPORTED) && defined(COPP_MACRO_SYS_WIN)
-            DWORD old_options;
-            ::VirtualProtect(start_ptr, sys::pagesize(), PAGE_READWRITE | PAGE_GUARD, &old_options);
-            #endif
 
             ctx.size = size_;
             ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
