@@ -64,7 +64,7 @@ namespace cotask {
 
             inline void _set_status(EN_TASK_STATUS status) { status_ = status; }
 
-            static ptr_t _set_active_task(ptr_t);
+            static ptr_t _set_active_task(task_impl*);
 
         private:
             action_ptr_t action_;

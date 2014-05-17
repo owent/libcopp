@@ -3,7 +3,8 @@ Env: Linux version 3.14.3-200.fc20.x86_64 (mockbuild@bkernel02) (gcc version 4.8
 System: Linux
 CPU: AMD Phenom(tm) II X4 830 Processor (800MHz- 2800MHz)
 Memory: 8GB DDR3-1333
-Run Env => thread number: 1, stack memory cost 1.6GB/2.0GB
+CMake Build Type: RelWithDebInfo
+Run Env => thread number: 1, stack memory cost 2.0GB
 Compile Options:-O2 -g -DNDEBUG -ggdb -std=gnu++11 -Wall -Werror -rdynamic -Wno-unused-local-typedefs -fsplit-stack
 
 ###################### context coroutine (stack using memory pool) ###################
@@ -30,7 +31,7 @@ create 1000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 8000 ns
 switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 223 ms, avg: 223 ns
 remove 1000 coroutine, cost time: 0 s, clock time: 3 ms, avg: 3000 ns
 
-###################### context coroutine (stack using malloc/free) ###################
+###################### context coroutine (stack using malloc/free [ptmalloc]) ###################
 ########## Cmd: sample/sample_stress_test_coroutine_malloc 10000 1000 200
 allocate 10000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 200 ns
 create 10000 coroutine, cost time: 0 s, clock time: 45 ms, avg: 4500 ns
@@ -62,7 +63,7 @@ create 1000 task, cost time: 0 s, clock time: 8 ms, avg: 8000 ns
 switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 354 ms, avg: 354 ns
 remove 1000 tasks, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
 
-###################### task (stack using malloc/free) ###################
+###################### task (stack using malloc/free [ptmalloc]) ###################
 ########## Cmd: sample/sample_stress_test_task_malloc 10000 1000 200
 create 10000 task, cost time: 0 s, clock time: 73 ms, avg: 7300 ns
 switch 10000 tasks 10000000 times, cost time: 5 s, clock time: 5037 ms, avg: 503 ns

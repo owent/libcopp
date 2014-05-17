@@ -1,0 +1,75 @@
+=======================================================================================
+Env: Windows 7, Visual Studio 2013 (VC 18)
+System: Windows 7
+CPU: AMD Phenom(tm) II X4 830 Processor (800MHz- 2800MHz)
+Memory: 8GB DDR3-1333
+CMake Build Type: Release
+Run Env => thread number: 1, stack memory cost 2.0GB
+Compile Options: /GS /TP /W3 /Zi /Gm- /O2 /Ob2 /GL /EHsc /nologo /D "NDEBUG"
+
+###################### context coroutine (stack using memory pool) ################### 
+########## Cmd: sample/Release/sample_stress_test_coroutines_mem_pool 10000 1000 200 
+allocate 10000 coroutine, cost time: 0 s, clock time: 11 ms, avg: 1100 ns
+create 10000 coroutine, cost time: 0 s, clock time: 296 ms, avg: 29600 ns
+switch 10000 coroutine contest 10000000 times, cost time: 6 s, clock time: 6359 ms, avg: 635 ns
+remove 10000 coroutine, cost time: 1 s, clock time: 209 ms, avg: 20900 ns
+########## Cmd: sample/Release/sample_stress_test_coroutines_mem_pool 1000 1000 2048 
+allocate 1000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 2000 ns
+create 1000 coroutine, cost time: 0 s, clock time: 37 ms, avg: 37000 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 308 ms, avg: 308 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 7000 ns
+  
+###################### context coroutine (stack using default allocator[VirtualAlloc]) ################### 
+########## Cmd: sample/Release/sample_stress_test_coroutine 10000 1000 200 
+allocate 10000 coroutine, cost time: 0 s, clock time: 11 ms, avg: 1100 ns
+create 10000 coroutine, cost time: 0 s, clock time: 139 ms, avg: 13900 ns
+switch 10000 coroutine contest 10000000 times, cost time: 6 s, clock time: 6251 ms, avg: 625 ns
+remove 10000 coroutine, cost time: 0 s, clock time: 21 ms, avg: 2100 ns
+########## Cmd: sample/Release/sample_stress_test_coroutine 1000 1000 2048 
+allocate 1000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 1000 ns
+create 1000 coroutine, cost time: 0 s, clock time: 15 ms, avg: 15000 ns
+switch 1000 coroutine contest 1000000 times, cost time: 1 s, clock time: 275 ms, avg: 275 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
+  
+###################### context coroutine (stack using malloc/free) ################### 
+########## Cmd: sample/Release/sample_stress_test_coroutine_malloc 10000 1000 200 
+allocate 10000 coroutine, cost time: 0 s, clock time: 12 ms, avg: 1200 ns
+create 10000 coroutine, cost time: 0 s, clock time: 228 ms, avg: 22800 ns
+switch 10000 coroutine contest 10000000 times, cost time: 6 s, clock time: 6282 ms, avg: 628 ns
+remove 10000 coroutine, cost time: 0 s, clock time: 16 ms, avg: 1600 ns
+########## Cmd: sample/Release/sample_stress_test_coroutine_malloc 1000 1000 2048 
+allocate 1000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 1000 ns
+create 1000 coroutine, cost time: 0 s, clock time: 22 ms, avg: 22000 ns
+switch 1000 coroutine contest 1000000 times, cost time: 1 s, clock time: 463 ms, avg: 463 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
+  
+###################### task (stack using memory pool) ################### 
+########## Cmd: sample/Release/sample_stress_test_task_mem_pool 10000 1000 200 
+create 10000 task, cost time: 0 s, clock time: 249 ms, avg: 24900 ns
+switch 10000 tasks 10000000 times, cost time: 9 s, clock time: 8873 ms, avg: 887 ns
+remove 10000 tasks, cost time: 0 s, clock time: 4 ms, avg: 400 ns
+########## Cmd: sample/Release/sample_stress_test_task_mem_pool 1000 1000 2048 
+create 1000 task, cost time: 0 s, clock time: 27 ms, avg: 27000 ns
+switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 564 ms, avg: 564 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+  
+###################### task (stack using default allocator[VirtualAlloc]) ################### 
+########## Cmd: sample/Release/sample_stress_test_task 10000 1000 200 
+create 10000 task, cost time: 0 s, clock time: 167 ms, avg: 16700 ns
+switch 10000 tasks 10000000 times, cost time: 9 s, clock time: 9440 ms, avg: 944 ns
+remove 10000 tasks, cost time: 0 s, clock time: 29 ms, avg: 2900 ns
+########## Cmd: sample/Release/sample_stress_test_task 1000 1000 2048 
+create 1000 task, cost time: 0 s, clock time: 18 ms, avg: 18000 ns
+switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 515 ms, avg: 515 ns
+remove 1000 tasks, cost time: 0 s, clock time: 6 ms, avg: 6000 ns
+  
+###################### task (stack using malloc/free) ################### 
+########## Cmd: sample/Release/sample_stress_test_task_malloc 10000 1000 200 
+create 10000 task, cost time: 0 s, clock time: 335 ms, avg: 33500 ns
+switch 10000 tasks 10000000 times, cost time: 10 s, clock time: 10102 ms, avg: 1010 ns
+remove 10000 tasks, cost time: 0 s, clock time: 75 ms, avg: 7500 ns
+########## Cmd: sample/Release/sample_stress_test_task_malloc 1000 1000 2048 
+create 1000 task, cost time: 0 s, clock time: 44 ms, avg: 44000 ns
+switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 543 ms, avg: 543 ns
+remove 1000 tasks, cost time: 0 s, clock time: 9 ms, avg: 9000 ns
+  

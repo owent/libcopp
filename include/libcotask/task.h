@@ -175,11 +175,15 @@ namespace cotask {
 // TODO
 //#ifdef COPP_MACRO_ENABLE_MULTI_THREAD
 //#endif
+            if (get_status() == EN_TS_RUNNING) {
+                return copp::COPP_EC_IS_RUNNING;
+            }
             _set_status(EN_TS_RUNNING);
 
-            impl::task_impl::ptr_t origin_task = _set_active_task(shared_from_this());
+            impl::task_impl::ptr_t self = shared_from_this();
+            impl::task_impl::ptr_t origin_task = _set_active_task(self.get());
             int ret = coroutine_obj_.start();
-            _set_active_task(origin_task);
+            _set_active_task(origin_task.get());
 
             if (get_status() > EN_TS_DONE) { // canceled or killed
                 _notify_finished();

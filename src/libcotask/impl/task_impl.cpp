@@ -19,7 +19,8 @@
 namespace cotask {
     namespace impl {
 
-        static THREAD_TLS task_impl::ptr_t g_current_task_ = task_impl::ptr_t(NULL);
+        // VC do not support to set TLS property of not POD type 
+        static THREAD_TLS task_impl* g_current_task_ = NULL;
 
         task_impl::task_impl(): action_(NULL), status_(EN_TS_CREATED) {}
 
@@ -42,7 +43,7 @@ namespace cotask {
         }
 
         task_impl::ptr_t task_impl::this_task() {
-            return g_current_task_;
+            return g_current_task_->shared_from_this();
         }
 
         void task_impl::_set_action(action_ptr_t action) {
@@ -53,10 +54,11 @@ namespace cotask {
             return action_;
         }
 
-        task_impl::ptr_t task_impl::_set_active_task(ptr_t task) {
-            ptr_t ret = g_current_task_;
+        task_impl::ptr_t task_impl::_set_active_task(task_impl* task) {
+            task_impl* ret = g_current_task_;
             g_current_task_ = task;
-            return ret;
+            
+            return NULL == ret ? task_impl::ptr_t(): ret->shared_from_this();
         }
     }
 }
