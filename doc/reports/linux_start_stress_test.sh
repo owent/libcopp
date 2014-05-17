@@ -5,10 +5,10 @@ if [ $# -lt 2 ]; then
 fi
 
 echo "###################### context coroutine (stack using memory pool) ###################" >> "$2";
-echo "########## Cmd: sample/sample_stress_test_coroutines_mem_pool 10000 1000 200" >> "$2";
-"$1"/sample/sample_stress_test_coroutines_mem_pool 10000 1000 200 >> "$2";
+echo "########## Cmd: sample/sample_stress_test_coroutine_mem_pool 10000 1000 200" >> "$2";
+"$1"/sample/sample_stress_test_coroutine_mem_pool 10000 1000 200 >> "$2";
 echo "########## Cmd: sample/sample_stress_test_coroutines_mem_pool 1000 1000 2048" >> "$2";
-"$1"/sample/sample_stress_test_coroutines_mem_pool 1000 1000 2048 >> "$2";
+"$1"/sample/sample_stress_test_coroutine_mem_pool 1000 1000 2048 >> "$2";
 echo "" >> "$2";
 
 

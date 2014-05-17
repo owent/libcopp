@@ -25,7 +25,7 @@ int switch_count = 100;
 
 typedef copp::detail::coroutine_context_container<
     copp::detail::coroutine_context_safe_base,
-    copp::allocator::stack_allocator_malloc
+    copp::allocator::stack_allocator_memory
 > my_cotoutine_t;
 
 // define a coroutine runner
@@ -48,6 +48,9 @@ int MAX_COROUTINE_NUMBER = 100000; // 协程数量
 my_cotoutine_t* co_arr = NULL;
 my_runner* runner = NULL;
 
+// === 栈内存池 ===
+char * stack_mem_pool = NULL;
+
 int main(int argc, char* argv[]) {
     if (argc > 1) {
         MAX_COROUTINE_NUMBER = atoi(argv[1]);
@@ -61,6 +64,8 @@ int main(int argc, char* argv[]) {
     if (argc > 3) {
         stack_size = atoi(argv[3]) * 1024;
     }
+
+    stack_mem_pool = new char[MAX_COROUTINE_NUMBER * stack_size];
 
     time_t begin_time = time(NULL);
     clock_t begin_clock = clock();
@@ -81,6 +86,7 @@ int main(int argc, char* argv[]) {
     // create a runner
     // bind runner to coroutine object
     for (int i = 0; i < MAX_COROUTINE_NUMBER; ++ i) {
+        co_arr[i].get_allocator().attach(stack_mem_pool + i * stack_size, stack_size);
         co_arr[i].create(&runner[i], stack_size);
     }
 
@@ -131,6 +137,7 @@ int main(int argc, char* argv[]) {
 
     delete []co_arr;
     delete []runner;
+    delete []stack_mem_pool;
 
     end_time = time(NULL);
     end_clock = clock();
