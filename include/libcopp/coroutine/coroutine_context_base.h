@@ -54,8 +54,6 @@ namespace copp {
 #endif
 
         public:
-            friend coroutine_runnable_base;
-
             coroutine_context_base();
             virtual ~coroutine_context_base();
 
@@ -161,6 +159,17 @@ namespace copp {
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
         detail::coroutine_context_base* get_coroutine();
+
+        /**
+         * @brief get current coroutine and try to convert type
+         * @see get_coroutine
+         * @see detail::coroutine_context_base
+         * @return pointer of current coroutine, if not in coroutine or fail to convert type, return NULL
+         */
+        template<typename Tc = detail::coroutine_context_base>
+        Tc* get() {
+            return dynamic_cast<Tc*>(get_coroutine());
+        }
 
         /**
          * @brief yield current coroutine

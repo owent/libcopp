@@ -15,6 +15,8 @@ namespace copp
     {
         COPP_EC_SUCCESS = 0,                                //!< COPP_EC_SUCCESS
 
+        COPP_EC_ALLOC_STACK_FAILED                  = -101, //!< COPP_EC_ALLOC_STACK_FAILED
+
         COPP_EC_NOT_INITED                          = -1001,//!< COPP_EC_NOT_INITED
         COPP_EC_ALREADY_INITED                      = -1002,//!< COPP_EC_ALREADY_INITED
         COPP_EC_ACCESS_VIOLATION                    = -1003,//!< COPP_EC_ACCESS_VIOLATION

@@ -36,7 +36,7 @@ public:
 private:
     void loop(int times) {
         char buffer[64 * 1024] = {0};
-        co_context_t* pco = get_coroutine_context<co_context_t>();
+        co_context_t* pco = copp::this_coroutine::get<co_context_t>();
         std::cout<< "context "<< pco<< " => buffer start addr "<< buffer<< ", end addr "<< (buffer + sizeof(buffer))<< "."<< std::endl;
 
         min_ = std::min<intptr_t>(min_, (intptr_t)buffer);

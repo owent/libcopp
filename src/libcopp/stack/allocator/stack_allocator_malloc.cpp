@@ -75,7 +75,10 @@ namespace copp {
 
             void* start_ptr = malloc(size_);
 
-            if (!start_ptr) throw std::bad_alloc();
+            if (!start_ptr) {
+                ctx.sp = NULL;
+                return;
+            }
 
             ctx.size = size_;
             ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down

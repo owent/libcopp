@@ -43,7 +43,7 @@ public:
 
         stack_test(4);
 
-        get_coroutine_context<test_split_segment_context>()->yield();
+        copp::this_coroutine::get<test_split_segment_context>()->yield();
 
         stack_test(20);
         return 0;

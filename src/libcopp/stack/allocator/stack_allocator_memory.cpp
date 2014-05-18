@@ -74,7 +74,10 @@ namespace copp {
 
         void stack_allocator_memory::allocate(stack_context & ctx, std::size_t size)
         {
-            assert(NULL != start_ptr_);
+            if(NULL == start_ptr_) {
+                ctx.sp = NULL;
+                return;
+            }
 
             size = (std::max)(size, minimum_stacksize());
             size = (std::min)(size, maximum_stacksize());
@@ -84,7 +87,7 @@ namespace copp {
             assert(size > 0 && size_ > 0 && size_ <= memory_size_);
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr_) +ctx.size; // stack down
+            ctx.sp = static_cast<char *>(start_ptr_) + ctx.size; // stack down
         }
 
         void stack_allocator_memory::deallocate(stack_context & ctx)

@@ -20,11 +20,11 @@ public:
         ++ g_test_coroutine_safe_base_status;
         CASE_EXPECT_EQ(g_test_coroutine_safe_base_status, 2);
 
-        get_coroutine_context<test_context_safe_base_context_type>()->resume();
+        copp::this_coroutine::get<test_context_safe_base_context_type>()->resume();
         ++ g_test_coroutine_safe_base_status;
         CASE_EXPECT_EQ(g_test_coroutine_safe_base_status, 3);
 
-        get_coroutine_context<test_context_safe_base_context_type>()->yield();
+        copp::this_coroutine::get<test_context_safe_base_context_type>()->yield();
         ++ g_test_coroutine_safe_base_status;
         CASE_EXPECT_EQ(g_test_coroutine_safe_base_status, 5);
 

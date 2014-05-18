@@ -35,7 +35,7 @@ public:
     int operator()() {
         // ... your code here ...
         int count = switch_count; // 每个协程N次切换
-        my_cotoutine_t* addr = get_coroutine_context<my_cotoutine_t>();
+        my_cotoutine_t* addr = copp::this_coroutine::get<my_cotoutine_t>();
 
         while (count -- > 0)
             addr->yield();

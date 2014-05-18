@@ -30,7 +30,7 @@ public:
     int operator()() {
         // ... your code here ...
         int count = switch_count; // 每个协程N次切换
-        copp::coroutine_context_default* addr = get_coroutine_context<copp::coroutine_context_default>();
+        copp::coroutine_context_default* addr = copp::this_coroutine::get<copp::coroutine_context_default>();
 
         while (count -- > 0)
             addr->yield();

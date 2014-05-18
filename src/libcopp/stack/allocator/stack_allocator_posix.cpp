@@ -112,14 +112,15 @@ namespace copp {
             ::close(fd);
 
             if (!start_ptr || MAP_FAILED == start_ptr) {
-                throw std::bad_alloc();
+                ctx.sp = NULL;
+                return;
             }
 
             // memset(start_ptr, 0, size_);
             ::mprotect( start_ptr, sys::pagesize(), PROT_NONE);
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr) +ctx.size; // stack down
+            ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
         }
 
         void stack_allocator_posix::deallocate(stack_context & ctx)

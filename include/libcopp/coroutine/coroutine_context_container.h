@@ -11,6 +11,7 @@
 
 #include <cstddef>
 
+#include <libcopp/utils/errno.h>
 #include <libcopp/coroutine/coroutine_context_safe_base.h>
 #include <libcopp/stack/stack_allocator.h>
 
@@ -74,7 +75,14 @@ namespace copp {
              * @return COPP_EC_SUCCESS or error code
              */
             int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(intptr_t) = NULL){
+                if (NULL != callee_stack_.sp)
+                    return COPP_EC_ALREADY_INITED;
+
                 alloc_.allocate(callee_stack_, stack_size_);
+
+                if (NULL == callee_stack_.sp)
+                    return COPP_EC_ALLOC_STACK_FAILED;
+
                 return base_type::create(runner, func);
             }
 
@@ -85,7 +93,14 @@ namespace copp {
              * @return COPP_EC_SUCCESS or error code
              */
             int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = NULL){
+                if (NULL != callee_stack_.sp)
+                    return COPP_EC_ALREADY_INITED;
+
                 alloc_.allocate(callee_stack_, alloc_.default_stacksize());
+
+                if (NULL == callee_stack_.sp)
+                    return COPP_EC_ALLOC_STACK_FAILED;
+
                 return base_type::create(runner, func);
             }
 

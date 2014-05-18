@@ -96,16 +96,7 @@ namespace copp {
 
         int coroutine_context_base::set_runner(
             coroutine_runnable_base* runner) {
-            if (NULL != runner_ && this == runner_->coroutine_context_) {
-                runner_->coroutine_context_ = NULL;
-            }
-
             runner_ = runner;
-
-            if (NULL != runner_) {
-                runner_->coroutine_context_ = this;
-            }
-
             return COPP_EC_SUCCESS;
         }
 

@@ -96,14 +96,17 @@ namespace copp {
             assert(size > 0 && size_ > 0);
 
             void* start_ptr = ::VirtualAlloc(0, size_, MEM_COMMIT, PAGE_READWRITE);
-            if (!start_ptr) throw std::bad_alloc();
+            if (!start_ptr) {
+                ctx.sp = NULL;
+                return;
+            }
 
             // memset(start_ptr, 0, size_);
             DWORD old_options;
             ::VirtualProtect(start_ptr, sys::pagesize(), PAGE_READWRITE | PAGE_GUARD, &old_options);
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr) +ctx.size; // stack down
+            ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
         }
 
         void stack_allocator_windows::deallocate(stack_context & ctx)

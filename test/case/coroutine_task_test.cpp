@@ -15,12 +15,10 @@ class test_context_task_action : public cotask::impl::task_action_impl
 public:
     int operator()() {
         ++ g_test_coroutine_task_status;
-        CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 
         cotask::this_task::get_task()->yield();
 
         ++ g_test_coroutine_task_status;
-        CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);
 
         return 0;
     }
@@ -30,22 +28,34 @@ public:
 CASE_TEST(coroutine_task, custom_action)
 {
     typedef std::shared_ptr< cotask::task<> > task_ptr_type;
-    test_context_task_action* action = new test_context_task_action();
-    task_ptr_type co_task = cotask::task<>::create(cotask::task<>::action_ptr_t(action));
+    cotask::task<>::action_ptr_t action = cotask::task<>::action_ptr_t(new test_context_task_action());
+    task_ptr_type co_task = cotask::task<>::create(action);
+    task_ptr_type co_another_task = cotask::task<>::create(action); // share action
+
     g_test_coroutine_task_status = 0;
 
     CASE_EXPECT_EQ(0, co_task->start());
 
-    ++ g_test_coroutine_task_status;
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
+    CASE_EXPECT_FALSE(co_task->is_completed());
+
+    CASE_EXPECT_EQ(0, co_another_task->start());
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
 
-    CASE_EXPECT_FALSE(co_task->is_completed());
     CASE_EXPECT_EQ(0, co_task->resume());
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);
+
+    CASE_EXPECT_EQ(0, co_another_task->resume());
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
     CASE_EXPECT_TRUE(co_task->is_completed());
+    CASE_EXPECT_TRUE(co_another_task->is_completed());
+
+    CASE_EXPECT_GT(0, co_another_task->resume());
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
     ++ g_test_coroutine_task_status;
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
 
     CASE_EXPECT_NE(co_task->get_id(), 0);
 }

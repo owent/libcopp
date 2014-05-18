@@ -23,7 +23,7 @@ class my_runner : public copp::detail::coroutine_runnable_base
 public:
     int operator()() {
         // ... your code here ...printf("cortoutine %" PRIxPTR " exit and return %d.\n", (intptr_t)&co_obj, co_obj.get_ret_code());
-        copp::coroutine_context_default* addr = get_coroutine_context<copp::coroutine_context_default>();
+        copp::coroutine_context_default* addr = copp::this_coroutine::get<copp::coroutine_context_default>();
         std::cout<< "cortoutine "<< addr<< " is running."<< std::endl;
 
         addr->yield();

@@ -62,10 +62,20 @@ namespace cotask {
         static ptr_t create(action_ptr_t action,
             size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
-            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+            // step 1. create task instance
+            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            ptr_t ret = ptr_t(inst);
+            if (NULL == inst)
+                return ret;
+
+            // step 2. set action
             ret->_set_action(action);
 
-            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            // step 3. init coroutine context
+            int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            if (res < 0)
+                return ptr_t();
+
             return ret;
         }
 
@@ -80,7 +90,14 @@ namespace cotask {
             size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
             typedef task_action_functor<Ty> a_t;
-            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+
+            // step 1. create task instance
+            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            ptr_t ret = ptr_t(inst);
+            if (NULL == inst)
+                return ret;
+
+            // step 2. create action
             action_ptr_t action = action_ptr_t(
                 action_allocator_t::allocate(
                     reinterpret_cast<a_t*>(NULL),
@@ -89,9 +106,15 @@ namespace cotask {
                 _action_deleter
             );
 
-            if (!action) throw std::bad_alloc();
+            if (!action)
+                return ptr_t();
             ret->_set_action(action);
-            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+
+            // step 3. init coroutine context
+            int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            if (res < 0)
+                return ptr_t();
+
             return ret;
         }
 
@@ -106,7 +129,14 @@ namespace cotask {
             size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
             typedef task_action_function<Ty> a_t;
-            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+
+            // step 1. create task instance
+            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            ptr_t ret = ptr_t(inst);
+            if (NULL == inst)
+                return ret;
+
+            // step 2. create action
             action_ptr_t action = action_ptr_t(
                 action_allocator_t::allocate(
                     reinterpret_cast<a_t*>(NULL),
@@ -115,9 +145,15 @@ namespace cotask {
                 _action_deleter
             );
 
-            if (!action) throw std::bad_alloc();
+            if (!action)
+                return ptr_t();
             ret->_set_action(action);
-            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+
+            // step 3. init coroutine context
+            int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            if (res < 0)
+                return ptr_t();
+
             return ret;
         }
 
@@ -132,7 +168,14 @@ namespace cotask {
             size_t stack_size = stack_allocator_t::default_stacksize()
         ) {
             typedef task_action_mem_function<Ty, TInst> a_t;
-            ptr_t ret = ptr_t(task_allocator_t::allocate(static_cast<self_t*>(NULL)));
+
+            // step 1. create task instance
+            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            ptr_t ret = ptr_t(inst);
+            if (NULL == inst)
+                return ret;
+
+            // step 2. create action
             action_ptr_t action = action_ptr_t(
                 action_allocator_t::allocate(
                     reinterpret_cast<a_t*>(NULL),
@@ -142,9 +185,15 @@ namespace cotask {
                 _action_deleter
             );
 
-            if (!action) throw std::bad_alloc();
+            if (!action)
+                return ptr_t();
             ret->_set_action(action);
-            ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+
+            // step 3. init coroutine context
+            int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            if (res < 0)
+                return ptr_t();
+
             return ret;
         }
 
