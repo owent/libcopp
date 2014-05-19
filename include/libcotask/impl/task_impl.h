@@ -10,6 +10,7 @@
 #ifndef _COTASK_IMPL_TASK_IMPL_H_
 #define _COTASK_IMPL_TASK_IMPL_H_
 
+#include <list>
 #include <libcopp/utils/std/smart_ptr.h>
 
 #include <libcotask/task_actions.h>
@@ -34,6 +35,10 @@ namespace cotask {
             typedef std::shared_ptr<task_impl> ptr_t;
             typedef std::shared_ptr<task_action_impl> action_ptr_t;
 
+            struct task_group {
+                std::list<ptr_t> member_list_;
+            };
+
         private:
             task_impl(const task_impl&);
 
@@ -41,11 +46,24 @@ namespace cotask {
             task_impl();
             virtual ~task_impl() = 0;
 
+            /**
+             * get task status
+             * @return task status
+             */
             inline EN_TASK_STATUS get_status() const { return status_; }
 
             virtual bool is_canceled() const;
             virtual bool is_completed() const;
             virtual bool is_faulted() const;
+
+            /**
+             * @brief add next task to run when task finished
+             * @note please not to make tasks refer to each other. [it will lead to memory leak]
+             * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
+             * @param next_task next stack
+             * @return next_task
+             */
+            ptr_t next(ptr_t next_task);
 
         public:
             virtual int start() = 0;
@@ -56,6 +74,10 @@ namespace cotask {
 
             virtual int on_finished();
 
+            /**
+             * get current running task
+             * @return current running task or empty pointer
+             */
             static ptr_t this_task();
 
         protected:
@@ -66,9 +88,13 @@ namespace cotask {
 
             static ptr_t _set_active_task(task_impl*);
 
+            void active_next_tasks();
+
         private:
             action_ptr_t action_;
             EN_TASK_STATUS status_;
+
+            task_group next_list_;
         };
     }
 }

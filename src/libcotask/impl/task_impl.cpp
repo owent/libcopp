@@ -38,12 +38,28 @@ namespace cotask {
             return EN_TS_KILLED == get_status();
         }
 
+        task_impl::ptr_t task_impl::next(ptr_t next_task) {
+            // can not refers to self
+            if(this == next_task.get())
+                return shared_from_this();
+
+            // can not add next task when finished
+            if (get_status() >= EN_TS_DONE)
+                return next_task;
+
+            next_list_.member_list_.push_back(next_task);
+            return next_task;
+        }
+
         int task_impl::on_finished() {
             return 0;
         }
 
         task_impl::ptr_t task_impl::this_task() {
-            return g_current_task_->shared_from_this();
+            task_impl* ret = g_current_task_;
+            return NULL == ret?
+                ptr_t():
+                ret->shared_from_this();
         }
 
         void task_impl::_set_action(action_ptr_t action) {
@@ -59,6 +75,21 @@ namespace cotask {
             g_current_task_ = task;
             
             return NULL == ret ? task_impl::ptr_t(): ret->shared_from_this();
+        }
+
+        void task_impl::active_next_tasks() {
+            // do next task
+            for(std::list<ptr_t>::iterator iter = next_list_.member_list_.begin();
+                iter != next_list_.member_list_.end(); ++ iter) {
+                if (!(*iter) || EN_TS_INVALID == (*iter)->get_status())
+                    continue;
+
+                if ((*iter)->get_status() < EN_TS_RUNNING)
+                    (*iter)->start();
+                else
+                    (*iter)->resume();
+            }
+            next_list_.member_list_.clear();
         }
     }
 }

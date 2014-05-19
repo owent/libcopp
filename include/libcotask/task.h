@@ -40,6 +40,7 @@ namespace cotask {
 
         typedef std::shared_ptr<self_t> ptr_t;
         typedef impl::task_impl::action_ptr_t action_ptr_t;
+        typedef impl::task_impl::ptr_t task_ptr_t;
 
         friend task_allocator_t;
     private:
@@ -198,6 +199,75 @@ namespace cotask {
         }
 
 
+        using impl::task_impl::next;
+
+        /**
+         * @brief add next task to run when task finished
+         * @note please not to make tasks refer to each other. [it will lead to memory leak]
+         * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
+         * @see impl::task_impl::next
+         * @param next_task next stack
+         * @return next_task
+         */
+        ptr_t next(ptr_t next_task) {
+            return std::static_pointer_cast<self_t>(
+                impl::task_impl::next(std::static_pointer_cast<impl::task_impl>(next_task))
+            );
+        }
+
+        /**
+         * @brief create next task with action
+         * @see next
+         * @param action
+         * @param stack_size stack size
+         * @return task smart pointer
+         */
+        ptr_t next(action_ptr_t action, size_t stack_size = stack_allocator_t::default_stacksize()) {
+            return next(create(action, stack_size));
+        }
+
+        /**
+         * @brief create next task with functor
+         * @see next
+         * @param action
+         * @param stack_size stack size
+         * @return task smart pointer
+         */
+        template<typename Ty>
+        ptr_t next(Ty functor,
+            size_t stack_size = stack_allocator_t::default_stacksize()
+        ) {
+            return next(create(functor, stack_size));
+        }
+
+        /**
+         * @brief create next task with function
+         * @see next
+         * @param action
+         * @param stack_size stack size
+         * @return task smart pointer
+         */
+        template<typename Ty>
+        ptr_t next(Ty (*func)(),
+            size_t stack_size = stack_allocator_t::default_stacksize()
+        ) {
+            return next(create(func, stack_size));
+        }
+
+        /**
+         * @brief create next task with function
+         * @see next
+         * @param action
+         * @param stack_size stack size
+         * @return task smart pointer
+         */
+        template<typename Ty, typename TInst>
+        ptr_t next(Ty (TInst::*func), TInst* instance,
+            size_t stack_size = stack_allocator_t::default_stacksize()
+        ) {
+            return next(create(func, instance, stack_size));
+        }
+
         /**
          * get current running task and convert to task object
          * @return task smart pointer
@@ -281,7 +351,11 @@ namespace cotask {
     private:
         int _notify_finished() {
             _get_action()->on_finished();
-            return on_finished();
+            int ret = on_finished();
+
+            // next tasks
+            active_next_tasks();
+            return ret;
         }
 
         task(const task&);

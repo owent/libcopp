@@ -173,7 +173,7 @@ static void test_context_task_function_3() {
 
     copp::this_coroutine::yield();
 
-    CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
+    CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get< cotask::task<> >()->get_status());
 
     ++ g_test_coroutine_task_status;
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);
@@ -244,6 +244,39 @@ CASE_TEST(coroutine_task, mem_function_action)
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
     CASE_EXPECT_NE(co_task->get_coroutine_context().get_ret_code(), -1);
+}
+
+struct test_context_task_next_action : public cotask::impl::task_action_impl
+{
+    int set_;
+    int check_;
+    test_context_task_next_action(int s, int c): cotask::impl::task_action_impl(), set_(s), check_(c) {}
+
+    int operator()() {
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, check_);
+        g_test_coroutine_task_status = set_;
+
+        CASE_EXPECT_EQ(copp::COPP_EC_IS_RUNNING, cotask::this_task::get_task()->start());
+        return 0;
+    }
+};
+
+CASE_TEST(coroutine_task, next)
+{
+    typedef std::shared_ptr< cotask::task<> > task_ptr_type;
+
+    task_ptr_type co_task = cotask::task<>::create(test_context_task_next_action(15, 0));
+    co_task->next(test_context_task_next_action(7, 15))
+        ->next(test_context_task_next_action(99, 7))
+        ->next(test_context_task_next_action(1023, 99))
+        ->next(test_context_task_next_action(5, 1023));
+
+
+    g_test_coroutine_task_status = 0;
+    CASE_EXPECT_EQ(0, co_task->start());
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
+
+    CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
 }
 
 #endif

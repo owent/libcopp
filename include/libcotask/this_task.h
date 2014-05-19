@@ -14,7 +14,21 @@
 
 namespace cotask {
     namespace this_task {
+
+        /**
+         * @brief get current running task
+         * @return current running task or empty pointer when not in task
+         */
         impl::task_impl::ptr_t get_task();
+
+        /**
+         * @brief get current running task and try to convert type
+         * @return current running task or empty pointer when not in task or fail to convert type
+         */
+        template<typename Tt>
+        std::shared_ptr<Tt> get() {
+            return std::dynamic_pointer_cast<Tt>(get_task());
+        }
     }
 }
 
