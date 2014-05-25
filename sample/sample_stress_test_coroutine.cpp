@@ -39,12 +39,12 @@ public:
     }
 };
 
-int MAX_COROUTINE_NUMBER = 100000; // 协程数量
+int max_coroutine_number = 100000; // 协程数量
 copp::coroutine_context_default* co_arr = NULL;
 my_runner* runner = NULL;
 int main(int argc, char* argv[]) {
     if (argc > 1) {
-        MAX_COROUTINE_NUMBER = atoi(argv[1]);
+        max_coroutine_number = atoi(argv[1]);
     }
 
     if (argc > 2) {
@@ -60,38 +60,43 @@ int main(int argc, char* argv[]) {
     clock_t begin_clock = clock();
 
     // create coroutines
-    co_arr = new copp::coroutine_context_default[MAX_COROUTINE_NUMBER];
-    runner = new my_runner[MAX_COROUTINE_NUMBER];
+    co_arr = new copp::coroutine_context_default[max_coroutine_number];
+    runner = new my_runner[max_coroutine_number];
 
     time_t end_time = time(NULL);
     clock_t end_clock = clock();
     printf("allocate %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        MAX_COROUTINE_NUMBER,
+        max_coroutine_number,
         static_cast<int>(end_time - begin_time), 
         CALC_MS_CLOCK(end_clock - begin_clock),
-        CALC_NS_AVG_CLOCK(end_clock - begin_clock, MAX_COROUTINE_NUMBER)
+        CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_coroutine_number)
     );
 
     // create a runner
     // bind runner to coroutine object
-    for (int i = 0; i < MAX_COROUTINE_NUMBER; ++ i) {
-        co_arr[i].create(&runner[i], stack_size);
+    for (int i = 0; i < max_coroutine_number; ++ i) {
+        int res = co_arr[i].create(&runner[i], stack_size);
+        if(res < 0) {
+            fprintf(stderr, "coroutine create failed, the real number is %d, ret: %d\n", i, res);
+            fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
+            max_coroutine_number = i;
+        }
     }
 
     end_time = time(NULL);
     end_clock = clock();
     printf("create %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        MAX_COROUTINE_NUMBER,
+        max_coroutine_number,
         static_cast<int>(end_time - begin_time),
         CALC_MS_CLOCK(end_clock - begin_clock),
-        CALC_NS_AVG_CLOCK(end_clock - begin_clock, MAX_COROUTINE_NUMBER)
+        CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_coroutine_number)
     );
 
     begin_time = end_time;
     begin_clock = end_clock;
 
     // start a coroutine
-    for (int i = 0; i < MAX_COROUTINE_NUMBER; ++ i) {
+    for (int i = 0; i < max_coroutine_number; ++ i) {
         co_arr[i].start();
     }
 
@@ -101,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     while (continue_flag) {
         continue_flag = false;
-        for (int i = 0; i < MAX_COROUTINE_NUMBER; ++ i) {
+        for (int i = 0; i < max_coroutine_number; ++ i) {
             if (false == co_arr[i].is_finished()){
                 continue_flag = true;
                 ++ real_switch_times;
@@ -113,7 +118,7 @@ int main(int argc, char* argv[]) {
     end_time = time(NULL);
     end_clock = clock();
     printf("switch %d coroutine contest %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        MAX_COROUTINE_NUMBER,
+        max_coroutine_number,
         real_switch_times,
         static_cast<int>(end_time - begin_time),
         CALC_MS_CLOCK(end_clock - begin_clock),
@@ -129,10 +134,10 @@ int main(int argc, char* argv[]) {
     end_time = time(NULL);
     end_clock = clock();
     printf("remove %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        MAX_COROUTINE_NUMBER,
+        max_coroutine_number,
         static_cast<int>(end_time - begin_time),
         CALC_MS_CLOCK(end_clock - begin_clock),
-        CALC_NS_AVG_CLOCK(end_clock - begin_clock, MAX_COROUTINE_NUMBER)
+        CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_coroutine_number)
     );
 
     return 0;
