@@ -28,7 +28,9 @@ int main(int argc, char* argv[]) {
 
     // create a task using lambda expression
     my_task_t::ptr_t first_task = my_task_t::create([&](){
-        puts("|first task running...");
+        puts("|first task running and will be yield ...");
+        cotask::this_task::get_task()->yield();
+        puts("|first task resumed ...");
         printf("test code already reset => %d\n", ++ test_code);
         return 0;
     });
@@ -50,6 +52,7 @@ int main(int argc, char* argv[]) {
     test_code = 0;
     // start a task
     first_task->start();
+    first_task->resume();
 
     // these code below will failed.
     first_task->next([](){
