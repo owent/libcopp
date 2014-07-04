@@ -277,6 +277,12 @@ namespace cotask {
         }
     public:
         virtual ~task() {
+            // inited but not finished will trigger timeout
+            if(get_status() < EN_TS_DONE && EN_TS_INVALID != get_status()) {
+                kill(EN_TS_TIMEOUT);
+            }
+
+            // free resource
             id_allocator_t id_alloc_;
             id_alloc_.deallocate(id_);
         }
@@ -287,6 +293,10 @@ namespace cotask {
         inline id_t get_id() const { return id_; }
 
     public:
+        virtual int get_ret_code() const {
+            return coroutine_obj_.get_ret_code();
+        }
+
         virtual int start() {
             if (get_status() >= EN_TS_DONE) {
                 return copp::COPP_EC_ALREADY_FINISHED;
@@ -299,6 +309,7 @@ namespace cotask {
             }
             _set_status(EN_TS_RUNNING);
 
+            // make sure this task will not be destroyed when running
             impl::task_impl::ptr_t self = shared_from_this();
             impl::task_impl::ptr_t origin_task = _set_active_task(self.get());
             int ret = coroutine_obj_.start();
@@ -335,10 +346,11 @@ namespace cotask {
             return copp::COPP_EC_SUCCESS;
         }
 
-        virtual int kill() {
-            _set_status(EN_TS_KILLED);
+        virtual int kill(enum EN_TASK_STATUS status) {
+            enum EN_TASK_STATUS old_status = get_status();
+            _set_status(status);
 
-            if (EN_TS_RUNNING != get_status()) {
+            if (EN_TS_RUNNING != old_status) {
                 _notify_finished();
             }
 
@@ -349,16 +361,8 @@ namespace cotask {
         virtual bool is_completed() const { return coroutine_obj_.is_finished(); }
 
     private:
-        int _notify_finished() {
-            _get_action()->on_finished();
-            int ret = on_finished();
-
-            // next tasks
-            active_next_tasks();
-            return ret;
-        }
-
         task(const task&);
+
     private:
         id_t id_;
         coroutine_container_t coroutine_obj_;

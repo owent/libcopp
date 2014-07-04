@@ -103,6 +103,10 @@
     #endif
 #endif
 
+#include <libcopp/utils/std/decltype.h>
+#if defined(STD_DECLTYPE)
+    #define COPP_MACRO_TYPEOF(...) STD_DECLTYPE(__VA_ARGS__)
+#endif
 
 #if defined(_POSIX_MT_) || defined(_MSC_VER)
     #define COPP_MACRO_ENABLE_MULTI_THREAD

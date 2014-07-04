@@ -35,7 +35,7 @@ namespace cotask {
         }
 
         bool task_impl::is_faulted() const {
-            return EN_TS_KILLED == get_status();
+            return EN_TS_KILLED <= get_status();
         }
 
         task_impl::ptr_t task_impl::next(ptr_t next_task) {
@@ -49,6 +49,10 @@ namespace cotask {
 
             next_list_.member_list_.push_back(next_task);
             return next_task;
+        }
+
+        int task_impl::kill() {
+            return kill(EN_TS_KILLED);
         }
 
         int task_impl::on_finished() {
@@ -90,6 +94,15 @@ namespace cotask {
                     (*iter)->resume();
             }
             next_list_.member_list_.clear();
+        }
+
+        int task_impl::_notify_finished() {
+            _get_action()->on_finished(*this);
+            int ret = on_finished();
+
+            // next tasks
+            active_next_tasks();
+            return ret;
         }
     }
 }

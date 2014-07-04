@@ -37,11 +37,10 @@ int main(int argc, char* argv[]) {
     first_task->next([=](){
         puts("|second task running...");
         printf("test code should be inited 128 => %d\n", test_code);
-        return 0;
     })->next([&](){
         puts("|haha ... this is the third task.");
         printf("test code is the same => %d\n", ++ test_code);
-        return 0;
+        return "return value will be ignored";
     })->next([&](){
         puts("|it's boring");
         printf("test code is %d\n", ++ test_code);

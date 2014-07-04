@@ -16,7 +16,9 @@ public:
     int operator()() {
         ++ g_test_coroutine_task_status;
 
+        CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
         cotask::this_task::get_task()->yield();
+        CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
 
         ++ g_test_coroutine_task_status;
 
@@ -32,6 +34,9 @@ CASE_TEST(coroutine_task, custom_action)
     task_ptr_type co_task = cotask::task<>::create(action);
     task_ptr_type co_another_task = cotask::task<>::create(action); // share action
 
+    CASE_EXPECT_EQ(cotask::EN_TS_CREATED, co_task->get_status());
+    CASE_EXPECT_EQ(cotask::EN_TS_CREATED, co_another_task->get_status());
+
     g_test_coroutine_task_status = 0;
 
     CASE_EXPECT_EQ(0, co_task->start());
@@ -41,6 +46,9 @@ CASE_TEST(coroutine_task, custom_action)
 
     CASE_EXPECT_EQ(0, co_another_task->start());
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
+
+    CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_task->get_status());
+    CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_another_task->get_status());
 
     CASE_EXPECT_EQ(0, co_task->resume());
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);

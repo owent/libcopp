@@ -16,10 +16,12 @@ namespace cotask {
 
     namespace impl {
 
+        class task_impl;
+
         class task_action_impl : public copp::coroutine_runnable_base
         {
         public:
-            virtual int on_finished() { return 0; }
+            virtual int on_finished(task_impl&) { return 0; }
         };
     }
 }

@@ -25,6 +25,7 @@ namespace cotask {
         EN_TS_DONE,
         EN_TS_CANCELED,
         EN_TS_KILLED,
+        EN_TS_TIMEOUT,
     };
 
     namespace impl {
@@ -66,11 +67,14 @@ namespace cotask {
             ptr_t next(ptr_t next_task);
 
         public:
+            virtual int get_ret_code() const = 0;
+
             virtual int start() = 0;
             virtual int resume() = 0;
             virtual int yield() = 0;
             virtual int cancel() = 0;
-            virtual int kill() = 0;
+            virtual int kill(enum EN_TASK_STATUS status) = 0;
+            virtual int kill();
 
             virtual int on_finished();
 
@@ -89,6 +93,8 @@ namespace cotask {
             static ptr_t _set_active_task(task_impl*);
 
             void active_next_tasks();
+
+            int _notify_finished();
 
         private:
             action_ptr_t action_;
