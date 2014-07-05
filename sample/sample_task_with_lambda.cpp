@@ -19,7 +19,7 @@
 // include manager header file
 #include <libcotask/task.h>
 
-#if defined(COTASK_MACRO_ENABLED) && defined(__cplusplus)// && __cplusplus >= 201103L
+#if defined(COTASK_MACRO_ENABLED) && defined(__cplusplus) && __cplusplus >= 201103L
 
 typedef cotask::task<> my_task_t;
 
