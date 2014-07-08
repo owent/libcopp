@@ -11,15 +11,109 @@
 #include <libcopp/utils/features.h>
 
 #if defined(__clang__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 1 ) ) && __cplusplus >= 201103L
-#include <atomic>
-#define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
+    #include <atomic>
+    #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
 #elif defined(_MSC_VER) && (_MSC_VER >= 1700) && defined(_HAS_CPP0X) && _HAS_CPP0X
-#include <atomic>
-#define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
+    #include <atomic>
+    #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
 #elif defined(__GNUC__) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 5 && (__cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__))
-#include <atomic>
-#define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
+    #include <atomic>
+    #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
 #endif
+
+/**
+ * ==============================================
+ * ======            asm pause             ======
+ * ==============================================
+ */
+#if defined(__GNUC__) || defined(__clang__)
+    #if defined(__i386__) || defined(__x86_64__)
+        /**
+         * See: Intel(R) 64 and IA-32 Architectures Software Developer's Manual V2
+         * PAUSE-Spin Loop Hint, 4-57
+         * http://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.html?wapkw=instruction+set+reference
+         */
+        #define COPP_MACRO_UTILS_SPIN_LOCK_PAUSE() __asm__ __volatile__("pause")
+    #elif defined(__ia64__) || defined(__ia64)
+        /**
+         * See: Intel(R) Itanium(R) Architecture Developer's Manual, Vol.3
+         * hint - Performance Hint, 3:145
+         * http://www.intel.com/content/www/us/en/processors/itanium/itanium-architecture-vol-3-manual.html
+         */
+        #define COPP_MACRO_UTILS_SPIN_LOCK_PAUSE() __asm__ __volatile__ ("hint @pause")
+    #elif defined(__arm__)
+        /**
+         * See: ARM Architecture Reference Manuals (YIELD)
+         * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.subset.architecture.reference/index.html
+         */
+        #define COPP_MACRO_UTILS_SPIN_LOCK_PAUSE() __asm__ __volatile__ ("yield")
+    #endif
+
+#endif /*compilers*/
+
+// set pause do nothing
+#if !defined(COPP_MACRO_UTILS_SPIN_LOCK_PAUSE)
+    #define COPP_MACRO_UTILS_SPIN_LOCK_PAUSE()
+#endif/*!defined(CAPO_SPIN_LOCK_PAUSE)*/
+
+
+/**
+ * ==============================================
+ * ======            cpu yield             ======
+ * ==============================================
+ */
+#if defined(_MSC_VER)
+    #include <windows.h> // YieldProcessor
+
+    /*
+     * See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms687419(v=vs.85).aspx
+     * Not for intel c++ compiler, so ignore http://software.intel.com/en-us/forums/topic/296168
+     */
+    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD() YieldProcessor()
+
+#elif defined(__linux__) || defined(__unix__)
+    #include <sched.h>
+    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD() sched_yield()
+#endif
+
+#ifndef COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD
+    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD()
+#endif
+
+/**
+ * ==============================================
+ * ======           thread yield           ======
+ * ==============================================
+ */
+#if COPP_MACRO_CPP_STD >= 201103L
+    #include <thread>
+    #include <chrono>
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD() std::this_thread::yield()
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP() std::this_thread::sleep_for(std::chrono::milliseconds(1))
+#elif defined(_MSC_VER)
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD() Sleep(0)
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP() Sleep(1)
+#endif
+
+#ifndef COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD()
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP()
+#endif
+
+/**
+ * ==============================================
+ * ======           spin lock wait         ======
+ * ==============================================
+ */
+#define COPP_MACRO_UTILS_SPIN_LOCK_WAIT(x) \
+    { \
+        short try_lock_times = static_cast<short>(x); \
+        if (try_lock_times < 4) {} \
+        else if (try_lock_times < 16) { COPP_MACRO_UTILS_SPIN_LOCK_PAUSE(); } \
+        else if (try_lock_times < 32) { COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD(); } \
+        else if (try_lock_times < 64) { COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD(); } \
+        else if (try_lock_times < 128) { COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP(); } \
+    }
 
 namespace copp { 
     namespace utils {
@@ -45,7 +139,9 @@ namespace copp {
              */
             void lock()
             {
-                while (status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED); /* busy-wait */
+                short try_times = 0;
+                while (status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED)
+                    COPP_MACRO_UTILS_SPIN_LOCK_WAIT(try_times ++); /* busy-wait */
             }
 
             /**
@@ -137,12 +233,17 @@ namespace copp {
              */
             void lock()
             {
+                short try_times = 0;
+
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC
-                while (InterlockedExchange(&status_, EN_SL_LOCKED) == EN_SL_LOCKED); /* busy-wait */
+                while (InterlockedExchange(&status_, EN_SL_LOCKED) == EN_SL_LOCKED)
+                    COPP_MACRO_UTILS_SPIN_LOCK_WAIT(try_times ++); /* busy-wait */
             #elif defined(COPP_MACRO_UTILS_SPINLOCK_ATOMIC_GCC_ATOMIC)
-                while (__atomic_exchange_n(&status_, EN_SL_LOCKED, __ATOMIC_ACQ_REL) == EN_SL_LOCKED); /* busy-wait */
+                while (__atomic_exchange_n(&status_, EN_SL_LOCKED, __ATOMIC_ACQ_REL) == EN_SL_LOCKED)
+                    COPP_MACRO_UTILS_SPIN_LOCK_WAIT(try_times ++); /* busy-wait */
             #else
-                while (__sync_lock_test_and_set(&status_, EN_SL_LOCKED) == EN_SL_LOCKED); /* busy-wait */
+                while (__sync_lock_test_and_set(&status_, EN_SL_LOCKED) == EN_SL_LOCKED)
+                    COPP_MACRO_UTILS_SPIN_LOCK_WAIT(try_times ++); /* busy-wait */
             #endif
             }
 
