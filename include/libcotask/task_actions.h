@@ -10,60 +10,37 @@
 #ifndef _COTASK_TASK_ACTIONS_H_
 #define _COTASK_TASK_ACTIONS_H_
 
-#include <libcopp/utils/features.h>
 #include <libcotask/impl/task_action_impl.h>
 
 namespace cotask {
 
     namespace detail {
 
-#ifdef COPP_MACRO_TYPEOF
-        template<typename TRet>
-        class task_action_functor_fit {
-        public:
-            template<typename TFunc>
-            int operator()(TFunc& fn) {
+        struct task_action_functor_check {
+            // ================================================
+            template<typename TR, typename TF>
+            static int call(TR (TF::*)(), TF& fn) {
                 fn();
                 return 0;
             }
 
-            template<typename TFunc>
-            int operator()(const TFunc& fn) {
+            template<typename TR, typename TF>
+            static int call(TR (TF::*)() const, const TF& fn) {
                 fn();
                 return 0;
             }
-        };
 
-        template<>
-        class task_action_functor_fit<int> {
-        public:
-            template<typename TFunc>
-            int operator()(TFunc& fn) {
+            // ------------------------------------------------
+            template<typename TF>
+            static int call(int (TF::*)(), TF& fn) {
                 return fn();
             }
 
-            template<typename TFunc>
-            int operator()(const TFunc& fn) {
+            template<typename TF>
+            static int call(int (TF::*)() const, const TF& fn) {
                 return fn();
             }
         };
-
-#else
-
-        class task_action_functor_fit {
-        public:
-            template<typename TRet>
-            int operator()(TRet ret) {
-                return 0;
-            }
-
-            int operator()(int ret) {
-                return ret;
-            }
-        };
-
-#endif
-
     }
     // functor
     template<typename Ty>
@@ -76,11 +53,7 @@ namespace cotask {
         task_action_functor(value_type functor): functor_(functor){}
 
         virtual int operator()() {
-#ifdef COPP_MACRO_TYPEOF
-            return detail::task_action_functor_fit<COPP_MACRO_TYPEOF(functor_())>()(functor_);
-#else
-            return detail::task_action_functor_fit()(functor_());
-#endif
+            return detail::task_action_functor_check::call(&value_type::operator(), functor_);
         }
 
     private:

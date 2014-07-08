@@ -19,7 +19,7 @@
 // include manager header file
 #include <libcotask/task.h>
 
-#if defined(COTASK_MACRO_ENABLED) && defined(__cplusplus) && __cplusplus >= 201103L
+#if defined(COTASK_MACRO_ENABLED) && defined(__cplusplus) && (__cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1600))
 
 typedef cotask::task<> my_task_t;
 
@@ -32,7 +32,6 @@ int main(int argc, char* argv[]) {
         cotask::this_task::get_task()->yield();
         puts("|first task resumed ...");
         printf("test code already reset => %d\n", ++ test_code);
-        return 0;
     });
 
     // add many next task using lambda expression
