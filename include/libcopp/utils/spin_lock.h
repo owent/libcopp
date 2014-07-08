@@ -77,7 +77,7 @@
 #endif
 
 #ifndef COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD
-    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD()
+    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD() COPP_MACRO_UTILS_SPIN_LOCK_PAUSE()
 #endif
 
 /**
@@ -97,7 +97,7 @@
 
 #ifndef COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD
     #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD()
-    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP()
+    #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP() COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD()
 #endif
 
 /**
@@ -107,12 +107,12 @@
  */
 #define COPP_MACRO_UTILS_SPIN_LOCK_WAIT(x) \
     { \
-        short try_lock_times = static_cast<short>(x); \
+        unsigned char try_lock_times = static_cast<unsigned char>(x); \
         if (try_lock_times < 4) {} \
         else if (try_lock_times < 16) { COPP_MACRO_UTILS_SPIN_LOCK_PAUSE(); } \
-        else if (try_lock_times < 32) { COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD(); } \
-        else if (try_lock_times < 64) { COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD(); } \
-        else if (try_lock_times < 128) { COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP(); } \
+        else if (try_lock_times < 32) { COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD(); } \
+        else if (try_lock_times < 64) { COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD(); } \
+        else { COPP_MACRO_UTILS_SPIN_LOCK_THREAD_SLEEP(); } \
     }
 
 namespace copp { 
@@ -139,7 +139,7 @@ namespace copp {
              */
             void lock()
             {
-                short try_times = 0;
+                unsigned char try_times = 0;
                 while (status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED)
                     COPP_MACRO_UTILS_SPIN_LOCK_WAIT(try_times ++); /* busy-wait */
             }
@@ -233,7 +233,7 @@ namespace copp {
              */
             void lock()
             {
-                short try_times = 0;
+                unsigned char try_times = 0;
 
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC
                 while (InterlockedExchange(&status_, EN_SL_LOCKED) == EN_SL_LOCKED)
