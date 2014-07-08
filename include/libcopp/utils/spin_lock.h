@@ -85,7 +85,7 @@
  * ======           thread yield           ======
  * ==============================================
  */
-#if COPP_MACRO_CPP_STD >= 201103L
+#if defined(COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD)
     #include <thread>
     #include <chrono>
     #define COPP_MACRO_UTILS_SPIN_LOCK_THREAD_YIELD() std::this_thread::yield()
