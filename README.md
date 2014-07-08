@@ -29,7 +29,7 @@ Prerequisites
 -   **[required]** [cmake](www.cmake.org) 2.8.9 and upper
 -   **[optional]** [gtest](https://code.google.com/p/googletest/) 1.6.0 and upper (better test supported)
 -   **[optional]** [Boost.Test](http://www.boost.org/doc/libs/release/libs/test/) (Boost.Test supported)
--   
+
 ### Unix
 
 -   **[required]** ar, as, ld ([binutils](http://www.gnu.org/software/binutils/))
