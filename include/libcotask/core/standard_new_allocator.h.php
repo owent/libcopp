@@ -32,7 +32,7 @@ namespace cotask {
              */
             template<typename Ty, typename... TARGS>
             static Ty* allocate(Ty*, TARGS... args) {
-                Ty* ret = new Ty(args...);
+                Ty* ret = new Ty(std::forward<TARGS>(args)...);
                 return ret;
             }
 #else
