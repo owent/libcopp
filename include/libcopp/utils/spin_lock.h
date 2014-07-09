@@ -26,7 +26,16 @@
  * ======            asm pause             ======
  * ==============================================
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(_MSC_VER)
+    #include <windows.h> // YieldProcessor
+
+    /*
+     * See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms687419(v=vs.85).aspx
+     * Not for intel c++ compiler, so ignore http://software.intel.com/en-us/forums/topic/296168
+     */
+    #define COPP_MACRO_UTILS_SPIN_LOCK_PAUSE() YieldProcessor()
+
+#elif defined(__GNUC__) || defined(__clang__)
     #if defined(__i386__) || defined(__x86_64__)
         /**
          * See: Intel(R) 64 and IA-32 Architectures Software Developer's Manual V2
@@ -63,13 +72,7 @@
  * ==============================================
  */
 #if defined(_MSC_VER)
-    #include <windows.h> // YieldProcessor
-
-    /*
-     * See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms687419(v=vs.85).aspx
-     * Not for intel c++ compiler, so ignore http://software.intel.com/en-us/forums/topic/296168
-     */
-    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD() YieldProcessor()
+    #define COPP_MACRO_UTILS_SPIN_LOCK_CPU_YIELD() SwitchToThread()
 
 #elif defined(__linux__) || defined(__unix__)
     #include <sched.h>
@@ -104,6 +107,12 @@
  * ==============================================
  * ======           spin lock wait         ======
  * ==============================================
+ * @note
+ *   1. busy-wait
+ *   2. asm pause
+ *   3. thread give up cpu time slice but will not switch to another process
+ *   4. thread give up cpu time slice (may switch to another process)
+ *   5. sleep (will switch to another process when necessary)
  */
 #define COPP_MACRO_UTILS_SPIN_LOCK_WAIT(x) \
     { \
