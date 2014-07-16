@@ -75,7 +75,7 @@ std::string shell_font::GetStyleCode(int iFlag)
         if (iStart < 8)
             base[1] += iStart;
         ret += std::string((!bFirst)?";":"") + base;
-        bFirst = false;
+        // bFirst = false; no need to set because not used later
     }
 
     ret += "m";

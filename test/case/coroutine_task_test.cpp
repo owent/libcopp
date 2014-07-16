@@ -72,7 +72,7 @@ CASE_TEST(coroutine_task, custom_action)
 struct test_context_task_functor
 {
 public:
-    int operator()() {
+    int operator()() const {
         ++ g_test_coroutine_task_status;
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 

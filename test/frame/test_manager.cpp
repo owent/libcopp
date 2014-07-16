@@ -15,6 +15,7 @@
 #include "test_manager.h"
 
 test_manager::test_manager() {
+    success_counter_ptr = failed_counter_ptr = NULL;
     success_ = 0;
     failed_ = 0;
 }
