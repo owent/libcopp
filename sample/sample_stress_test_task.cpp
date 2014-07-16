@@ -22,7 +22,7 @@
 #ifdef COTASK_MACRO_ENABLED
 
 #define CALC_MS_CLOCK(x) static_cast<int>((x) / (CLOCKS_PER_SEC / 1000))
-#define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / y)
+#define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / (y?y:1))
 
 typedef cotask::task<> my_task_t;
 
