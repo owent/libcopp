@@ -43,7 +43,8 @@ public:
         std::chrono::milliseconds dura( 4 );
         std::this_thread::sleep_for( dura );
 
-        max_thd_count = std::max(max_thd_count, cur_thd_count.load());
+        using std::max;
+        max_thd_count = max(max_thd_count, cur_thd_count.load());
 
         -- cur_thd_count;
         return 0;

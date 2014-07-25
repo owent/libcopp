@@ -1,4 +1,4 @@
-/*
+﻿/*
  * task_manager.h
  *
  *  Created on: 2014年6月16日

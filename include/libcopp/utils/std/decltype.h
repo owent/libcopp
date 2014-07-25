@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file decltype.h
  * @brief decltype兼容层
  * Licensed under the MIT licenses.
