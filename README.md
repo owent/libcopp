@@ -183,10 +183,8 @@ DEVELOPER
 
 [safe coroutine object summary](doc/safe_basic_coroutine_class.txt)
 
-SCHEDUAL
+DEVELOP PLAN
 ========
-
-[task schedual](doc/task_schedual.txt)
 
 
 THANKS TO
