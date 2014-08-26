@@ -40,7 +40,7 @@
  *  -------------------------------------------------  *
  *  | 128 | 132 | 136 | 140 | 144 | 148 | 152 | 156 |  *
  *  -------------------------------------------------  *
- *  |    F30    |    F31    |   fpscr   |    TOC    |  *
+ *  |    F30    |    F31    |   fpscr   |    R13    |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  40 |  41 |  42 |  43 |  44 |  45 |  46 |  47 |  *
@@ -88,41 +88,16 @@
  *                                                     *
  *******************************************************/
 
-.globl copp_jump_fcontext
-#if _CALL_ELF == 2
-	.text
-	.align 2
-copp_jump_fcontext:
-        addis   %r2, %r12, .TOC.-copp_jump_fcontext@ha
-        addi    %r2, %r2, .TOC.-copp_jump_fcontext@l
-        .localentry copp_jump_fcontext, . - copp_jump_fcontext
-#else
-	.section ".opd","aw"
-	.align 3
-copp_jump_fcontext:
-# ifdef _CALL_LINUX
-        .quad   .L.copp_jump_fcontext,.TOC.@tocbase,0
-        .type   copp_jump_fcontext,@function
-        .text
-        .align 2
-.L.copp_jump_fcontext:
-# else
-        .hidden .copp_jump_fcontext
-        .globl  .copp_jump_fcontext
-        .quad   .copp_jump_fcontext,.TOC.@tocbase,0
-        .size   copp_jump_fcontext,24
-        .type   .copp_jump_fcontext,@function
-        .text
-        .align 2
-.copp_jump_fcontext:
-# endif
-#endif
+.section .text
+.align 2
+.globl _copp_jump_fcontext
+.def ._copp_jump_fcontext; .scl 2; .type 32; .endef
+.globl ._copp_jump_fcontext
+._copp_jump_fcontext:
     # reserve space on stack
     subi  %r1, %r1, 328
 
-#if _CALL_ELF != 2
-    std  %r2,  152(%r1)  # save TOC
-#endif
+    std  %r13, 152(%r1)  # save R13
     std  %r14, 160(%r1)  # save R14
     std  %r15, 168(%r1)  # save R15
     std  %r16, 176(%r1)  # save R16
@@ -178,7 +153,7 @@ copp_jump_fcontext:
 
 1:
     # store RSP (pointing to context-data) in R3
-    std  %r1, 0(%r3)
+    stw  %r1, 0(%r3)
 
     # restore RSP (pointing to context-data) from R4
     mr  %r1, %r4
@@ -209,9 +184,7 @@ copp_jump_fcontext:
     mtfsf  0xff, %f0  # restore FPSCR
 
 2:
-#if _CALL_ELF != 2
-    ld  %r2,  152(%r1)  # restore TOC
-#endif
+    ld  %r13, 152(%r1)  # restore R13
     ld  %r14, 160(%r1)  # restore R14
     ld  %r15, 168(%r1)  # restore R15
     ld  %r16, 176(%r1)  # restore R16
@@ -239,9 +212,9 @@ copp_jump_fcontext:
     mtlr  %r0
 
     # load PC
-    ld  %r12, 320(%r1)
+    ld  %r0, 320(%r1)
     # restore CTR
-    mtctr  %r12
+    mtctr  %r0
 
     # adjust stack
     addi  %r1, %r1, 328
@@ -252,16 +225,3 @@ copp_jump_fcontext:
 
     # jump to context
     bctr
-#if _CALL_ELF == 2
-	.size copp_jump_fcontext, .-copp_jump_fcontext
-#else
-# ifdef _CALL_LINUX
-	.size .copp_jump_fcontext, .-.L.copp_jump_fcontext
-# else
-	.size .copp_jump_fcontext, .-.copp_jump_fcontext
-# endif
-#endif
-
-
-/* Mark that we don't need executable stack.  */
-.section .note.GNU-stack,"",%progbits

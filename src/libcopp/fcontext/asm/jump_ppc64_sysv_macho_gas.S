@@ -40,7 +40,7 @@
  *  -------------------------------------------------  *
  *  | 128 | 132 | 136 | 140 | 144 | 148 | 152 | 156 |  *
  *  -------------------------------------------------  *
- *  |    F30    |    F31    |   fpscr   |    TOC    |  *
+ *  |    F30    |    F31    |   fpscr   |    R13    |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  40 |  41 |  42 |  43 |  44 |  45 |  46 |  47 |  *
@@ -88,102 +88,139 @@
  *                                                     *
  *******************************************************/
 
-.globl copp_make_fcontext
-#if _CALL_ELF == 2
-	.text
-	.align 2
-copp_make_fcontext:
-	addis	%r2, %r12, .TOC.-copp_make_fcontext@ha
-	addi	%r2, %r2, .TOC.-copp_make_fcontext@l
-	.localentry copp_make_fcontext, . - copp_make_fcontext
-#else
-	.section ".opd","aw"
-	.align 3
-copp_make_fcontext:
-# ifdef _CALL_LINUX
-	.quad	.L.copp_make_fcontext,.TOC.@tocbase,0
-	.type	copp_make_fcontext,@function
-	.text
-	.align 2
-.L.copp_make_fcontext:
-# else
-	.hidden	.copp_make_fcontext
-	.globl	.copp_make_fcontext
-	.quad	.copp_make_fcontext,.TOC.@tocbase,0
-	.size	copp_make_fcontext,24
-	.type	.copp_make_fcontext,@function
-	.text
-	.align 2
-.copp_make_fcontext:
-# endif
-#endif
-    # save return address into R6
-    mflr  %r6
+.text
+.align 2
+.globl copp_jump_fcontext
 
-    # first arg of copp_make_fcontext() == top address of context-stack
-    # shift address in R3 to lower 16 byte boundary
-    clrrdi  %r3, %r3, 4
+_copp_jump_fcontext:
+    ; reserve space on stack
+    subi  r1, r1, 328
 
-    # reserve space for context-data on context-stack
-    # including 64 byte of linkage + parameter area (R1 % 16 == 0)
-    subi  %r3, %r3, 392
+    std  r13, 152(r1)  ; save R13
+    std  r14, 160(r1)  ; save R14
+    std  r15, 168(r1)  ; save R15
+    std  r16, 176(r1)  ; save R16
+    std  r17, 184(r1)  ; save R17
+    std  r18, 192(r1)  ; save R18
+    std  r19, 200(r1)  ; save R19
+    std  r20, 208(r1)  ; save R20
+    std  r21, 216(r1)  ; save R21
+    std  r22, 224(r1)  ; save R22
+    std  r23, 232(r1)  ; save R23
+    std  r24, 240(r1)  ; save R24
+    std  r25, 248(r1)  ; save R25
+    std  r26, 256(r1)  ; save R26
+    std  r27, 264(r1)  ; save R27
+    std  r28, 272(r1)  ; save R28
+    std  r29, 280(r1)  ; save R29
+    std  r30, 288(r1)  ; save R30
+    std  r31, 296(r1)  ; save R31
 
-    # third arg of copp_make_fcontext() == address of context-function
-    # entry point (ELFv2) or descriptor (ELFv1)
-#if _CALL_ELF == 2
-    # save address of context-function entry point
-    std  %r5, 320(%r3)
-#else
-    # save address of context-function entry point
-    ld   %r4, 0(%r5)
-    std  %r4, 320(%r3)
-    # save TOC of context-function
-    ld   %r4, 8(%r5)
-    std  %r4, 152(%r3)
-#endif
+    ; save CR
+    mfcr  r0
+    std  r0, 304(r1)
+    ; save LR
+    mflr  r0
+    std  r0, 312(r1)
+    ; save LR as PC
+    std  r0, 320(r1)
 
-    # load LR
-    mflr  %r0
-    # jump to label 1
-    bl  1f
-1:
-    # load LR into R4
-    mflr  %r4
-    # compute abs address of label finish
-    addi  %r4, %r4, finish - 1b
-    # restore LR
-    mtlr  %r0
-    # save address of finish as return-address for context-function
-    # will be entered after context-function returns
-    std  %r4, 312(%r3)
+    ; test if fpu env should be preserved
+    cmpwi  cr7, r6, 0
+    beq  cr7, l1
 
-    # restore return address from R6
-    mtlr  %r6
+    stfd  f14, 0(r1)  ; save F14
+    stfd  f15, 8(r1)  ; save F15
+    stfd  f16, 16(r1)  ; save F16
+    stfd  f17, 24(r1)  ; save F17
+    stfd  f18, 32(r1)  ; save F18
+    stfd  f19, 40(r1)  ; save F19
+    stfd  f20, 48(r1)  ; save F20
+    stfd  f21, 56(r1)  ; save F21
+    stfd  f22, 64(r1)  ; save F22
+    stfd  f23, 72(r1)  ; save F23
+    stfd  f24, 80(r1)  ; save F24
+    stfd  f25, 88(r1)  ; save F25
+    stfd  f26, 96(r1)  ; save F26
+    stfd  f27, 104(r1)  ; save F27
+    stfd  f28, 112(r1)  ; save F28
+    stfd  f29, 120(r1)  ; save F29
+    stfd  f30, 128(r1)  ; save F30
+    stfd  f31, 136(r1)  ; save F31
+    mffs  f0  ; load FPSCR
+    stfd  f0, 144(r1)  ; save FPSCR
 
-    blr  # return pointer to context-data
+l1:
+    ; store RSP (pointing to context-data) in R3
+    stw  r1, 0(r3)
 
-finish:
-    # save return address into R0
-    mflr  %r0
-    # save return address on stack, set up stack frame
-    std  %r0, 8(%r1)
-    # allocate stack space, R1 % 16 == 0
-    stdu  %r1, -32(%r1)
+    ; restore RSP (pointing to context-data) from R4
+    mr  r1, r4
 
-    # exit code is zero
-    li  %r3, 0
-    # exit application
-    bl  _exit
-    nop
-#if _CALL_ELF == 2
-	.size copp_make_fcontext, .-copp_make_fcontext
-#else
-# ifdef _CALL_LINUX
-	.size .copp_make_fcontext, .-.L.copp_make_fcontext
-# else
-	.size .copp_make_fcontext, .-.copp_make_fcontext
-# endif
-#endif
+    ; test if fpu env should be preserved
+    cmpwi  cr7, r6, 0
+    beq  cr7, l2
 
-/* Mark that we don't need executable stack.  */
-.section .note.GNU-stack,"",%progbits
+    lfd  f14, 0(r1)  ; restore F14
+    lfd  f15, 8(r1)  ; restore F15
+    lfd  f16, 16(r1)  ; restore F16
+    lfd  f17, 24(r1)  ; restore F17
+    lfd  f18, 32(r1)  ; restore F18
+    lfd  f19, 40(r1)  ; restore F19
+    lfd  f20, 48(r1)  ; restore F20
+    lfd  f21, 56(r1)  ; restore F21
+    lfd  f22, 64(r1)  ; restore F22
+    lfd  f23, 72(r1)  ; restore F23
+    lfd  f24, 80(r1)  ; restore F24
+    lfd  f25, 88(r1)  ; restore F25
+    lfd  f26, 96(r1)  ; restore F26
+    lfd  f27, 104(r1)  ; restore F27
+    lfd  f28, 112(r1)  ; restore F28
+    lfd  f29, 120(r1)  ; restore F29
+    lfd  f30, 128(r1)  ; restore F30
+    lfd  f31, 136(r1)  ; restore F31
+    lfd  f0,  144(r1)  ; load FPSCR
+    mtfsf  0xff, f0  ; restore FPSCR
+
+2:
+    ld  r13, 152(r1)  ; restore R13
+    ld  r14, 160(r1)  ; restore R14
+    ld  r15, 168(r1)  ; restore R15
+    ld  r16, 176(r1)  ; restore R16
+    ld  r17, 184(r1)  ; restore R17
+    ld  r18, 192(r1)  ; restore R18
+    ld  r19, 200(r1)  ; restore R19
+    ld  r20, 208(r1)  ; restore R20
+    ld  r21, 216(r1)  ; restore R21
+    ld  r22, 224(r1)  ; restore R22
+    ld  r23, 232(r1)  ; restore R23
+    ld  r24, 240(r1)  ; restore R24
+    ld  r25, 248(r1)  ; restore R25
+    ld  r26, 256(r1)  ; restore R26
+    ld  r27, 264(r1)  ; restore R27
+    ld  r28, 272(r1)  ; restore R28
+    ld  r29, 280(r1)  ; restore R29
+    ld  r30, 288(r1)  ; restore R30
+    ld  r31, 296(r1)  ; restore R31
+
+    ; restore CR
+    ld  r0, 304(r1)
+    mtcr  r0
+    ; restore LR
+    ld  r0, 312(r1)
+    mtlr  r0
+
+    ; load PC
+    ld  r0, 320(r1)
+    ; restore CTR
+    mtctr  r0
+
+    ; adjust stack
+    addi  r1, r1, 328
+
+    ; use third arg as return value after jump
+    ; use third arg as first arg in context function
+    mr  r3, r5
+
+    ; jump to context
+    bctr

@@ -40,116 +40,68 @@
  *  -------------------------------------------------  *
  *  | 128 | 132 | 136 | 140 | 144 | 148 | 152 | 156 |  *
  *  -------------------------------------------------  *
- *  |    F30    |    F31    |   fpscr   |    TOC    |  *
+ *  |    F30    |    F31    |   fpscr   | R13 | R14 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  40 |  41 |  42 |  43 |  44 |  45 |  46 |  47 |  *
  *  -------------------------------------------------  *
  *  | 160 | 164 | 168 | 172 | 176 | 180 | 184 | 188 |  *
  *  -------------------------------------------------  *
- *  |    R14    |    R15    |     R16   |    R17    |  *
+ *  | R15 | R16 | R17 | R18 | R19 | R20 | R21 | R22 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  48 |  49 |  50 |  51 |  52 |  53 |  54 |  55 |  *
  *  -------------------------------------------------  *
  *  | 192 | 196 | 200 | 204 | 208 | 212 | 216 | 220 |  *
  *  -------------------------------------------------  *
- *  |    R18    |    R19    |    R20    |    R21    |  *
+ *  | R23 | R24 | R25 | R26 | R27 | R28 | R29 | R30 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
- *  |  56 |  57 |  58 |  59 |  60 |  61 |  62 |  63 |  *
+ *  |  56 |  57 |  58 |  59 |                       |  *
  *  -------------------------------------------------  *
- *  | 224 | 228 | 232 | 236 | 240 | 244 | 248 | 252 |  *
+ *  | 224 | 228 | 232 | 236 |                       |  *
  *  -------------------------------------------------  *
- *  |    R22    |    R23    |    R24    |    R25    |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |  64 |  65 |  66 |  67 |  68 |  69 |  70 |  71 |  *
- *  -------------------------------------------------  *
- *  | 256 | 260 | 264 | 268 | 272 | 276 | 280 | 284 |  *
- *  -------------------------------------------------  *
- *  |    R26    |    R27    |    R28    |    R29    |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |  72 |  73 |  74 |  75 |  76 |  77 |  78 |  79 |  *
- *  -------------------------------------------------  *
- *  | 288 | 292 | 296 | 300 | 304 | 308 | 312 | 316 |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |    R30    |    R31    |     CR    |     LR    |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |  80 |  81 |                                   |  *
- *  -------------------------------------------------  *
- *  | 320 | 324 |                                   |  *
- *  -------------------------------------------------  *
- *  |    PC     |                                   |  *
+ *  | R31 |  CR |  LR |  PC |                       |  *
  *  -------------------------------------------------  *
  *                                                     *
  *******************************************************/
 
-.globl copp_jump_fcontext
-#if _CALL_ELF == 2
-	.text
-	.align 2
-copp_jump_fcontext:
-        addis   %r2, %r12, .TOC.-copp_jump_fcontext@ha
-        addi    %r2, %r2, .TOC.-copp_jump_fcontext@l
-        .localentry copp_jump_fcontext, . - copp_jump_fcontext
-#else
-	.section ".opd","aw"
-	.align 3
-copp_jump_fcontext:
-# ifdef _CALL_LINUX
-        .quad   .L.copp_jump_fcontext,.TOC.@tocbase,0
-        .type   copp_jump_fcontext,@function
-        .text
-        .align 2
-.L.copp_jump_fcontext:
-# else
-        .hidden .copp_jump_fcontext
-        .globl  .copp_jump_fcontext
-        .quad   .copp_jump_fcontext,.TOC.@tocbase,0
-        .size   copp_jump_fcontext,24
-        .type   .copp_jump_fcontext,@function
-        .text
-        .align 2
-.copp_jump_fcontext:
-# endif
-#endif
+.text
+.globl _copp_jump_fcontext
+.align 2
+.def _copp_jump_fcontext; .scl 2; .type 32; .endef
+_copp_jump_fcontext:
     # reserve space on stack
-    subi  %r1, %r1, 328
+    subi  %r1, %r1, 240
 
-#if _CALL_ELF != 2
-    std  %r2,  152(%r1)  # save TOC
-#endif
-    std  %r14, 160(%r1)  # save R14
-    std  %r15, 168(%r1)  # save R15
-    std  %r16, 176(%r1)  # save R16
-    std  %r17, 184(%r1)  # save R17
-    std  %r18, 192(%r1)  # save R18
-    std  %r19, 200(%r1)  # save R19
-    std  %r20, 208(%r1)  # save R20
-    std  %r21, 216(%r1)  # save R21
-    std  %r22, 224(%r1)  # save R22
-    std  %r23, 232(%r1)  # save R23
-    std  %r24, 240(%r1)  # save R24
-    std  %r25, 248(%r1)  # save R25
-    std  %r26, 256(%r1)  # save R26
-    std  %r27, 264(%r1)  # save R27
-    std  %r28, 272(%r1)  # save R28
-    std  %r29, 280(%r1)  # save R29
-    std  %r30, 288(%r1)  # save R30
-    std  %r31, 296(%r1)  # save R31
+    stw  %r13, 152(%r1)  # save R13
+    stw  %r14, 156(%r1)  # save R14
+    stw  %r15, 160(%r1)  # save R15
+    stw  %r16, 164(%r1)  # save R16
+    stw  %r17, 168(%r1)  # save R17
+    stw  %r18, 172(%r1)  # save R18
+    stw  %r19, 176(%r1)  # save R19
+    stw  %r20, 180(%r1)  # save R20
+    stw  %r21, 184(%r1)  # save R21
+    stw  %r22, 188(%r1)  # save R22
+    stw  %r23, 192(%r1)  # save R23
+    stw  %r24, 196(%r1)  # save R24
+    stw  %r25, 200(%r1)  # save R25
+    stw  %r26, 204(%r1)  # save R26
+    stw  %r27, 208(%r1)  # save R27
+    stw  %r28, 212(%r1)  # save R28
+    stw  %r29, 216(%r1)  # save R29
+    stw  %r30, 220(%r1)  # save R30
+    stw  %r31, 224(%r1)  # save R31
 
     # save CR
     mfcr  %r0
-    std  %r0, 304(%r1)
+    stw  %r0, 228(%r1)
     # save LR
     mflr  %r0
-    std  %r0, 312(%r1)
+    stw  %r0, 232(%r1)
     # save LR as PC
-    std  %r0, 320(%r1)
+    stw  %r0, 236(%r1)
 
     # test if fpu env should be preserved
     cmpwi  cr7, %r6, 0
@@ -178,7 +130,7 @@ copp_jump_fcontext:
 
 1:
     # store RSP (pointing to context-data) in R3
-    std  %r1, 0(%r3)
+    stw  %r1, 0(%r3)
 
     # restore RSP (pointing to context-data) from R4
     mr  %r1, %r4
@@ -209,42 +161,40 @@ copp_jump_fcontext:
     mtfsf  0xff, %f0  # restore FPSCR
 
 2:
-#if _CALL_ELF != 2
-    ld  %r2,  152(%r1)  # restore TOC
-#endif
-    ld  %r14, 160(%r1)  # restore R14
-    ld  %r15, 168(%r1)  # restore R15
-    ld  %r16, 176(%r1)  # restore R16
-    ld  %r17, 184(%r1)  # restore R17
-    ld  %r18, 192(%r1)  # restore R18
-    ld  %r19, 200(%r1)  # restore R19
-    ld  %r20, 208(%r1)  # restore R20
-    ld  %r21, 216(%r1)  # restore R21
-    ld  %r22, 224(%r1)  # restore R22
-    ld  %r23, 232(%r1)  # restore R23
-    ld  %r24, 240(%r1)  # restore R24
-    ld  %r25, 248(%r1)  # restore R25
-    ld  %r26, 256(%r1)  # restore R26
-    ld  %r27, 264(%r1)  # restore R27
-    ld  %r28, 272(%r1)  # restore R28
-    ld  %r29, 280(%r1)  # restore R29
-    ld  %r30, 288(%r1)  # restore R30
-    ld  %r31, 296(%r1)  # restore R31
+    lwz  %r13, 152(%r1)  # restore R13
+    lwz  %r14, 156(%r1)  # restore R14
+    lwz  %r15, 160(%r1)  # restore R15
+    lwz  %r16, 164(%r1)  # restore R16
+    lwz  %r17, 168(%r1)  # restore R17
+    lwz  %r18, 172(%r1)  # restore R18
+    lwz  %r19, 176(%r1)  # restore R19
+    lwz  %r20, 180(%r1)  # restore R20
+    lwz  %r21, 184(%r1)  # restore R21
+    lwz  %r22, 188(%r1)  # restore R22
+    lwz  %r23, 192(%r1)  # restore R23
+    lwz  %r24, 196(%r1)  # restore R24
+    lwz  %r25, 200(%r1)  # restore R25
+    lwz  %r26, 204(%r1)  # restore R26
+    lwz  %r27, 208(%r1)  # restore R27
+    lwz  %r28, 212(%r1)  # restore R28
+    lwz  %r29, 216(%r1)  # restore R29
+    lwz  %r30, 220(%r1)  # restore R30
+    lwz  %r31, 224(%r1)  # restore R31
 
     # restore CR
-    ld  %r0, 304(%r1)
+    lwz  %r0, 228(%r1)
     mtcr  %r0
     # restore LR
-    ld  %r0, 312(%r1)
+    lwz  %r0, 232(%r1)
     mtlr  %r0
 
     # load PC
-    ld  %r12, 320(%r1)
+    lwz  %r0, 236(%r1)
     # restore CTR
-    mtctr  %r12
+    mtctr  %r0
 
     # adjust stack
-    addi  %r1, %r1, 328
+    addi  %r1, %r1, 240
 
     # use third arg as return value after jump
     # use third arg as first arg in context function
@@ -252,16 +202,3 @@ copp_jump_fcontext:
 
     # jump to context
     bctr
-#if _CALL_ELF == 2
-	.size copp_jump_fcontext, .-copp_jump_fcontext
-#else
-# ifdef _CALL_LINUX
-	.size .copp_jump_fcontext, .-.L.copp_jump_fcontext
-# else
-	.size .copp_jump_fcontext, .-.copp_jump_fcontext
-# endif
-#endif
-
-
-/* Mark that we don't need executable stack.  */
-.section .note.GNU-stack,"",%progbits

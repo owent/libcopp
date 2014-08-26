@@ -67,57 +67,52 @@
  *******************************************************/
 
 .text
-.globl copp_make_fcontext
+.globl _copp_make_fcontext
 .align 2
-.type copp_make_fcontext,@function
-copp_make_fcontext:
-    # save return address into R6
-    mflr  %r6
+_copp_make_fcontext:
+    ; save return address into R6
+    mflr  r6
 
-    # first arg of copp_make_fcontext() == top address of context-function
-    # shift address in R3 to lower 16 byte boundary
-    clrrwi  %r3, %r3, 4
+    ; first arg of copp_make_fcontext() == top address of context-function
+    ; shift address in R3 to lower 16 byte boundary
+    clrrwi  r3, r3, 4
 
-    # reserve space for context-data on context-stack
-    # including 64 byte of linkage + parameter area (R1 % 16 == 0)
-    subi  %r3, %r3, 304
+    ; reserve space for context-data on context-stack
+    ; including 64 byte of linkage + parameter area (R1 % 16 == 0)
+    subi  r3, r3, 304
 
-    # third arg of copp_make_fcontext() == address of context-function
-    stw  %r5, 236(%r3)
+    ; third arg of copp_make_fcontext() == address of context-function
+    stw  r5, 236(%r3)
 
-    # load LR
-    mflr  %r0
-    # jump to label 1
-    bl  1f
-1:
-    # load LR into R4
-    mflr  %r4
-    # compute abs address of label finish
-    addi  %r4, %r4, finish - 1b
+    ; load LR
+    mflr  r0
+    ; jump to label 1
+    bl  l1
+l1:
+    ; load LR into R4
+    mflr  r4
+    ; compute abs address of label finish
+    addi  r4, r4, lo16((finish - .)+4)
     # restore LR
-    mtlr  %r0
-    # save address of finish as return-address for context-function
-    # will be entered after context-function returns
-    stw  %r4, 232(%r3)
+    mtlr  r0
+    ; save address of finish as return-address for context-function
+    ; will be entered after context-function returns
+    stw  r4, 232(r3)
 
-    # restore return address from R6
-    mtlr  %r6
+    ; restore return address from R6
+    mtlr  r6
 
-    blr  # return pointer to context-data
+    blr  ; return pointer to context-data
 
 finish:
-    # save return address into R0
-    mflr  %r0
-    # save return address on stack, set up stack frame
-    stw  %r0, 4(%r1)
-    # allocate stack space, R1 % 16 == 0
-    stwu  %r1, -16(%r1)
+    ; save return address into R0
+    mflr  r0
+    ; save return address on stack, set up stack frame
+    stw  r0, 4(r1)
+    ; allocate stack space, R1 % 16 == 0
+    stwu  r1, -16(r1)
 
-    # exit code is zero
-    li  %r3, 0
-    # exit application
-    bl  _exit@plt
-.size copp_make_fcontext, .-copp_make_fcontext
-
-/* Mark that we don't need executable stack.  */
-.section .note.GNU-stack,"",%progbits
+    ; exit code is zero
+    li  r3, 0
+    ; exit application
+    bl  __exit

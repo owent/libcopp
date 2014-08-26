@@ -28,7 +28,7 @@ namespace copp {
 
         coroutine_context_base::coroutine_context_base() :
             runner_ret_code_(0), runner_(NULL), is_finished_(false),
-            caller_(), callee_(NULL),
+            caller_(NULL), callee_(NULL),
             preserve_fpu_(true), callee_stack_()
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
                 , caller_stack_()
@@ -65,10 +65,10 @@ namespace copp {
             gt_current_coroutine = this;
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            jump_to(caller_, *callee_, caller_stack_, callee_stack_,
+            jump_to(caller_, callee_, caller_stack_, callee_stack_,
                 (intptr_t) this, preserve_fpu_);
 #else
-            jump_to(caller_, *callee_, callee_stack_, callee_stack_, (intptr_t) this, preserve_fpu_);
+            jump_to(caller_, callee_, callee_stack_, callee_stack_, (intptr_t) this, preserve_fpu_);
 #endif
 
             // restore this coroutine
@@ -81,10 +81,10 @@ namespace copp {
             if (NULL == callee_) return COPP_EC_NOT_INITED;
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            jump_to(*callee_, caller_, callee_stack_, caller_stack_,
+            jump_to(callee_, caller_, callee_stack_, caller_stack_,
                 (intptr_t) this, preserve_fpu_);
 #else
-            jump_to(*callee_, caller_, callee_stack_, callee_stack_, (intptr_t) this, preserve_fpu_);
+            jump_to(callee_, caller_, callee_stack_, callee_stack_, (intptr_t) this, preserve_fpu_);
 #endif
 
             return COPP_EC_SUCCESS;
@@ -102,7 +102,7 @@ namespace copp {
 
         intptr_t coroutine_context_base::jump_to(
             fcontext::fcontext_t& from_fcontext,
-            const fcontext::fcontext_t& to_fcontext, stack_context& from_stack,
+            fcontext::fcontext_t& to_fcontext, stack_context& from_stack,
             stack_context& to_stack, intptr_t param, bool preserve_fpu) {
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
             assert(&from_stack != &to_stack);
@@ -110,7 +110,7 @@ namespace copp {
             __splitstack_setcontext(to_stack.segments_ctx);
 #endif
             intptr_t ret = copp::fcontext::copp_jump_fcontext(&from_fcontext,
-                &to_fcontext, param, preserve_fpu);
+                to_fcontext, param, preserve_fpu);
             return ret;
         }
 

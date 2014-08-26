@@ -2,6 +2,7 @@
 set (PROJECT_LIBCOPP_FCONTEXT_DETECT_DIR "${PROJECT_LIBCOPP_FCONTEXT_SRC_DIR}/detect")
 
 # ========== set os platform ==========
+# LIBCOPP_FCONTEXT_ABI can be set to arm/i386/x86_64/combined/mips/ppc32/ppc64/sparc/sparc64
 if (NOT LIBCOPP_FCONTEXT_OS_PLATFORM)
 	if ("${PLATFORM_SUFFIX}" STREQUAL "64")
 		set(LIBCOPP_FCONTEXT_OS_PLATFORM "x86_64")
@@ -24,8 +25,9 @@ if(NOT LIBCOPP_FCONTEXT_ABI)
 endif()
 
 # ========== set binary format ==========
+# LIBCOPP_FCONTEXT_ABI can be set to elf_gas/macho_gas/pe_armasm/pe_masm/xcoff_gas
 if(NOT LIBCOPP_FCONTEXT_BIN_FORMAT)
-	set(LIBCOPP_FCONTEXT_BIN_FORMAT "elf")
+	set(LIBCOPP_FCONTEXT_BIN_FORMAT "elf_gas")
 	
 	if(WIN32 OR CYGWIN)
 		if ("${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm" )
@@ -34,7 +36,9 @@ if(NOT LIBCOPP_FCONTEXT_BIN_FORMAT)
 			set(LIBCOPP_FCONTEXT_BIN_FORMAT "pe_masm")
 		endif()
 	elseif(APPLE)
-		set(LIBCOPP_FCONTEXT_BIN_FORMAT "macho")
+		set(LIBCOPP_FCONTEXT_BIN_FORMAT "macho_gas")
+	elseif(AIX) # cmake not supported now
+		set(LIBCOPP_FCONTEXT_BIN_FORMAT "xcoff_gas")
 	endif()
 endif()
 

@@ -40,107 +40,50 @@
  *  -------------------------------------------------  *
  *  | 128 | 132 | 136 | 140 | 144 | 148 | 152 | 156 |  *
  *  -------------------------------------------------  *
- *  |    F30    |    F31    |   fpscr   |    TOC    |  *
+ *  |    F30    |    F31    |   fpscr   | R13 | R14 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  40 |  41 |  42 |  43 |  44 |  45 |  46 |  47 |  *
  *  -------------------------------------------------  *
  *  | 160 | 164 | 168 | 172 | 176 | 180 | 184 | 188 |  *
  *  -------------------------------------------------  *
- *  |    R14    |    R15    |     R16   |    R17    |  *
+ *  | R15 | R16 | R17 | R18 | R19 | R20 | R21 | R22 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  48 |  49 |  50 |  51 |  52 |  53 |  54 |  55 |  *
  *  -------------------------------------------------  *
  *  | 192 | 196 | 200 | 204 | 208 | 212 | 216 | 220 |  *
  *  -------------------------------------------------  *
- *  |    R18    |    R19    |    R20    |    R21    |  *
+ *  | R23 | R24 | R25 | R26 | R27 | R28 | R29 | R30 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
- *  |  56 |  57 |  58 |  59 |  60 |  61 |  62 |  63 |  *
+ *  |  56 |  57 |  58 |  59 |                       |  *
  *  -------------------------------------------------  *
- *  | 224 | 228 | 232 | 236 | 240 | 244 | 248 | 252 |  *
+ *  | 224 | 228 | 232 | 236 |                       |  *
  *  -------------------------------------------------  *
- *  |    R22    |    R23    |    R24    |    R25    |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |  64 |  65 |  66 |  67 |  68 |  69 |  70 |  71 |  *
- *  -------------------------------------------------  *
- *  | 256 | 260 | 264 | 268 | 272 | 276 | 280 | 284 |  *
- *  -------------------------------------------------  *
- *  |    R26    |    R27    |    R28    |    R29    |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |  72 |  73 |  74 |  75 |  76 |  77 |  78 |  79 |  *
- *  -------------------------------------------------  *
- *  | 288 | 292 | 296 | 300 | 304 | 308 | 312 | 316 |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |    R30    |    R31    |     CR    |     LR    |  *
- *  -------------------------------------------------  *
- *  -------------------------------------------------  *
- *  |  80 |  81 |                                   |  *
- *  -------------------------------------------------  *
- *  | 320 | 324 |                                   |  *
- *  -------------------------------------------------  *
- *  |    PC     |                                   |  *
+ *  | R31 |  CR |  LR |  PC |                       |  *
  *  -------------------------------------------------  *
  *                                                     *
  *******************************************************/
 
-.globl copp_make_fcontext
-#if _CALL_ELF == 2
-	.text
-	.align 2
-copp_make_fcontext:
-	addis	%r2, %r12, .TOC.-copp_make_fcontext@ha
-	addi	%r2, %r2, .TOC.-copp_make_fcontext@l
-	.localentry copp_make_fcontext, . - copp_make_fcontext
-#else
-	.section ".opd","aw"
-	.align 3
-copp_make_fcontext:
-# ifdef _CALL_LINUX
-	.quad	.L.copp_make_fcontext,.TOC.@tocbase,0
-	.type	copp_make_fcontext,@function
-	.text
-	.align 2
-.L.copp_make_fcontext:
-# else
-	.hidden	.copp_make_fcontext
-	.globl	.copp_make_fcontext
-	.quad	.copp_make_fcontext,.TOC.@tocbase,0
-	.size	copp_make_fcontext,24
-	.type	.copp_make_fcontext,@function
-	.text
-	.align 2
-.copp_make_fcontext:
-# endif
-#endif
+.text
+.globl _copp_make_fcontext
+.align 2
+.def _copp_make_fcontext; .scl 2; .type 32; .endef
+_copp_make_fcontext:
     # save return address into R6
     mflr  %r6
 
-    # first arg of copp_make_fcontext() == top address of context-stack
+    # first arg of copp_make_fcontext() == top address of context-function
     # shift address in R3 to lower 16 byte boundary
-    clrrdi  %r3, %r3, 4
+    clrrwi  %r3, %r3, 4
 
     # reserve space for context-data on context-stack
     # including 64 byte of linkage + parameter area (R1 % 16 == 0)
-    subi  %r3, %r3, 392
+    subi  %r3, %r3, 304
 
     # third arg of copp_make_fcontext() == address of context-function
-    # entry point (ELFv2) or descriptor (ELFv1)
-#if _CALL_ELF == 2
-    # save address of context-function entry point
-    std  %r5, 320(%r3)
-#else
-    # save address of context-function entry point
-    ld   %r4, 0(%r5)
-    std  %r4, 320(%r3)
-    # save TOC of context-function
-    ld   %r4, 8(%r5)
-    std  %r4, 152(%r3)
-#endif
+    stw  %r5, 236(%r3)
 
     # load LR
     mflr  %r0
@@ -155,7 +98,7 @@ copp_make_fcontext:
     mtlr  %r0
     # save address of finish as return-address for context-function
     # will be entered after context-function returns
-    std  %r4, 312(%r3)
+    stw  %r4, 232(%r3)
 
     # restore return address from R6
     mtlr  %r6
@@ -166,24 +109,11 @@ finish:
     # save return address into R0
     mflr  %r0
     # save return address on stack, set up stack frame
-    std  %r0, 8(%r1)
+    stw  %r0, 4(%r1)
     # allocate stack space, R1 % 16 == 0
-    stdu  %r1, -32(%r1)
+    stwu  %r1, -16(%r1)
 
     # exit code is zero
     li  %r3, 0
     # exit application
     bl  _exit
-    nop
-#if _CALL_ELF == 2
-	.size copp_make_fcontext, .-copp_make_fcontext
-#else
-# ifdef _CALL_LINUX
-	.size .copp_make_fcontext, .-.L.copp_make_fcontext
-# else
-	.size .copp_make_fcontext, .-.copp_make_fcontext
-# endif
-#endif
-
-/* Mark that we don't need executable stack.  */
-.section .note.GNU-stack,"",%progbits

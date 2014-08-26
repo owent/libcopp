@@ -40,7 +40,7 @@
  *  -------------------------------------------------  *
  *  | 128 | 132 | 136 | 140 | 144 | 148 | 152 | 156 |  *
  *  -------------------------------------------------  *
- *  |    F30    |    F31    |   fpscr   |    TOC    |  *
+ *  |    F30    |    F31    |   fpscr   |    R13    |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  40 |  41 |  42 |  43 |  44 |  45 |  46 |  47 |  *
@@ -88,102 +88,53 @@
  *                                                     *
  *******************************************************/
 
-.globl copp_make_fcontext
-#if _CALL_ELF == 2
-	.text
-	.align 2
-copp_make_fcontext:
-	addis	%r2, %r12, .TOC.-copp_make_fcontext@ha
-	addi	%r2, %r2, .TOC.-copp_make_fcontext@l
-	.localentry copp_make_fcontext, . - copp_make_fcontext
-#else
-	.section ".opd","aw"
-	.align 3
-copp_make_fcontext:
-# ifdef _CALL_LINUX
-	.quad	.L.copp_make_fcontext,.TOC.@tocbase,0
-	.type	copp_make_fcontext,@function
-	.text
-	.align 2
-.L.copp_make_fcontext:
-# else
-	.hidden	.copp_make_fcontext
-	.globl	.copp_make_fcontext
-	.quad	.copp_make_fcontext,.TOC.@tocbase,0
-	.size	copp_make_fcontext,24
-	.type	.copp_make_fcontext,@function
-	.text
-	.align 2
-.copp_make_fcontext:
-# endif
-#endif
-    # save return address into R6
-    mflr  %r6
+.text
+.globl _copp_make_fcontext
+_copp_make_fcontext:
+    ; save return address into R6
+    mflr  r6
 
-    # first arg of copp_make_fcontext() == top address of context-stack
-    # shift address in R3 to lower 16 byte boundary
-    clrrdi  %r3, %r3, 4
+    ; first arg of copp_make_fcontext() == top address of context-function
+    ; shift address in R3 to lower 16 byte boundary
+    clrrwi  r3, r3, 4
 
-    # reserve space for context-data on context-stack
-    # including 64 byte of linkage + parameter area (R1 % 16 == 0)
-    subi  %r3, %r3, 392
+    ; reserve space for context-data on context-stack
+    ; including 64 byte of linkage + parameter area (R1  16 == 0)
+    subi  r3, r3, 392
 
-    # third arg of copp_make_fcontext() == address of context-function
-    # entry point (ELFv2) or descriptor (ELFv1)
-#if _CALL_ELF == 2
-    # save address of context-function entry point
-    std  %r5, 320(%r3)
-#else
-    # save address of context-function entry point
-    ld   %r4, 0(%r5)
-    std  %r4, 320(%r3)
-    # save TOC of context-function
-    ld   %r4, 8(%r5)
-    std  %r4, 152(%r3)
-#endif
+    ; third arg of copp_make_fcontext() == address of context-function
+    stw  r5, 320(r3)
 
-    # load LR
-    mflr  %r0
-    # jump to label 1
-    bl  1f
-1:
-    # load LR into R4
-    mflr  %r4
-    # compute abs address of label finish
-    addi  %r4, %r4, finish - 1b
-    # restore LR
-    mtlr  %r0
-    # save address of finish as return-address for context-function
-    # will be entered after context-function returns
-    std  %r4, 312(%r3)
+    ; load LR
+    mflr  r0
+    ; jump to label 1
+    bl  l1
+l1:
+    ; load LR into R4
+    mflr  r4
+    ; compute abs address of label finish
+    addi  r4, r4, lo16((finish - .) + 4)
+    ; restore LR
+    mtlr  r0
+    ; save address of finish as return-address for context-function
+    ; will be entered after context-function returns
+    std  r4, 312(r3)
 
-    # restore return address from R6
-    mtlr  %r6
+    ; restore return address from R6
+    mtlr  r6
 
-    blr  # return pointer to context-data
+    blr  ; return pointer to context-data
 
 finish:
-    # save return address into R0
-    mflr  %r0
-    # save return address on stack, set up stack frame
-    std  %r0, 8(%r1)
-    # allocate stack space, R1 % 16 == 0
-    stdu  %r1, -32(%r1)
+    ; save return address into R0
+    mflr  r0
+    ; save return address on stack, set up stack frame
+    stw  r0, 8(r1)
+    ; allocate stack space, R1  16 == 0
+    stwu  r1, -32(r1)
 
-    # exit code is zero
-    li  %r3, 0
-    # exit application
-    bl  _exit
+    ; set return value to zero
+    li  r3, 0
+    ; exit application
+    bl  __exit
     nop
-#if _CALL_ELF == 2
-	.size copp_make_fcontext, .-copp_make_fcontext
-#else
-# ifdef _CALL_LINUX
-	.size .copp_make_fcontext, .-.L.copp_make_fcontext
-# else
-	.size .copp_make_fcontext, .-.copp_make_fcontext
-# endif
-#endif
-
-/* Mark that we don't need executable stack.  */
-.section .note.GNU-stack,"",%progbits

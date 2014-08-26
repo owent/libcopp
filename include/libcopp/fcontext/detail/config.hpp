@@ -7,4 +7,22 @@
 #ifndef _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H
 #define _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H
 
+#ifdef _COPP_BOOST_CONTEXT_DECL
+# undef _COPP_BOOST_CONTEXT_DECL
+#endif
+
+#if ! defined(COPP_BOOST_CONTEXT_DECL)
+# define COPP_BOOST_CONTEXT_DECL
+#endif
+#undef COPP_BOOST_CONTEXT_CALLDECL
+#if (defined(i386) || defined(__i386__) || defined(__i386) \
+    || defined(__i486__) || defined(__i586__) || defined(__i686__) \
+    || defined(__X86__) || defined(_X86_) || defined(__THW_INTEL__) \
+    || defined(__I86__) || defined(__INTEL__) || defined(__IA32__) \
+    || defined(_M_IX86) || defined(_I86_)) && defined(_WIN32)
+# define COPP_BOOST_CONTEXT_CALLDECL __cdecl
+#else
+# define COPP_BOOST_CONTEXT_CALLDECL
+#endif
+
 #endif // _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H

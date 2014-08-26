@@ -40,9 +40,9 @@
 #define	FC_GREG	320		// offsetof(fcontext_t, fc_greg)
 #define	BLOCK_SIZE	64
 
-    .register %g2,#ignore
-    .register %g3,#ignore
-    .register %g6,#ignore
+	.register %g2,#ignore
+	.register %g3,#ignore
+	.register %g6,#ignore
 
 .text
 .globl copp_make_fcontext

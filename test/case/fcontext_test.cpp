@@ -6,7 +6,7 @@
 #include "frame/test_macros.h"
 
 
-copp::fcontext::fcontext_t test_core_fcontext_main_func, *test_core_fcontext_a_func, *test_core_fcontext_b_func;
+copp::fcontext::fcontext_t test_core_fcontext_main_func, test_core_fcontext_a_func, test_core_fcontext_b_func;
 char test_core_fcontext_stack_a[64 * 1024] = { 0 };
 char test_core_fcontext_stack_b[64 * 1024] = { 0 };
 int g_test_core_fcontext_status = 0;
@@ -18,12 +18,12 @@ void test_core_fcontext_func_a(intptr_t p)
     ++ g_test_core_fcontext_status;
     CASE_EXPECT_EQ(g_test_core_fcontext_status, 2);
     
-    copp::fcontext::copp_jump_fcontext(fc, test_core_fcontext_b_func, (intptr_t) test_core_fcontext_b_func, true);
+    copp::fcontext::copp_jump_fcontext(fc, test_core_fcontext_b_func, (intptr_t) &test_core_fcontext_b_func, true);
 
     ++ g_test_core_fcontext_status;
     CASE_EXPECT_EQ(g_test_core_fcontext_status, 4);
 
-    copp::fcontext::copp_jump_fcontext(fc, &test_core_fcontext_main_func, (intptr_t) &test_core_fcontext_main_func, true);
+    copp::fcontext::copp_jump_fcontext(fc, test_core_fcontext_main_func, (intptr_t) &test_core_fcontext_main_func, true);
 
 }
 
@@ -45,7 +45,7 @@ CASE_TEST(core, fcontext)
     test_core_fcontext_a_func = copp::fcontext::copp_make_fcontext(test_core_fcontext_stack_a + sizeof(test_core_fcontext_stack_a), sizeof(test_core_fcontext_stack_a), test_core_fcontext_func_a);
     test_core_fcontext_b_func = copp::fcontext::copp_make_fcontext(test_core_fcontext_stack_b + sizeof(test_core_fcontext_stack_b), sizeof(test_core_fcontext_stack_b), test_core_fcontext_func_b);
 
-    copp::fcontext::copp_jump_fcontext(&test_core_fcontext_main_func, test_core_fcontext_a_func, (intptr_t)test_core_fcontext_a_func, true);
+    copp::fcontext::copp_jump_fcontext(&test_core_fcontext_main_func, test_core_fcontext_a_func, (intptr_t)&test_core_fcontext_a_func, true);
 
     ++ g_test_core_fcontext_status;
     CASE_EXPECT_EQ(g_test_core_fcontext_status, 5);

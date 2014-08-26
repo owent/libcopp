@@ -4,12 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_I386H
-#define _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_I386H
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
+#ifndef _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_H
+#define _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_H
 
 #include <cstddef>
 
@@ -19,6 +15,9 @@
 #include "libcopp/utils/features.h"
 #include "libcopp/fcontext/detail/config.hpp"
 
+#ifdef COPP_HAS_ABI_HEADERS
+# include COPP_ABI_PREFIX
+#endif
 namespace copp {
     namespace fcontext {
 
@@ -62,4 +61,7 @@ struct fcontext_t
 
 }}
 
+#ifdef COPP_HAS_ABI_HEADERS
+# include COPP_ABI_SUFFIX
+#endif
 #endif // BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_H

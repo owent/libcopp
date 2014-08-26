@@ -15,19 +15,19 @@
 #include <libcopp/coroutine/coroutine_runnable_base.h>
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-	#define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)\
-		using base_type::caller_stack_;
+    #define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)\
+        using base_type::caller_stack_;
 #else
-	#define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
+    #define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 #endif
 
 #define COROUTINE_CONTEXT_BASE_USING_BASE(base_type)	\
-	protected:											\
-	using base_type::caller_;							\
-	using base_type::callee_;							\
-	using base_type::preserve_fpu_;						\
-	using base_type::callee_stack_;						\
-	COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
+    protected:											\
+    using base_type::caller_;							\
+    using base_type::callee_;							\
+    using base_type::preserve_fpu_;						\
+    using base_type::callee_stack_;						\
+    COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
 namespace copp { 
     namespace detail{
@@ -45,7 +45,7 @@ namespace copp {
 
         protected:
             fcontext::fcontext_t caller_; /** caller runtime context **/
-            fcontext::fcontext_t* callee_; /** callee runtime context **/
+            fcontext::fcontext_t callee_; /** callee runtime context **/
 
             bool preserve_fpu_; /** is preserve fpu **/
             stack_context callee_stack_; /** callee stack context **/
@@ -140,7 +140,7 @@ namespace copp {
              * @param preserve_fpu is preserve fpu
              * @return jump fcontext return code
              */
-            static intptr_t jump_to(fcontext::fcontext_t& from_fcontext, const fcontext::fcontext_t& to_fcontext,
+            static intptr_t jump_to(fcontext::fcontext_t& from_fcontext, fcontext::fcontext_t& to_fcontext,
                 stack_context& from_stack, stack_context& to_stack,
                 intptr_t param, bool preserve_fpu);
 

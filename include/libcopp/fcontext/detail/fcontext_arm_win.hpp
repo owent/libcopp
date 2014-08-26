@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_X86_64_H
-#define _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_X86_64_H
+#ifndef _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_WIN_H
+#define _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_WIN_H
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
@@ -22,8 +22,11 @@
 #ifdef COPP_HAS_ABI_HEADERS
 # include COPP_ABI_PREFIX
 #endif
+
+
 namespace copp {
     namespace fcontext {
+
 
 extern "C" {
 
@@ -33,15 +36,16 @@ struct stack_t
 {
     void    *   sp;
     std::size_t size;
+    void    *   limit;
 
     stack_t() :
-        sp( 0), size( 0)
+        sp( 0), size( 0), limit( 0)
     {}
 };
 
 struct fp_t
 {
-    uint32_t     fc_freg[2];
+    uint32_t     fc_freg[16];
 
     fp_t() :
         fc_freg()
@@ -50,14 +54,16 @@ struct fp_t
 
 struct fcontext_t
 {
-    uint64_t     fc_greg[8];
+    uint32_t     fc_greg[11];
     stack_t             fc_stack;
     fp_t                fc_fp;
+    uint32_t     fc_dealloc;
 
     fcontext_t() :
         fc_greg(),
         fc_stack(),
-        fc_fp()
+        fc_fp(),
+        fc_dealloc( 0)
     {}
 };
 
@@ -68,4 +74,8 @@ struct fcontext_t
 #ifdef COPP_HAS_ABI_HEADERS
 # include COPP_ABI_SUFFIX
 #endif
-#endif // BOOST_CONTEXT_DETAIL_FCONTEXT_X86_64_H
+
+
+
+
+#endif // _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_WIN_H

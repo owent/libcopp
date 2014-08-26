@@ -19,6 +19,9 @@
 #include "libcopp/utils/features.h"
 #include "libcopp/fcontext/detail/config.hpp"
 
+#ifdef COPP_HAS_ABI_HEADERS
+# include COPP_ABI_PREFIX
+#endif
 namespace copp {
     namespace fcontext {
 
@@ -53,4 +56,7 @@ struct fcontext_t
 
 }}
 
+#ifdef COPP_HAS_ABI_HEADERS
+# include COPP_ABI_SUFFIX
+#endif
 #endif // BOOST_CONTEXT_DETAIL_FCONTEXT_I386_H
