@@ -83,7 +83,10 @@ int main(int argc, char* argv[]) {
         CALC_NS_AVG_CLOCK(end_clock - begin_clock, MAX_COROUTINE_NUMBER)
     );
 
-    // create a runner
+    begin_time = end_time;
+    begin_clock = end_clock;
+
+   // create a runner
     // bind runner to coroutine object
     for (int i = 0; i < MAX_COROUTINE_NUMBER; ++ i) {
         co_arr[i].get_allocator().attach(stack_mem_pool + i * stack_size, stack_size);

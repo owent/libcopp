@@ -1,7 +1,8 @@
 #!/bin/sh
 
 if [ $# -lt 2 ]; then
-    echo "usage: %0 <build dir> <report file>";
+    echo "usage: $0 <build dir> <report file>";
+    exit -1;
 fi
 
 echo "###################### context coroutine (stack using memory pool) ###################" >> "$2";
