@@ -17,9 +17,9 @@ public:
     int operator()() {
         ++ g_test_coroutine_task_manager_status;
 
-        CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
+        // CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
+        // may be EN_TS_RUNNING or EN_TS_CANCELED or EN_TS_KILLED or EN_TS_TIMEOUT
         cotask::this_task::get_task()->yield();
-        CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
 
         ++ g_test_coroutine_task_manager_status;
 
@@ -68,14 +68,15 @@ CASE_TEST(coroutine_task_manager, add_and_timeout)
     CASE_EXPECT_NE(co_task, task_mgr->find_task(co_task->get_id()));
     CASE_EXPECT_EQ(co_another_task, task_mgr->find_task(co_another_task->get_id()));
 
-    CASE_EXPECT_EQ(g_test_coroutine_task_manager_status, 0);
+    CASE_EXPECT_EQ(2, g_test_coroutine_task_manager_status);
+
     task_mgr->start(co_another_task->get_id());
-    CASE_EXPECT_EQ(g_test_coroutine_task_manager_status, 1);
 
     CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_another_task->get_status());
 
+    CASE_EXPECT_EQ(3, g_test_coroutine_task_manager_status);
     task_mgr->resume(co_another_task->get_id());
-    CASE_EXPECT_EQ(g_test_coroutine_task_manager_status, 2);
+    CASE_EXPECT_EQ(4, g_test_coroutine_task_manager_status);
 
     CASE_EXPECT_EQ(cotask::EN_TS_TIMEOUT, co_task->get_status());
     CASE_EXPECT_EQ(cotask::EN_TS_DONE, co_another_task->get_status());
@@ -110,6 +111,9 @@ CASE_TEST(coroutine_task_manager, kill)
     task_mgr->kill(co_task->get_id());
     task_mgr->cancel(co_another_task->get_id());
 
+    CASE_EXPECT_EQ(4, g_test_coroutine_task_manager_status);
+
+
     CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(2, (int)task_mgr->get_tick_checkpoint_size());
 
@@ -142,6 +146,8 @@ CASE_TEST(coroutine_task_manager, multi_checkpoints)
 
     CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
+
+    CASE_EXPECT_EQ(2, g_test_coroutine_task_manager_status);
 }
 
 #endif

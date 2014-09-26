@@ -363,6 +363,21 @@ namespace cotask {
     private:
         task(const task&);
 
+        int _notify_finished() {
+            // first, make sure coroutine finished.
+            if (false == coroutine_obj_.is_finished()) {
+                // make sure this task will not be destroyed when running
+                impl::task_impl::ptr_t self = shared_from_this();
+                impl::task_impl::ptr_t origin_task = _set_active_task(self.get());
+
+                while(false == coroutine_obj_.is_finished())
+                    coroutine_obj_.resume();
+
+                _set_active_task(origin_task.get());
+            }
+
+            return impl::task_impl::_notify_finished();
+        }
     private:
         id_t id_;
         coroutine_container_t coroutine_obj_;
