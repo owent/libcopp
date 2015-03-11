@@ -1,0 +1,36 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+before_script:
+  - sudo apt-get install -qq cmake
+  - mkdir -p build && cd build && cmake ..
+
+after_success:
+  - test/coroutine_test
+  
+script: 
+  - make -j4
+
+install: true
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: false
+  irc:
+    template:
+      - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
+
+env:
+  - RVM=2.0.0 LANG="zh_CN.UTF-8"
+
+os:
+  - linux
+  - osx
+
+osx_image: xcode61
