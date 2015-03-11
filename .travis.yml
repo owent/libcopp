@@ -2,7 +2,6 @@ language: cpp
 
 compiler:
   - gcc
-  - clang
 
 before_script:
   - sudo apt-get install -qq cmake
@@ -27,7 +26,7 @@ notifications:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
 
 env:
-  - RVM=2.0.0 LANG="zh_CN.UTF-8"
+  - LANG="zh_CN.UTF-8"
 
 os:
   - linux
