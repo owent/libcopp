@@ -42,7 +42,7 @@ namespace cotask {
         typedef impl::task_impl::action_ptr_t action_ptr_t;
         typedef impl::task_impl::ptr_t task_ptr_t;
 
-        friend task_allocator_t;
+        friend class task_allocator_t;
     private:
         task() {
             id_allocator_t id_alloc_;
