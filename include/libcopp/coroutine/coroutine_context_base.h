@@ -166,7 +166,7 @@ namespace copp {
          * @see detail::coroutine_context_base
          * @return pointer of current coroutine, if not in coroutine or fail to convert type, return NULL
          */
-        template<typename Tc = detail::coroutine_context_base>
+        template<typename Tc>
         Tc* get() {
             return dynamic_cast<Tc*>(get_coroutine());
         }
