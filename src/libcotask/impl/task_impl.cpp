@@ -22,7 +22,7 @@ namespace cotask {
         // VC do not support to set TLS property of not POD type 
         static THREAD_TLS task_impl* g_current_task_ = NULL;
 
-        task_impl::task_impl(): action_(NULL), status_(EN_TS_CREATED) {}
+        task_impl::task_impl(): action_(), status_(EN_TS_CREATED) {}
 
         task_impl::~task_impl(){}
 
