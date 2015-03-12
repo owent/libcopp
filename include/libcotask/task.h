@@ -42,18 +42,21 @@ namespace cotask {
         typedef impl::task_impl::action_ptr_t action_ptr_t;
         typedef impl::task_impl::ptr_t task_ptr_t;
 
-        friend class macro_task_t::task_allocator_t;
     private:
-        task() {
-            id_allocator_t id_alloc_;
-            id_ = id_alloc_.allocate();
-        }
-
         static void _action_deleter(impl::task_action_impl* action) {
             action_allocator_t::deallocate(action);
         }
 
     public:
+	    /**
+         * @brief constuctor
+         * @note should not be called directly
+         */
+	    task() {
+            id_allocator_t id_alloc_;
+            id_ = id_alloc_.allocate();
+        }
+		
         /**
          * @brief create task with action
          * @param action
