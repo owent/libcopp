@@ -4,8 +4,12 @@ libcopp
 > cross-platform coroutine library of c++
 >
 > in developing ...
-> 
-> [![Build Status](https://travis-ci.org/owt5008137/libcopp.svg?branch=master)](https://travis-ci.org/owt5008137/libcopp)
+>
+> Build & Run Unit Test in |  Linux |
+> -------------------------|--------|
+> Status |  [![Build Status](https://travis-ci.org/owt5008137/libcopp.svg?branch=master)](https://travis-ci.org/owt5008137/libcopp) |
+>
+
 
 LICENSE
 -------
