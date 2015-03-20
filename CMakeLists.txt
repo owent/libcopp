@@ -3,7 +3,7 @@ project(libcopp)
 
 ########################################################################
 # CMake 模块 (递归包含模块, 带颜色输出模块, 平台检测模块)
-set (PROJECT_CMAKE_MODULE_DIR "${CMAKE_SOURCE_DIR}/project/cmake")
+set (PROJECT_CMAKE_MODULE_DIR "${CMAKE_CURRENT_LIST_DIR}/project/cmake")
 include("${PROJECT_CMAKE_MODULE_DIR}/ProjectBuildOption.cmake")
 include("${PROJECT_CMAKE_MODULE_DIR}/IncludeDirectoryRecurse.cmake")
 include("${PROJECT_CMAKE_MODULE_DIR}/EchoWithColor.cmake")
