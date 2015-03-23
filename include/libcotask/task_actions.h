@@ -42,9 +42,10 @@ namespace cotask {
             }
         };
     }
+
     // functor
     template<typename Ty>
-    class task_action_functor: public impl::task_action_impl
+    class task_action_functor : public impl::task_action_impl
     {
     public:
         typedef Ty value_type;

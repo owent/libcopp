@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <algorithm>
+#include <type_traits>
 
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
@@ -48,15 +49,15 @@ namespace cotask {
         }
 
     public:
-	    /**
+        /**
          * @brief constuctor
          * @note should not be called directly
          */
-	    task() {
+        task() {
             id_allocator_t id_alloc_;
             id_ = id_alloc_.allocate();
         }
-		
+        
         /**
          * @brief create task with action
          * @param action
@@ -188,6 +189,45 @@ namespace cotask {
                 ),
                 _action_deleter
             );
+
+            if (!action)
+                return ptr_t();
+            ret->_set_action(action);
+
+            // step 3. init coroutine context
+            int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
+            if (res < 0)
+                return ptr_t();
+
+            return ret;
+        }
+
+        /**
+        * @brief create task with functor type and parameters
+        * @param stack_size stack size
+        * @param args all parameters passed to construtor of type Ty
+        * @return task smart pointer
+        */
+        template<typename Ty, typename... TParams>
+        static ptr_t create_with(
+            size_t stack_size,
+            TParams&&... args) {
+            typedef Ty a_t;
+
+            // step 1. create task instance
+            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            ptr_t ret = ptr_t(inst);
+            if (NULL == inst)
+                return ret;
+
+            // step 2. create action
+            action_ptr_t action = action_ptr_t(
+                action_allocator_t::allocate(
+                reinterpret_cast<a_t*>(NULL),
+                std::forward<TParams>(args)...
+                ),
+                _action_deleter
+                );
 
             if (!action)
                 return ptr_t();

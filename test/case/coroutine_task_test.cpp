@@ -287,5 +287,32 @@ CASE_TEST(coroutine_task, next)
     CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
 }
 
+
+struct test_context_task_functor_drived : public cotask::impl::task_action_impl
+{
+public:
+    int a_;
+    int b_;
+    test_context_task_functor_drived(int a, int b): a_(a), b_(b) {}
+
+    virtual int operator()() {
+        CASE_EXPECT_EQ(a_, 1);
+        CASE_EXPECT_EQ(3, b_);
+
+        return 0;
+    }
+};
+
+CASE_TEST(coroutine_task, functor_drived_action)
+{
+    typedef std::shared_ptr< cotask::task<> > task_ptr_type;
+    task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(
+        cotask::task<>::stack_allocator_t::default_stacksize(),
+        1, 
+        3
+    );
+    CASE_EXPECT_EQ(0, co_task->start());
+}
+
 #endif
 
