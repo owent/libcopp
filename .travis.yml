@@ -4,8 +4,16 @@ compiler:
   - gcc
 
 before_script:
-  - sudo apt-get install -qq cmake
-  - mkdir -p build && cd build && cmake ..
+  - REPO_DIR=$PWD
+  - mkdir -p tools && cd tools
+  - wget -c "https://github.com/Kitware/CMake/archive/v3.2.1.tar.gz"
+  - tar -axvf v3.2.1.tar.gz
+  - CMAKE_PREFIX=$PWD/prebuilt/cmake
+  - cd CMake-3.2.1
+  - ./bootstrap --prefix=$CMAKE_PREFIX
+  - make -j4 install
+  - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build
+  - $CMAKE_PREFIX/bin/cmake ..
 
 after_success:
   - test/coroutine_test
