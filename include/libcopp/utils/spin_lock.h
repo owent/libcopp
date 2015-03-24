@@ -138,7 +138,7 @@ namespace copp {
         	 * @brief lock status type
         	 */
             typedef enum { EN_SL_UNLOCKED = 0, EN_SL_LOCKED = 1 } lock_state;
-            std::atomic<lock_state> status_; /** lock status **/
+            std::atomic_uint status_; /** lock status **/
 
         public:
             spin_lock() : status_(EN_SL_UNLOCKED) {}
