@@ -12,7 +12,6 @@
 
 #include <stdint.h>
 #include <algorithm>
-#include <type_traits>
 
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
