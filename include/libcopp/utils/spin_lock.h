@@ -141,7 +141,7 @@ namespace copp {
             std::atomic_uint status_; /** lock status **/
 
         public:
-            spin_lock() : status_(EN_SL_UNLOCKED) {}
+            spin_lock() : status_(static_cast<unsigned int>(EN_SL_UNLOCKED)) {}
 
             /**
              * @brief lock
@@ -149,7 +149,7 @@ namespace copp {
             void lock()
             {
                 unsigned char try_times = 0;
-                while (status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED)
+                while (status_.exchange(static_cast<unsigned int>(EN_SL_LOCKED), std::memory_order_acq_rel) == EN_SL_LOCKED)
                     COPP_MACRO_UTILS_SPIN_LOCK_WAIT(try_times ++); /* busy-wait */
             }
 
@@ -158,7 +158,7 @@ namespace copp {
              */
             void unlock()
             {
-                status_.store(EN_SL_UNLOCKED, std::memory_order_release);
+                status_.store(static_cast<unsigned int>(EN_SL_UNLOCKED), std::memory_order_release);
             }
 
             /**
@@ -175,7 +175,7 @@ namespace copp {
              */
             bool try_lock()
             {
-                return status_.exchange(EN_SL_LOCKED, std::memory_order_acq_rel) == EN_SL_UNLOCKED;
+                return status_.exchange(static_cast<unsigned int>(EN_SL_LOCKED), std::memory_order_acq_rel) == EN_SL_UNLOCKED;
             }
 
             /**
@@ -184,7 +184,7 @@ namespace copp {
              */
             bool try_unlock()
             {
-                return status_.exchange(EN_SL_UNLOCKED, std::memory_order_acq_rel) == EN_SL_LOCKED;
+                return status_.exchange(static_cast<unsigned int>(EN_SL_UNLOCKED), std::memory_order_acq_rel) == EN_SL_LOCKED;
             }
 
         };
