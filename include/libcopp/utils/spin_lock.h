@@ -141,7 +141,9 @@ namespace copp {
             std::atomic_uint status_; /** lock status **/
 
         public:
-            spin_lock() : status_(EN_SL_UNLOCKED) {}
+            spin_lock() {
+                status_.store(EN_SL_UNLOCKED);
+            }
 
             /**
              * @brief lock
