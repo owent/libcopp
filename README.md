@@ -63,6 +63,8 @@ Build
 
 > > -DLIBCOPP\_ENABLE\_SEGMENTED\_STACKS=YES|NO [default=NO] enable split stack supported context.(it's only availabe in linux and gcc 4.7.0 or upper)
 
+> > -DLIBCOPP\_ENABLE\_VALGRIND=YES|NO [default=NO] enable valgrind supported context.
+
 > > -DGTEST\_ROOT=[path] set gtest library install prefix path
 
 **3. make libcopp**

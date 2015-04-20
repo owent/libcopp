@@ -4,7 +4,10 @@ set (PROJECT_LIBCOPP_FCONTEXT_DETECT_DIR "${PROJECT_LIBCOPP_FCONTEXT_SRC_DIR}/de
 # ========== set os platform ==========
 # LIBCOPP_FCONTEXT_ABI can be set to arm/arm64/i386/x86_64/combined/mips/ppc32/ppc64/sparc/sparc64
 if (NOT LIBCOPP_FCONTEXT_OS_PLATFORM)
-	set(LIBCOPP_FCONTEXT_OS_PLATFORM ${CMAKE_SYSTEM_PROCESSOR})
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" LIBCOPP_FCONTEXT_OS_PLATFORM)
+	if("amd64" EQUAL "${LIBCOPP_FCONTEXT_OS_PLATFORM}")
+        set(LIBCOPP_FCONTEXT_OS_PLATFORM "x86_64")
+    endif()
 endif()
 
 # ========== set abi ==========
