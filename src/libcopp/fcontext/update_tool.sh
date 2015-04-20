@@ -1,8 +1,10 @@
 #!/bin/sh
 
-cd "$(dirname "$PWD")";
+cd "$(dirname "$0")";
 
-perl -p -i -e 's;\bjump_fcontext\b;copp_jump_fcontext;g' asm/*.asm asm/*.S;
-perl -p -i -e 's;\b_jump_fcontext\b;_copp_jump_fcontext;g' asm/*.asm asm/*.S;
-perl -p -i -e 's;\b_make_fcontext\b;_copp_make_fcontext;g' asm/*.asm asm/*.S;
-perl -p -i -e 's;\bmake_fcontext\b;copp_make_fcontext;g' asm/*.asm asm/*.S;
+ALL_FILES=($(ls asm/*.asm asm/*.S));
+
+perl -p -i -e 's;\bjump_fcontext\b;copp_jump_fcontext;g' ${ALL_FILES[@]};
+perl -p -i -e 's;\b_jump_fcontext\b;_copp_jump_fcontext;g' ${ALL_FILES[@]};
+perl -p -i -e 's;\b_make_fcontext\b;_copp_make_fcontext;g' ${ALL_FILES[@]};
+perl -p -i -e 's;\bmake_fcontext\b;copp_make_fcontext;g' ${ALL_FILES[@]};

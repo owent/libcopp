@@ -32,7 +32,7 @@ typedef void*   fcontext_t;
 
 extern "C" COPP_BOOST_CONTEXT_DECL
 intptr_t COPP_BOOST_CONTEXT_CALLDECL copp_jump_fcontext(fcontext_t * ofc, fcontext_t nfc,
-                                              intptr_t vp, bool preserve_fpu = true);
+                                              intptr_t vp, bool preserve_fpu = false);
 											  
 extern "C" COPP_BOOST_CONTEXT_DECL
 fcontext_t COPP_BOOST_CONTEXT_CALLDECL copp_make_fcontext(void * sp, std::size_t size, void(*fn)(intptr_t));

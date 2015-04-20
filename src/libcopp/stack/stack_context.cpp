@@ -8,6 +8,9 @@ namespace copp {
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
         ,segments_ctx()
 #endif
+#ifdef COPP_MACRO_USE_VALGRIND
+        ,valgrind_stack_id(0);
+#endif
     {
     }
 
@@ -21,5 +24,9 @@ namespace copp {
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
         memset(segments_ctx, 0, sizeof(segments_ctx));
 #endif
+#ifdef COPP_MACRO_USE_VALGRIND
+        valgrind_stack_id = 0;
+#endif
+
     }
 }

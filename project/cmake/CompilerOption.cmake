@@ -46,6 +46,10 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
                 message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=gnu++0x.")
         endif()
 
+        if (LIBCOPP_ENABLE_VALGRIND)
+            set(COPP_MACRO_USE_VALGRIND TRUE)
+        endif()
+        
 elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         add_definitions(-Wall -Werror -fPIC -D_FILE_OFFSET_BITS=64)
         set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=c++11 --stdlib=libc++")

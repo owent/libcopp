@@ -7,6 +7,10 @@
 #include "libcopp/stack/stack_context.h"
 #include "libcopp/stack/allocator/stack_allocator_memory.h"
 
+#if defined(COPP_MACRO_USE_VALGRIND)
+#include <valgrind/valgrind.h>
+#endif
+
 // x86_64
 // test x86_64 before i386 because icc might
 // define __i686__ for x86_64 too
@@ -88,6 +92,10 @@ namespace copp {
 
             ctx.size = size_;
             ctx.sp = static_cast<char *>(start_ptr_) + ctx.size; // stack down
+            
+#if defined(COPP_MACRO_USE_VALGRIND)
+            ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER( ctx.sp, start_ptr);
+#endif
         }
 
         void stack_allocator_memory::deallocate(stack_context & ctx)
@@ -95,6 +103,10 @@ namespace copp {
             assert(ctx.sp);
             assert(minimum_stacksize() <= ctx.size);
             assert(is_stack_unbound() || (maximum_stacksize() >= ctx.size));
+            
+#if defined(COPP_MACRO_USE_VALGRIND)
+            VALGRIND_STACK_DEREGISTER( ctx.valgrind_stack_id);
+#endif
         }
 
     } 

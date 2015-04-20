@@ -25,4 +25,6 @@
 # define COPP_BOOST_CONTEXT_CALLDECL
 #endif
 
+// BOOST_CONTEXT_SEGMENTS 的定义放在 utils/features.h
+
 #endif // _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H

@@ -59,7 +59,11 @@
 #define __THROW
 #endif
 // ---------------- c extern ----------------
-
+#if defined(__cplusplus) && __cplusplus >= 201103L
+    #define COPP_MACRO_NOEXCEPT noexcept
+#else
+    #define COPP_MACRO_NOEXCEPT
+#endif
 
 // ================ compiler abi headers ================
 #if defined(COPP_MACRO_COMPILER_MSVC)
@@ -75,8 +79,14 @@
 
 
 // ================ function flags ================
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-#define COPP_MACRO_SEGMENTED_STACK_NUMBER 10
+
+
+#if defined(COPP_MACRO_USE_SEGMENTED_STACKS)
+# if ! ( (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ > 3 && __GNUC_MINOR__ > 6))) || \
+         (defined(__clang__) && __clang_major__ > 2 && __clang_minor__ > 3) )
+#  error "compiler does not support segmented_stack stacks"
+# endif
+# define COPP_MACRO_SEGMENTED_STACK_NUMBER 10
 #endif
 
 #ifndef COPP_MACRO_CPP_STD

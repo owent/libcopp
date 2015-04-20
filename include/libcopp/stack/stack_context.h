@@ -21,6 +21,10 @@ namespace copp {
         segments_context_t segments_ctx; /** @brief gcc split segment stack data **/
 #endif
 
+#ifdef COPP_MACRO_USE_VALGRIND
+        unsigned                valgrind_stack_id;
+#endif
+
         stack_context();
         ~stack_context();
 

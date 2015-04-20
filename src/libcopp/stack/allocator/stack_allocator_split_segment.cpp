@@ -60,6 +60,11 @@ namespace copp {
         {
             void* start_ptr = __splitstack_makecontext( size, ctx.segments_ctx, &ctx.size);
             assert(start_ptr);
+            if (!start_ptr || MAP_FAILED == start_ptr) {
+                ctx.sp = NULL;
+                return;
+            }
+            
             ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
 
             int off = 0;

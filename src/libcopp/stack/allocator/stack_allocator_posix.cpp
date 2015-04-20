@@ -22,6 +22,10 @@ extern "C" {
 #include "libcopp/fcontext/fcontext.hpp"
 #include "libcopp/stack/allocator/stack_allocator_posix.h"
 
+#if defined(COPP_MACRO_USE_VALGRIND)
+#include <valgrind/valgrind.h>
+#endif
+
 #if !defined (SIGSTKSZ)
 # define SIGSTKSZ (8 * 1024)
 # define UDEF_SIGSTKSZ
@@ -99,17 +103,13 @@ namespace copp {
             std::size_t size_ = sys::round_to_page_size(size) + sys::pagesize(); // add one protected page
             assert(size > 0 && size_ > 0);
 
-            const int fd(::open("/dev/zero", O_RDONLY));
-            assert(-1 != fd);
-
             // conform to POSIX.4 (POSIX.1b-1993, _POSIX_C_SOURCE=199309L)
             void* start_ptr =
             #if defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
                 ::mmap( 0, size_, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
             #else
-                ::mmap( 0, size_, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+                ::mmap( 0, size_, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
             #endif
-            ::close(fd);
 
             if (!start_ptr || MAP_FAILED == start_ptr) {
                 ctx.sp = NULL;
@@ -121,6 +121,10 @@ namespace copp {
 
             ctx.size = size_;
             ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
+            
+#if defined(COPP_MACRO_USE_VALGRIND)
+            ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER( ctx.sp, start_ptr);
+#endif
         }
 
         void stack_allocator_posix::deallocate(stack_context & ctx)
@@ -128,6 +132,10 @@ namespace copp {
             assert(ctx.sp);
             assert(minimum_stacksize() <= ctx.size);
             assert(is_stack_unbound() || (maximum_stacksize() >= ctx.size));
+            
+#if defined(COPP_MACRO_USE_VALGRIND)
+            VALGRIND_STACK_DEREGISTER( ctx.valgrind_stack_id);
+#endif
 
             void* start_ptr = static_cast< char * >(ctx.sp) - ctx.size;
             ::munmap(start_ptr, ctx.size);
