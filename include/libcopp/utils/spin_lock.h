@@ -16,7 +16,7 @@
 #elif defined(_MSC_VER) && (_MSC_VER >= 1700) && defined(_HAS_CPP0X) && _HAS_CPP0X
     #include <atomic>
     #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
-#elif defined(__GNUC__) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 5 && (__cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__))
+#elif defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4) && (__cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__))
     #include <atomic>
     #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
 #endif
@@ -280,7 +280,7 @@ namespace copp {
             #ifdef COPP_MACRO_UTILS_SPINLOCK_ATOMIC_MSVC
                 return InterlockedExchangeAdd(&status_, 0) == EN_SL_LOCKED;
             #elif defined(COPP_MACRO_UTILS_SPINLOCK_ATOMIC_GCC_ATOMIC)
-                __atomic_load_n(&status_, __ATOMIC_ACQUIRE) == EN_SL_LOCKED;
+                return __atomic_load_n(&status_, __ATOMIC_ACQUIRE) == EN_SL_LOCKED;
             #else
                 return __sync_add_and_fetch(&status_, 0) == EN_SL_LOCKED;
             #endif
