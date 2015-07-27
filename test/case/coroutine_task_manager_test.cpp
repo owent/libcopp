@@ -150,5 +150,56 @@ CASE_TEST(coroutine_task_manager, multi_checkpoints)
     CASE_EXPECT_EQ(2, g_test_coroutine_task_manager_status);
 }
 
+
+class test_context_task_manager_action_protect_this_task : public cotask::impl::task_action_impl
+{
+public:
+    int operator()() {
+        CASE_EXPECT_EQ(2, (int)cotask::this_task::get_task()->shared_from_this().use_count());
+        cotask::this_task::get_task()->yield();
+        CASE_EXPECT_EQ(2, (int)cotask::this_task::get_task()->shared_from_this().use_count());
+
+        ++ g_test_coroutine_task_manager_status;
+        return 0;
+    }
+};
+
+CASE_TEST(coroutine_task_manager, protect_this_task)
+{
+    typedef std::shared_ptr< cotask::task<> > task_ptr_type;
+    cotask::task<>::action_ptr_t action = cotask::task<>::action_ptr_t(new test_context_task_manager_action_protect_this_task());
+
+    {
+        typedef cotask::task_manager<cotask::task<>::id_t> mgr_t;
+        mgr_t::ptr_t task_mgr = mgr_t::create();
+
+
+        g_test_coroutine_task_manager_status = 0;
+        task_ptr_type co_task = cotask::task<>::create(action);
+        cotask::task<>::id_t id_finished = co_task->get_id();
+        task_mgr->add_task(co_task);
+
+
+        co_task = cotask::task<>::create(action);
+        cotask::task<>::id_t id_unfinished = co_task->get_id();
+        task_mgr->add_task(co_task);
+
+        co_task = cotask::task<>::create(action);
+        cotask::task<>::id_t id_removed = co_task->get_id();
+        task_mgr->add_task(co_task);
+
+        co_task.reset();
+        task_mgr->start(id_finished);
+        task_mgr->start(id_unfinished);
+        task_mgr->start(id_removed);
+
+        task_mgr->resume(id_finished);
+        task_mgr->remove_task(id_removed);
+    }
+
+    // all task should be finished
+    CASE_EXPECT_EQ(3, (int)g_test_coroutine_task_manager_status);
+}
+
 #endif
 

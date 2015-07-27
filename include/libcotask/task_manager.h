@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <ctime>
 #include <map>
+#include <vector>
 #include <algorithm>
 
 #include <libcotask/task_macros.h>
@@ -68,7 +69,15 @@ namespace cotask {
             last_tick_time_.tv_nsec = 0;
         }
 
-        ~task_manager() {}
+        ~task_manager() {
+            // safe remove all task
+            std::vector<id_t> all_ids;
+            all_ids.reserve(tasks_.size());
+
+            for(typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++ iter) {
+                iter->second.task_->kill(EN_TS_KILLED);
+            }
+        }
 
         /**
          * @brief create a new task manager
@@ -212,22 +221,24 @@ namespace cotask {
         }
 
         int cancel(id_t id) {
-            task_ptr_t task = find_task(id);
-            if(!task)
+            typedef typename container_t::iterator iter_type;
+            iter_type iter = tasks_.find(id);
+            if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
-            int ret = task->cancel();
-            remove_task(id); // remove from container
+            int ret = iter->second.task_->cancel();
+            tasks_.erase(iter); // remove from container
             return ret;
         }
 
         int kill(id_t id, enum EN_TASK_STATUS status) {
-            task_ptr_t task = find_task(id);
-            if(!task)
+            typedef typename container_t::iterator iter_type;
+            iter_type iter = tasks_.find(id);
+            if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
-            int ret = task->kill(status);
-            remove_task(id); // remove from container
+            int ret = iter->second.task_->kill(status);
+            tasks_.erase(iter); // remove from container
             return ret;
         }
 
