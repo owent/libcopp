@@ -254,6 +254,35 @@ CASE_TEST(coroutine_task, mem_function_action)
     CASE_EXPECT_NE(co_task->get_coroutine_context().get_ret_code(), -1);
 }
 
+CASE_TEST(coroutine_task, auto_finish)
+{
+    typedef std::shared_ptr< cotask::task<> > task_ptr_type;
+    {
+        test_context_task_mem_function obj;
+        task_ptr_type co_task = cotask::task<>::create(&test_context_task_mem_function::real_run, &obj);
+        g_test_coroutine_task_status = 0;
+        obj.task_id_ = co_task->get_id();
+    }
+    CASE_EXPECT_EQ(0, g_test_coroutine_task_status); 
+
+    {
+        test_context_task_mem_function obj;
+        task_ptr_type co_task = cotask::task<>::create(&test_context_task_mem_function::real_run, &obj);
+        g_test_coroutine_task_status = 0;
+        obj.task_id_ = co_task->get_id();
+
+        CASE_EXPECT_EQ(0, co_task->start());
+
+        ++ g_test_coroutine_task_status;
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
+
+        CASE_EXPECT_FALSE(co_task->is_completed());
+    }
+
+    ++ g_test_coroutine_task_status;
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
+}
+
 struct test_context_task_next_action : public cotask::impl::task_action_impl
 {
     int set_;

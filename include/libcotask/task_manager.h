@@ -157,6 +157,12 @@ namespace cotask {
             if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
+            // make sure running task be killed first
+            EN_TASK_STATUS task_status = iter->second.task_->get_status();
+            if (task_status > EN_TS_CREATED && task_status < EN_TS_DONE) {
+                return kill(id);
+            }
+
             tasks_.erase(iter);
             return copp::COPP_EC_SUCCESS;
         }

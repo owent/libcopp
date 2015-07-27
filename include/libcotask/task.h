@@ -314,13 +314,13 @@ namespace cotask {
          * get current running task and convert to task object
          * @return task smart pointer
          */
-        static ptr_t this_task() {
-            return std::dynamic_pointer_cast<self_t>(impl::task_impl::this_task());
+        static self_t* this_task() {
+            return dynamic_cast<self_t*>(impl::task_impl::this_task());
         }
     public:
         virtual ~task() {
-            // inited but not finished will trigger timeout
-            if(get_status() < EN_TS_DONE && EN_TS_INVALID != get_status()) {
+            // inited but not finished will trigger timeout or finish other actor
+            if(get_status() < EN_TS_DONE && get_status() > EN_TS_CREATED) {
                 kill(EN_TS_TIMEOUT);
             }
 
@@ -351,11 +351,17 @@ namespace cotask {
             }
             _set_status(EN_TS_RUNNING);
 
+            int ret = 0;
             // make sure this task will not be destroyed when running
-            impl::task_impl::ptr_t self = shared_from_this();
-            impl::task_impl::ptr_t origin_task = _set_active_task(self.get());
-            int ret = coroutine_obj_.start();
-            _set_active_task(origin_task.get());
+            {
+                impl::task_impl* origin_task = _set_active_task(this);
+                impl::task_impl::ptr_t origin_task_counter;
+                if (NULL != origin_task) {
+                   origin_task_counter = origin_task->shared_from_this();
+                }
+                ret = coroutine_obj_.start();
+                _set_active_task(origin_task);
+            }
 
             if (get_status() > EN_TS_DONE) { // canceled or killed
                 _notify_finished();
@@ -409,13 +415,17 @@ namespace cotask {
             // first, make sure coroutine finished.
             if (false == coroutine_obj_.is_finished()) {
                 // make sure this task will not be destroyed when running
-                impl::task_impl::ptr_t self = shared_from_this();
-                impl::task_impl::ptr_t origin_task = _set_active_task(self.get());
-
+                // because this function may be called by destructor and shared_ptr is already freed
+                // so any function that use shared_ptr or weak_ptr of this task should be deny 
+                impl::task_impl* origin_task = _set_active_task(this);
+                impl::task_impl::ptr_t origin_task_counter;
+                if (NULL != origin_task) {
+                    origin_task_counter = origin_task->shared_from_this();
+                }
                 while(false == coroutine_obj_.is_finished())
                     coroutine_obj_.resume();
 
-                _set_active_task(origin_task.get());
+                _set_active_task(origin_task);
             }
 
             return impl::task_impl::_notify_finished();

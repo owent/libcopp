@@ -82,7 +82,7 @@ namespace cotask {
              * get current running task
              * @return current running task or empty pointer
              */
-            static ptr_t this_task();
+            static task_impl* this_task();
 
         protected:
             void _set_action(action_ptr_t action);
@@ -90,7 +90,7 @@ namespace cotask {
 
             inline void _set_status(EN_TASK_STATUS status) { status_ = status; }
 
-            static ptr_t _set_active_task(task_impl*);
+            static task_impl* _set_active_task(task_impl*);
 
             void active_next_tasks();
 

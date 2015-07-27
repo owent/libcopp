@@ -59,11 +59,8 @@ namespace cotask {
             return 0;
         }
 
-        task_impl::ptr_t task_impl::this_task() {
-            task_impl* ret = g_current_task_;
-            return NULL == ret?
-                ptr_t():
-                ret->shared_from_this();
+        task_impl* task_impl::this_task() {
+            return g_current_task_;
         }
 
         void task_impl::_set_action(action_ptr_t action) {
@@ -74,11 +71,11 @@ namespace cotask {
             return action_;
         }
 
-        task_impl::ptr_t task_impl::_set_active_task(task_impl* task) {
+        task_impl* task_impl::_set_active_task(task_impl* task) {
             task_impl* ret = g_current_task_;
             g_current_task_ = task;
             
-            return NULL == ret ? task_impl::ptr_t(): ret->shared_from_this();
+            return ret;
         }
 
         void task_impl::active_next_tasks() {
