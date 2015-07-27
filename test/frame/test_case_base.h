@@ -12,7 +12,7 @@
 
 #include <string>
 
-#ifdef COPP_MACRO_TEST_ENABLE_BOOST_TEST
+#ifdef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST
 #include <boost/test/unit_test.hpp>
 #endif
 

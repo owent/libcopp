@@ -9,7 +9,7 @@
 
 #include "frame/test_macros.h"
 
-#if defined(COPP_MACRO_TEST_ENABLE_BOOST_TEST)
+#if defined(UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST)
 
     #ifdef BOOST_TEST_ALTERNATIVE_INIT_API
     bool init_unit_test() {
@@ -30,15 +30,15 @@
 #endif
 
 
-#if !defined(COPP_MACRO_TEST_ENABLE_BOOST_TEST) || defined(BOOST_TEST_DYN_LINK) || defined(BOOST_TEST_NO_MAIN)
+#if !defined(UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST) || defined(BOOST_TEST_DYN_LINK) || defined(BOOST_TEST_NO_MAIN)
 
 int main(int argc, char *argv[]) {
 
-#ifdef COPP_MACRO_TEST_ENABLE_GTEST
+#ifdef UTILS_TEST_MACRO_TEST_ENABLE_GTEST
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 
-#elif defined(COPP_MACRO_TEST_ENABLE_BOOST_TEST)
+#elif defined(UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST)
     // prototype for user's unit test init function
     #ifdef BOOST_TEST_ALTERNATIVE_INIT_API
         boost::unit_test::init_unit_test_func init_func = &init_unit_test;

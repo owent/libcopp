@@ -41,7 +41,7 @@ public:
 
     static std::string get_expire_time(clock_t begin, clock_t end);
 
-#ifdef COPP_MACRO_TEST_ENABLE_BOOST_TEST
+#ifdef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST
     static boost::unit_test::test_suite*& test_suit();
 #endif
 

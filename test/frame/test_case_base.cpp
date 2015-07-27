@@ -31,7 +31,7 @@ int test_case_base::run() {
     test_manager::me().success_counter_ptr = &success_;
     test_manager::me().failed_counter_ptr = &failed_;
 
-#ifndef COPP_MACRO_TEST_ENABLE_BOOST_TEST
+#ifndef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST
     if (NULL != func_) {
         (*func_)();
     }

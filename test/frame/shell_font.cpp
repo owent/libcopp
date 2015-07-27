@@ -13,7 +13,7 @@
 
 #include "shell_font.h"
 
-#define SHELL_FONT_SET_OPT_END "\033[24;25;27;49;0m"
+#define SHELL_FONT_SET_OPT_END "\033[0m"
 
 shell_font::shell_font(int iFlag): m_iFlag(iFlag)
 {
@@ -31,22 +31,22 @@ std::string shell_font::GetStyleCode(int iFlag)
     bool bFirst = true;
 
     // 第一部分，特殊样式
-    if (iFlag & SHELL_FONT_SPEC_BOLD)
+    if (iFlag & ShekkFontStyle::SHELL_FONT_SPEC_BOLD)
     {
         ret += std::string((!bFirst)?";":"") + "1";
         bFirst = false;
     }
-    if (iFlag & SHELL_FONT_SPEC_UNDERLINE)
+    if (iFlag & ShekkFontStyle::SHELL_FONT_SPEC_UNDERLINE)
     {
         ret += std::string((!bFirst)?";":"") + "4";
         bFirst = false;
     }
-    if (iFlag & SHELL_FONT_SPEC_FLASH)
+    if (iFlag & ShekkFontStyle::SHELL_FONT_SPEC_FLASH)
     {
         ret += std::string((!bFirst)?";":"") + "5";
         bFirst = false;
     }
-    if (iFlag & SHELL_FONT_SPEC_DARK)
+    if (iFlag & ShekkFontStyle::SHELL_FONT_SPEC_DARK)
     {
         ret += std::string((!bFirst)?";":"") + "2";
         bFirst = false;
@@ -172,4 +172,147 @@ std::string shell_font::GenerateString(const std::string& strInput, int iFlag)
 std::string shell_font::GenerateString(const std::string& strInput)
 {
     return GenerateString(strInput, m_iFlag);
+}
+
+
+#ifdef SHELL_FONT_USING_WIN32_CONSOLE
+
+static std::map<int, WORD>& _get_flag_mapping() {
+    static std::map<int, WORD> ret;
+    if (ret.empty()) {
+        ret[ShekkFontStyle::SHELL_FONT_SPEC_NULL] = 0;
+        ret[ShekkFontStyle::SHELL_FONT_SPEC_BOLD] = COMMON_LVB_LEADING_BYTE;
+        ret[ShekkFontStyle::SHELL_FONT_SPEC_UNDERLINE] = COMMON_LVB_UNDERSCORE;
+        ret[ShekkFontStyle::SHELL_FONT_SPEC_FLASH] = 0; // 不支持
+        ret[ShekkFontStyle::SHELL_FONT_SPEC_DARK] = 0; // 不支持
+
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_BLACK] = 0;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_RED] = FOREGROUND_RED | FOREGROUND_INTENSITY;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_GREEN] = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_YELLOW] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_BLUE] = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_MAGENTA] = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_CYAN] = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        ret[ShekkFontStyle::SHELL_FONT_COLOR_WHITE] = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
+
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_BLACK] = 0;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_RED] = BACKGROUND_RED;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_GREEN] = BACKGROUND_GREEN;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_YELLOW] = BACKGROUND_RED | BACKGROUND_GREEN;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_BLUE]       = BACKGROUND_BLUE;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_MAGENTA] = BACKGROUND_RED | BACKGROUND_BLUE;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_CYAN] = BACKGROUND_BLUE | BACKGROUND_GREEN;
+        ret[ShekkFontStyle::SHELL_FONT_BACKGROUND_COLOR_WHITE] = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+    }
+
+    return ret;
+}
+
+static WORD _get_default_color() {
+    return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+}
+
+#endif
+
+
+shell_stream::shell_stream(stream_t& stream) : m_pOs(&stream) {
+}
+
+
+shell_stream::shell_stream_opr::shell_stream_opr(stream_t* os) : pOs(os), flag(ShekkFontStyle::SHELL_FONT_SPEC_NULL)
+{
+#ifdef SHELL_FONT_USING_WIN32_CONSOLE
+    if (os == &std::cout) {
+        hOsHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    } else if (os == &std::cout) {
+        hOsHandle = GetStdHandle(STD_ERROR_HANDLE);
+    } else {
+        hOsHandle = NULL;
+    }
+#endif
+}
+
+shell_stream::shell_stream_opr::~shell_stream_opr() {
+    if (NULL == pOs) {
+        return;
+    }
+
+    reset();
+}
+
+shell_stream::shell_stream_opr::shell_stream_opr(const shell_stream_opr& other) {
+    (*this) = other;
+}
+
+shell_stream::shell_stream_opr& shell_stream::shell_stream_opr::operator=(const shell_stream::shell_stream_opr& other) {
+    pOs = other.pOs;
+
+#ifdef SHELL_FONT_USING_WIN32_CONSOLE
+    hOsHandle = other.hOsHandle;
+#endif
+    flag = ShekkFontStyle::SHELL_FONT_SPEC_NULL;
+
+    return (*this);
+}
+
+void shell_stream::shell_stream_opr::open(int f) const {
+    if (f == ShekkFontStyle::SHELL_FONT_SPEC_NULL) {
+        reset();
+        return;
+    }
+
+    flag |= f;
+}
+
+void shell_stream::shell_stream_opr::close() const {
+    if (NULL == pOs) {
+        return;
+    }
+
+    if (ShekkFontStyle::SHELL_FONT_SPEC_NULL == flag) {
+        return;
+    }
+
+#ifdef SHELL_FONT_USING_WIN32_CONSOLE
+    if (NULL != hOsHandle) {
+
+        std::map<int, WORD>& color_map = _get_flag_mapping();
+        WORD style = 0;
+        int left_flag = flag;
+
+        while (left_flag) {
+            int f = left_flag & (left_flag ^ (left_flag - 1));
+            std::map<int, WORD>::iterator iter = color_map.find(f);
+            if (iter != color_map.end()) {
+                style |= iter->second;
+            }
+
+            left_flag = left_flag & (left_flag - 1);
+        }
+
+        SetConsoleTextAttribute(hOsHandle, style);
+    }
+#else
+    (*pOs) << shell_font::GetStyleCode(flag);
+#endif
+
+    flag = ShekkFontStyle::SHELL_FONT_SPEC_NULL;
+}
+
+void shell_stream::shell_stream_opr::reset() const {
+    if (NULL == pOs) {
+        return;
+    }
+
+    close();
+
+#ifdef SHELL_FONT_USING_WIN32_CONSOLE
+    if (NULL != hOsHandle) {
+        SetConsoleTextAttribute(hOsHandle, _get_default_color());
+    }
+#else
+
+    (*pOs) << shell_font::GetStyleCloseCode();
+
+#endif
 }

@@ -5,12 +5,17 @@
  *      Author: owent
  *
  *  Released under the MIT license
+ * @history
+ *    2015-06-30  增加Windows控制台支持，增加通用输出流
  */
 
 #ifndef __SHELLFONT_H_
 #define __SHELLFONT_H_
 
+#include <iostream>
 #include <string>
+#include <map>
+
 //下面是编码表
 //
 //编码    颜色/动作
@@ -44,38 +49,42 @@
 //47  设置白色背景
 //49  设置缺省黑色背景
 
-enum ShellFontSpec
-{
-    SHELL_FONT_SPEC_NULL        = 0x00,
-    SHELL_FONT_SPEC_BOLD        = 0x01,
-    SHELL_FONT_SPEC_UNDERLINE   = 0x02,
-    SHELL_FONT_SPEC_FLASH       = 0x04,
-    SHELL_FONT_SPEC_DARK        = 0x08,
+struct ShekkFontStyle {
+
+    enum ShellFontSpec
+    {
+        SHELL_FONT_SPEC_NULL = 0x00,
+        SHELL_FONT_SPEC_BOLD = 0x01,
+        SHELL_FONT_SPEC_UNDERLINE = 0x02,
+        SHELL_FONT_SPEC_FLASH = 0x04,
+        SHELL_FONT_SPEC_DARK = 0x08,
+    };
+
+    enum ShellFontColor
+    {
+        SHELL_FONT_COLOR_BLACK = 0x0100, //30
+        SHELL_FONT_COLOR_RED = 0x0200,
+        SHELL_FONT_COLOR_GREEN = 0x0400,
+        SHELL_FONT_COLOR_YELLOW = 0x0800,
+        SHELL_FONT_COLOR_BLUE = 0x1000,
+        SHELL_FONT_COLOR_MAGENTA = 0x2000,
+        SHELL_FONT_COLOR_CYAN = 0x4000,
+        SHELL_FONT_COLOR_WHITE = 0x8000,
+    };
+
+    enum ShellFontBackgroundColor
+    {
+        SHELL_FONT_BACKGROUND_COLOR_BLACK = 0x010000, //40
+        SHELL_FONT_BACKGROUND_COLOR_RED = 0x020000,
+        SHELL_FONT_BACKGROUND_COLOR_GREEN = 0x040000,
+        SHELL_FONT_BACKGROUND_COLOR_YELLOW = 0x080000,
+        SHELL_FONT_BACKGROUND_COLOR_BLUE = 0x100000,
+        SHELL_FONT_BACKGROUND_COLOR_MAGENTA = 0x200000,
+        SHELL_FONT_BACKGROUND_COLOR_CYAN = 0x400000,
+        SHELL_FONT_BACKGROUND_COLOR_WHITE = 0x800000,
+    };
 };
 
-enum ShellFontColor
-{
-    SHELL_FONT_COLOR_BLACK      = 0x0100, //30
-    SHELL_FONT_COLOR_RED        = 0x0200,
-    SHELL_FONT_COLOR_GREEN      = 0x0400,
-    SHELL_FONT_COLOR_YELLOW     = 0x0800,
-    SHELL_FONT_COLOR_BLUE       = 0x1000,
-    SHELL_FONT_COLOR_PURPLE     = 0x2000,
-    SHELL_FONT_COLOR_CYAN       = 0x4000,
-    SHELL_FONT_COLOR_WHITE      = 0x8000,
-};
-
-enum ShellFontBackgroundColor
-{
-    SHELL_FONT_BACKGROUND_COLOR_BLACK      = 0x010000, //40
-    SHELL_FONT_BACKGROUND_COLOR_RED        = 0x020000,
-    SHELL_FONT_BACKGROUND_COLOR_GREEN      = 0x040000,
-    SHELL_FONT_BACKGROUND_COLOR_YELLOW     = 0x080000,
-    SHELL_FONT_BACKGROUND_COLOR_BLUE       = 0x100000,
-    SHELL_FONT_BACKGROUND_COLOR_PURPLE     = 0x200000,
-    SHELL_FONT_BACKGROUND_COLOR_CYAN       = 0x400000,
-    SHELL_FONT_BACKGROUND_COLOR_WHITE      = 0x800000,
-};
 
 class shell_font
 {
@@ -122,7 +131,100 @@ public:
      * @return 样式的关闭命令
      */
     static std::string GetStyleCloseCode();
+};
+
+
+/**
+* Window 控制台相关
+* @see https://msdn.microsoft.com/zh-cn/windows/apps/ms686047%28v=vs.100%29.aspx
+* @see https://github.com/owent-utils/python/blob/master/print_color.py
+*/
+#ifdef _MSC_VER
+
+#include <Windows.h>
+
+#define SHELL_FONT_USING_WIN32_CONSOLE
+
+#endif
+
+
+class shell_stream {
 public:
+    typedef std::ostream stream_t;
+    class shell_stream_opr {
+    public:
+        typedef shell_stream_opr self_t;
+
+    private:
+        stream_t* pOs;
+#ifdef SHELL_FONT_USING_WIN32_CONSOLE
+        HANDLE hOsHandle;
+#endif
+        mutable int flag;
+
+        // 进允许内部复制构造
+        shell_stream_opr(const shell_stream_opr&);
+        shell_stream_opr& operator=(const shell_stream_opr&);
+
+        friend class shell_stream;
+    public:
+        shell_stream_opr(stream_t* os);
+        ~shell_stream_opr();
+
+
+        template<typename Ty>
+        const shell_stream_opr& operator<<(const Ty& v) const {
+            close();
+            (*pOs) << v;
+            return (*this);
+        }
+
+        const shell_stream_opr& operator<<(ShekkFontStyle::ShellFontSpec style) const {
+            open(style);
+            return (*this);
+        }
+
+        const shell_stream_opr& operator<<(ShekkFontStyle::ShellFontColor style) const {
+            open(style);
+            return (*this);
+        }
+
+        const shell_stream_opr& operator<<(ShekkFontStyle::ShellFontBackgroundColor style) const {
+            open(style);
+            return (*this);
+        }
+
+        const shell_stream_opr& operator<<(stream_t& (*fn)(stream_t&)) const {
+            close();
+            (*pOs) << fn;
+            return (*this);
+        }
+
+        void open(int flag) const;
+
+        void close() const;
+
+        void reset() const;
+
+        operator stream_t&() const {
+            return *pOs;
+        }
+
+        operator const stream_t&() const {
+            return *pOs;
+        }
+    };
+
+
+public:
+    shell_stream(stream_t& stream = std::cout);
+
+    shell_stream_opr operator()() const {
+        return shell_stream_opr(m_pOs);
+    }
+
+private:
+    stream_t* m_pOs;
 };
 
 #endif /* SHELLFONT_H_ */
