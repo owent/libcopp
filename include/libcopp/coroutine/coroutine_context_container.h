@@ -13,6 +13,7 @@
 
 #include <libcopp/utils/errno.h>
 #include <libcopp/coroutine/coroutine_context_safe_base.h>
+#include <libcopp/stack/stack_traits.h>
 #include <libcopp/stack/stack_allocator.h>
 
 namespace copp {
@@ -96,7 +97,7 @@ namespace copp {
                 if (NULL != callee_stack_.sp)
                     return COPP_EC_ALREADY_INITED;
 
-                alloc_.allocate(callee_stack_, alloc_.default_stacksize());
+                alloc_.allocate(callee_stack_, stack_traits::default_size());
 
                 if (NULL == callee_stack_.sp)
                     return COPP_EC_ALLOC_STACK_FAILED;

@@ -6,6 +6,12 @@ set (PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR "${PROJECT_LIBCOPP_STACK_CONTEXT_SRC_DI
 aux_source_directory("${PROJECT_LIBCOPP_STACK_CONTEXT_SRC_DIR}" SRC_LIST)
 list(APPEND COPP_SRC_LIST ${SRC_LIST})
 
+# stack traits
+list(APPEND COPP_SRC_LIST
+    "${PROJECT_LIBCOPP_STACK_CONTEXT_SRC_DIR}/stack_traits/stack_traits_posix.cpp"
+    "${PROJECT_LIBCOPP_STACK_CONTEXT_SRC_DIR}/stack_traits/stack_traits_windows.cpp"
+)
+
 # ========== stack allocator ==========
 list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_memory.cpp")
 list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_malloc.cpp")

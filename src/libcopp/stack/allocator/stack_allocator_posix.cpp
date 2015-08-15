@@ -19,16 +19,12 @@ extern "C" {
 
 
 #include "libcopp/stack/stack_context.h"
+#include "libcopp/stack/stack_traits.h"
 #include "libcopp/fcontext/fcontext.hpp"
 #include "libcopp/stack/allocator/stack_allocator_posix.h"
 
 #if defined(COPP_MACRO_USE_VALGRIND)
 #include <valgrind/valgrind.h>
-#endif
-
-#if !defined (SIGSTKSZ)
-# define SIGSTKSZ (8 * 1024)
-# define UDEF_SIGSTKSZ
 #endif
 
 #ifdef COPP_HAS_ABI_HEADERS
@@ -37,70 +33,16 @@ extern "C" {
 
 namespace copp { 
     namespace allocator {
-        namespace sys
-        {
-            static std::size_t pagesize()
-            {
-                std::size_t size = ::sysconf(_SC_PAGESIZE);
-                return size;
-            }
-
-            static std::size_t round_to_page_size(std::size_t stacksize)
-            {
-                // page size must be 2^N
-                return static_cast<std::size_t>((stacksize + pagesize() - 1) & (~(pagesize() - 1)));
-            }
-
-            rlimit stacksize_limit_()
-            {
-                rlimit limit;
-                // conforming to POSIX.1-2001
-                ::getrlimit( RLIMIT_STACK, & limit);
-                return limit;
-            }
-
-            rlimit stacksize_limit()
-            {
-                static rlimit limit = stacksize_limit_();
-                return limit;
-            }
-        }
-
         stack_allocator_posix::stack_allocator_posix() { }
 
         stack_allocator_posix::~stack_allocator_posix() { }
 
-        bool stack_allocator_posix::is_stack_unbound() {
-            return RLIM_INFINITY == sys::stacksize_limit().rlim_max;
-        }
-
-        std::size_t stack_allocator_posix::default_stacksize() {
-            std::size_t size = 8 * minimum_stacksize(); // 64 KB
-            if (is_stack_unbound())
-                return size;
-
-            assert(maximum_stacksize() >= minimum_stacksize());
-            return maximum_stacksize() == size
-                ? size
-                : (std::min)(size, maximum_stacksize());
-        }
-
-        std::size_t stack_allocator_posix::minimum_stacksize() {
-            return SIGSTKSZ + sizeof(fcontext::fcontext_t) + 15;
-        }
-
-        std::size_t stack_allocator_posix::maximum_stacksize() {
-            if(is_stack_unbound())
-                return std::numeric_limits<std::size_t>::max();
-            return sys::stacksize_limit().rlim_max;
-        }
-
         void stack_allocator_posix::allocate(stack_context & ctx, std::size_t size)
         {
-            size = (std::max)(size, minimum_stacksize());
-            size = (std::min)(size, maximum_stacksize());
+            size = (std::max)(size, stack_traits::minimum_size());
+            size = (std::min)(size, stack_traits::maximum_size());
 
-            std::size_t size_ = sys::round_to_page_size(size) + sys::pagesize(); // add one protected page
+            std::size_t size_ = stack_traits::round_to_page_size(size) + stack_traits::page_size(); // add one protected page
             assert(size > 0 && size_ > 0);
 
             // conform to POSIX.4 (POSIX.1b-1993, _POSIX_C_SOURCE=199309L)
@@ -117,7 +59,7 @@ namespace copp {
             }
 
             // memset(start_ptr, 0, size_);
-            ::mprotect( start_ptr, sys::pagesize(), PROT_NONE);
+            ::mprotect( start_ptr, stack_traits::page_size(), PROT_NONE);
 
             ctx.size = size_;
             ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
@@ -130,8 +72,8 @@ namespace copp {
         void stack_allocator_posix::deallocate(stack_context & ctx)
         {
             assert(ctx.sp);
-            assert(minimum_stacksize() <= ctx.size);
-            assert(is_stack_unbound() || (maximum_stacksize() >= ctx.size));
+            assert(stack_traits::minimum_size() <= ctx.size);
+            assert(stack_traits::is_unbounded() || (stack_traits::maximum_size() >= ctx.size));
             
 #if defined(COPP_MACRO_USE_VALGRIND)
             VALGRIND_STACK_DEREGISTER( ctx.valgrind_stack_id);

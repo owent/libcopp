@@ -30,17 +30,6 @@ namespace copp {
             ~stack_allocator_posix();
 
             /**
-             * is there stack  max size limit?
-             */
-            static bool is_stack_unbound();
-
-            static std::size_t default_stacksize();
-
-            static std::size_t minimum_stacksize();
-
-            static std::size_t maximum_stacksize();
-
-            /**
              * allocate memory and attach to stack context [standard function]
              * @param ctx stack context
              * @param size stack size

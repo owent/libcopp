@@ -336,7 +336,7 @@ CASE_TEST(coroutine_task, functor_drived_action)
 {
     typedef std::shared_ptr< cotask::task<> > task_ptr_type;
     task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(
-        cotask::task<>::stack_allocator_t::default_stacksize(),
+        copp::stack_traits::default_size(),
         1, 
         3
     );

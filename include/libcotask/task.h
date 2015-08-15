@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <algorithm>
 
+#include <libcopp/stack/stack_traits.h>
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
 
@@ -64,7 +65,7 @@ namespace cotask {
          * @return task smart pointer
          */
         static ptr_t create(action_ptr_t action,
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             // step 1. create task instance
             self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
@@ -91,7 +92,7 @@ namespace cotask {
          */
         template<typename Ty>
         static ptr_t create(Ty functor,
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             typedef task_action_functor<Ty> a_t;
 
@@ -130,7 +131,7 @@ namespace cotask {
          */
         template<typename Ty>
         static ptr_t create(Ty (*func)(),
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             typedef task_action_function<Ty> a_t;
 
@@ -169,7 +170,7 @@ namespace cotask {
          */
         template<typename Ty, typename TInst>
         static ptr_t create(Ty (TInst::*func), TInst* instance,
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             typedef task_action_mem_function<Ty, TInst> a_t;
 
@@ -264,7 +265,7 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        ptr_t next(action_ptr_t action, size_t stack_size = stack_allocator_t::default_stacksize()) {
+        ptr_t next(action_ptr_t action, size_t stack_size = copp::stack_traits::default_size()) {
             return next(create(action, stack_size));
         }
 
@@ -277,7 +278,7 @@ namespace cotask {
          */
         template<typename Ty>
         ptr_t next(Ty functor,
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             return next(create(functor, stack_size));
         }
@@ -291,7 +292,7 @@ namespace cotask {
          */
         template<typename Ty>
         ptr_t next(Ty (*func)(),
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             return next(create(func, stack_size));
         }
@@ -305,7 +306,7 @@ namespace cotask {
          */
         template<typename Ty, typename TInst>
         ptr_t next(Ty (TInst::*func), TInst* instance,
-            size_t stack_size = stack_allocator_t::default_stacksize()
+            size_t stack_size = copp::stack_traits::default_size()
         ) {
             return next(create(func, instance, stack_size));
         }

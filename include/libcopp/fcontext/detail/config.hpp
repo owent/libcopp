@@ -7,6 +7,9 @@
 #ifndef _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H
 #define _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H
 
+// required for SD-6 compile-time integer sequences
+#include <utility>
+
 #ifdef _COPP_BOOST_CONTEXT_DECL
 # undef _COPP_BOOST_CONTEXT_DECL
 #endif
@@ -25,6 +28,6 @@
 # define COPP_BOOST_CONTEXT_CALLDECL
 #endif
 
-// BOOST_CONTEXT_SEGMENTS 的定义放在 utils/features.h
+// BOOST_CONTEXT_SEGMENTS defined at utils/features.h
 
 #endif // _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H

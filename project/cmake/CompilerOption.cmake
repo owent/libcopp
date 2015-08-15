@@ -19,9 +19,13 @@ set(CXX_FLAGS_IN_ONE_COMMON "")
 
 # 编译器选项 (仅做了GCC、VC和Clang兼容)
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_definitions(-Wall -Werror -rdynamic -fPIC)
+        if(WIN32 OR WINCE OR WINDOWS_PHONE OR WINDOWS_STORE OR CYGWIN)
+            add_definitions(-Wall -Werror)
+        else()
+            add_definitions(-Wall -Werror -rdynamic -fPIC)
+        endif()
 
-	# gcc 4.9 编译输出颜色支持
+	    # gcc 4.9 编译输出颜色支持
         if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.9.0" )
                 add_definitions(-fdiagnostics-color=auto)
         endif()
