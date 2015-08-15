@@ -10,7 +10,7 @@ list(APPEND COPP_SRC_LIST ${SRC_LIST})
 list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_memory.cpp")
 list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_malloc.cpp")
 
-if(WIN32)
+if(WIN32 OR WINCE OR WINDOWS_PHONE OR WINDOWS_STORE)
 	EchoWithColor(COLOR GREEN "-- stack allocator: enable windows allocator")
 	list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_windows.cpp")
 	add_compiler_define(COPP_MACRO_SYS_WIN=1)

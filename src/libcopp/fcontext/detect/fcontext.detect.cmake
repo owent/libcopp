@@ -14,44 +14,43 @@ endif()
 if(NOT LIBCOPP_FCONTEXT_ABI)
 	set(LIBCOPP_FCONTEXT_ABI "sysv")
 	
-	if( "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm" )
+	if( "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm" OR "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm64")
 		set(LIBCOPP_FCONTEXT_ABI "aapcs")
 	elseif( "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "mips" )
 		set(LIBCOPP_FCONTEXT_ABI "o32")
-	elseif (WIN32 OR CYGWIN)
+	elseif (WIN32 OR WINCE OR WINDOWS_PHONE OR WINDOWS_STORE OR MINGW OR CYGWIN)
 		set(LIBCOPP_FCONTEXT_ABI "ms")
 	endif()
 endif()
 
 # ========== set binary format ==========
-# LIBCOPP_FCONTEXT_ABI can be set to elf_gas/macho_gas/pe_armasm/pe_masm/xcoff_gas
+# LIBCOPP_FCONTEXT_ABI can be set to elf/macho/pe/xcoff
 if(NOT LIBCOPP_FCONTEXT_BIN_FORMAT)
-	set(LIBCOPP_FCONTEXT_BIN_FORMAT "elf_gas")
+	set(LIBCOPP_FCONTEXT_BIN_FORMAT "elf")
 	
-	if(WIN32 OR CYGWIN)
-		if ("${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm" OR "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm64")
-			set(LIBCOPP_FCONTEXT_BIN_FORMAT "pe_armasm")
-		else()
-			set(LIBCOPP_FCONTEXT_BIN_FORMAT "pe_masm")
-		endif()
+	if(WIN32 OR WINCE OR WINDOWS_PHONE OR WINDOWS_STORE OR MINGW OR CYGWIN)
+		set(LIBCOPP_FCONTEXT_BIN_FORMAT "pe")
 	elseif(APPLE)
-		set(LIBCOPP_FCONTEXT_BIN_FORMAT "macho_gas")
+		set(LIBCOPP_FCONTEXT_BIN_FORMAT "macho")
 	elseif(AIX) # cmake not supported now
-		set(LIBCOPP_FCONTEXT_BIN_FORMAT "xcoff_gas")
+		set(LIBCOPP_FCONTEXT_BIN_FORMAT "xcoff")
 	endif()
 endif()
 
 # ========== set as tool ==========
+# LIBCOPP_FCONTEXT_AS_TOOL can be set to gas/armasm/masm
+# LIBCOPP_FCONTEXT_AS_ACTION
 if(NOT LIBCOPP_FCONTEXT_AS_TOOL)
-	set(LIBCOPP_FCONTEXT_AS_TOOL "as")
+	set(LIBCOPP_FCONTEXT_AS_TOOL "gas")
 	
-	if(WIN32 OR CYGWIN)
+	if(WIN32 AND MSVC)
 		if ("${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm" OR "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "arm64")
 			set(LIBCOPP_FCONTEXT_AS_TOOL "armasm")
-		elseif( "${PLATFORM_SUFFIX}" STREQUAL "64" )
-			set(LIBCOPP_FCONTEXT_AS_TOOL "ml64")
 		else()
-			set(LIBCOPP_FCONTEXT_AS_TOOL "ml")
+			set(LIBCOPP_FCONTEXT_AS_TOOL "masm")
+			if( NOT LIBCOPP_FCONTEXT_AS_ACTION AND "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "64" )
+				set(LIBCOPP_FCONTEXT_AS_ACTION "64")
+			endif()
 		endif()
 	endif()
 endif()

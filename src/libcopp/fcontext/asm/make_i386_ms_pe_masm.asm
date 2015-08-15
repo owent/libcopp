@@ -31,7 +31,7 @@ copp_make_fcontext PROC EXPORT
     mov  eax, [esp+04h]
 
     ; reserve space for first argument of context-function
-    ; rax might already point to a 16byte border
+    ; EAX might already point to a 16byte border
     lea  eax, [eax-08h]
 
     ; shift address in EAX to lower 16 byte boundary
