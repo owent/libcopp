@@ -82,7 +82,7 @@ _copp_make_fcontext:
     subi  r3, r3, 304
 
     ; third arg of copp_make_fcontext() == address of context-function
-    stw  r5, 236(%r3)
+    stw  r5, 236(r3)
 
     ; load LR
     mflr  r0

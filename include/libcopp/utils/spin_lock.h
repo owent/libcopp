@@ -1,3 +1,25 @@
+/**
+ * @file spin_lock.h
+ * @brief 自旋锁
+ * Licensed under the MIT licenses.
+ *
+ * @version 1.0
+ * @author OWenT
+ * @date 2013-3-18
+ *
+ * @note VC 2012+, GCC 4.4 + 使用C++0x/11实现实现原子操作
+ * @note 低版本 VC使用InterlockedExchange等实现原子操作
+ * @note 低版本 GCC采用__sync_lock_test_and_set等实现原子操作
+ *
+ * @history
+ *     2013-12-20
+ *         1. add support for clang & intel compiler
+ *         2. add try unlock function
+ *         3. fix atom operator
+ *         4. add gcc atomic support
+ *    2014-07-08
+ *         1. add yield operation 
+ */
 #ifndef _COPP_UTILS_SPIN_LOCK_H_
 #define _COPP_UTILS_SPIN_LOCK_H_
 
@@ -10,13 +32,16 @@
 
 #include <libcopp/utils/features.h>
 
-#if defined(__clang__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 1 ) ) && __cplusplus >= 201103L
+#if defined(__cplusplus) && __cplusplus >= 201103L
     #include <atomic>
     #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
-#elif defined(_MSC_VER) && (_MSC_VER >= 1700) && defined(_HAS_CPP0X) && _HAS_CPP0X
+#elif defined(__clang__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 1 ) ) && __cplusplus >= 201103L
     #include <atomic>
     #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
-#elif defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4) && (__cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__))
+#elif defined(_MSC_VER) && (_MSC_VER > 1700 || (defined(_HAS_CPP0X) && _HAS_CPP0X))
+    #include <atomic>
+    #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
+#elif defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4) && defined(__GXX_EXPERIMENTAL_CXX0X__)
     #include <atomic>
     #define COPP_MACRO_UTILS_SPINLOCK_ATOMIC_STD
 #endif
