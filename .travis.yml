@@ -2,12 +2,18 @@ language: cpp
 
 compiler:
   - gcc
+  - clang
 
 before_script:
+  - which brew
+  - if [ 0 -eq $? ]; then 
+  -   brew update; 
+  -   brew install beanstalk; 
+  - fi
   - REPO_DIR=$PWD
   - mkdir -p tools && cd tools
   - wget -c "https://github.com/Kitware/CMake/archive/v3.4.1.tar.gz" -O CMake-3.4.1.tar.gz
-  - tar -axvf CMake-3.4.1.tar.gz
+  - tar -xvf CMake-3.4.1.tar.gz
   - CMAKE_PREFIX=$PWD/prebuilt/cmake
   - cd CMake-3.4.1
   - ./bootstrap --prefix=$CMAKE_PREFIX >> build_cmake.log 2>&1
@@ -39,5 +45,3 @@ env:
 os:
   - linux
   - osx
-
-osx_image: xcode61
