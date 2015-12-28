@@ -7,7 +7,7 @@ before_script:
   - REPO_DIR=$PWD
   - mkdir -p tools && cd tools
   - wget -c "https://github.com/Kitware/CMake/archive/v3.4.1.tar.gz" -O CMake-3.4.1.tar.gz
-  - tar -axvf CMake-3.4.1.tar.gz > build_cmake.log 2>&1
+  - tar -axvf CMake-3.4.1.tar.gz
   - CMAKE_PREFIX=$PWD/prebuilt/cmake
   - cd CMake-3.4.1
   - ./bootstrap --prefix=$CMAKE_PREFIX >> build_cmake.log 2>&1
