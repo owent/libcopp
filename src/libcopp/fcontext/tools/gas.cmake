@@ -7,10 +7,10 @@ if(NOT LIBCOPP_FCONTEXT_AS_TOOL_BIN)
     message(FATAL_ERROR "as not found")
 endif()
 
-find_program(LIBCOPP_FCONTEXT_AS_TOOL_BINC cpp)
+find_program(LIBCOPP_FCONTEXT_AS_TOOL_BINC CMAKE_CXX_COMPILER)
 if(NOT LIBCOPP_FCONTEXT_AS_TOOL_BIN)
-    EchoWithColor(COLOR RED "-- cpp not found in path, please add cpp's directory into path")
-    message(FATAL_ERROR "cpp not found")
+    EchoWithColor(COLOR RED "-- cxx compiler not found in path, please add cxx compiler's directory into path")
+    message(FATAL_ERROR "cxx compiler not found")
 endif()
 
 if (WIN32 OR WINCE OR WINDOWS_PHONE OR WINDOWS_STORE OR MINGW OR CYGWIN)

@@ -1,4 +1,4 @@
-# 默认配置选项
+﻿# 默认配置选项
 #####################################################################
 
 if (CMAKE_CONFIGURATION_TYPES)
@@ -19,46 +19,43 @@ set(CXX_FLAGS_IN_ONE_COMMON "")
 
 # 编译器选项 (仅做了GCC、VC和Clang兼容)
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        if(WIN32 OR WINCE OR WINDOWS_PHONE OR WINDOWS_STORE OR CYGWIN)
-            add_definitions(-Wall -Werror)
-        else()
-            add_definitions(-Wall -Werror -rdynamic -fPIC)
-        endif()
+    add_definitions(-Wall -Werror)
 
-	    # gcc 4.9 编译输出颜色支持
-        if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.9.0" )
-                add_definitions(-fdiagnostics-color=auto)
-        endif()
-        # 检测GCC版本大于等于4.8时，默认-Wno-unused-local-typedefs (普片用于type_traits，故而关闭该警告)
-        if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.8.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.8.0" )
-                add_definitions(-Wno-unused-local-typedefs)
-                message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} Found, -Wno-unused-local-typedefs added.")
-        endif()
-        if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.7.0" )
-                set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu++11")
-                set(C_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu11")
-                message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=gnu11/gnu++11.")
-				
-                # Linux环境允许自动增长栈
-                if ( UNIX AND NOT CYGWIN AND LIBCOPP_ENABLE_SEGMENTED_STACKS)
-					set(COPP_MACRO_USE_SEGMENTED_STACKS_GCC TRUE)
-                    add_definitions(-fsplit-stack)
-                endif()
-				
-        elseif( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.4.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.4.0" )
-                set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=gnu++0x")
-                message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=gnu++0x.")
-        endif()
+    # gcc 4.9 编译输出颜色支持
+    if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.9.0" )
+            add_definitions(-fdiagnostics-color=auto)
+    endif()
+    # 检测GCC版本大于等于4.8时，默认-Wno-unused-local-typedefs (普片用于type_traits，故而关闭该警告)
+    if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.8.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.8.0" )
+            add_definitions(-Wno-unused-local-typedefs)
+            message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} Found, -Wno-unused-local-typedefs added.")
+    endif()
+    
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.0.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "5.0.0" )
+        set(CMAKE_C_STANDARD 11)
+        set(CMAKE_CXX_STANDARD 14)
+        message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c11/c++14.")
+    elseif ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.7.0" )
+        set(CMAKE_C_STANDARD 11)
+        set(CMAKE_CXX_STANDARD 11)
+        message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c11/c++11.")
+    elseif( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.4.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.4.0" )
+        set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=c++0x")
+        message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c++0x.")
+    endif()
 
-        if (LIBCOPP_ENABLE_VALGRIND)
-            set(COPP_MACRO_USE_VALGRIND TRUE)
-        endif()
-        
 elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        add_definitions(-Wall -Werror -fPIC)
-        set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=c++11 --stdlib=libc++")
-        message(STATUS "CLang Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c++11.")
-
+    add_definitions(-Wall -Werror -fPIC)
+    # 苹果系统会误判，不过问题不大，反正也是用最高的标准
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "3.4" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "3.4" )
+        set(CMAKE_C_STANDARD 11)
+        set(CMAKE_CXX_STANDARD 14)
+        message(STATUS "Clang Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c11/c++14.")
+    elseif ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "3.3" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "3.3" )
+        set(CMAKE_C_STANDARD 11)
+        set(CMAKE_CXX_STANDARD 11)
+        message(STATUS "Clang Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c11/c++11.")
+    endif()
 endif()
 
 # 配置公共编译选项
