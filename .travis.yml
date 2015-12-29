@@ -20,7 +20,7 @@ before_script:
         make -j4 install  >> build_cmake.log 2>&1 ;
     fi
   - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
-  - $CMAKE_PREFIX/bin/cmake .. ;
+  - $CMAKE_PREFIX/bin/cmake .. -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX ;
 
 after_success:
   - test/coroutine_test
