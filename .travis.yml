@@ -1,20 +1,26 @@
 language: cpp
 
-compiler:
-  - gcc
-  - clang
-
+env:
+  global:
+    - LANG="zh_CN.UTF-8"
+  matrix:
+    - TRAVIS_OS_NAME=osx CC=clang CXX=clang
+    - TRAVIS_OS_NAME=osx CC=gcc CXX=gcc
+    - TRAVIS_OS_NAME=linux CC=gcc CXX=gcc
+    
 before_script:
   - REPO_DIR=$PWD
   - mkdir -p tools && cd tools
-  - wget -c "https://github.com/Kitware/CMake/archive/v3.4.1.tar.gz" -O CMake-3.4.1.tar.gz
-  - tar -xvf CMake-3.4.1.tar.gz
   - CMAKE_PREFIX=$PWD/prebuilt/cmake
-  - cd CMake-3.4.1
-  - ./bootstrap --prefix=$CMAKE_PREFIX >> build_cmake.log 2>&1
-  - make -j4 install >> build_cmake.log 2>&1
-  - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build
-  - $CMAKE_PREFIX/bin/cmake ..
+  - if [ ! -e "$CMAKE_PREFIX/bin/cmake" ]; then
+        wget -c "https://github.com/Kitware/CMake/archive/v3.4.1.tar.gz" -O CMake-3.4.1.tar.gz ;
+        tar -axvf CMake-3.4.1.tar.gz > build_cmake.log 2>&1 ;
+        cd CMake-3.4.1 ;
+        ./bootstrap --prefix=$CMAKE_PREFIX  >> build_cmake.log 2>&1 ;
+        make -j4 install  >> build_cmake.log 2>&1 ;
+    fi
+  - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
+  - $CMAKE_PREFIX/bin/cmake .. ;
 
 after_success:
   - test/coroutine_test
@@ -24,6 +30,11 @@ script:
 
 install: true
 
+cache: 
+    apt: true
+    directories:
+    - $CMAKE_PREFIX
+    
 branches:
   only:
     - master
@@ -33,10 +44,3 @@ notifications:
   irc:
     template:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
-
-env:
-  - LANG="zh_CN.UTF-8"
-
-os:
-  - linux
-  - osx
