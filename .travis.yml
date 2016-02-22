@@ -3,19 +3,20 @@ language: cpp
 env:
   global:
     - LANG="zh_CN.UTF-8"
+    - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
+    - CMAKE_VERSION=3.4.3 ;
   matrix:
     - TRAVIS_OS_NAME=osx CC=clang CXX=clang
     - TRAVIS_OS_NAME=osx CC=gcc CXX=gcc
     - TRAVIS_OS_NAME=linux CC=gcc CXX=gcc
     
 before_script:
-  - REPO_DIR=$PWD
-  - mkdir -p tools && cd tools
-  - CMAKE_PREFIX=$PWD/prebuilt/cmake
+  - REPO_DIR=$PWD;
+  - mkdir -p tools && cd tools;
   - if [ ! -e "$CMAKE_PREFIX/bin/cmake" ]; then
-        wget -c "https://github.com/Kitware/CMake/archive/v3.4.1.tar.gz" -O CMake-3.4.1.tar.gz ;
-        tar -axvf CMake-3.4.1.tar.gz > build_cmake.log 2>&1 ;
-        cd CMake-3.4.1 ;
+        wget -c "https://github.com/Kitware/CMake/archive/v$CMAKE_VERSION.tar.gz" -O CMake-$CMAKE_VERSION.tar.gz ;
+        tar -axvf CMake-$CMAKE_VERSION.tar.gz > build_cmake.log 2>&1 ;
+        cd CMake-$CMAKE_VERSION ;
         ./bootstrap --prefix=$CMAKE_PREFIX  >> build_cmake.log 2>&1 ;
         make -j4 install  >> build_cmake.log 2>&1 ;
     fi
