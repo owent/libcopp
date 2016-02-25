@@ -8,8 +8,9 @@ import cgi
 console_encoding = sys.getfilesystemencoding()
 
 class print_style:
-    version = '1.0.1.0'
+    version = '1.0.2.0'
     engine = None
+    theme = None
 
     FC_BLACK   = 0
     FC_BLUE    = 1
@@ -161,23 +162,23 @@ class TermColor:
 class HtmlColor:
     name = 'html css'
     COLOR_MAP = {
-        print_style.FC_BLACK:   'color: Black;',
-        print_style.FC_BLUE:    'color: Blue;',
-        print_style.FC_GREEN:   'color: Green;',
-        print_style.FC_CYAN:    'color: Cyan;',
-        print_style.FC_RED:     'color: Red;',
-        print_style.FC_MAGENTA: 'color: Magenta;',
-        print_style.FC_YELLOW:  'color: Yellow;',
-        print_style.FC_WHITE:   'color: White;',
+        print_style.FC_BLACK:   'color: {0}Black;',
+        print_style.FC_BLUE:    'color: {0}Blue;',
+        print_style.FC_GREEN:   'color: {0}Green;',
+        print_style.FC_CYAN:    'color: {0}Cyan;',
+        print_style.FC_RED:     'color: {0}Red;',
+        print_style.FC_MAGENTA: 'color: {0}Magenta;',
+        print_style.FC_YELLOW:  'color: {0}Yellow;',
+        print_style.FC_WHITE:   'color: {0}White;',
 
-        print_style.BC_BLACK:   'background-color: Black;',
-        print_style.BC_BLUE:    'background-color: Blue;',
-        print_style.BC_GREEN:   'background-color: Green;',
-        print_style.BC_CYAN:    'background-color: Cyan;',
-        print_style.BC_RED:     'background-color: Red;',
-        print_style.BC_MAGENTA: 'background-color: Magenta;',
-        print_style.BC_YELLOW:  'background-color: Yellow;',
-        print_style.BC_WHITE:   'background-color: White;',
+        print_style.BC_BLACK:   'background-color: {0}Black;',
+        print_style.BC_BLUE:    'background-color: {0}Blue;',
+        print_style.BC_GREEN:   'background-color: {0}Green;',
+        print_style.BC_CYAN:    'background-color: {0}Cyan;',
+        print_style.BC_RED:     'background-color: {0}Red;',
+        print_style.BC_MAGENTA: 'background-color: {0}Magenta;',
+        print_style.BC_YELLOW:  'background-color: {0}Yellow;',
+        print_style.BC_WHITE:   'background-color: {0}White;',
 
         print_style.FW_BOLD: 'font-weight: bold;'
     }
@@ -185,7 +186,10 @@ class HtmlColor:
     def stdout_with_color(self, options, text):
         style = []
         for opt in options:
-            style.append(HtmlColor.COLOR_MAP[opt])
+            if print_style.theme:
+                style.append(HtmlColor.COLOR_MAP[opt].format(print_style.theme))
+            else:
+                style.append(HtmlColor.COLOR_MAP[opt].format(''))
 
         if len(style) > 0:
             sys.stdout.write('<span style="' + ' '.join(style) + '">' + cgi.escape(text) + '</span>')
@@ -195,7 +199,10 @@ class HtmlColor:
     def stderr_with_color(self, options, text):
         style = []
         for opt in options:
-            style.append(HtmlColor.COLOR_MAP[opt])
+            if print_style.theme:
+                style.append(HtmlColor.COLOR_MAP[opt].format(print_style.theme))
+            else:
+                style.append(HtmlColor.COLOR_MAP[opt].format(''))
 
         if len(style) > 0:
             sys.stderr.write('<span style="' + ' '.join(style) + '">' + cgi.escape(text) + '</span>')
@@ -215,17 +222,17 @@ def cprintf_set_mode(mode_name='auto'):
     mode_name = mode_name.lower()
     if not mode_name or mode_name == 'auto':
         # set by environment variable
-        if not os.getenv('CPRINTF_MODE') is None:
+        if os.getenv('CPRINTF_MODE'):
             cprintf_set_mode(os.getenv('CPRINTF_MODE'))
         elif 'windows' == platform.system().lower():
             ostype_name = os.getenv('OSTYPE')
-            if not ostype_name is None:
+            if ostype_name:
                 ostype_name = ostype_name.lower()
             if 'msys' == ostype_name or 'cygwin' == ostype_name:
                 cprintf_set_mode('term')
                 return
             term_name = os.getenv('TERM')
-            if not term_name is None:
+            if term_name:
                 term_name = term_name.lower()
                 if 'xterm' == term_name[0:5] or 'vt' == term_name[0:2]:
                     cprintf_set_mode('term')
@@ -255,6 +262,13 @@ def cprintf_set_mode(mode_name='auto'):
 
     else:
         print_style.engine = NoneColor
+
+def cprintf_set_theme(theme_name=None):
+    if theme_name is None:
+        if not os.getenv('CPRINTF_THEME') is None:
+            cprintf_set_theme(os.getenv('CPRINTF_THEME'))
+    else:
+        print_style.theme = theme_name
 
 def cprintf_unpack_text(fmt, text):
     if len(text) > 0:
@@ -294,6 +308,7 @@ if __name__ == "__main__":
     parser.add_option("-s", "--output-stream", action="store", help="set output stream.(any of: stdout, stderr)", metavar="<ostream>", dest="ostream", default="stdout")
     parser.add_option("-e", action="store_true", help="enable interpretation of backslash escapes(just like echo command in unix like system)", dest="interp_bse", default=False)
     parser.add_option("-E", action="store_false", help="disable interpretation of backslash escapes(just like echo command in unix like system)", dest="interp_bse")
+    parser.add_option("-t", "--theme", action="store", help="set theme in html mode(light or dark)", metavar="<theme>", dest="theme", default=None)
 
     (options, left_args) = parser.parse_args()
 
@@ -312,6 +327,11 @@ if __name__ == "__main__":
 
     if options.mode:
         cprintf_set_mode(options.mode)
+        
+    if options.theme:
+        cprintf_set_theme(options.theme)
+    else:
+        cprintf_set_theme(None)
 
     if options.version:
         print(print_style.version)
