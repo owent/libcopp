@@ -1,6 +1,8 @@
 libcopp
 =======
 
+[![Join the chat at https://gitter.im/owt5008137/libcopp](https://badges.gitter.im/owt5008137/libcopp.svg)](https://gitter.im/owt5008137/libcopp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 > cross-platform coroutine library of c++
 >
 > in developing ...
