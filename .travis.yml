@@ -6,35 +6,52 @@ env:
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
     - CMAKE_VERSION=3.4.3 ;
   matrix:
-    - TRAVIS_OS_NAME=osx CC=clang CXX=clang
-    - TRAVIS_OS_NAME=osx CC=gcc CXX=gcc
-    - TRAVIS_OS_NAME=linux CC=gcc CXX=gcc
-    
+    - TRAVIS_OS_NAME=osx CC=clang CXX=clang++
+    - TRAVIS_OS_NAME=osx CC=gcc CXX=g++
+    - TRAVIS_OS_NAME=linux CC=gcc CXX=g++
+    - TRAVIS_OS_NAME=linux CC=gcc-4.9 CXX=g++-4.9
+    - TRAVIS_OS_NAME=linux CC=clang-3.7 CXX=clang++-3.7
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main"; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y "deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main"; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
+
+install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc-4.9" ] ; then sudo apt-get install -qq gcc-4.9-multilib g++-4.9-multilib; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "clang-3.7" ] ; then sudo apt-get install --allow-unauthenticated -qq clang-3.7; fi
+  
 before_script:
   - REPO_DIR=$PWD;
-  - mkdir -p tools && cd tools;
+  - cd /tmp
   - if [ ! -e "$CMAKE_PREFIX/bin/cmake" ]; then
+        mkdir -p "$CMAKE_PREFIX";
         wget -c "https://github.com/Kitware/CMake/archive/v$CMAKE_VERSION.tar.gz" -O CMake-$CMAKE_VERSION.tar.gz ;
-        tar -axvf CMake-$CMAKE_VERSION.tar.gz > build_cmake.log 2>&1 ;
+        tar -xvf CMake-$CMAKE_VERSION.tar.gz;
         cd CMake-$CMAKE_VERSION ;
-        ./bootstrap --prefix=$CMAKE_PREFIX  >> build_cmake.log 2>&1 ;
-        make -j4 install  >> build_cmake.log 2>&1 ;
+        ./bootstrap --prefix=$CMAKE_PREFIX;
+        make -j4 install;
+        cd -;
+        rm -rf CMake-$CMAKE_VERSION CMake-$CMAKE_VERSION.tar.gz;
     fi
+  - cd "$REPO_DIR";
+  
+script: 
+  - REPO_DIR=$PWD;
   - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
   - $CMAKE_PREFIX/bin/cmake .. -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX ;
+  - make -j4
 
 after_success:
   - test/coroutine_test
-  
-script: 
-  - make -j4
-
-install: true
 
 cache: 
-    apt: true
-    directories:
-    - $CMAKE_PREFIX
+  apt: true
+  ccache: true
+  directories:
+  - $CMAKE_PREFIX
     
 branches:
   only:
