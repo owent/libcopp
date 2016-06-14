@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="CPP_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Debug/src/libcopp/fcontext/fcontext_jump.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Debug/src/libcopp/fcontext/fcontext_jump.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Debug/src/libcopp/fcontext/fcontext_make.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Debug/src/libcopp/fcontext/fcontext_make.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/MinSizeRel/src/libcopp/fcontext/fcontext_jump.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/MinSizeRel/src/libcopp/fcontext/fcontext_jump.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/MinSizeRel/src/libcopp/fcontext/fcontext_make.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/MinSizeRel/src/libcopp/fcontext/fcontext_make.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/RelWithDebInfo/src/libcopp/fcontext/fcontext_jump.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/RelWithDebInfo/src/libcopp/fcontext/fcontext_jump.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/RelWithDebInfo/src/libcopp/fcontext/fcontext_make.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/RelWithDebInfo/src/libcopp/fcontext/fcontext_make.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Release/src/libcopp/fcontext/fcontext_jump.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Release/src/libcopp/fcontext/fcontext_jump.o" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Release/src/libcopp/fcontext/fcontext_make.o">
+      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/58088c04/58088c04/Release/src/libcopp/fcontext/fcontext_make.o" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/include.macro.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_context_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_context_container.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_context_safe_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_runnable_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/all.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/config.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_arm.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_arm_mac.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_arm_win.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_i386.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_i386_win.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_mips.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_ppc.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_sparc.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_x86_64.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_x86_64_win.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/fcontext/fcontext.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_malloc.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_memory.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_posix.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_split_segment.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_windows.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/stack_allocator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/stack_context.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/stack/stack_traits.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/abi/borland_prefix.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/abi/borland_suffix.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/abi/msvc_prefix.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/abi/msvc_suffix.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/errno.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/features.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/non_copyable.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/spin_lock.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/std/decltype.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/std/smart_ptr.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcopp/utils/std/thread.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/core/standard_int_id_allocator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/core/standard_new_allocator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/impl/id_allocator_impl.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/impl/task_action_impl.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/impl/task_impl.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/task.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/task_actions.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/task_macros.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/task_manager.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/libcotask/this_task.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/CompilerOption.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/EchoWithColor.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/FindPlatform.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/IncludeDirectoryRecurse.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/ProjectBuildOption.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/ProjectTools.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/project/cmake/TargetOption.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample.macro.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_benchmark_coroutine.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_benchmark_coroutine_malloc.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_benchmark_coroutine_mem_pool.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_benchmark_task.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_benchmark_task_malloc.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_benchmark_task_mem_pool.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_default_coroutine_context.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_linux_gcc_splited_segment.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sample/sample_task_with_lambda.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp.macro.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/coroutine/coroutine.src.filter.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/coroutine/coroutine_context_base.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/coroutine/coroutine_context_safe_base.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/coroutine/coroutine_runnable_base.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/fcontext/detect/fcontext.detect.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/fcontext/fcontext.src.filter.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/fcontext/tools/gas.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/libcopp.lib.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/allocator/stack_allocator_malloc.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/allocator/stack_allocator_memory.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/allocator/stack_allocator_posix.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/stack.src.filter.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/stack_context.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/stack_traits/stack_traits_posix.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/stack/stack_traits/stack_traits_windows.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcopp/utils/utils.src.filter.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcotask/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcotask/impl/task_impl.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcotask/libcotask.lib.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/libcotask/this_task.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/app/main.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/coroutine_context_base_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/coroutine_context_safe_base_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/coroutine_context_split_segment.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/coroutine_context_this_coroutine_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/coroutine_task_manager_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/coroutine_task_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/fcontext_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/case/id_allocator_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/shell_font.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/shell_font.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/test_case_base.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/test_case_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/test_macros.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/test_manager.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/frame/test_manager.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/test.macro.cmake" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="Header Search Paths">
+        <CLASSES>
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include" />
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include-fixed" />
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include/c++" />
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include/ssp" />
+          <root url="file://C:/cygwin64/usr/include" />
+          <root url="file://$MODULE_DIR$/include" />
+          <root url="file://$MODULE_DIR$/test" />
+        </CLASSES>
+        <SOURCES>
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include" />
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include-fixed" />
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include/c++" />
+          <root url="file://C:/cygwin64/lib/gcc/x86_64-pc-cygwin/4.9.3/include/ssp" />
+          <root url="file://C:/cygwin64/usr/include" />
+          <root url="file://$MODULE_DIR$/include" />
+          <root url="file://$MODULE_DIR$/test" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/abi/borland_suffix.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/std/thread.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/std/smart_ptr.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/std/decltype.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/fcontext.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/all.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/config.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_arm.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_arm_win.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_x86_64.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_x86_64_win.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_sparc.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_mips.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_i386.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_i386_win.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_ppc.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/fcontext/detail/fcontext_arm_mac.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_runnable_base.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_context_container.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_context_base.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/coroutine/coroutine_context_safe_base.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/task_manager.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/task.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/task_macros.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/task_actions.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/this_task.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/core/standard_new_allocator.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/core/standard_int_id_allocator.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/impl/task_action_impl.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/impl/id_allocator_impl.h" />
+          <root url="file://$MODULE_DIR$/include/libcotask/impl/task_impl.h" />
+          <root url="file://$MODULE_DIR$/include/include.macro.cmake" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/stack_context.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/stack_allocator.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/stack_traits.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_split_segment.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_malloc.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_memory.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_posix.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/stack/allocator/stack_allocator_windows.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/features.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/spin_lock.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/errno.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/non_copyable.h" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/abi/borland_prefix.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/abi/msvc_prefix.hpp" />
+          <root url="file://$MODULE_DIR$/include/libcopp/utils/abi/msvc_suffix.hpp" />
+          <root url="file://$MODULE_DIR$/test/test.macro.cmake" />
+          <root url="file://$MODULE_DIR$/test/CMakeLists.txt" />
+          <root url="file://$MODULE_DIR$/test/app/main.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/coroutine_context_safe_base_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/coroutine_context_this_coroutine_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/coroutine_task_manager_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/coroutine_task_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/id_allocator_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/coroutine_context_base_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/fcontext_test.cpp" />
+          <root url="file://$MODULE_DIR$/test/case/coroutine_context_split_segment.cpp" />
+          <root url="file://$MODULE_DIR$/test/frame/test_case_base.cpp" />
+          <root url="file://$MODULE_DIR$/test/frame/shell_font.h" />
+          <root url="file://$MODULE_DIR$/test/frame/test_manager.cpp" />
+          <root url="file://$MODULE_DIR$/test/frame/test_case_base.h" />
+          <root url="file://$MODULE_DIR$/test/frame/test_macros.h" />
+          <root url="file://$MODULE_DIR$/test/frame/shell_font.cpp" />
+          <root url="file://$MODULE_DIR$/test/frame/test_manager.h" />
+        </excluded>
+      </library>
+    </orderEntry>
+  </component>
+</module>
