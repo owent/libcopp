@@ -243,7 +243,7 @@ namespace copp {
             }
 
             // this_coroutine
-            set_this_coroutine_context(jump_transfer.to_co);
+            set_this_coroutine_context(jump_src->to_co);
         }
 
         void coroutine_context_base::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
