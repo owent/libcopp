@@ -2,10 +2,15 @@
 #include <assert.h>
 #include <cstring>
 
-#include <libcopp/utils/std/thread.h>
 #include <libcopp/utils/errno.h>
 
 #include <libcopp/coroutine/coroutine_context_base.h>
+
+#ifndef UTIL_CONFIG_THREAD_LOCAL
+
+#include <pthread.h>
+
+#endif
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
@@ -24,12 +29,45 @@ extern "C" {
 namespace copp {
     namespace detail {
 
-        static THREAD_TLS coroutine_context_base* gt_current_coroutine = NULL;
+        #ifndef UTIL_CONFIG_THREAD_LOCAL
+
+            static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
+            static pthread_key_t gt_coroutine_tls_key;
+            static void init_pthread_this_coroutine_context() {
+                (void)pthread_key_create(&gt_coroutine_tls_key, NULL);
+            }
+
+        #else
+
+            static UTIL_CONFIG_THREAD_LOCAL coroutine_context_base* gt_current_coroutine = NULL;
+
+        #endif
+
+        static void set_this_coroutine_context(coroutine_context_base* p) {
+#ifndef UTIL_CONFIG_THREAD_LOCAL
+            (void) pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
+            pthread_setspecific(gt_coroutine_tls_key, p);
+#else
+            gt_current_coroutine = p;
+#endif
+        }
+
+        static coroutine_context_base* get_this_coroutine_context() {
+#ifndef UTIL_CONFIG_THREAD_LOCAL
+            (void) pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
+            return reinterpret_cast<coroutine_context_base*>(pthread_getspecific(gt_coroutine_tls_key));
+#else
+            
+            return gt_current_coroutine;
+#endif
+        }
+
+        
 
         coroutine_context_base::coroutine_context_base() :
-            runner_ret_code_(0), runner_(NULL), is_finished_(false),
-            caller_(NULL), callee_(NULL),
-            preserve_fpu_(true), callee_stack_()
+            runner_ret_code_(0), runner_(NULL), priv_data_(NULL), 
+            status_(status_t::EN_CRS_INVALID), 
+            caller_(NULL), callee_(NULL), callee_stack_()
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
                 , caller_stack_()
 #endif
@@ -41,11 +79,19 @@ namespace copp {
         }
 
         int coroutine_context_base::create(coroutine_runnable_base* runner,
-            void (*func)(intptr_t)) {
+            void (*func)(::copp::fcontext::transfer_t)) {
+
+            if (NULL == func) {
+                func = &coroutine_context_base::coroutine_context_callback;
+            }
+
+            int from_status = status_t::EN_CRS_INVALID;
+            if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
+                return COPP_EC_ALREADY_INITED;
+            }
+
             coroutine_context_base::set_runner(runner);
 
-            if (NULL == func) func =
-                &coroutine_context_base::coroutine_context_callback;
 
             if (NULL == callee_stack_.sp || 0 == callee_stack_.size)
                 return COPP_EC_NOT_INITED;
@@ -58,33 +104,69 @@ namespace copp {
         }
 
         int coroutine_context_base::start() {
-            if (NULL == callee_) return COPP_EC_NOT_INITED;
+            if (NULL == callee_) {
+                return COPP_EC_NOT_INITED;
+            }
 
-            // record this coroutine
-            coroutine_context_base* father_coroutine = gt_current_coroutine;
-            gt_current_coroutine = this;
+            do {
+                int from_status = status_.load();
+                if (from_status < status_t::EN_CRS_READY) {
+                    return COPP_EC_NOT_INITED;
+                }
+
+                from_status = status_t::EN_CRS_READY;
+                if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING)) {
+                    break;
+                } else {
+                    // finished or stoped
+                    if (from_status > status_t::EN_CRS_RUNNING) {
+                        return COPP_EC_NOT_READY;
+                    }
+
+                    // already running
+                    if (status_t::EN_CRS_RUNNING == from_status) {
+                        return COPP_EC_SUCCESS;
+                    }
+                }
+            } while (true);
+            
+            jump_src_data_t jump_data;
+            jump_data.from_co = get_this_coroutine_context();
+            jump_data.to_co = this;
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            jump_to(caller_, callee_, caller_stack_, callee_stack_,
-                (intptr_t) this, preserve_fpu_);
+            jump_to(callee_, caller_stack_, callee_stack_, jump_data);
 #else
-            jump_to(caller_, callee_, callee_stack_, callee_stack_, (intptr_t) this, preserve_fpu_);
+            jump_to(callee_, callee_stack_, callee_stack_, jump_data);
 #endif
-
-            // restore this coroutine
-            gt_current_coroutine = father_coroutine;
 
             return COPP_EC_SUCCESS;
         }
 
         int coroutine_context_base::yield() {
-            if (NULL == callee_) return COPP_EC_NOT_INITED;
+            if (NULL == callee_) {
+                return COPP_EC_NOT_INITED;
+            }
+
+            int from_status = status_t::EN_CRS_RUNNING;
+            if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
+                if (status_t::EN_CRS_INVALID == from_status) {
+                    return COPP_EC_NOT_INITED;
+                } else if (status_t::EN_CRS_READY == from_status) {
+                    return COPP_EC_NOT_RUNNING;
+                }
+            }
+
+            // success or finished will continue
+            jump_src_data_t jump_data;
+            jump_data.from_co = this;
+            jump_data.to_co = NULL;
+
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            jump_to(callee_, caller_, callee_stack_, caller_stack_,
-                (intptr_t) this, preserve_fpu_);
+            jump_to(caller_, callee_stack_, caller_stack_, jump_data);
 #else
-            jump_to(callee_, caller_, callee_stack_, callee_stack_, (intptr_t) this, preserve_fpu_);
+            jump_to(caller_, callee_stack_, callee_stack_, jump_data);
 #endif
 
             return COPP_EC_SUCCESS;
@@ -100,31 +182,97 @@ namespace copp {
             return COPP_EC_SUCCESS;
         }
 
-        intptr_t coroutine_context_base::jump_to(
-            fcontext::fcontext_t& from_fcontext,
-            fcontext::fcontext_t& to_fcontext, stack_context& from_stack,
-            stack_context& to_stack, intptr_t param, bool preserve_fpu) {
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            assert(&from_stack != &to_stack);
-            __splitstack_getcontext(from_stack.segments_ctx);
-            __splitstack_setcontext(to_stack.segments_ctx);
-#endif
-            intptr_t ret = copp::fcontext::copp_jump_fcontext(&from_fcontext,
-                to_fcontext, param, preserve_fpu);
-            return ret;
+        bool coroutine_context_base::is_finished() const {
+            return status_.load() >= status_t::EN_CRS_FINISHED;
         }
 
-        void coroutine_context_base::coroutine_context_callback(
-            intptr_t coro_ptr) {
-            coroutine_context_base* ins_ptr = (coroutine_context_base*) coro_ptr;
+        void coroutine_context_base::jump_to(
+            fcontext::fcontext_t& to_fctx, 
+            stack_context& from_sctx, stack_context& to_sctx, 
+            jump_src_data_t& jump_transfer) {
 
-            ins_ptr->is_finished_ = false;
+            copp::fcontext::transfer_t res;
+            jump_src_data_t* jump_src;
+
+            // can not use any more stack now
+
+#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+            assert(&from_stack != &to_stack);
+            __splitstack_getcontext(from_sctx.segments_ctx);
+            __splitstack_setcontext(to_sctx.segments_ctx);
+
+            // ROOT->A: jump_transfer.from_co == NULL, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup segments
+            // A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
+            // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == NULL, from_sctx == B.callee_stack_, skip backup segments
+            if (NULL != jump_transfer.from_co && (&from_stack) != &jump_transfer.from_co->callee_stack_) {
+                memcpy(&jump_transfer.from_co->callee_stack_.segments_ctx, &from_sctx.segments_ctx, sizeof(from_sctx.segments_ctx));
+            }
+#endif
+            res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
+            jump_src = reinterpret_cast<jump_src_data_t*>(res.data);
+            assert(jump_src);
+
+            /** 
+             * save from_co's fcontext and switch status
+             * we should use from_co in transfer_t, because it may not jump from jump_transfer.to_co
+             *
+             * if we jump sequence is A->B->C->A.resume(), and if this call is A->B, then
+             * jump_src->from_co = C, jump_src->to_co = A, jump_transfer.from_co = A, jump_transfer.to_co = B
+             * and now we should save the callee of C and set the caller of A = C
+             *
+             * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
+             * jump_src->from_co = B, jump_src->to_co = NULL, jump_transfer.from_co = A, jump_transfer.to_co = B
+             * and now we should save the callee of B and should change the caller of A
+             *
+             */
+
+            // update caller of to_co if not jump from yield mode
+            if (NULL != jump_src->to_co) {
+                jump_src->to_co->caller_ = res.fctx;
+            }
+
+            if (NULL != jump_src->from_co) {
+                jump_src->from_co->callee_ = res.fctx;
+                int from_status = jump_src->from_co->status_.load();
+                if (status_t::EN_CRS_RUNNING == from_status) {
+                    jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+                } else if (status_t::EN_CRS_FINISHED == from_status) {
+                    // if in finished status, change it to exited
+                    jump_src->from_co->status_.store(status_t::EN_CRS_EXITED);
+                }
+            }
+
+            // this_coroutine
+            set_this_coroutine_context(jump_transfer.to_co);
+        }
+
+        void coroutine_context_base::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
+            assert(src_ctx.data);
+
+            // copy jump_src_data_t in case it's destroyed later
+            jump_src_data_t jump_src = *reinterpret_cast<jump_src_data_t*>(src_ctx.data);
+
+            // this must in a coroutine
+            coroutine_context_base* ins_ptr = jump_src.to_co;
+            assert(ins_ptr);
+            
+            // update caller of to_co
+            ins_ptr->caller_ = src_ctx.fctx;
+
+            // save from_co's fcontext and switch status
+            if (NULL != jump_src.from_co) {
+                jump_src.from_co->callee_ = src_ctx.fctx;
+                int from_status = status_t::EN_CRS_RUNNING; // from coroutine change status from running to ready
+                jump_src.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+            }
+
+            // this_coroutine
+            set_this_coroutine_context(ins_ptr);
 
             // run logic code
             ins_ptr->run_and_recv_retcode();
 
-            ins_ptr->is_finished_ = true;
-
+            ins_ptr->status_.store(status_t::EN_CRS_FINISHED);
             // jump back to caller
             ins_ptr->yield();
         }
@@ -132,13 +280,14 @@ namespace copp {
 
     namespace this_coroutine {
         detail::coroutine_context_base* get_coroutine() {
-            return detail::gt_current_coroutine;
+            return detail::get_this_coroutine_context();
         }
 
         int yield() {
             detail::coroutine_context_base* pco = get_coroutine();
-            if (NULL != pco)
+            if (NULL != pco) {
                 return pco->yield();
+            }
 
             return COPP_EC_NOT_RUNNING;
         }

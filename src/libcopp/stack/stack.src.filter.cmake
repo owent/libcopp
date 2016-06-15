@@ -35,7 +35,7 @@ if(COPP_MACRO_USE_SEGMENTED_STACKS_GCC)
 	list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_split_segment.cpp")
 endif()
 
-if (COPP_MACRO_USE_VALGRIND)
+if (COPP_MACRO_USE_VALGRIND OR LIBCOPP_ENABLE_VALGRIND)
     EchoWithColor(COLOR GREEN "-- gcc enable valgrind.")
 	add_definitions(-DCOPP_MACRO_USE_VALGRIND)
 endif()

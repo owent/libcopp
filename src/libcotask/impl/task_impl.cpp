@@ -10,18 +10,13 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include <libcopp/utils/std/thread.h>
-
+#include <libcopp/coroutine/coroutine_context_base.h>
 #include <libcotask/impl/task_action_impl.h>
 #include <libcotask/impl/task_impl.h>
 
 
 namespace cotask {
     namespace impl {
-
-        // VC do not support to set TLS property of not POD type 
-        static THREAD_TLS task_impl* g_current_task_ = NULL;
-
         task_impl::task_impl(): action_(), status_(EN_TS_CREATED) {}
 
         task_impl::~task_impl(){}
@@ -60,7 +55,12 @@ namespace cotask {
         }
 
         task_impl* task_impl::this_task() {
-            return g_current_task_;
+            copp::detail::coroutine_context_base* this_co = copp::this_coroutine::get_coroutine();
+            if (NULL == this_co) {
+                return NULL;
+            }
+
+            return reinterpret_cast<task_impl*>(this_co->get_private_data());
         }
 
         void task_impl::_set_action(action_ptr_t action) {
@@ -69,13 +69,6 @@ namespace cotask {
 
         task_impl::action_ptr_t task_impl::_get_action() {
             return action_;
-        }
-
-        task_impl* task_impl::_set_active_task(task_impl* task) {
-            task_impl* ret = g_current_task_;
-            g_current_task_ = task;
-            
-            return ret;
         }
 
         void task_impl::active_next_tasks() {

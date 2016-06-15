@@ -12,7 +12,7 @@
 #include <cstddef>
 
 #include <libcopp/utils/errno.h>
-#include <libcopp/coroutine/coroutine_context_safe_base.h>
+#include <libcopp/coroutine/coroutine_context_base.h>
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/stack/stack_allocator.h>
 
@@ -114,7 +114,7 @@ namespace copp {
     }
 
     typedef detail::coroutine_context_container<
-        detail::coroutine_context_safe_base, 
+        detail::coroutine_context_base,
         allocator::default_statck_allocator
     > coroutine_context_default;
 }

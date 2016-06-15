@@ -56,6 +56,8 @@ namespace cotask {
         task() {
             id_allocator_t id_alloc_;
             id_ = id_alloc_.allocate();
+
+            coroutine_obj_.set_private_data(static_cast<task_impl*>(this));
         }
         
         /**
@@ -351,18 +353,7 @@ namespace cotask {
                 return copp::COPP_EC_IS_RUNNING;
             }
             _set_status(EN_TS_RUNNING);
-
-            int ret = 0;
-            // make sure this task will not be destroyed when running
-            {
-                impl::task_impl* origin_task = _set_active_task(this);
-                impl::task_impl::ptr_t origin_task_counter;
-                if (NULL != origin_task) {
-                   origin_task_counter = origin_task->shared_from_this();
-                }
-                ret = coroutine_obj_.start();
-                _set_active_task(origin_task);
-            }
+            int ret = coroutine_obj_.start();
 
             if (get_status() > EN_TS_DONE) { // canceled or killed
                 _notify_finished();
@@ -416,17 +407,11 @@ namespace cotask {
             // first, make sure coroutine finished.
             if (false == coroutine_obj_.is_finished()) {
                 // make sure this task will not be destroyed when running
-                // because this function may be called by destructor and shared_ptr is already freed
+                // because this function may be called by destructor and shared_ptr is already free
                 // so any function that use shared_ptr or weak_ptr of this task should be deny 
-                impl::task_impl* origin_task = _set_active_task(this);
-                impl::task_impl::ptr_t origin_task_counter;
-                if (NULL != origin_task) {
-                    origin_task_counter = origin_task->shared_from_this();
-                }
-                while(false == coroutine_obj_.is_finished())
+                while (false == coroutine_obj_.is_finished()) {
                     coroutine_obj_.resume();
-
-                _set_active_task(origin_task);
+                }
             }
 
             return impl::task_impl::_notify_finished();

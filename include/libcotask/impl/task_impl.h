@@ -90,8 +90,6 @@ namespace cotask {
 
             inline void _set_status(EN_TASK_STATUS status) { status_ = status; }
 
-            static task_impl* _set_active_task(task_impl*);
-
             void active_next_tasks();
 
             int _notify_finished();

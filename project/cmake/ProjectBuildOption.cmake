@@ -4,7 +4,16 @@ option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 
 # libcotask 编译环境选项
 option(LIBCOPP_ENABLE_SEGMENTED_STACKS "Enable segmented stacks." OFF)
-option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." OFF)
+
+# fast find valgrind header to decide wether to enable valgrind
+unset(_VALGRIND_HEADER)
+find_path(_VALGRIND_HEADER    NAMES valgrind/valgrind.h)
+
+if (_VALGRIND_HEADER)
+    option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." ON)
+else()
+    option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." OFF)
+endif()
 
 set(LIBCOPP_FCONTEXT_OS_PLATFORM "" CACHE STRING "set system platform. arm/arm64/i386/x86_64/combined/mips/ppc32/ppc64/sparc/sparc64 and etc.")
 set(LIBCOPP_FCONTEXT_ABI "" CACHE STRING "set abi. sysv/aapcs/mips/o32/ms and etc.")
