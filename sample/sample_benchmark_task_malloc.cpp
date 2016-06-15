@@ -30,7 +30,7 @@ size_t stack_size = 16 * 1024;
 
 struct my_macro_coroutine
 {
-    typedef copp::detail::coroutine_context_safe_base coroutine_t;
+    typedef copp::detail::coroutine_context_base coroutine_t;
     typedef copp::allocator::stack_allocator_malloc stack_allocator_t;
 
     typedef copp::detail::coroutine_context_container<coroutine_t, stack_allocator_t> coroutine_container_t;

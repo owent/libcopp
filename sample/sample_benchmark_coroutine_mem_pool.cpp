@@ -24,7 +24,7 @@
 int switch_count = 100;
 
 typedef copp::detail::coroutine_context_container<
-    copp::detail::coroutine_context_safe_base,
+    copp::detail::coroutine_context_base,
     copp::allocator::stack_allocator_memory
 > my_cotoutine_t;
 

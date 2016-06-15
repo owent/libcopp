@@ -21,7 +21,7 @@
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
 
 typedef copp::detail::coroutine_context_container<
-    copp::detail::coroutine_context_safe_base,
+    copp::detail::coroutine_context_base,
     copp::allocator::stack_allocator_split_segment
 > co_context_t;
 

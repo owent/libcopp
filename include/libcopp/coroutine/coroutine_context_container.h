@@ -75,7 +75,7 @@ namespace copp {
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code
              */
-            int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(intptr_t) = NULL){
+            int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(::copp::fcontext::transfer_t) = NULL){
                 if (NULL != callee_stack_.sp)
                     return COPP_EC_ALREADY_INITED;
 
@@ -93,7 +93,7 @@ namespace copp {
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code
              */
-            int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = NULL){
+            int create(coroutine_runnable_base* runner, void(*func)(::copp::fcontext::transfer_t) = NULL){
                 if (NULL != callee_stack_.sp)
                     return COPP_EC_ALREADY_INITED;
 

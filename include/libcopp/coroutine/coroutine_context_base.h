@@ -26,7 +26,6 @@
     protected:											\
     using base_type::caller_;							\
     using base_type::callee_;							\
-    using base_type::preserve_fpu_;						\
     using base_type::callee_stack_;						\
     COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
