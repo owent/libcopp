@@ -18,3 +18,4 @@ build/*
 # generated docs
 doc/doxygen/*
 
+/.vscode
