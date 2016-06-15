@@ -53,13 +53,13 @@
  *                                                                                    *
  * ***********************************************************************************/
 
-.file	"jump_x86_64_ms_pe_gas.asm"
+.file	"ontop_x86_64_ms_pe_gas.asm"
 .text
 .p2align 4,,15
-.globl	copp_jump_fcontext
-.def	copp_jump_fcontext;	.scl	2;	.type	32;	.endef
-.seh_proc	copp_jump_fcontext
-copp_jump_fcontext:
+.globl	copp_ontop_fcontext
+.def	copp_ontop_fcontext;	.scl	2;	.type	32;	.endef
+.seh_proc	copp_ontop_fcontext
+copp_ontop_fcontext:
 .seh_endprologue
 
     pushq  %rcx  /* save hidden address of transport_t */
@@ -88,8 +88,8 @@ copp_jump_fcontext:
     movq  0x18(%r10), %rax
     pushq  %rax
 
-    /* preserve RSP (pointing to context-data) in R9 */
-    movq  %rsp, %r9
+    /* preserve RSP (pointing to context-data) in RCX */
+    movq  %rsp, %rcx
 
     /* restore RSP (pointing to context-data) from RDX */
     movq  %rdx, %rsp
@@ -120,21 +120,23 @@ copp_jump_fcontext:
 
     popq  %rax  /* restore hidden address of transport_t */
 
-    /* restore return-address */
-    popq  %r10
+    /* keep return-address on stack */
 
     /* transport_t returned in RAX */
     /* return parent fcontext_t */
-    movq  %r9, (%rax)
+    movq  %rcx, (%rax)
     /* return data */
     movq  %r8, 0x8(%rax)
 
     /* transport_t as 1.arg of context-function */
+    /* RCX contains address of returned (hidden) transfer_t */
     movq  %rax, %rcx
+    /* RDX contains address of passed transfer_t */
+    movq  %rax, %rdx
 
     /* indirect jump to context */
-    jmp  *%r10
+    jmp  *%r9
 .seh_endproc
 
 .section .drectve
-.ascii " -export:\"copp_jump_fcontext\""
+.ascii " -export:\"copp_ontop_fcontext\""

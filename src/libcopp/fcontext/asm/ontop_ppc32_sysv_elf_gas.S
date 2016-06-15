@@ -39,10 +39,10 @@
  *******************************************************/
 
 .text
-.globl copp_jump_fcontext
+.globl copp_ontop_fcontext
 .align 2
-.type copp_jump_fcontext,@function
-copp_jump_fcontext:
+.type copp_ontop_fcontext,@function
+copp_ontop_fcontext:
     # reserve space on stack
     subi  %r1, %r1, 92
 
@@ -76,8 +76,8 @@ copp_jump_fcontext:
     # save LR as PC
     stw   %r0, 88(%r1)
 
-    # store RSP (pointing to context-data) in R6
-    mr  %r6, %r1
+    # store RSP (pointing to context-data) in R7
+    mr  %r7, %r1
 
     # restore RSP (pointing to context-data) from R4
     mr  %r1, %r4
@@ -101,7 +101,7 @@ copp_jump_fcontext:
     lwz  %r29, 64(%r1)  # restore R29
     lwz  %r30, 68(%r1)  # restore R30
     lwz  %r31, 72(%r1)  # restore R31
-    lwz  %r3,  76(%r1)  # restore hidden
+    lwz  %r4,  76(%r1)  # restore hidden
 
     # restore CR
     lwz   %r0, 80(%r1)
@@ -109,21 +109,21 @@ copp_jump_fcontext:
     # restore LR
     lwz   %r0, 84(%r1)
     mtlr  %r0
-    # load PC
-    lwz   %r0, 88(%r1)
-    # restore CTR
-    mtctr %r0
+    # ignore PC
 
     # adjust stack
     addi  %r1, %r1, 92
 
     # return transfer_t 
-    stw  %r6, 0(%r3)
-    stw  %r5, 4(%r3)
+    stw  %r7, 0(%r4)
+    stw  %r5, 4(%r4)
 
-    # jump to context
+    # restore CTR
+    mtctr %r6
+
+    # jump to ontop-function
     bctr
-.size copp_jump_fcontext, .-copp_jump_fcontext
+.size copp_ontop_fcontext, .-copp_ontop_fcontext
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

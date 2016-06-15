@@ -1,10 +1,10 @@
-.globl .copp_jump_fcontext
-.globl  copp_jump_fcontext[DS]
+.globl .copp_ontop_fcontext
+.globl  copp_ontop_fcontext[DS]
 .align 2 
-.csect	copp_jump_fcontext[DS]
-copp_jump_fcontext:
-  .long	.copp_jump_fcontext
-.copp_jump_fcontext:
+.csect	copp_ontop_fcontext[DS]
+copp_ontop_fcontext:
+  .long	.copp_ontop_fcontext
+.copp_ontop_fcontext:
     # reserve space on stack
     subi 1, 1, 92
 
@@ -39,10 +39,10 @@ copp_jump_fcontext:
     stw 0, 88(1)
 
     # store RSP (pointing to context-data) in R6
-    mr  6, 1
+    mr  7, 1
 
     # restore RSP (pointing to context-data) from R4
-    mr 1, 4
+    mr  1, 4
 
     lwz  13, 0(1)  # restore R13
     lwz  14, 4(1)  # restore R14
@@ -63,7 +63,7 @@ copp_jump_fcontext:
     lwz  29, 64(1)  # restore R29
     lwz  30, 68(1)  # restore R30
     lwz  31, 72(1)  # restore R31
-    lwz  3,  76(1)  # restore hidden
+    lwz  4,  76(1)  # restore hidden
 
     # restore CR
     lwz 0, 80(1)
@@ -71,18 +71,17 @@ copp_jump_fcontext:
     # restore LR
     lwz 0, 84(1)
     mtlr 0
-
-    # load PC
-    lwz 0, 88(1)
-    # restore CTR
-    mtctr 0
+    # ignore PC
 
     # adjust stack
     addi 1, 1, 92
 
     # return transfer_t 
-    stw  6, 0(3)
+    stw  7, 0(3)
     stw  5, 4(3)
+
+    # restore CTR
+    mtctr 6
 
     # jump to context
     bctr

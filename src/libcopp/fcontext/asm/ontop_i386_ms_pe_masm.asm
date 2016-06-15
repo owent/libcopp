@@ -24,14 +24,14 @@
 .model flat, c
 .code
 
-copp_jump_fcontext PROC EXPORT
+copp_ontop_fcontext PROC EXPORT
     push  ebp  ; save EBP 
     push  ebx  ; save EBX 
     push  esi  ; save ESI 
     push  edi  ; save EDI 
 
     assume  fs:nothing
-    ; load NT_TIB into ECX
+    ; load NT_TIB into EDX
     mov  edx, fs:[018h]
     assume  fs:error
 
@@ -55,14 +55,26 @@ copp_jump_fcontext PROC EXPORT
     mov  eax, [edx+010h]
     push  eax
 
-    ; store ESP (pointing to context-data) in EAX
-    mov  eax, esp
+    ; store ESP (pointing to context-data) in ECX
+    mov  ecx, esp
 
-    ; firstarg of copp_jump_fcontext() == fcontext to jump to
-    mov  ecx, [esp+028h]
+    ; first arg of copp_ontop_fcontext() == fcontext to jump to
+    mov  eax, [esp+028h]
+
+	; pass parent fcontext_t
+	mov  [eax+028h], ecx
+
+    ; second arg of copp_ontop_fcontext() == data to be transferred
+    mov  ecx, [esp+02ch]
+
+	; pass data
+	mov  [eax+02ch], ecx
+
+    ; third arg of copp_ontop_fcontext() == ontop-function
+    mov  ecx, [esp+030h]
     
     ; restore ESP (pointing to context-data) from EAX
-    mov  esp, ecx
+    mov  esp, eax
 
     assume  fs:nothing
     ; load NT_TIB into EDX
@@ -70,35 +82,31 @@ copp_jump_fcontext PROC EXPORT
     assume  fs:error
 
     ; restore fiber local storage
-    pop  ecx
-    mov  [edx+010h], ecx
+    pop  eax
+    mov  [edx+010h], eax
 
     ; restore current deallocation stack
-    pop  ecx
-    mov  [edx+0e0ch], ecx
+    pop  eax
+    mov  [edx+0e0ch], eax
 
     ; restore current stack limit
-    pop  ecx
-    mov  [edx+08h], ecx
+    pop  eax
+    mov  [edx+08h], eax
 
     ; restore current stack base
-    pop  ecx
-    mov  [edx+04h], ecx
+    pop  eax
+    mov  [edx+04h], eax
 
     ; restore current SEH exception list
-    pop  ecx
-    mov  [edx], ecx
+    pop  eax
+    mov  [edx], eax
 
     pop  edi  ; save EDI 
     pop  esi  ; save ESI 
     pop  ebx  ; save EBX 
     pop  ebp  ; save EBP
 
-    ; return transfer_t
-    ; FCTX == EAX, DATA == EDX
-    mov  edx, [eax+02ch]
-
     ; jump to context
-    ret
-copp_jump_fcontext ENDP
+    jmp ecx
+copp_ontop_fcontext ENDP
 END

@@ -25,11 +25,11 @@
  * *****************************************************/
 
 .text
-.globl copp_jump_fcontext
+.globl copp_ontop_fcontext
 .align 2
-.type copp_jump_fcontext,@function
-.ent copp_jump_fcontext
-copp_jump_fcontext:
+.type copp_ontop_fcontext,@function
+.ent copp_ontop_fcontext
+copp_ontop_fcontext:
     # reserve space on stack
     addiu $sp, $sp, -112
 
@@ -72,15 +72,16 @@ copp_jump_fcontext:
     
     # return transfer_t from jump
     sw  $a0, ($t0)  # fctx of transfer_t
-    sw  $a1, 4($t0) # data of transfer_t
+    sw  $a2, 4($t0) # data of transfer_t
     # pass transfer_t as first arg in context function
-    # A0 == fctx, A1 == data
-    move  $a1, $a2 
+    # A0 == hidden, A1 == fctx, A2 == data
+    move  $a1, $a0 
+    move  $a0, $t0 
 
     # jump to context
-    jr  $t9
-.end copp_jump_fcontext
-.size copp_jump_fcontext, .-copp_jump_fcontext
+    jr  $a3
+.end copp_ontop_fcontext
+.size copp_ontop_fcontext, .-copp_ontop_fcontext
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

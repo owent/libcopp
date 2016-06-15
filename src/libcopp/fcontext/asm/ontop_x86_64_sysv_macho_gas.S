@@ -25,38 +25,40 @@
  ****************************************************************************************/
 
 .text
-.globl copp_make_fcontext
-.type copp_make_fcontext,@function
-.align 16
-copp_make_fcontext:
-    /* first arg of copp_make_fcontext() == top of context-stack */
-    movq  %rdi, %rax
+.globl _copp_ontop_fcontext
+.align 8
+_copp_ontop_fcontext:
+    pushq  %rbp  /* save RBP */
+    pushq  %rbx  /* save RBX */
+    pushq  %r15  /* save R15 */
+    pushq  %r14  /* save R14 */
+    pushq  %r13  /* save R13 */
+    pushq  %r12  /* save R12 */
 
-    /* shift address in RAX to lower 16 byte boundary */
-    andq  $-16, %rax
+    /* store RSP (pointing to context-data) in RAX */
+    movq  %rsp, %rax
 
-    /* reserve space for context-data on context-stack */
-    /* on context-function entry: (RSP -0x8) % 16 == 0 */
-    leaq  -0x40(%rax), %rax
+    /* restore RSP (pointing to context-data) from RDI */
+    movq  %rdi, %rsp
 
-    /* third arg of copp_make_fcontext() == address of context-function */
-    movq  %rdx, 0x30(%rax)
+    popq  %r12  /* restrore R12 */
+    popq  %r13  /* restrore R13 */
+    popq  %r14  /* restrore R14 */
+    popq  %r15  /* restrore R15 */
+    popq  %rbx  /* restrore RBX */
+    popq  %rbp  /* restrore RBP */
 
-    /* compute abs address of label finish */
-    leaq  finish(%rip), %rcx
-    /* save address of finish as return-address for context-function */
-    /* will be entered after context-function returns */
-    movq  %rcx, 0x38(%rax)
+    /* preserve ontop-function in R8 */
+    movq  %rdx, %r8
 
-    ret /* return pointer to context-data */
+    /* return transfer_t from jump */
+    /* RAX == fctx, RDX == data */
+    movq  %rsi, %rdx
+    /* pass transfer_t as first arg in context function */
+    /* RDI == fctx, RSI == data */
+    movq  %rax, %rdi
 
-finish:
-    /* exit code is zero */
-    xorq  %rdi, %rdi
-    /* exit application */
-    call  _exit@PLT
-    hlt
-.size copp_make_fcontext,.-copp_make_fcontext
+    /* keep return-address on stack */
 
-/* Mark that we don't need executable stack. */
-.section .note.GNU-stack,"",%progbits
+    /* indirect jump to context */
+    jmp  *%r8

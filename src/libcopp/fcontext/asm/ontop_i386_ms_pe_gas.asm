@@ -23,12 +23,12 @@
 *  --------------------------------------------------------------------------------- *
 *************************************************************************************/
 
-.file	"jump_i386_ms_pe_gas.asm"
+.file	"ontop_i386_ms_pe_gas.asm"
 .text
 .p2align 4,,15
-.globl	_copp_jump_fcontext
-.def	_copp_jump_fcontext;	.scl	2;	.type	32;	.endef
-_copp_jump_fcontext:
+.globl	_copp_ontop_fcontext
+.def	_copp_ontop_fcontext;	.scl	2;	.type	32;	.endef
+_copp_ontop_fcontext:
     pushl  %ebp  /* save EBP */
     pushl  %ebx  /* save EBX */
     pushl  %esi  /* save ESI */
@@ -58,48 +58,56 @@ _copp_jump_fcontext:
     push  %eax
 
     /* store ESP (pointing to context-data) in EAX */
-    movl  %esp, %eax
+    movl  %esp, %ecx
 
-    /* first arg of copp_jump_fcontext() == fcontext to jump to */
-    movl  0x28(%esp), %ecx
+    /* first arg of copp_ontop_fcontext() == fcontext to jump to */
+    movl  0x28(%esp), %eax
+
+	/* pass parent fcontext_t */
+	movl  %ecx, 0x28(%eax)
+
+    /* second arg of copp_ontop_fcontext() == data to be transferred */
+    movl  0x2c(%esp), %ecx
+
+	/* pass data */
+	movl  %ecx, 0x2c(%eax)
+
+    /* third arg of copp_ontop_fcontext() == ontop-function */
+    movl  0x30(%esp), %ecx
 
     /* restore ESP (pointing to context-data) from EDX */
-    movl  %ecx, %esp
+    movl  %eax, %esp
 
     /* load NT_TIB into ECX */
     movl  %fs:(0x18), %edx
 
     /* restore fiber local storage */
-    popl  %ecx
-    movl  %ecx, 0x10(%edx)
+    popl  %eax
+    movl  %eax, 0x10(%edx)
 
     /* restore current deallocation stack */
-    popl  %ecx
-    movl  %ecx, 0xe0c(%edx)
+    popl  %eax
+    movl  %eax, 0xe0c(%edx)
 
     /* restore current stack limit */
-    popl  %ecx
-    movl  %ecx, 0x08(%edx)
+    popl  %eax
+    movl  %eax, 0x08(%edx)
 
     /* restore current stack base */
-    popl  %ecx
-    movl  %ecx, 0x04(%edx)
+    popl  %eax
+    movl  %eax, 0x04(%edx)
 
     /* restore current SEH exception list */
-    popl  %ecx
-    movl  %ecx, (%edx)
+    popl  %eax
+    movl  %eax, (%edx)
 
     popl  %edi  /* save EDI */
     popl  %esi  /* save ESI */
     popl  %ebx  /* save EBX */
     popl  %ebp  /* save EBP */
 
-    /* return transfer_t */
-    /* FCTX == EAX, DATA == EDX */
-    movl  0x2c(%eax), %edx
-
     /* jump to context */
-    ret
+    jmp  *%ecx
 
 .section .drectve
-.ascii " -export:\"copp_jump_fcontext\""
+.ascii " -export:\"copp_ontop_fcontext\""

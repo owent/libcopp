@@ -34,8 +34,8 @@
     # save LR as PC
     std  0, 176(1)
 
-    # store RSP (pointing to context-data) in R6
-    mr  6, 1
+    # store RSP (pointing to context-data) in R7
+    mr  7, 1
 
     # restore RSP (pointing to context-data) from R4
     mr  1, 4
@@ -59,7 +59,7 @@
     ld  29, 128(1)  # restore R29
     ld  30, 136(1)  # restore R30
     ld  31, 144(1)  # restore R31
-    ld  3,  152(1)  # restore hidden
+    ld  4,  152(1)  # restore hidden
 
     # restore CR
     ld  0, 160(1)
@@ -67,18 +67,17 @@
     # restore LR
     ld  0, 168(1)
     mtlr  0
-
-    # load PC
-    ld  0, 176(1)
-    # restore CTR
-    mtctr  0
+    # ignore PC
 
     # adjust stack
     addi  1, 1, 184
 
     # return transfer_t
-    std  6, 0(3)
-    std  5, 8(3)
+    std  7, 0(4)
+    std  5, 8(4)
+
+    # restore CTR
+    mtctr  6
 
     # jump to context
     bctr

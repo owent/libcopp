@@ -18,9 +18,10 @@
  *****************************************************************************************/
 
 .text
-.globl _copp_jump_fcontext
+.globl copp_ontop_fcontext
 .align 2
-_copp_jump_fcontext:
+.type copp_ontop_fcontext,@function
+copp_ontop_fcontext:
     pushl  %ebp  /* save EBP */
     pushl  %ebx  /* save EBX */
     pushl  %esi  /* save ESI */
@@ -29,21 +30,23 @@ _copp_jump_fcontext:
     /* store fcontext_t in ECX */
     movl  %esp, %ecx
 
-    /* first arg of copp_jump_fcontext() == context jumping to */
+    /* first arg of copp_ontop_fcontext() == fcontext to jump to */
     movl  0x18(%esp), %eax
 
-    /* second arg of copp_jump_fcontext() == data to be transferred */
-    movl  0x1c(%esp), %edx
+    /* pass parent fcontext_t */
+    movl  %ecx, 0x18(%eax)
 
-    /* restore ESP (pointing to context-data) from EAX */
+    /* second arg of copp_ontop_fcontext() == data to be transferred */
+    movl  0x1c(%esp), %ecx
+
+    /* pass data */
+    movl %ecx, 0x1c(%eax)
+
+    /* third arg of copp_ontop_fcontext() == ontop-function */
+    movl  0x20(%esp), %ecx
+
+    /* restore ESP (pointing to context-data) from EDX */
     movl  %eax, %esp
-
-    /* address of returned transport_t */
-    movl 0x14(%esp), %eax
-    /* return parent fcontext_t */
-    movl  %ecx, (%eax)
-    /* return data */
-    movl %edx, 0x4(%eax)
 
     popl  %edi  /* restore EDI */
     popl  %esi  /* restore ESI */
@@ -51,4 +54,8 @@ _copp_jump_fcontext:
     popl  %ebp  /* restore EBP */
 
     /* jump to context */
-    ret $4
+    jmp *%ecx
+.size copp_ontop_fcontext,.-copp_ontop_fcontext
+
+/* Mark that we don't need executable stack.  */
+.section .note.GNU-stack,"",%progbits

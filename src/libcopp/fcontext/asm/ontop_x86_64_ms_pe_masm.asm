@@ -49,7 +49,7 @@
 
 .code
 
-copp_jump_fcontext PROC EXPORT FRAME
+copp_ontop_fcontext PROC EXPORT FRAME
     .endprolog
 
     push  rcx  ; save hidden address of transport_t
@@ -78,8 +78,8 @@ copp_jump_fcontext PROC EXPORT FRAME
     mov  rax, [r10+018h]
     push  rax
 
-    ; preserve RSP (pointing to context-data) in R9
-    mov  r9, rsp
+    ; preserve RSP (pointing to context-data) in RCX
+    mov  rcx, rsp
 
     ; restore RSP (pointing to context-data) from RDX
     mov  rsp, rdx
@@ -110,19 +110,21 @@ copp_jump_fcontext PROC EXPORT FRAME
 
     pop  rax  ; restore hidden address of transport_t
 
-    ; restore return-address
-    pop  r10
+    ; keep return-address on stack
 
     ; transport_t returned in RAX
     ; return parent fcontext_t
-    mov  [rax], r9
+    mov  [rax], rcx
     ; return data
     mov  [rax+08h], r8
 
     ; transport_t as 1.arg of context-function
-    mov  rcx,  rax
+    ; RCX contains address of returned (hidden) transfer_t
+    mov rcx,  rax  
+    ; RDX contains address of passed transfer_t
+    mov rdx,  rax
 
     ; indirect jump to context
-    jmp  r10
-copp_jump_fcontext ENDP
+    jmp  r9
+copp_ontop_fcontext ENDP
 END

@@ -25,33 +25,48 @@
  *******************************************************/
 
 .text
-.globl _copp_make_fcontext
+.globl _copp_ontop_fcontext
 .align 2
-_copp_make_fcontext:
-    @ shift address in A1 to lower 16 byte boundary
-    bic  a1, a1, #15
+_copp_ontop_fcontext:
+    @ save LR as PC
+    push {lr}
+    @ save hidden,V1-V8,LR
+    push {a1,v1-v8,lr}
 
-    @ reserve space for context-data on context-stack
-    sub  a1, a1, #64
+    @ locate TLS to save/restore SjLj handler
+    mrc  p15, 0, v2, c13, c0, #3
+    bic  v2, v2, #3
 
-    @ third arg of copp_make_fcontext() == address of context-function
-    str  a3, [a1, #44]
+    @ load TLS[__PTK_LIBC_DYLD_Unwind_SjLj_Key]
+    ldr  v1, [v2, #8]
+    @ save SjLj handler
+    push  {v1}
 
-    @ compute address of returned transfer_t
-    add  a2, a1, #48
-    mov  a3, a2
+    @ store RSP (pointing to context-data) in A1
+    mov  a1, sp
+
+    @ restore RSP (pointing to context-data) from A2
+    mov  sp, a2
+
+    @ restore SjLj handler
+    pop  {v1}
+    @ store SjLj handler in TLS
+    str  v1, [v2, #8]
+
+    @ store parent context in A2
+    mov  a2, a1
+
+    @ restore hidden,V1-V8,LR
+    pop {a1,v1-v8,lr}
+
+    @ return transfer_t from jump
+    str  a2, [a1, #0]
     str  a3, [a1, #4]
+    @ pass transfer_t as first arg in context function
+    @ A1 == hidden, A2 == FCTX, A3 == DATA
 
-    @ compute abs address of label finish
-    adr  a2, finish
-    @ save address of finish as return-address for context-function
-    @ will be entered after context-function returns
-    str  a2, [a1, #40]
+    @ skip PC
+    add  sp, sp, #4
 
-    bx  lr @ return pointer to context-data
-
-finish:
-    @ exit code is zero
-    mov  a1, #0
-    @ exit application
-    bl  __exit
+    @ jump to ontop-function
+    bx  a4

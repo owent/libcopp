@@ -40,9 +40,9 @@
 .cpu    generic+fp+simd
 .text
 .align  2
-.global copp_jump_fcontext
-.type   copp_jump_fcontext, %function
-copp_jump_fcontext:
+.global copp_ontop_fcontext
+.type   copp_ontop_fcontext, %function
+copp_ontop_fcontext:
     # prepare stack for GP + FPU
     sub  sp, sp, #0x70
 
@@ -57,7 +57,7 @@ copp_jump_fcontext:
     # save LR as PC
     str  x30, [sp, #0x60]
 
-    # store RSP (pointing to context-data) in X0
+    # store RSP (pointing to context-data) in X5
     mov  x4, sp
 
     # restore RSP (pointing to context-data) from X1
@@ -76,13 +76,12 @@ copp_jump_fcontext:
     # X0 == FCTX, X1 == DATA
     mov x0, x4
 
-    # load pc
-    ldr  x4, [sp, #0x60]
-
+    # skip pc
     # restore stack from GP + FPU
     add  sp, sp, #0x70
 
-    ret x4
-.size   copp_jump_fcontext,.-copp_jump_fcontext
+    # jump to ontop-function
+    ret x2
+.size   copp_ontop_fcontext,.-copp_ontop_fcontext
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

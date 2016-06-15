@@ -12,46 +12,52 @@
  *  -------------------------------------------------  *
  *  | 0x0 | 0x4 | 0x8 | 0xc | 0x10| 0x14| 0x18| 0x1c|  *
  *  -------------------------------------------------  *
- *  | sjlj|hiddn|  v1 |  v2 |  v3 |  v4 |  v5 |  v6 |  *
+ *  |hiddn|  v1 |  v2 |  v3 |  v4 |  v5 |  v6 |  v7 |  *
  *  -------------------------------------------------  *
  *  -------------------------------------------------  *
  *  |  8  |  9  |  10 |  11 |  12 |  13 |  14 |  15 |  *
  *  -------------------------------------------------  *
  *  | 0x20| 0x24| 0x28| 0x2c| 0x30| 0x34| 0x38| 0x3c|  *
  *  -------------------------------------------------  *
- *  |  v7 |  v8 |  lr |  pc | FCTX| DATA|           |  *
+ *  |  v8 |  lr |  pc | FCTX| DATA|                 |  *
  *  -------------------------------------------------  *
  *                                                     *
  *******************************************************/
 
 .text
-.globl _copp_make_fcontext
+.globl copp_ontop_fcontext
 .align 2
-_copp_make_fcontext:
-    @ shift address in A1 to lower 16 byte boundary
-    bic  a1, a1, #15
+.type copp_ontop_fcontext,%function
+copp_ontop_fcontext:
+    @ save LR as PC
+    push {lr}
+    @ save hidden,V1-V8,LR
+    push {a1,v1-v8,lr}
 
-    @ reserve space for context-data on context-stack
-    sub  a1, a1, #64
+    @ store RSP (pointing to context-data) in A1
+    mov  a1, sp
 
-    @ third arg of copp_make_fcontext() == address of context-function
-    str  a3, [a1, #44]
+    @ restore RSP (pointing to context-data) from A2
+    mov  sp, a2
 
-    @ compute address of returned transfer_t
-    add  a2, a1, #48
-    mov  a3, a2
+    @ store parent context in A2
+    mov  a2, a1
+
+    @ restore hidden,V1-V8,LR
+    pop {a1,v1-v8,lr}
+
+    @ return transfer_t from jump
+    str  a2, [a1, #0]
     str  a3, [a1, #4]
+    @ pass transfer_t as first arg in context function
+    @ A1 == hidden, A2 == FCTX, A3 == DATA
 
-    @ compute abs address of label finish
-    adr  a2, finish
-    @ save address of finish as return-address for context-function
-    @ will be entered after context-function returns
-    str  a2, [a1, #40]
+    @ skip PC
+    add  sp, sp, #4
 
-    bx  lr @ return pointer to context-data
+    @ jump to ontop-function
+    bx  a4
+.size copp_ontop_fcontext,.-copp_ontop_fcontext
 
-finish:
-    @ exit code is zero
-    mov  a1, #0
-    @ exit application
-    bl  __exit
+@ Mark that we don't need executable stack.
+.section .note.GNU-stack,"",%progbits
