@@ -1,0 +1,10 @@
+// cmake template file
+
+#ifndef _COPP_UTILS_CONFIG_BUILD_FEATURES_H_
+#define _COPP_UTILS_CONFIG_BUILD_FEATURES_H_
+
+# pragma once
+
+#cmakedefine COPP_MACRO_USE_SEGMENTED_STACKS @COPP_MACRO_USE_SEGMENTED_STACKS@
+
+#endif

@@ -8,8 +8,8 @@ else()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Debug")
-	#set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+	#set(CMAKE_BUILD_TYPE "Debug")
+	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
 # 设置公共编译选项

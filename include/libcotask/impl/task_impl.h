@@ -12,6 +12,7 @@
 
 #include <list>
 #include <libcopp/utils/std/smart_ptr.h>
+#include <libcopp/utils/config/compiler_features.h>
 
 #include <libcotask/task_actions.h>
 
@@ -51,11 +52,11 @@ namespace cotask {
              * get task status
              * @return task status
              */
-            inline EN_TASK_STATUS get_status() const { return status_; }
+            inline EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT { return status_; }
 
-            virtual bool is_canceled() const;
-            virtual bool is_completed() const;
-            virtual bool is_faulted() const;
+            virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
+            virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;
+            virtual bool is_faulted() const UTIL_CONFIG_NOEXCEPT;
 
             /**
              * @brief add next task to run when task finished
@@ -89,8 +90,6 @@ namespace cotask {
             action_ptr_t _get_action();
 
             inline void _set_status(EN_TASK_STATUS status) { status_ = status; }
-
-            static task_impl* _set_active_task(task_impl*);
 
             void active_next_tasks();
 

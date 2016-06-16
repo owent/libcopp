@@ -19,7 +19,7 @@ namespace cotask {
          * @brief get current running task
          * @return current running task or empty pointer when not in task
          */
-        impl::task_impl* get_task();
+        impl::task_impl* get_task() UTIL_CONFIG_NOEXCEPT;
 
         /**
          * @brief get current running task and try to convert type

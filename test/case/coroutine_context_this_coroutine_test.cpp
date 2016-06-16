@@ -77,7 +77,9 @@ static void test_this_context_thread_func(copp::coroutine_context_default& co) {
 
     CASE_EXPECT_FALSE(runner->is_run());
 
+    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
     co.start();
+    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
 
     CASE_EXPECT_TRUE(runner->is_run());
 }
@@ -120,8 +122,15 @@ public:
     test_this_context_yield_runner(): run_(false), finished_(false) {}
     int operator()() {
         run_ = true;
+
+        copp::detail::coroutine_context_base* ptr = copp::this_coroutine::get_coroutine();
+
+        CASE_EXPECT_EQ(ptr, copp::this_coroutine::get_coroutine()->get_private_data());
+
         copp::this_coroutine::yield();
         finished_ = true;
+
+        CASE_EXPECT_EQ(ptr, copp::this_coroutine::get_coroutine());
         return 0;
     }
 
@@ -138,13 +147,16 @@ private:
     bool finished_;
 };
 
-CASE_TEST(this_context, yield) {
+CASE_TEST(this_context, yield_) {
     typedef copp::coroutine_context_default co_type;
 
     co_type co;
     co.create(new test_this_context_yield_runner(), 32 * 1024);
+    co.set_private_data(&co);
 
+    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
     co.start();
+    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
 
     test_this_context_yield_runner* runner = dynamic_cast<test_this_context_yield_runner*>(co.get_runner());
     CASE_EXPECT_TRUE(runner->is_run());
@@ -152,6 +164,60 @@ CASE_TEST(this_context, yield) {
 
     assert(co.get_runner());
     delete runner;
+}
+
+
+struct test_this_context_rec_runner : public copp::coroutine_runnable_base
+{
+    typedef copp::coroutine_context_default value_type;
+    typedef value_type* value_ptr_type;
+
+    test_this_context_rec_runner(value_ptr_type p) : jump_to(NULL), owner(p){}
+    int operator()() {
+        copp::detail::coroutine_context_base* ptr = copp::this_coroutine::get_coroutine();
+
+        value_ptr_type* co_startup = reinterpret_cast<value_ptr_type*>(ptr->get_private_data());
+        if (NULL == co_startup[0]) {
+            co_startup[0] = dynamic_cast<value_ptr_type>(ptr);
+        } else {
+            co_startup[1] = dynamic_cast<value_ptr_type>(ptr);
+        }
+
+        CASE_EXPECT_EQ(ptr, owner);
+
+        if (NULL != jump_to) {
+            int res = jump_to->start();
+            CASE_EXPECT_EQ(0, res);
+        }
+
+        ptr = copp::this_coroutine::get_coroutine();
+        CASE_EXPECT_EQ(ptr, owner);
+        return 0;
+    }
+
+    value_ptr_type jump_to;
+    value_ptr_type owner;
+};
+
+CASE_TEST(this_context, start_in_co) {
+    typedef test_this_context_rec_runner::value_type co_type;
+
+    co_type* co_startup[2] = {NULL};
+    co_type co1, co2;
+    test_this_context_rec_runner cor1(&co1), cor2(&co2);
+
+    co1.create(&cor1, 32 * 1024);
+    co2.create(&cor2, 32 * 1024);
+    co1.set_private_data(co_startup);
+    co2.set_private_data(co_startup);
+
+    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+    cor1.jump_to = &co2;
+    co1.start();
+    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+
+    CASE_EXPECT_EQ(&co1, co_startup[0]);
+    CASE_EXPECT_EQ(&co2, co_startup[1]);
 }
 
 

@@ -1,0 +1,17 @@
+BasedOnStyle: LLVM
+Language: Cpp
+AccessModifierOffset: -4
+AlignEscapedNewlinesLeft: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortIfStatementsOnASingleLine: true
+AlwaysBreakTemplateDeclarations: true
+ColumnLimit: 140
+CommentPragmas: ''
+IndentWidth: 4
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: All
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+Standard: Cpp03
+TabWidth: 4
+UseTab: Never

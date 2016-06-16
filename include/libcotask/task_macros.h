@@ -23,7 +23,7 @@
 namespace cotask {
     struct macro_coroutine
     {
-        typedef copp::detail::coroutine_context_safe_base coroutine_t;
+        typedef copp::detail::coroutine_context_base coroutine_t;
         typedef copp::allocator::default_statck_allocator stack_allocator_t;
 
         typedef copp::detail::coroutine_context_container<coroutine_t, stack_allocator_t> coroutine_container_t;

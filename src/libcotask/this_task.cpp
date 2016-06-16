@@ -12,7 +12,7 @@
 
 namespace cotask {
     namespace this_task {
-        impl::task_impl* get_task() {
+        impl::task_impl* get_task() UTIL_CONFIG_NOEXCEPT {
             return impl::task_impl::this_task();
         }
     }

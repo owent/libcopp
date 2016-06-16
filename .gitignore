@@ -13,8 +13,14 @@
 *.a
 
 # Compiling directory
-build/*
+/build
+/build_*
 
 # generated docs
 doc/doxygen/*
 
+# IDE & Editors
+/.vscode
+
+# generated files
+/include/libcopp/utils/config/build_feature.h

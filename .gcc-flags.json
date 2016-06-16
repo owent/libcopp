@@ -1,0 +1,8 @@
+{
+    "execPath": "C:/msys64/mingw64/bin/g++.exe",
+    "gccDefaultCFlags": "-Wall",
+    "gccDefaultCppFlags": "-Wall -std=c++11",
+    "gccErrorLimit": 15,
+    "gccIncludePaths": "./include",
+    "gccSuppressWarnings": true
+}

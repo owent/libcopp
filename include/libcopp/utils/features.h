@@ -1,3 +1,5 @@
+// cmake template file
+
 #ifndef _COPP_UTILS_FEATURES_H_
 #define _COPP_UTILS_FEATURES_H_
 
@@ -5,6 +7,12 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
+
+#include <libcopp/utils/config/compiler_features.h>
+
+// ================ build options ================
+#include <libcopp/utils/config/build_feature.h>
+// ---------------- build options ----------------
 
 // ================ select compiler ================
 #if defined(__GCCXML__)
@@ -59,8 +67,8 @@
 #define __THROW
 #endif
 // ---------------- c extern ----------------
-#if defined(__cplusplus) && __cplusplus >= 201103L
-    #define COPP_MACRO_NOEXCEPT noexcept
+#if defined(UTIL_CONFIG_NOEXCEPT)
+    #define COPP_MACRO_NOEXCEPT UTIL_CONFIG_NOEXCEPT
 #else
     #define COPP_MACRO_NOEXCEPT
 #endif
@@ -99,18 +107,8 @@
 #endif
 
 
-#if defined(__cplusplus) && __cplusplus >= 201103L
-    #define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
-#elif defined(_MSC_VER) && (_MSC_VER >= 1800 && defined(_HAS_CPP0X) && _HAS_CPP0X)
-    // VC 12 and upper
-    #define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
-#elif defined(__clang__) && __clang_major__ >= 3 && (__cplusplus >= 201103L || !defined(_LIBCPP_HAS_NO_VARIADICS))
-    #define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
-#elif defined(__GNUC__) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 4
-    // use G++ std::tr1
-    #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
-        #define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
-    #endif
+#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
+#define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
 #endif
 
 #include <libcopp/utils/std/decltype.h>

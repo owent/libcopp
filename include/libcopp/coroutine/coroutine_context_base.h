@@ -10,6 +10,7 @@
 
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/non_copyable.h>
+#include <libcopp/utils/atomic_int_type.h>
 #include <libcopp/fcontext/all.hpp>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/coroutine/coroutine_runnable_base.h>
@@ -25,36 +26,52 @@
     protected:											\
     using base_type::caller_;							\
     using base_type::callee_;							\
-    using base_type::preserve_fpu_;						\
     using base_type::callee_stack_;						\
     COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
 namespace copp { 
-    namespace detail{
+    namespace detail {
         /**
          * @brief base type of all coroutine context
          */
         class coroutine_context_base : utils::non_copyable
         {
+        public:
+            /**
+            * @brief status of safe coroutine context base
+            */
+            struct status_t {
+                enum type {
+                    EN_CRS_INVALID = 0,//!< EN_CRS_INVALID
+                    EN_CRS_READY,      //!< EN_CRS_READY
+                    EN_CRS_RUNNING,    //!< EN_CRS_RUNNING
+                    EN_CRS_FINISHED,   //!< EN_CRS_FINISHED
+                    EN_CRS_EXITED,     //!< EN_CRS_EXITED
+                };
+            };
+
         private:
             int runner_ret_code_; /** coroutine return code **/
             coroutine_runnable_base* runner_; /** coroutine runner **/
+            void* priv_data_;
+            util::lock::atomic_int_type<int> status_; /** status **/
 
-        protected:
-            bool is_finished_; /** is coroutine finished **/
+            struct jump_src_data_t {
+                coroutine_context_base* from_co;
+                coroutine_context_base* to_co;
+            };
 
         protected:
             fcontext::fcontext_t caller_; /** caller runtime context **/
             fcontext::fcontext_t callee_; /** callee runtime context **/
 
-            bool preserve_fpu_; /** is preserve fpu **/
             stack_context callee_stack_; /** callee stack context **/
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
             stack_context caller_stack_; /** caller stack context **/
 #endif
 
         public:
-            coroutine_context_base();
+            coroutine_context_base() UTIL_CONFIG_NOEXCEPT;
             virtual ~coroutine_context_base();
 
         public:
@@ -65,7 +82,7 @@ namespace copp {
              * @param func fcontext callback
              * @return COPP_EC_SUCCESS or error code
              */
-            virtual int create(coroutine_runnable_base* runner, void(*func)(intptr_t) = &coroutine_context_base::coroutine_context_callback);
+            virtual int create(coroutine_runnable_base* runner, void(*func)(::copp::fcontext::transfer_t) = &coroutine_context_base::coroutine_context_callback) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * @brief start coroutine
@@ -101,7 +118,7 @@ namespace copp {
              * @param runner
              * @return COPP_EC_SUCCESS or error code
              */
-            virtual int set_runner(coroutine_runnable_base* runner);
+            virtual int set_runner(coroutine_runnable_base* runner) UTIL_CONFIG_NOEXCEPT;
 
         public:
 
@@ -109,46 +126,54 @@ namespace copp {
              * get runner of this coroutine context
              * @return NULL of pointer of runner
              */
-            inline coroutine_runnable_base* get_runner() { return runner_; }
+            inline coroutine_runnable_base* get_runner() UTIL_CONFIG_NOEXCEPT { return runner_; }
 
             /**
              * get runner of this coroutine context (const)
              * @return NULL of pointer of runner
              */
-            inline const coroutine_runnable_base* get_runner() const { return runner_; }
+            inline const coroutine_runnable_base* get_runner() const UTIL_CONFIG_NOEXCEPT { return runner_; }
 
             /**
              * @brief get runner return code
              * @return
              */
-            inline int get_ret_code() const { return runner_ret_code_; }
+            inline int get_ret_code() const UTIL_CONFIG_NOEXCEPT { return runner_ret_code_; }
 
             /**
              * @brief get runner return code
              * @return true if coroutine has run and finished
              */
-            inline bool is_finished() const { return is_finished_; }
+            bool is_finished() const UTIL_CONFIG_NOEXCEPT;
 
+            /**
+             * @brief set private data(raw pointer)
+             * @note cotask set this private data to pointer of cotask, if you use cotask, do not use this function
+             */
+            inline void set_private_data(void* ptr) UTIL_CONFIG_NOEXCEPT { priv_data_ = ptr; }
+
+            /**
+             * @brief get private data(raw pointer)
+             * @note cotask set this private data to pointer of cotask, if you use cotask, do not use this function
+             */
+            inline void* get_private_data() const UTIL_CONFIG_NOEXCEPT { return priv_data_; }
         protected:
             /**
              * @brief call platform jump to asm instruction
-             * @param from_fcontext from runtime
-             * @param to_fcontext to runtime
-             * @param from_stack from runtime stack
-             * @param to_stack to runtime stack
-             * @param param coroutine intptr
-             * @param preserve_fpu is preserve fpu
-             * @return jump fcontext return code
+             * @param to_fctx jump to function context
+             * @param from_sctx jump from stack context(only used for save segment stack)
+             * @param to_sctx jump to stack context(only used for set segment stack)
+             * @param jump_transfer jump data
              */
-            static intptr_t jump_to(fcontext::fcontext_t& from_fcontext, fcontext::fcontext_t& to_fcontext,
-                stack_context& from_stack, stack_context& to_stack,
-                intptr_t param, bool preserve_fpu);
+            static void jump_to(fcontext::fcontext_t& to_fctx,
+                stack_context& from_sctx, stack_context& to_sctx,
+                jump_src_data_t& jump_transfer) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * @brief fcontext entrance function
-             * @param coro_ptr coroutine intptr
+             * @param src_ctx where jump from
              */
-            static void coroutine_context_callback(intptr_t coro_ptr);
+            static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx);
         };
     }
 
@@ -158,7 +183,7 @@ namespace copp {
          * @see detail::coroutine_context_base
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
-        detail::coroutine_context_base* get_coroutine();
+        detail::coroutine_context_base* get_coroutine() UTIL_CONFIG_NOEXCEPT;
 
         /**
          * @brief get current coroutine and try to convert type

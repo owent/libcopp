@@ -10,8 +10,9 @@
 #ifndef _COTASK_TASK_H_
 #define _COTASK_TASK_H_
 
-#include <stdint.h>
 #include <algorithm>
+#include <stdint.h>
+
 
 #include <libcopp/stack/stack_traits.h>
 #include <libcotask/task_macros.h>
@@ -19,11 +20,8 @@
 
 namespace cotask {
 
-    template<typename TCO_MACRO = macro_coroutine,
-        typename TTASK_MACRO = macro_task
-    >
-    class task: public impl::task_impl
-    {
+    template <typename TCO_MACRO = macro_coroutine, typename TTASK_MACRO = macro_task>
+    class task : public impl::task_impl {
     public:
         typedef task<TCO_MACRO, TTASK_MACRO> self_t;
         typedef TCO_MACRO macro_coroutine_t;
@@ -44,9 +42,7 @@ namespace cotask {
         typedef impl::task_impl::ptr_t task_ptr_t;
 
     private:
-        static void _action_deleter(impl::task_action_impl* action) {
-            action_allocator_t::deallocate(action);
-        }
+        static void _action_deleter(impl::task_action_impl *action) { action_allocator_t::deallocate(action); }
 
     public:
         /**
@@ -56,30 +52,32 @@ namespace cotask {
         task() {
             id_allocator_t id_alloc_;
             id_ = id_alloc_.allocate();
+
+            coroutine_obj_.set_private_data(static_cast<task_impl *>(this));
         }
-        
+
         /**
          * @brief create task with action
          * @param action
          * @param stack_size stack size
          * @return task smart pointer
          */
-        static ptr_t create(action_ptr_t action,
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        static ptr_t create(action_ptr_t action, size_t stack_size = copp::stack_traits::default_size()) {
             // step 1. create task instance
-            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
             ptr_t ret = ptr_t(inst);
-            if (NULL == inst)
+            if (NULL == inst) {
                 return ret;
+            }
 
             // step 2. set action
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0)
+            if (res < 0) {
                 return ptr_t();
+            }
 
             return ret;
         }
@@ -90,35 +88,29 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        template<typename Ty>
-        static ptr_t create(Ty functor,
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        template <typename Ty>
+        static ptr_t create(Ty functor, size_t stack_size = copp::stack_traits::default_size()) {
             typedef task_action_functor<Ty> a_t;
 
             // step 1. create task instance
-            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
             ptr_t ret = ptr_t(inst);
-            if (NULL == inst)
+            if (NULL == inst) {
                 return ret;
+            }
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(
-                action_allocator_t::allocate(
-                    reinterpret_cast<a_t*>(NULL),
-                    functor
-                ),
-                _action_deleter
-            );
+            action_ptr_t action = action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), functor), _action_deleter);
 
-            if (!action)
+            if (!action) {
                 return ptr_t();
+            }
+
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0)
-                return ptr_t();
+            if (res < 0) return ptr_t();
 
             return ret;
         }
@@ -129,35 +121,27 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        template<typename Ty>
-        static ptr_t create(Ty (*func)(),
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        template <typename Ty>
+        static ptr_t create(Ty (*func)(), size_t stack_size = copp::stack_traits::default_size()) {
             typedef task_action_function<Ty> a_t;
 
             // step 1. create task instance
-            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
             ptr_t ret = ptr_t(inst);
-            if (NULL == inst)
-                return ret;
+            if (NULL == inst) return ret;
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(
-                action_allocator_t::allocate(
-                    reinterpret_cast<a_t*>(NULL),
-                    func
-                ),
-                _action_deleter
-            );
+            action_ptr_t action = action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func), _action_deleter);
 
-            if (!action)
+            if (!action) {
                 return ptr_t();
+            }
+
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0)
-                return ptr_t();
+            if (res < 0) return ptr_t();
 
             return ret;
         }
@@ -168,78 +152,67 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        template<typename Ty, typename TInst>
-        static ptr_t create(Ty (TInst::*func), TInst* instance,
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        template <typename Ty, typename TInst>
+        static ptr_t create(Ty(TInst::*func), TInst *instance, size_t stack_size = copp::stack_traits::default_size()) {
             typedef task_action_mem_function<Ty, TInst> a_t;
 
             // step 1. create task instance
-            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
             ptr_t ret = ptr_t(inst);
-            if (NULL == inst)
+            if (NULL == inst) {
                 return ret;
+            }
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(
-                action_allocator_t::allocate(
-                    reinterpret_cast<a_t*>(NULL),
-                    func,
-                    instance
-                ),
-                _action_deleter
-            );
+            action_ptr_t action =
+                action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func, instance), _action_deleter);
 
-            if (!action)
+            if (!action) {
                 return ptr_t();
+            }
+
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0)
-                return ptr_t();
+            if (res < 0) return ptr_t();
 
             return ret;
         }
 
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         /**
         * @brief create task with functor type and parameters
         * @param stack_size stack size
         * @param args all parameters passed to construtor of type Ty
         * @return task smart pointer
         */
-        template<typename Ty, typename... TParams>
-        static ptr_t create_with(
-            size_t stack_size,
-            TParams&&... args) {
+        template <typename Ty, typename... TParams>
+        static ptr_t create_with(size_t stack_size, TParams &&... args) {
             typedef Ty a_t;
 
             // step 1. create task instance
-            self_t* inst = task_allocator_t::allocate(static_cast<self_t*>(NULL));
+            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
             ptr_t ret = ptr_t(inst);
-            if (NULL == inst)
-                return ret;
+            if (NULL == inst) return ret;
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(
-                action_allocator_t::allocate(
-                reinterpret_cast<a_t*>(NULL),
-                std::forward<TParams>(args)...
-                ),
-                _action_deleter
-                );
+            action_ptr_t action =
+                action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), std::forward<TParams>(args)...), _action_deleter);
 
-            if (!action)
+            if (!action) {
                 return ptr_t();
+            }
+
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0)
-                return ptr_t();
+            if (res < 0) return ptr_t();
 
             return ret;
         }
+#endif
 
 
         using impl::task_impl::next;
@@ -253,9 +226,7 @@ namespace cotask {
          * @return next_task
          */
         ptr_t next(ptr_t next_task) {
-            return std::static_pointer_cast<self_t>(
-                impl::task_impl::next(std::static_pointer_cast<impl::task_impl>(next_task))
-            );
+            return std::static_pointer_cast<self_t>(impl::task_impl::next(std::static_pointer_cast<impl::task_impl>(next_task)));
         }
 
         /**
@@ -265,9 +236,7 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        ptr_t next(action_ptr_t action, size_t stack_size = copp::stack_traits::default_size()) {
-            return next(create(action, stack_size));
-        }
+        ptr_t next(action_ptr_t action, size_t stack_size = copp::stack_traits::default_size()) { return next(create(action, stack_size)); }
 
         /**
          * @brief create next task with functor
@@ -276,10 +245,8 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        template<typename Ty>
-        ptr_t next(Ty functor,
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        template <typename Ty>
+        ptr_t next(Ty functor, size_t stack_size = copp::stack_traits::default_size()) {
             return next(create(functor, stack_size));
         }
 
@@ -290,10 +257,8 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        template<typename Ty>
-        ptr_t next(Ty (*func)(),
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        template <typename Ty>
+        ptr_t next(Ty (*func)(), size_t stack_size = copp::stack_traits::default_size()) {
             return next(create(func, stack_size));
         }
 
@@ -304,10 +269,8 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        template<typename Ty, typename TInst>
-        ptr_t next(Ty (TInst::*func), TInst* instance,
-            size_t stack_size = copp::stack_traits::default_size()
-        ) {
+        template <typename Ty, typename TInst>
+        ptr_t next(Ty(TInst::*func), TInst *instance, size_t stack_size = copp::stack_traits::default_size()) {
             return next(create(func, instance, stack_size));
         }
 
@@ -315,13 +278,12 @@ namespace cotask {
          * get current running task and convert to task object
          * @return task smart pointer
          */
-        static self_t* this_task() {
-            return dynamic_cast<self_t*>(impl::task_impl::this_task());
-        }
+        static self_t *this_task() { return dynamic_cast<self_t *>(impl::task_impl::this_task()); }
+
     public:
         virtual ~task() {
             // inited but not finished will trigger timeout or finish other actor
-            if(get_status() < EN_TS_DONE && get_status() > EN_TS_CREATED) {
+            if (get_status() < EN_TS_DONE && get_status() > EN_TS_CREATED) {
                 kill(EN_TS_TIMEOUT);
             }
 
@@ -330,39 +292,26 @@ namespace cotask {
             id_alloc_.deallocate(id_);
         }
 
-        inline coroutine_container_t& get_coroutine_context() { return coroutine_obj_; }
-        inline const coroutine_container_t& get_coroutine_context() const { return coroutine_obj_; }
+        inline coroutine_container_t &get_coroutine_context() UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
+        inline const coroutine_container_t &get_coroutine_context() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
 
-        inline id_t get_id() const { return id_; }
+        inline id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
 
     public:
-        virtual int get_ret_code() const {
-            return coroutine_obj_.get_ret_code();
-        }
+        virtual int get_ret_code() const { return coroutine_obj_.get_ret_code(); }
 
         virtual int start() {
             if (get_status() >= EN_TS_DONE) {
                 return copp::COPP_EC_ALREADY_FINISHED;
             }
-// TODO
-//#ifdef COPP_MACRO_ENABLE_MULTI_THREAD
-//#endif
+            // TODO
+            //#ifdef COPP_MACRO_ENABLE_MULTI_THREAD
+            //#endif
             if (get_status() == EN_TS_RUNNING) {
                 return copp::COPP_EC_IS_RUNNING;
             }
             _set_status(EN_TS_RUNNING);
-
-            int ret = 0;
-            // make sure this task will not be destroyed when running
-            {
-                impl::task_impl* origin_task = _set_active_task(this);
-                impl::task_impl::ptr_t origin_task_counter;
-                if (NULL != origin_task) {
-                   origin_task_counter = origin_task->shared_from_this();
-                }
-                ret = coroutine_obj_.start();
-                _set_active_task(origin_task);
-            }
+            int ret = coroutine_obj_.start();
 
             if (get_status() > EN_TS_DONE) { // canceled or killed
                 _notify_finished();
@@ -376,13 +325,9 @@ namespace cotask {
             return ret;
         }
 
-        virtual int resume() {
-            return start();
-        }
+        virtual int resume() { return start(); }
 
-        virtual int yield() {
-            return coroutine_obj_.yield();
-        }
+        virtual int yield() { return coroutine_obj_.yield(); }
 
         virtual int cancel() {
             if (EN_TS_RUNNING == get_status()) {
@@ -407,36 +352,30 @@ namespace cotask {
         }
 
     public:
-        virtual bool is_completed() const { return coroutine_obj_.is_finished(); }
+        virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_.is_finished(); }
 
     private:
-        task(const task&);
+        task(const task &);
 
         int _notify_finished() {
             // first, make sure coroutine finished.
             if (false == coroutine_obj_.is_finished()) {
                 // make sure this task will not be destroyed when running
-                // because this function may be called by destructor and shared_ptr is already freed
-                // so any function that use shared_ptr or weak_ptr of this task should be deny 
-                impl::task_impl* origin_task = _set_active_task(this);
-                impl::task_impl::ptr_t origin_task_counter;
-                if (NULL != origin_task) {
-                    origin_task_counter = origin_task->shared_from_this();
-                }
-                while(false == coroutine_obj_.is_finished())
+                // because this function may be called by destructor and shared_ptr is already free
+                // so any function that use shared_ptr or weak_ptr of this task should be deny
+                while (false == coroutine_obj_.is_finished()) {
                     coroutine_obj_.resume();
-
-                _set_active_task(origin_task);
+                }
             }
 
             return impl::task_impl::_notify_finished();
         }
+
     private:
         id_t id_;
         coroutine_container_t coroutine_obj_;
     };
 }
-
 
 
 #endif /* _COTASK_TASK_H_ */

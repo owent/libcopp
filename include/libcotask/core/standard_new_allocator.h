@@ -10,6 +10,7 @@
 #ifndef _COTASK_CORE_STANDARD_NEW_ALLOCATOR_H_
 #define _COTASK_CORE_STANDARD_NEW_ALLOCATOR_H_
 
+#include <new>
 #include <libcopp/utils/features.h>
 
 namespace cotask {
@@ -25,8 +26,14 @@ namespace cotask {
              * @return pointer of new object
              */
             template<typename Ty, typename... TARGS>
-            static Ty* allocate(Ty*, TARGS... args) {
-                Ty* ret = new Ty(std::forward<TARGS>(args)...);
+
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+            static Ty* allocate(Ty*, TARGS&&... args) UTIL_CONFIG_NOEXCEPT {
+#else
+            static Ty* allocate(Ty*, TARGS... args) UTIL_CONFIG_NOEXCEPT {
+#endif
+            
+                Ty* ret = new (std::nothrow) Ty(std::forward<TARGS>(args)...);
                 return ret;
             }
 #else
@@ -35,8 +42,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty >
-            static Ty* allocate(Ty*) {
-                Ty* ret = new Ty();
+            static Ty* allocate(Ty*) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty();
                 return ret;
             }
 
@@ -46,8 +53,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0 >
-            static Ty* allocate(Ty*, TARG0 arg0) {
-                Ty* ret = new Ty(arg0);
+            static Ty* allocate(Ty*, TARG0 arg0) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0);
                 return ret;
             }
 
@@ -58,8 +65,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1) {
-                Ty* ret = new Ty(arg0, arg1);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1);
                 return ret;
             }
 
@@ -71,8 +78,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2) {
-                Ty* ret = new Ty(arg0, arg1, arg2);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2);
                 return ret;
             }
 
@@ -85,8 +92,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3) {
-                Ty* ret = new Ty(arg0, arg1, arg2, arg3);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2, arg3);
                 return ret;
             }
 
@@ -100,8 +107,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4) {
-                Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2, arg3, arg4);
                 return ret;
             }
 
@@ -116,8 +123,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5) {
-                Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2, arg3, arg4, arg5);
                 return ret;
             }
 
@@ -133,8 +140,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5, typename TARG6 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6) {
-                Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
                 return ret;
             }
 
@@ -151,8 +158,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5, typename TARG6, typename TARG7 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7) {
-                Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 return ret;
             }
 
@@ -170,8 +177,8 @@ namespace cotask {
              * @return pointer of new object
              */
             template< typename Ty,typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4, typename TARG5, typename TARG6, typename TARG7, typename TARG8 >
-            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7, TARG8 arg8) {
-                Ty* ret = new Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            static Ty* allocate(Ty*, TARG0 arg0, TARG1 arg1, TARG2 arg2, TARG3 arg3, TARG4 arg4, TARG5 arg5, TARG6 arg6, TARG7 arg7, TARG8 arg8) UTIL_CONFIG_NOEXCEPT {
+                Ty* ret = new (std::nothrow) Ty(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 return ret;
             }
 

@@ -26,18 +26,24 @@ typedef int intptr_t;
 #endif
 
 namespace copp {
-namespace fcontext {
+    namespace fcontext {
+        typedef void*   fcontext_t;
 
-typedef void*   fcontext_t;
+        struct transfer_t {
+            fcontext_t  fctx;
+            void    *   data;
+        };
 
-extern "C" COPP_BOOST_CONTEXT_DECL
-intptr_t COPP_BOOST_CONTEXT_CALLDECL copp_jump_fcontext(fcontext_t * ofc, fcontext_t nfc,
-                                              intptr_t vp, bool preserve_fpu = false);
-											  
-extern "C" COPP_BOOST_CONTEXT_DECL
-fcontext_t COPP_BOOST_CONTEXT_CALLDECL copp_make_fcontext(void * sp, std::size_t size, void(*fn)(intptr_t));
+        extern "C" COPP_BOOST_CONTEXT_DECL
+        transfer_t COPP_BOOST_CONTEXT_CALLDECL copp_jump_fcontext(fcontext_t const to, void * vp);
 
-}}
+        extern "C" COPP_BOOST_CONTEXT_DECL
+        fcontext_t COPP_BOOST_CONTEXT_CALLDECL copp_make_fcontext(void * sp, std::size_t size, void (* fn)( transfer_t));
+
+        extern "C" COPP_BOOST_CONTEXT_DECL
+        transfer_t COPP_BOOST_CONTEXT_CALLDECL copp_ontop_fcontext( fcontext_t const to, void * vp, transfer_t (* fn)( transfer_t) );
+    }
+}
 
 #ifdef COPP_HAS_ABI_HEADERS
 # include COPP_ABI_SUFFIX

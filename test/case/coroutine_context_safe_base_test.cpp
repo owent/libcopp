@@ -6,7 +6,7 @@
 #include "frame/test_macros.h"
 
 typedef copp::detail::coroutine_context_container<
-    copp::detail::coroutine_context_safe_base,
+    copp::detail::coroutine_context_base,
     copp::allocator::default_statck_allocator
     > test_context_safe_base_context_type;
 

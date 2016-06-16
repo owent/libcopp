@@ -3,7 +3,7 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 namespace copp {
@@ -23,10 +23,9 @@ namespace copp {
          * @brief memory allocator
          * this allocator will create buffer using posix api and protect it
          */
-        class stack_allocator_posix
-        {
+        class stack_allocator_posix {
         public:
-            stack_allocator_posix();
+            stack_allocator_posix() UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_posix();
 
             /**
@@ -34,20 +33,19 @@ namespace copp {
              * @param ctx stack context
              * @param size stack size
              */
-            void allocate(stack_context &, std::size_t);
+            void allocate(stack_context &, std::size_t) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * deallocate memory from stack context [standard function]
              * @param ctx stack context
              */
-            void deallocate(stack_context &);
+            void deallocate(stack_context &) UTIL_CONFIG_NOEXCEPT;
         };
-
-    } 
+    }
 }
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
 
 #endif
