@@ -34,8 +34,8 @@ INSTALL
 Prerequisites
 -------------
 
--   **[required]** GCC or Clang or VC support ISO C++ 98 and upper
--   **[required]** [cmake](www.cmake.org) 2.8.9 and upper
+-   **[required]** GCC or Clang or VC support ISO C++ 03 and upper
+-   **[required]** [cmake](www.cmake.org) 3.1.0 and upper
 -   **[optional]** [gtest](https://code.google.com/p/googletest/) 1.6.0 and upper (better test supported)
 -   **[optional]** [Boost.Test](http://www.boost.org/doc/libs/release/libs/test/) (Boost.Test supported)
 
@@ -66,7 +66,7 @@ Build
 
 > > -DLIBCOPP\_ENABLE\_SEGMENTED\_STACKS=YES|NO [default=NO] enable split stack supported context.(it's only availabe in linux and gcc 4.7.0 or upper)
 
-> > -DLIBCOPP\_ENABLE\_VALGRIND=YES|NO [default=NO] enable valgrind supported context.
+> > -DLIBCOPP\_ENABLE\_VALGRIND=YES|NO [default=YES] enable valgrind supported context.
 
 > > -DGTEST\_ROOT=[path] set gtest library install prefix path
 
@@ -198,13 +198,15 @@ HISTORY
 ========
 2016-06-16
 ------
-1. merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/90QQw for detail)
-2. enable valgrind support if valgrind/valgrind.h exists
-3. use cmake to detect the function of compiler
-4. using pthread key when c++11 TLS not available
-5. remove coroutine_context_safe_base.coroutine_context_base is also thread safe now
-6. remove all global variables of cotask
-7. remove std/thread.h
+1. [BOOST] merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/90QQw for detail)
+2. [BOOST] enable valgrind support if valgrind/valgrind.h exists
+3. [CXX] use cmake to detect the function of compiler
+4. [OPTIMIZE] using pthread key when c++11 TLS not available
+5. [OPTIMIZE] remove coroutine_context_safe_base.coroutine_context_base is also thread safe now
+6. [OPTIMIZE] remove all global variables of cotask
+7. [OPTIMIZE] remove std/thread.h， add noexpect if available
+8. [CI] CI use build matrix to test more compiler
+9. [BUILD] use RelWithDebInfo for default
 
 2016-02-27
 ------

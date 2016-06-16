@@ -3,25 +3,43 @@ language: cpp
 env:
   global:
     - LANG="zh_CN.UTF-8"
-    - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_VERSION=3.4.3 ;
+    - CMAKE_PREFIX=/home/travis/prebuilt/cmake ;
+    - CMAKE_VERSION=3.5.2 ;
   matrix:
-    - TRAVIS_OS_NAME=osx CC=clang CXX=clang++
-    - TRAVIS_OS_NAME=osx CC=gcc CXX=g++
-    - TRAVIS_OS_NAME=linux CC=gcc CXX=g++
-    - TRAVIS_OS_NAME=linux CC=gcc-4.9 CXX=g++-4.9
-    - TRAVIS_OS_NAME=linux CC=clang-3.7 CXX=clang++-3.7
+    # - TRAVIS_OS_NAME=osx USE_CC=clang USE_CXX=clang++
+    - TRAVIS_OS_NAME=osx USE_CC=gcc USE_CXX=g++
+    - TRAVIS_OS_NAME=linux USE_CC=gcc USE_CXX=g++
+    - TRAVIS_OS_NAME=linux USE_CC=gcc-4.4 USE_CXX=g++-4.4
+    - TRAVIS_OS_NAME=linux USE_CC=gcc-4.9 USE_CXX=g++-4.9
+    - TRAVIS_OS_NAME=linux USE_CC=gcc-6 USE_CXX=g++-6
+    # - TRAVIS_OS_NAME=linux USE_CC=clang-3.8 USE_CXX=clang++-3.8
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main"; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add - ; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
-
-install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc-4.9" ] ; then sudo apt-get install -qq gcc-4.9-multilib g++-4.9-multilib; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "clang-3.7" ] ; then sudo apt-get install --allow-unauthenticated -qq clang-3.7; fi
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      # - llvm-toolchain-precise-3.8
+    packages:
+      - g++-4.4
+      - g++-4.4-multilib
+      - gcc-4.4
+      - gcc-4.4-multilib
+      - gcc-4.9
+      - gcc-4.9-multilib
+      - g++-4.9
+      - g++-4.9-multilib
+      - gcc-6
+      - gcc-6-multilib
+      - g++-6
+      - g++-6-multilib
+      - clang
+      ## - libc++1
+      ## - libc++-dev
+      ## - libc++abi1
+      ## - libc++abi-dev
+      #- clang-3.8
+      #- libclang-common-3.8-dev
+      #- libclang-3.8-dev
   
 before_script:
   - REPO_DIR=$PWD;
@@ -37,11 +55,14 @@ before_script:
         rm -rf CMake-$CMAKE_VERSION CMake-$CMAKE_VERSION.tar.gz;
     fi
   - cd "$REPO_DIR";
-  
-script: 
+
+script:
+  - export CC=$USE_CC
+  - export CXX=$USE_CXX
   - REPO_DIR=$PWD;
   - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
-  - $CMAKE_PREFIX/bin/cmake .. -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX ;
+  - echo "$CMAKE_PREFIX/bin/cmake .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
+  - $CMAKE_PREFIX/bin/cmake .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
   - make -j4
 
 after_success:

@@ -3,7 +3,7 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 namespace copp {
@@ -23,20 +23,19 @@ namespace copp {
          * @brief memory allocator
          * this allocator will return address of specified memory section
          */
-        class stack_allocator_memory
-        {
+        class stack_allocator_memory {
         private:
-            void* start_ptr_;
+            void *start_ptr_;
             std::size_t memory_size_;
 
         public:
-            stack_allocator_memory();
+            stack_allocator_memory() UTIL_CONFIG_NOEXCEPT;
             /**
              * construct and attach to start_ptr with size of max_size
              * @param start_ptr buffer start address
              * @param max_size buffer size
              */
-            stack_allocator_memory(void* start_ptr, std::size_t max_size);
+            stack_allocator_memory(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_memory();
 
             /**
@@ -45,7 +44,7 @@ namespace copp {
              * @param max_size buffer size
              * @note must be called before allocate operation
              */
-            void attach(void* start_ptr, std::size_t max_size);
+            void attach(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * allocate memory and attach to stack context [standard function]
@@ -53,20 +52,19 @@ namespace copp {
              * @param size stack size
              * @note size must less or equal than attached
              */
-            void allocate(stack_context &ctx, std::size_t size);
+            void allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * deallocate memory from stack context [standard function]
              * @param ctx stack context
              */
-            void deallocate(stack_context &ctx);
+            void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT;
         };
-
-    } 
+    }
 }
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
 
 #endif

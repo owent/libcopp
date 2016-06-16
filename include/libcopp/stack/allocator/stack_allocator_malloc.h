@@ -3,7 +3,7 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 namespace copp {
@@ -23,10 +23,9 @@ namespace copp {
          * @brief memory allocator
          * this allocator will maintain buffer using malloc/free function
          */
-        class stack_allocator_malloc
-        {
+        class stack_allocator_malloc {
         public:
-            stack_allocator_malloc();
+            stack_allocator_malloc() UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_malloc();
 
             /**
@@ -35,20 +34,19 @@ namespace copp {
              * @param size stack size
              * @note size must less or equal than attached
              */
-            void allocate(stack_context &ctx, std::size_t size);
+            void allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * deallocate memory from stack context [standard function]
              * @param ctx stack context
              */
-            void deallocate(stack_context &ctx);
+            void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT;
         };
-
-    } 
+    }
 }
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
 
 #endif

@@ -32,8 +32,8 @@ namespace copp {
 
         COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
         public:
-            coroutine_context_container() : base_type(), alloc_(){}
-            coroutine_context_container(const allocator_type& alloc) : alloc_(alloc){}
+            coroutine_context_container() UTIL_CONFIG_NOEXCEPT : base_type(), alloc_(){}
+            coroutine_context_container(const allocator_type& alloc) UTIL_CONFIG_NOEXCEPT : alloc_(alloc){}
 
             ~coroutine_context_container() {
                 _reset_stack();
@@ -43,7 +43,7 @@ namespace copp {
              * @brief get stack allocator
              * @return stack allocator
              */
-            inline const allocator_type& get_allocator() const {
+            inline const allocator_type& get_allocator() const UTIL_CONFIG_NOEXCEPT {
                 return alloc_;
             }
 
@@ -51,7 +51,7 @@ namespace copp {
              * @brief get stack allocator
              * @return stack allocator
              */
-            inline allocator_type& get_allocator() {
+            inline allocator_type& get_allocator() UTIL_CONFIG_NOEXCEPT {
                 return alloc_;
             }
 
@@ -60,9 +60,11 @@ namespace copp {
             /**
              * @brief deallocate stack context
              */
-            void _reset_stack() {
-                if (NULL == callee_stack_.sp || 0 == callee_stack_.size)
+            void _reset_stack() UTIL_CONFIG_NOEXCEPT {
+                if (NULL == callee_stack_.sp || 0 == callee_stack_.size) {
                     return;
+                }
+
                 alloc_.deallocate(callee_stack_);
                 callee_stack_.reset();
             }
@@ -75,14 +77,16 @@ namespace copp {
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code
              */
-            int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(::copp::fcontext::transfer_t) = NULL){
-                if (NULL != callee_stack_.sp)
+            int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(::copp::fcontext::transfer_t) = NULL) UTIL_CONFIG_NOEXCEPT {
+                if (NULL != callee_stack_.sp) {
                     return COPP_EC_ALREADY_INITED;
+                }
 
                 alloc_.allocate(callee_stack_, stack_size_);
 
-                if (NULL == callee_stack_.sp)
+                if (NULL == callee_stack_.sp) {
                     return COPP_EC_ALLOC_STACK_FAILED;
+                }
 
                 return base_type::create(runner, func);
             }
@@ -93,20 +97,22 @@ namespace copp {
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code
              */
-            int create(coroutine_runnable_base* runner, void(*func)(::copp::fcontext::transfer_t) = NULL){
-                if (NULL != callee_stack_.sp)
+            int create(coroutine_runnable_base* runner, void(*func)(::copp::fcontext::transfer_t) = NULL) UTIL_CONFIG_NOEXCEPT {
+                if (NULL != callee_stack_.sp) {
                     return COPP_EC_ALREADY_INITED;
+                }
 
                 alloc_.allocate(callee_stack_, stack_traits::default_size());
 
-                if (NULL == callee_stack_.sp)
+                if (NULL == callee_stack_.sp) {
                     return COPP_EC_ALLOC_STACK_FAILED;
+                }
 
                 return base_type::create(runner, func);
             }
 
         private:
-            coroutine_context_container(const coroutine_context_container&);
+            coroutine_context_container(const coroutine_context_container&) UTIL_CONFIG_DELETED_FUNCTION;
 
         private:
             allocator_type alloc_; /** stack allocator **/

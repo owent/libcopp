@@ -26,7 +26,7 @@ namespace copp {
         class stack_allocator_split_segment
         {
         public:
-            stack_allocator_split_segment();
+            stack_allocator_split_segment() UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_split_segment();
 
             /**
@@ -34,13 +34,13 @@ namespace copp {
              * @param ctx stack context
              * @param size stack size of unit
              */
-            void allocate(stack_context &, std::size_t);
+            void allocate(stack_context &, std::size_t) UTIL_CONFIG_NOEXCEPT;
 
             /**
              * deallocate memory from stack context [standard function]
              * @param ctx stack context
              */
-            void deallocate(stack_context &);
+            void deallocate(stack_context &) UTIL_CONFIG_NOEXCEPT;
         };
 
     } 

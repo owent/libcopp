@@ -220,6 +220,12 @@
 #    endif
 
 #    if (__GNUC__ * 100 + __GNUC_MINOR__) >= 404 && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__))
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 0
+#    endif
+
+#    if (__GNUC__ * 100 + __GNUC_MINOR__) >= 404 && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__))
 #      define UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT 0
@@ -322,6 +328,12 @@
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 0
+#    endif
+
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_rvalue_references)
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 0
 #    endif
 
 #    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_static_assert)
@@ -428,6 +440,12 @@
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 0
+#    endif
+
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 400 && __has_feature(cxx_rvalue_references)
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 0
 #    endif
 
 #    if ((__clang_major__ * 100) + __clang_minor__) >= 400 && __has_feature(cxx_static_assert)
@@ -540,6 +558,12 @@
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 0
+#    endif
+
+#    if _MSC_VER >= 1600
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 0
 #    endif
 
 #    if _MSC_VER >= 1600

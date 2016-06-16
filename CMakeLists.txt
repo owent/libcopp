@@ -20,8 +20,15 @@ EchoWithColor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")
 ########################################################################
 # 导入项目配置
 ## 导入所有 macro 定义
-include_macro_recurse("${PROJECT_SOURCE_DIR}")
+include_macro_recurse(${CMAKE_CURRENT_LIST_DIR})
 
 ## 导入所有工程项目
-add_project_recurse("${PROJECT_SOURCE_DIR}")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src")
 
+if(PROJECT_ENABLE_SAMPLE)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/sample")
+endif()
+
+if(PROJECT_ENABLE_UNITTEST)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/test")
+endif()

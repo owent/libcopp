@@ -25,7 +25,7 @@ namespace cotask {
 
             static const value_type npos = 0; /** invalid key **/
         public:
-            value_type allocate() {
+            value_type allocate() UTIL_CONFIG_NOEXCEPT {
                 static value_type start = 0;
                 static const value_type end = static_cast<value_type>(1) << (sizeof(value_type) * 4);
                 static value_type time_stamp = static_cast<value_type>(time(NULL));
@@ -47,11 +47,11 @@ namespace cotask {
                 return ret;
             }
 
-            void deallocate(value_type) {
+            void deallocate(value_type) UTIL_CONFIG_NOEXCEPT {
             }
 
         private:
-            value_type gen_id(value_type time_stamp, value_type index) {
+            value_type gen_id(value_type time_stamp, value_type index) UTIL_CONFIG_NOEXCEPT {
                 return (time_stamp << (sizeof(value_type) * 4)) | index;
             }
         };

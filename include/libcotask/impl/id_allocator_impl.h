@@ -10,6 +10,7 @@
 #ifndef _COTASK_IMPL_ID_ALLOCATOR_IMPL_H_
 #define _COTASK_IMPL_ID_ALLOCATOR_IMPL_H_
 
+#include "libcopp/utils/config/compiler_features.h"
 
 namespace cotask {
     namespace impl {
@@ -19,8 +20,8 @@ namespace cotask {
         public:
             typedef Ty value_type;
             ~id_allocator() {};
-            value_type allocate();
-            void deallocate(value_type);
+            value_type allocate() UTIL_CONFIG_NOEXCEPT;
+            void deallocate(value_type) UTIL_CONFIG_NOEXCEPT;
         };
     }
 }

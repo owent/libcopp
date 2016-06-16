@@ -64,7 +64,7 @@ namespace copp {
 
         
 
-        coroutine_context_base::coroutine_context_base() :
+        coroutine_context_base::coroutine_context_base() UTIL_CONFIG_NOEXCEPT :
             runner_ret_code_(0), runner_(NULL), priv_data_(NULL), 
             status_(status_t::EN_CRS_INVALID), 
             caller_(NULL), callee_(NULL), callee_stack_()
@@ -79,7 +79,7 @@ namespace copp {
         }
 
         int coroutine_context_base::create(coroutine_runnable_base* runner,
-            void (*func)(::copp::fcontext::transfer_t)) {
+            void (*func)(::copp::fcontext::transfer_t)) UTIL_CONFIG_NOEXCEPT {
 
             if (NULL == func) {
                 func = &coroutine_context_base::coroutine_context_callback;
@@ -177,19 +177,19 @@ namespace copp {
         }
 
         int coroutine_context_base::set_runner(
-            coroutine_runnable_base* runner) {
+            coroutine_runnable_base* runner) UTIL_CONFIG_NOEXCEPT {
             runner_ = runner;
             return COPP_EC_SUCCESS;
         }
 
-        bool coroutine_context_base::is_finished() const {
+        bool coroutine_context_base::is_finished() const UTIL_CONFIG_NOEXCEPT {
             return status_.load() >= status_t::EN_CRS_FINISHED;
         }
 
         void coroutine_context_base::jump_to(
             fcontext::fcontext_t& to_fctx, 
             stack_context& from_sctx, stack_context& to_sctx, 
-            jump_src_data_t& jump_transfer) {
+            jump_src_data_t& jump_transfer) UTIL_CONFIG_NOEXCEPT {
 
             copp::fcontext::transfer_t res;
             jump_src_data_t* jump_src;
@@ -243,7 +243,7 @@ namespace copp {
             }
 
             // this_coroutine
-            set_this_coroutine_context(jump_src->to_co);
+            set_this_coroutine_context(jump_transfer.from_co);
         }
 
         void coroutine_context_base::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
@@ -279,7 +279,7 @@ namespace copp {
     }
 
     namespace this_coroutine {
-        detail::coroutine_context_base* get_coroutine() {
+        detail::coroutine_context_base* get_coroutine() UTIL_CONFIG_NOEXCEPT {
             return detail::get_this_coroutine_context();
         }
 

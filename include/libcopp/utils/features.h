@@ -61,8 +61,8 @@
 #define __THROW
 #endif
 // ---------------- c extern ----------------
-#if defined(__cplusplus) && __cplusplus >= 201103L
-    #define COPP_MACRO_NOEXCEPT noexcept
+#if defined(UTIL_CONFIG_NOEXCEPT)
+    #define COPP_MACRO_NOEXCEPT UTIL_CONFIG_NOEXCEPT
 #else
     #define COPP_MACRO_NOEXCEPT
 #endif

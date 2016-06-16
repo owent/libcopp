@@ -21,15 +21,15 @@ namespace cotask {
 
         task_impl::~task_impl(){}
 
-        bool task_impl::is_canceled() const {
+        bool task_impl::is_canceled() const UTIL_CONFIG_NOEXCEPT {
             return EN_TS_CANCELED == get_status();
         }
 
-        bool task_impl::is_completed() const {
+        bool task_impl::is_completed() const UTIL_CONFIG_NOEXCEPT {
             return EN_TS_DONE <= get_status();
         }
 
-        bool task_impl::is_faulted() const {
+        bool task_impl::is_faulted() const UTIL_CONFIG_NOEXCEPT {
             return EN_TS_KILLED <= get_status();
         }
 
