@@ -50,7 +50,7 @@ namespace copp {
             ctx.sp = static_cast<char *>(start_ptr_) + ctx.size; // stack down
 
 #if defined(COPP_MACRO_USE_VALGRIND)
-            ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, start_ptr);
+            ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, start_ptr_);
 #endif
         }
 

@@ -26,13 +26,15 @@ if (LIBCOPP_ENABLE_SEGMENTED_STACKS)
         EchoWithColor(COLOR YELLOW "-- set LIBCOPP_ENABLE_SEGMENTED_STACKS but gcc 4.7.0 and upper support segmented stacks")
         unset(LIBCOPP_ENABLE_SEGMENTED_STACKS)
     else()
+        EchoWithColor(COLOR GREEN "-- Enable segmented stacks")
         add_definitions(-fsplit-stack)
+        set(COPP_MACRO_USE_SEGMENTED_STACKS 1)
     endif()
 endif()
 
 
 configure_file(
-    "${PROJECT_ROOT_INC_DIR}/libcopp/utils/features.h.in"
-    "${PROJECT_ROOT_INC_DIR}/libcopp/utils/features.h"
+    "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h.in"
+    "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
     @ONLY
 )

@@ -1,3 +1,5 @@
+// cmake template file
+
 #ifndef _COPP_UTILS_FEATURES_H_
 #define _COPP_UTILS_FEATURES_H_
 
@@ -9,6 +11,7 @@
 #include <libcopp/utils/config/compiler_features.h>
 
 // ================ build options ================
+#include <libcopp/utils/config/build_feature.h>
 // ---------------- build options ----------------
 
 // ================ select compiler ================

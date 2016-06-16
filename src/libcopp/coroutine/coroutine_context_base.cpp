@@ -197,14 +197,14 @@ namespace copp {
             // can not use any more stack now
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-            assert(&from_stack != &to_stack);
+            assert(&from_sctx != &to_sctx);
             __splitstack_getcontext(from_sctx.segments_ctx);
             __splitstack_setcontext(to_sctx.segments_ctx);
 
             // ROOT->A: jump_transfer.from_co == NULL, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup segments
             // A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
             // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == NULL, from_sctx == B.callee_stack_, skip backup segments
-            if (NULL != jump_transfer.from_co && (&from_stack) != &jump_transfer.from_co->callee_stack_) {
+            if (NULL != jump_transfer.from_co && (&from_sctx) != &jump_transfer.from_co->callee_stack_) {
                 memcpy(&jump_transfer.from_co->callee_stack_.segments_ctx, &from_sctx.segments_ctx, sizeof(from_sctx.segments_ctx));
             }
 #endif

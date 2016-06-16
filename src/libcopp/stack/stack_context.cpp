@@ -9,7 +9,7 @@ namespace copp {
         ,segments_ctx()
 #endif
 #ifdef COPP_MACRO_USE_VALGRIND
-        ,valgrind_stack_id(0);
+        ,valgrind_stack_id(0)
 #endif
     {
     }
