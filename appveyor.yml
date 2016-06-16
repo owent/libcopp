@@ -1,0 +1,208 @@
+#
+# Appveyor configuration file for CI build of hiredis-happ on Windows (under Cygwin)
+#
+# For further details see http://www.appveyor.com
+#
+
+#
+# Custom environment variables
+#
+environment:
+    global:
+        PREBUILT_ROOT: C:/Users/appveyor/prebuilt
+        SETUP_ROOT: C:/Users/appveyor/setup
+        PKG_SRC_ROOT: C:/Users/appveyor/pkg_src
+        MSYS2_PREFIX: C:/tools/msys64
+        MSYS2_LOG_FILE: C:/Users/appveyor/pkg_src/output.log
+    matrix:
+        - os: Visual Studio 2015
+          platform: x64
+          CMAKE_GEN: Visual Studio 14 2015 Win64
+        - os: Visual Studio 2013
+          platform: x64
+          CMAKE_GEN: Visual Studio 12 2013 Win64
+        #- os: MinGW
+        #  CMAKE_GEN: MinGW32
+        #- os: MinGW
+        #  CMAKE_GEN: MinGW64
+
+configuration: RelWithDebInfo
+
+#
+# Cache Cygwin files to speed up build
+#
+cache:
+    - C:\Users\appveyor\prebuilt
+
+#
+# Do a shallow clone of the repo to speed up build
+#
+clone_depth: 1
+
+#
+# Initialisation prior to pulling the Mono repository
+# Attempt to ensure we don't try to convert line endings to Win32 CRLF as this will cause build to fail
+#
+init:
+    - ps: >-
+        if ( -not ( Test-Path "$Env:PKG_SRC_ROOT" ) ) {
+
+            mkdir "$Env:PKG_SRC_ROOT"
+
+        }
+
+        if ( -not ( Test-Path "$Env:MSYS2_PREFIX" ) ) {
+
+            mkdir "$Env:MSYS2_PREFIX"
+
+        }
+
+    - ps: >-
+        & git config --global core.autocrlf input
+
+        if ( "$Env:OS" -ieq "MinGW" ) {
+
+            if ( Test-Path "C:/msys64" ) {
+
+                $Env:MSYS2_PREFIX="C:/msys64"
+
+                $Env:PATH="$Env:MSYS2_PREFIX;$Env:PATH"
+
+            } else {
+
+                & cinst -y msys2 | Out-Host
+
+            }
+
+            echo "" > "$Env:MSYS2_LOG_FILE"
+
+            Get-ChildItem "$Env:MSYS2_PREFIX"
+
+        }
+
+    - ps: >-
+        if ( "$Env:OS" -ieq "MinGW" ) {
+
+            echo "$Env:MSYS2_PREFIX/msys2_shell -lc 'pacman -Su --noconfirm --force > '$Env:MSYS2_LOG_FILE' 2>&1'"
+
+            & "$Env:MSYS2_PREFIX/msys2_shell" -lc "pacman -Su --noconfirm --force > '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+
+            Get-Content "$Env:MSYS2_LOG_FILE"
+        }
+
+#
+# Install needed build dependencies
+#
+install:
+    - ps: >-
+        if ( "$Env:OS" -ieq "MinGW" ) {
+
+            & "$Env:MSYS2_PREFIX/msys2_shell" -lc 'for pkg_name in cmake m4 curl wget tar autoconf automake mingw-w64-x86_64-toolchain mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain mingw-w64-x86_64-libtool mingw-w64-i686-libtool python; do pacman -S --noconfirm --force $pkg_name >> '$Env:MSYS2_LOG_FILE' 2>&1; done' | Out-Host
+
+            Get-Content "$Env:MSYS2_LOG_FILE"
+
+        } else {
+
+            echo "No need install."
+
+        }
+
+# Build script
+#
+# NOTES:
+#
+# The stdin/stdout file descriptor appears not to be valid for the Appveyor
+# build which causes failures as certain functions attempt to redirect
+# default file handles. Ensure a dummy file descriptor is opened with 'exec'.
+#
+build_script:
+    - ps: >-
+
+        cd "$Env:APPVEYOR_BUILD_FOLDER"
+
+        New-Item -Path build -ItemType directory
+
+        cd build
+
+        Remove-Item -r *
+
+        if ( "$Env:OS" -ieq "MinGW" ) {
+
+            if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
+
+                echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; mkdir build cmake .. -G 'MSYS Makefiles' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ; make -j4"
+
+                & "$Env:MSYS2_PREFIX/msys2_shell" -mingw32 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake .. -G 'MSYS Makefiles' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON > '$Env:MSYS2_LOG_FILE' 2>&1; make -j4 >> '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+
+                Get-Content "$Env:MSYS2_LOG_FILE"
+
+            } else {
+
+                echo "$Env:MSYS2_PREFIX/msys2_shell -mingw64 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake .. -G 'MSYS Makefiles' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ; make -j4"
+
+                & "$Env:MSYS2_PREFIX/msys2_shell" -mingw64 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake ..  -G 'MSYS Makefiles' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON > '$Env:MSYS2_LOG_FILE' 2>&1; make -j4 >> '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+
+                Get-Content "$Env:MSYS2_LOG_FILE"
+
+            }
+
+        } else {
+
+            echo "cmake ..  -G '$Env:CMAKE_GEN' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON "
+
+            & cmake ..  -G "$Env:CMAKE_GEN" -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON
+
+            echo "'C:\Program Files (x86)\MSBuild\14.0\bin\msbuild.exe' 'libcopp.sln' /verbosity:minimal /p:Configuration=$Env:CONFIGURATION /p:Platform=$Env:PLATFORM"
+
+            & "C:\Program Files (x86)\MSBuild\14.0\bin\msbuild.exe" "libcopp.sln" /verbosity:minimal /p:Configuration=$Env:CONFIGURATION /p:Platform=$Env:PLATFORM
+
+        }
+#
+# Run unit test
+# Can not get failed log in mingw, so just check if build success in mingw(custom test myself)
+#
+test_script:
+    - ps: >-
+
+        if ( "$Env:OS" -ieq "MinGW" ) {
+
+            if ( -not (  Test-Path "$Env:APPVEYOR_BUILD_FOLDER/build/test/coroutine_test.exe" ) ) {
+
+                echo "Build failed.";
+
+                exit -1;
+
+            }
+
+            if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
+
+                echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; ./test/coroutine_test.exe;"
+
+                & "$Env:MSYS2_PREFIX/msys2_shell" -mingw32 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; ./test/coroutine_test.exe  > '$Env:MSYS2_LOG_FILE';" | Out-Host
+
+                Get-Content "$Env:MSYS2_LOG_FILE"
+
+            } else {
+
+                echo "$Env:MSYS2_PREFIX/msys2_shell -mingw64 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; ./test/coroutine_test.exe;"
+
+                & "$Env:MSYS2_PREFIX/msys2_shell" -mingw64 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; ./test/coroutine_test.exe  > '$Env:MSYS2_LOG_FILE';" | Out-Host
+
+                Get-Content "$Env:MSYS2_LOG_FILE"
+
+            }
+
+        } else {
+
+            & "test/$Env:CONFIGURATION/coroutine_test.exe"
+
+        }
+
+#
+# Only build the master branch
+#
+branches:
+  only:
+    - master
+
+# no need artifacts
