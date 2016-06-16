@@ -8,6 +8,9 @@
 
 #include <libcopp/utils/config/compiler_features.h>
 
+// ================ build options ================
+// ---------------- build options ----------------
+
 // ================ select compiler ================
 #if defined(__GCCXML__)
     #define COPP_MACRO_COMPILER_GCCXML 1
