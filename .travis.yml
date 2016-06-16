@@ -47,10 +47,10 @@ before_script:
   - if [ ! -e "$CMAKE_PREFIX/bin/cmake" ]; then
         mkdir -p "$CMAKE_PREFIX";
         wget -c "https://github.com/Kitware/CMake/archive/v$CMAKE_VERSION.tar.gz" -O CMake-$CMAKE_VERSION.tar.gz ;
-        tar -xvf CMake-$CMAKE_VERSION.tar.gz;
+        tar -xf CMake-$CMAKE_VERSION.tar.gz;
         cd CMake-$CMAKE_VERSION ;
         ./bootstrap --prefix=$CMAKE_PREFIX;
-        make -j4 install;
+        make -j4 install > /dev/null;
         cd -;
         rm -rf CMake-$CMAKE_VERSION CMake-$CMAKE_VERSION.tar.gz;
     fi
