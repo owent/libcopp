@@ -14,6 +14,7 @@ extern "C" {
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #if !defined (SIGSTKSZ)
 # define SIGSTKSZ (8 * 1024)
