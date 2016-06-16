@@ -13,7 +13,8 @@
 *.a
 
 # Compiling directory
-build/*
+/build
+/build_*
 
 # generated docs
 doc/doxygen/*
