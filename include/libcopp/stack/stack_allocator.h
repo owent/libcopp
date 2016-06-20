@@ -11,20 +11,27 @@
 #include "allocator/stack_allocator_split_segment.h"
 #endif
 
-#ifdef COPP_MACRO_COMPILER_MSVC
-#include "allocator/stack_allocator_windows.h"
-namespace copp {
-    namespace allocator {
-        typedef stack_allocator_windows default_statck_allocator;
-    }
-}
-#else
+#ifdef COPP_MACRO_SYS_POSIX
 #include "allocator/stack_allocator_posix.h"
 namespace copp {
     namespace allocator {
         typedef stack_allocator_posix default_statck_allocator;
     }
 }
+
+#elif defined(COPP_MACRO_SYS_WIN)
+
+#include "allocator/stack_allocator_windows.h"
+namespace copp {
+    namespace allocator {
+        typedef stack_allocator_windows default_statck_allocator;
+    }
+}
+
+#else 
+
+#error unknown stack allocator
+
 #endif
 
 #endif /* STACK_ALLOCATOR_H_ */

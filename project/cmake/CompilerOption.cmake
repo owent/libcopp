@@ -19,7 +19,21 @@ set(CXX_FLAGS_IN_ONE_COMMON "")
 
 # 编译器选项 (仅做了GCC、VC和Clang兼容)
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    add_definitions(-Wall -Werror -fPIC -rdynamic)
+    add_definitions(-Wall -Werror)
+
+    if(NOT WIN32 AND NOT CYGWIN AND NOT MINGW) 
+        add_definitions(-fPIC)
+    endif()
+
+    include(CheckCCompilerFlag)
+    message(STATUS "Check Flag: -rdynamic -- running")
+    CHECK_C_COMPILER_FLAG(-rdynamic, C_FLAGS_RDYNAMIC_AVAILABLE)
+    if(C_FLAGS_RDYNAMIC_AVAILABLE)
+        message(STATUS "Check Flag: -rdynamic -- yes")
+        add_definitions(-rdynamic)
+    else()
+        message(STATUS "Check Flag: -rdynamic -- no")
+    endif()
 
     # gcc 4.9 编译输出颜色支持
     if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.9.0" )
@@ -40,7 +54,7 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_CXX_STANDARD 11)
         message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c11/c++11.")
     elseif( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.4.0" OR CMAKE_CXX_COMPILER_VERSION  VERSION_EQUAL "4.4.0" )
-        set(CXX_FLAGS_IN_ONE_COMMON "${C_FLAGS_IN_ONE_COMMON} -std=c++0x")
+        set(CXX_FLAGS_IN_ONE_COMMON "${CXX_FLAGS_IN_ONE_COMMON} -std=c++0x")
         message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c++0x.")
     endif()
 

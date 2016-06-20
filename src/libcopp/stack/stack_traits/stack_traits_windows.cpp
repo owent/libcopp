@@ -1,5 +1,3 @@
-#if defined(_MSC_VER)
-
 extern "C" {
 #include <windows.h>
 #include <assert.h>
@@ -17,6 +15,11 @@ extern "C" {
 #include <cstddef>
 #include <cstring>
 #include <stdexcept>
+
+#if __cplusplus >= 201103L
+#include <thread>
+#include <mutex>
+#endif
 
 #include "libcopp/stack/stack_context.h"
 
@@ -68,11 +71,13 @@ namespace copp {
 
         static std::size_t pagesize() { return static_cast< std::size_t >( system_info().dwPageSize); }
 
+        /**
         static std::size_t page_count(std::size_t stacksize) {
             return static_cast< std::size_t >(
                 std::floor(
                     static_cast< float >( stacksize) / pagesize()));
         }
+        **/
     }
 
     // Windows seams not to provide a limit for the stacksize
@@ -116,6 +121,4 @@ namespace copp {
 
 #ifdef COPP_HAS_ABI_HEADERS
 # include COPP_ABI_SUFFIX
-#endif
-
 #endif
