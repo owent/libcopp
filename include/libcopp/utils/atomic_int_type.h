@@ -35,10 +35,13 @@
 #include <atomic>
 #define __UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
 
-#elif defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4) && defined(__GXX_EXPERIMENTAL_CXX0X__)
-
-#include <atomic>
-#define __UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
+// There is a BUG in gcc 4.6, which will cause 'undefined reference to `std::atomic_thread_fence(std::memory_order)'
+// In gcc 4.7 and upper, we can use -std=c++11 or upper
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=51038
+// #elif defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4) && defined(__GXX_EXPERIMENTAL_CXX0X__)
+// 
+// #include <atomic>
+// #define __UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
 
 #endif
 
@@ -58,6 +61,9 @@ namespace util {
         using ::std::memory_order_release;
         using ::std::memory_order_acq_rel;
         using ::std::memory_order_seq_cst;
+
+        #define UTIL_LOCK_ATOMIC_THREAD_FENCE(order) ::std::atomic_thread_fence(order)
+        #define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(order) ::std::atomic_signal_fence(order)
 
         /**
          * @brief atomic - C++ 0x/11版实现
@@ -180,6 +186,10 @@ namespace util {
             memory_order_acq_rel = __ATOMIC_ACQ_REL,
             memory_order_seq_cst = __ATOMIC_SEQ_CST
         };
+
+        #define UTIL_LOCK_ATOMIC_THREAD_FENCE(order) __atomic_thread_fence(order)
+        #define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(order) __atomic_signal_fence(order)
+
 #elif !defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC) // old gcc and old msvc use this
         enum memory_order {
             memory_order_relaxed = 0,
@@ -189,6 +199,14 @@ namespace util {
             memory_order_acq_rel,
             memory_order_seq_cst
         };
+#endif
+
+#ifndef UTIL_LOCK_ATOMIC_THREAD_FENCE
+#define UTIL_LOCK_ATOMIC_THREAD_FENCE(x)
+#endif
+
+#ifndef UTIL_LOCK_ATOMIC_SIGNAL_FENCE
+#define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(x)
 #endif
 
         template<typename Ty = int>
