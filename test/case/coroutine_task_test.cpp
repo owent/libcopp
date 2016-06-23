@@ -316,6 +316,7 @@ CASE_TEST(coroutine_task, next)
     CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
 }
 
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
 
 struct test_context_task_functor_drived : public cotask::impl::task_action_impl
 {
@@ -342,6 +343,8 @@ CASE_TEST(coroutine_task, functor_drived_action)
     );
     CASE_EXPECT_EQ(0, co_task->start());
 }
+
+#endif
 
 #endif
 
