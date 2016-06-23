@@ -23,8 +23,8 @@ environment:
           CMAKE_GEN: Visual Studio 12 2013 Win64
         #- os: MinGW
         #  CMAKE_GEN: MinGW32
-        #- os: MinGW
-        #  CMAKE_GEN: MinGW64
+        - os: MinGW
+          CMAKE_GEN: MinGW64
 
 configuration: RelWithDebInfo
 
