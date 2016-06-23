@@ -5,36 +5,36 @@ env:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=/home/travis/prebuilt/cmake ;
     - CMAKE_VERSION=3.5.2 ;
-  matrix:
-    include:
-      - os: osx
-        env: USE_CC=clang USE_CXX=clang++
-      - os: osx
-        env: USE_CC=gcc USE_CXX=g++
-      - os: linux
-        dist: trusty
-        sudo: required
-        env: USE_CC=gcc USE_CXX=g++
-      - os: linux
-        dist: trusty
-        sudo: required
-        env: USE_CC=gcc-4.4 USE_CXX=g++-4.4
-      - os: linux
-        dist: trusty
-        sudo: required
-        env: USE_CC=gcc-4.9 USE_CXX=g++-4.9
-      - os: linux
-        dist: trusty
-        sudo: required
-        env: USE_CC=gcc-6 USE_CXX=g++-6
-      - os: linux
-        dist: trusty
-        sudo: required
-        env: USE_CC=clang USE_CXX=clang++
-      # - os: linux
-      #   dist: trusty
-      #   sudo: required
-      #   env: USE_CC=clang-3.8 USE_CXX=clang++-3.8
+matrix:
+  include:
+    - os: osx
+      env: USE_CC=clang USE_CXX=clang++
+    - os: osx
+      env: USE_CC=gcc USE_CXX=g++
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: USE_CC=gcc USE_CXX=g++
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: USE_CC=gcc-4.4 USE_CXX=g++-4.4
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: USE_CC=gcc-4.9 USE_CXX=g++-4.9
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: USE_CC=gcc-6 USE_CXX=g++-6
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: USE_CC=clang USE_CXX=clang++
+    # - os: linux
+    #   dist: trusty
+    #   sudo: required
+    #   env: USE_CC=clang-3.8 USE_CXX=clang++-3.8
 
 addons:
   apt:
