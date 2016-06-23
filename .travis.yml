@@ -20,7 +20,9 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-3.8
+      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main'
+        key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+
     packages:
       - g++-4.4
       - g++-4.4-multilib
