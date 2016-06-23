@@ -3,7 +3,7 @@ language: cpp
 env:
   global:
     - LANG="zh_CN.UTF-8"
-    - CMAKE_PREFIX=/home/travis/prebuilt/cmake ;
+    - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
     - CMAKE_VERSION=3.5.2 ;
 matrix:
   include:
@@ -57,8 +57,6 @@ addons:
       - g++-6
       - g++-6-multilib
       - clang
-      - libclang-common-dev
-      - libclang-dev
       ## - libc++1
       ## - libc++-dev
       ## - libc++abi1
