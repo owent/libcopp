@@ -8,20 +8,20 @@ env:
     - CMAKE_PREFIX=/home/travis/prebuilt/cmake ;
     - CMAKE_VERSION=3.5.2 ;
   matrix:
-    # - TRAVIS_OS_NAME=osx USE_CC=clang USE_CXX=clang++
+    - TRAVIS_OS_NAME=osx USE_CC=clang USE_CXX=clang++
     - TRAVIS_OS_NAME=osx USE_CC=gcc USE_CXX=g++
     - TRAVIS_OS_NAME=linux USE_CC=gcc USE_CXX=g++
     - TRAVIS_OS_NAME=linux USE_CC=gcc-4.4 USE_CXX=g++-4.4
     - TRAVIS_OS_NAME=linux USE_CC=gcc-4.9 USE_CXX=g++-4.9
     - TRAVIS_OS_NAME=linux USE_CC=gcc-6 USE_CXX=g++-6
-    - TRAVIS_OS_NAME=linux USE_CC=clang-3.8 USE_CXX=clang++-3.8
+    # - TRAVIS_OS_NAME=linux USE_CC=clang-3.8 USE_CXX=clang++-3.8
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main'
-        key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+      # - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main'
+      #   key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
 
     packages:
       - g++-4.4
@@ -41,9 +41,9 @@ addons:
       ## - libc++-dev
       ## - libc++abi1
       ## - libc++abi-dev
-      - clang-3.8
-      - libclang-common-3.8-dev
-      - libclang-3.8-dev
+      # - clang-3.8
+      # - libclang-common-3.8-dev
+      # - libclang-3.8-dev
   
 before_script:
   - REPO_DIR=$PWD;
