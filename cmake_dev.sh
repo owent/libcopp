@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SYS_NAME="$(uname -o)";
+SYS_NAME="$(uname -s)";
 SYS_NAME="$(basename $SYS_NAME)";
 
 BUILD_DIR="build_$SYS_NAME";
