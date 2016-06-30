@@ -14,6 +14,7 @@
 #include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/std/smart_ptr.h>
 #include <list>
+#include <stdint.h>
 
 
 #include <libcotask/task_actions.h>
