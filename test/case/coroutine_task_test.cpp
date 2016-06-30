@@ -52,16 +52,16 @@ CASE_TEST(coroutine_task, custom_action) {
     CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_task->get_status());
     CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_another_task->get_status());
 
-    CASE_EXPECT_EQ(0, co_task->resume(&co_task));
+    CASE_EXPECT_EQ(0, co_task->resume(co_task.get()));
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);
 
-    CASE_EXPECT_EQ(0, co_another_task->resume(&co_another_task));
+    CASE_EXPECT_EQ(0, co_another_task->resume(co_another_task.get()));
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
     CASE_EXPECT_TRUE(co_task->is_completed());
     CASE_EXPECT_TRUE(co_another_task->is_completed());
 
-    CASE_EXPECT_GT(0, co_another_task->resume(&co_another_task));
+    CASE_EXPECT_GT(0, co_another_task->resume(co_another_task.get()));
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
     ++g_test_coroutine_task_status;

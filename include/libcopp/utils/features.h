@@ -141,11 +141,18 @@
 
 #ifndef unreachable
 #ifdef __GNUC__
-#if (!defined(__clang__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))) || \
-    (defined(__clang__) && __has_builtin(__builtin_unreachable))
+#ifdef __clang__
+#if __has_builtin(__builtin_unreachable)
 #define unreachable() __builtin_unreachable()
 #else
 #define unreachable() abort()
+#endif
+#else
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#define unreachable() __builtin_unreachable()
+#else
+#define unreachable() abort()
+#endif
 #endif
 #else
 #define unreachable() abort()

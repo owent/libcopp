@@ -236,7 +236,7 @@ namespace copp {
             }
 
             // private data
-            jump_transfer.priv_data = jump_src.priv_data;
+            jump_transfer.priv_data = jump_src->priv_data;
 
             // this_coroutine
             set_this_coroutine_context(jump_transfer.from_co);
@@ -266,7 +266,7 @@ namespace copp {
             set_this_coroutine_context(ins_ptr);
 
             // run logic code
-            ins_ptr->run_and_recv_retcode(src_ctx.priv_data);
+            ins_ptr->run_and_recv_retcode(jump_src.priv_data);
 
             ins_ptr->status_.store(status_t::EN_CRS_FINISHED);
             // jump back to caller

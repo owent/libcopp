@@ -375,8 +375,14 @@ namespace cotask {
             return copp::COPP_EC_SUCCESS;
         }
 
+        using impl::task_impl::kill;
+        using impl::task_impl::start;
+        using impl::task_impl::resume;
+        using impl::task_impl::yield;
+        using impl::task_impl::cancel;
+
     public:
-        virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_.is_finished(); }
+        virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT UTIL_CONFIG_OVERRIDE { return coroutine_obj_.is_finished(); }
 
     private:
         task(const task &) UTIL_CONFIG_DELETED_FUNCTION;
