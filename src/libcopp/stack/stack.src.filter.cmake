@@ -38,4 +38,5 @@ endif()
 
 if (COPP_MACRO_USE_VALGRIND OR LIBCOPP_ENABLE_VALGRIND)
     EchoWithColor(COLOR GREEN "-- gcc enable valgrind.")
+	set(COPP_MACRO_USE_VALGRIND 1)
 endif()
