@@ -3,7 +3,7 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
@@ -26,7 +26,14 @@ namespace copp {
              * @note just like int main()
              * @return return code
              */
-            virtual int operator()() = 0;
+            virtual int operator()();
+
+            /**
+             * @brief coroutine logic entrance
+             * @param priv_data private data, passed by start(priv_data)
+             * @return return code
+             */
+            virtual int operator()(void *priv_data);
         };
     }
 

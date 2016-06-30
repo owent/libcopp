@@ -10,15 +10,16 @@
 #ifndef _COTASK_IMPL_TASK_IMPL_H_
 #define _COTASK_IMPL_TASK_IMPL_H_
 
-#include <list>
-#include <libcopp/utils/std/smart_ptr.h>
+#include <libcopp/utils/atomic_int_type.h>
 #include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/std/smart_ptr.h>
+#include <list>
+
 
 #include <libcotask/task_actions.h>
 
 namespace cotask {
-    enum EN_TASK_STATUS
-    {
+    enum EN_TASK_STATUS {
         EN_TS_INVALID = 0,
         EN_TS_CREATED,
         EN_TS_RUNNING,
@@ -31,8 +32,7 @@ namespace cotask {
 
     namespace impl {
 
-        class task_impl: public std::enable_shared_from_this<task_impl>
-        {
+        class task_impl : public std::enable_shared_from_this<task_impl> {
         public:
             typedef std::shared_ptr<task_impl> ptr_t;
             typedef std::shared_ptr<task_action_impl> action_ptr_t;
@@ -42,7 +42,7 @@ namespace cotask {
             };
 
         private:
-            task_impl(const task_impl&);
+            task_impl(const task_impl &);
 
         public:
             task_impl();
@@ -52,7 +52,7 @@ namespace cotask {
              * get task status
              * @return task status
              */
-            inline EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT { return status_; }
+            EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT;
 
             virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;
@@ -70,12 +70,19 @@ namespace cotask {
         public:
             virtual int get_ret_code() const = 0;
 
-            virtual int start() = 0;
-            virtual int resume() = 0;
-            virtual int yield() = 0;
-            virtual int cancel() = 0;
-            virtual int kill(enum EN_TASK_STATUS status) = 0;
-            virtual int kill();
+            virtual int start(void *priv_data) = 0;
+            virtual int resume(void *priv_data) = 0;
+            virtual int yield(void **priv_data) = 0;
+            virtual int cancel(void *priv_data) = 0;
+            virtual int kill(enum EN_TASK_STATUS status, void *priv_data) = 0;
+            inline int kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
+
+            inline int start() { return start(UTIL_CONFIG_NULLPTR); };
+            inline int resume() { return resume(UTIL_CONFIG_NULLPTR); };
+            inline int yield() { return yield(UTIL_CONFIG_NULLPTR); };
+            inline int cancel() { return cancel(UTIL_CONFIG_NULLPTR); };
+            inline int kill(enum EN_TASK_STATUS status) { return kill(status, UTIL_CONFIG_NULLPTR); };
+            inline int kill() { return kill(UTIL_CONFIG_NULLPTR); };
 
             virtual int on_finished();
 
@@ -83,23 +90,26 @@ namespace cotask {
              * get current running task
              * @return current running task or empty pointer
              */
-            static task_impl* this_task();
+            static task_impl *this_task();
 
         protected:
             void _set_action(action_ptr_t action);
             action_ptr_t _get_action();
 
-            inline void _set_status(EN_TASK_STATUS status) { status_ = status; }
+            bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);
 
             void active_next_tasks();
 
-            int _notify_finished();
+            int _notify_finished(void *priv_data);
 
         private:
             action_ptr_t action_;
-            EN_TASK_STATUS status_;
+            ::util::lock::atomic_int_type<uint32_t> status_;
 
             task_group next_list_;
+
+        protected:
+            void *finish_priv_data_;
         };
     }
 }

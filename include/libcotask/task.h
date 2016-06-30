@@ -300,52 +300,76 @@ namespace cotask {
     public:
         virtual int get_ret_code() const { return coroutine_obj_.get_ret_code(); }
 
-        virtual int start() {
-            if (get_status() >= EN_TS_DONE) {
-                return copp::COPP_EC_ALREADY_FINISHED;
-            }
-            // TODO
-            //#ifdef COPP_MACRO_ENABLE_MULTI_THREAD
-            //#endif
-            if (get_status() == EN_TS_RUNNING) {
-                return copp::COPP_EC_IS_RUNNING;
-            }
-            _set_status(EN_TS_RUNNING);
-            int ret = coroutine_obj_.start();
+        virtual int start(void *priv_data) {
+            EN_TASK_STATUS from_status = get_status();
 
-            if (get_status() > EN_TS_DONE) { // canceled or killed
-                _notify_finished();
+            do {
+                if (from_status >= EN_TS_DONE) {
+                    return copp::COPP_EC_ALREADY_FINISHED;
+                }
+
+                if (from_status == EN_TS_RUNNING) {
+                    return copp::COPP_EC_IS_RUNNING;
+                }
+
+                if (likely(_cas_status(from_status, EN_TS_RUNNING))) {
+                    break;
+                }
+            } while (true);
+
+            int ret = coroutine_obj_.start(priv_data);
+
+            from_status = get_status();
+            if (from_status > EN_TS_DONE) { // canceled or killed
+                _notify_finished(finish_priv_data_);
+
             } else if (is_completed()) { // completed
-                _set_status(EN_TS_DONE);
-                _notify_finished();
+                while (!likely(_cas_status(from_status, EN_TS_DONE)))
+                    ;
+
+                _notify_finished(finish_priv_data_ = priv_data);
             } else { // waiting
-                _set_status(EN_TS_WAITING);
+                while (!likely(_cas_status(from_status, EN_TS_WAITING)))
+                    ;
             }
 
             return ret;
         }
 
-        virtual int resume() { return start(); }
+        virtual int resume(void *priv_data) UTIL_CONFIG_OVERRIDE { return start(priv_data); }
 
-        virtual int yield() { return coroutine_obj_.yield(); }
+        virtual int yield(void **priv_data) UTIL_CONFIG_OVERRIDE { return coroutine_obj_.yield(priv_data); }
 
-        virtual int cancel() {
-            if (EN_TS_RUNNING == get_status()) {
-                return copp::COPP_EC_IS_RUNNING;
-            }
+        virtual int cancel(void *priv_data) UTIL_CONFIG_OVERRIDE {
+            EN_TASK_STATUS from_status = get_status();
 
-            _set_status(EN_TS_CANCELED);
+            do {
+                if (EN_TS_RUNNING == from_status) {
+                    return copp::COPP_EC_IS_RUNNING;
+                }
 
-            _notify_finished();
+                if (likely(_cas_status(from_status, EN_TS_CANCELED))) {
+                    break;
+                }
+            } while (true);
+
+            _notify_finished(priv_data);
             return copp::COPP_EC_SUCCESS;
         }
 
-        virtual int kill(enum EN_TASK_STATUS status) {
-            enum EN_TASK_STATUS old_status = get_status();
-            _set_status(status);
+        virtual int kill(enum EN_TASK_STATUS status, void *priv_data) UTIL_CONFIG_OVERRIDE {
+            EN_TASK_STATUS from_status = get_status();
 
-            if (EN_TS_RUNNING != old_status) {
-                _notify_finished();
+            do {
+                if (likely(_cas_status(from_status, status))) {
+                    break;
+                }
+            } while (true);
+
+            if (EN_TS_RUNNING != from_status) {
+                _notify_finished(priv_data);
+            } else {
+                finish_priv_data_ = priv_data;
             }
 
             return copp::COPP_EC_SUCCESS;
@@ -355,20 +379,20 @@ namespace cotask {
         virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_.is_finished(); }
 
     private:
-        task(const task &);
+        task(const task &) UTIL_CONFIG_DELETED_FUNCTION;
 
-        int _notify_finished() {
+        int _notify_finished(void *priv_data) {
             // first, make sure coroutine finished.
             if (false == coroutine_obj_.is_finished()) {
                 // make sure this task will not be destroyed when running
                 // because this function may be called by destructor and shared_ptr is already free
                 // so any function that use shared_ptr or weak_ptr of this task should be deny
                 while (false == coroutine_obj_.is_finished()) {
-                    coroutine_obj_.resume();
+                    coroutine_obj_.resume(priv_data);
                 }
             }
 
-            return impl::task_impl::_notify_finished();
+            return impl::task_impl::_notify_finished(priv_data);
         }
 
     private:
