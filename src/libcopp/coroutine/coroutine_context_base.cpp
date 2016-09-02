@@ -240,6 +240,14 @@ namespace copp {
 
             // this_coroutine
             set_this_coroutine_context(jump_transfer.from_co);
+            // resume running status of from_co
+            if (NULL != jump_transfer.from_co) {
+                bool swap_success = false;
+                int from_status = jump_transfer.from_co->status_.load();
+                while (!swap_success && status_t::EN_CRS_READY == from_status) {
+                    swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING);
+                }
+            }
         }
 
         void coroutine_context_base::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
