@@ -194,56 +194,56 @@ namespace cotask {
         //int scheduling_once();
         //int scheduling_loop();
 
-        int start(id_t id) {
+        int start(id_t id, void* priv_data = NULL) {
             typedef typename container_t::iterator iter_type;
             iter_type iter = tasks_.find(id);
             if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
-            int ret = iter->second.task_->start();
+            int ret = iter->second.task_->start(priv_data);
             if (iter->second.task_->get_status() >= EN_TS_DONE)
                 tasks_.erase(iter);
 
             return ret;
         }
 
-        int resume(id_t id) {
+        int resume(id_t id, void* priv_data = NULL) {
             typedef typename container_t::iterator iter_type;
             iter_type iter = tasks_.find(id);
             if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
-            int ret = iter->second.task_->resume();
+            int ret = iter->second.task_->resume(priv_data);
             if (iter->second.task_->get_status() >= EN_TS_DONE)
                 tasks_.erase(iter);
 
             return ret;
         }
 
-        int cancel(id_t id) {
+        int cancel(id_t id, void* priv_data = NULL) {
             typedef typename container_t::iterator iter_type;
             iter_type iter = tasks_.find(id);
             if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
-            int ret = iter->second.task_->cancel();
+            int ret = iter->second.task_->cancel(priv_data);
             tasks_.erase(iter); // remove from container
             return ret;
         }
 
-        int kill(id_t id, enum EN_TASK_STATUS status) {
+        int kill(id_t id, enum EN_TASK_STATUS status, void* priv_data = NULL) {
             typedef typename container_t::iterator iter_type;
             iter_type iter = tasks_.find(id);
             if (tasks_.end() == iter)
                 return copp::COPP_EC_NOT_FOUND;
 
-            int ret = iter->second.task_->kill(status);
+            int ret = iter->second.task_->kill(status, priv_data);
             tasks_.erase(iter); // remove from container
             return ret;
         }
 
-        int kill(id_t id) {
-            return kill(id, EN_TS_KILLED);
+        int kill(id_t id, void* priv_data = NULL) {
+            return kill(id, EN_TS_KILLED, priv_data);
         }
 
         /**
