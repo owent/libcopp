@@ -298,9 +298,9 @@ namespace cotask {
         inline id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
 
     public:
-        virtual int get_ret_code() const { return coroutine_obj_.get_ret_code(); }
+        virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE { return coroutine_obj_.get_ret_code(); }
 
-        virtual int start(void *priv_data) {
+        virtual int start(void *priv_data) UTIL_CONFIG_OVERRIDE {
             EN_TASK_STATUS from_status = get_status();
 
             do {

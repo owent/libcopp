@@ -4,7 +4,7 @@
 #include <limits>
 #include <memory>
 #include <numeric>
-
+#include <cstdlib>
 
 #include "libcopp/stack/allocator/stack_allocator_malloc.h"
 #include "libcopp/stack/stack_context.h"

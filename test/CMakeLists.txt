@@ -65,15 +65,12 @@ endif()
 # ============ test - coroutine test frame ============
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/test")
 
-if(MINGW)
-    list(APPEND PROJECT_LIBCOPP_TEST_LIB_LINK stdc++)
-endif()
-
 add_executable(coroutine_test ${COPP_TEST_SRC_LIST})
 target_link_libraries(coroutine_test 
     ${PROJECT_LIBCOTASK_LIB_LINK}
     ${PROJECT_LIBCOPP_LIB_LINK} 
     ${PROJECT_LIBCOPP_TEST_LIB_LINK}
+    ${COMPILER_OPTION_EXTERN_CXX_LIBS}
 )
 
 add_test(test coroutine_test)
