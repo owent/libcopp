@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <cstring>
+#include <cstdlib>
 
 #include <libcopp/utils/errno.h>
 
@@ -202,6 +203,10 @@ namespace copp {
             }
 #endif
             res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
+            if (NULL == res.data) {
+                abort();
+                return;
+            }
             jump_src = reinterpret_cast<jump_src_data_t *>(res.data);
             assert(jump_src);
 
@@ -252,6 +257,10 @@ namespace copp {
 
         void coroutine_context_base::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
             assert(src_ctx.data);
+            if (NULL == src_ctx.data) {
+                abort();
+                return;
+            }
 
             // copy jump_src_data_t in case it's destroyed later
             jump_src_data_t jump_src = *reinterpret_cast<jump_src_data_t *>(src_ctx.data);
@@ -259,6 +268,10 @@ namespace copp {
             // this must in a coroutine
             coroutine_context_base *ins_ptr = jump_src.to_co;
             assert(ins_ptr);
+            if (NULL == ins_ptr) {
+                abort();
+                return;
+            }
 
             // update caller of to_co
             ins_ptr->caller_ = src_ctx.fctx;
