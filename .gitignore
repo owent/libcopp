@@ -24,3 +24,4 @@ doc/doxygen/*
 
 # generated files
 /include/libcopp/utils/config/build_feature.h
+/include/libcopp/utils/config/compiler_features.h
