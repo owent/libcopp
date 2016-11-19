@@ -187,20 +187,25 @@ namespace copp {
 
             copp::fcontext::transfer_t res;
             jump_src_data_t *jump_src;
-
+            int from_status;
+            bool swap_success;
 // can not use any more stack now
+// can not initialize those vars here
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
             assert(&from_sctx != &to_sctx);
-            __splitstack_getcontext(from_sctx.segments_ctx);
-            __splitstack_setcontext(to_sctx.segments_ctx);
-
             // ROOT->A: jump_transfer.from_co == NULL, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup segments
             // A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
             // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == NULL, from_sctx == B.callee_stack_, skip backup segments
-            if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co && (&from_sctx) != &jump_transfer.from_co->callee_stack_) {
-                memcpy(&jump_transfer.from_co->callee_stack_.segments_ctx, &from_sctx.segments_ctx, sizeof(from_sctx.segments_ctx));
+            if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
+                __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
+                if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
+                    memcpy(&from_sctx.segments_ctx, &jump_transfer.from_co->callee_stack_.segments_ctx, sizeof(from_sctx.segments_ctx));
+                }
+            } else {
+                __splitstack_getcontext(from_sctx.segments_ctx);
             }
+            __splitstack_setcontext(to_sctx.segments_ctx);
 #endif
             res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
             if (NULL == res.data) {
@@ -231,7 +236,7 @@ namespace copp {
 
             if (UTIL_CONFIG_NULLPTR != jump_src->from_co) {
                 jump_src->from_co->callee_ = res.fctx;
-                int from_status = jump_src->from_co->status_.load();
+                from_status = jump_src->from_co->status_.load();
                 if (status_t::EN_CRS_RUNNING == from_status) {
                     jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
                 } else if (status_t::EN_CRS_FINISHED == from_status) {
@@ -247,8 +252,8 @@ namespace copp {
             set_this_coroutine_context(jump_transfer.from_co);
             // resume running status of from_co
             if (NULL != jump_transfer.from_co) {
-                bool swap_success = false;
-                int from_status = jump_transfer.from_co->status_.load();
+                from_status = jump_transfer.from_co->status_.load();
+                swap_success = false;
                 while (!swap_success && status_t::EN_CRS_READY == from_status) {
                     swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING);
                 }
