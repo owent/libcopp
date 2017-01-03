@@ -231,10 +231,10 @@ CASE_TEST(this_context, start_in_co) {
     CASE_EXPECT_EQ(&co2, co_startup[1]);
 }
 
-struct test_this_context_start_into_yield_runner : public copp::coroutine_runnable_base {
+struct test_this_context_start_failed_when_running : public copp::coroutine_runnable_base {
     typedef copp::coroutine_context_default value_type;
 
-    test_this_context_start_into_yield_runner(): is_start(false) {}
+    test_this_context_start_failed_when_running(): is_start(false) {}
     int operator()() {
         copp::detail::coroutine_context_base *ptr = copp::this_coroutine::get_coroutine();
 
@@ -249,6 +249,7 @@ struct test_this_context_start_into_yield_runner : public copp::coroutine_runnab
             CASE_EXPECT_EQ(copp::COPP_EC_IS_RUNNING, res);
         }
 
+        co_jump->set_private_data(NULL);
         // finished and return to caller
         return 0;
     }
@@ -256,11 +257,11 @@ struct test_this_context_start_into_yield_runner : public copp::coroutine_runnab
     bool is_start;
 };
 
-CASE_TEST(this_context, start_turn_into_yield) {
-    typedef test_this_context_start_into_yield_runner::value_type co_type;
+CASE_TEST(this_context, start_failed_when_running) {
+    typedef test_this_context_start_failed_when_running::value_type co_type;
 
     co_type co1, co2;
-    test_this_context_start_into_yield_runner cor1, cor2;
+    test_this_context_start_failed_when_running cor1, cor2;
 
     co1.create(&cor1, 128 * 1024);
     co2.create(&cor2, 128 * 1024);
@@ -269,6 +270,9 @@ CASE_TEST(this_context, start_turn_into_yield) {
 
     cor1.is_start = true;
     co1.start();
+
+    CASE_EXPECT_EQ(NULL, co1.get_private_data());
+    CASE_EXPECT_EQ(NULL, co2.get_private_data());
 }
 
 
