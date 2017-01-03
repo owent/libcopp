@@ -29,7 +29,7 @@ public:
 
 CASE_TEST(coroutine, context_base)
 {
-    char* stack_buff = new char[64 * 1024];
+    char* stack_buff = new char[128 * 1024];
     g_test_coroutine_base_status = 0;
     ++ g_test_coroutine_base_status;
     CASE_EXPECT_EQ(g_test_coroutine_base_status, 1);
@@ -38,9 +38,9 @@ CASE_TEST(coroutine, context_base)
     test_context_base_foo_runner runner;
     runner.call_times = 0;
 
-    co.get_allocator().attach(stack_buff, 64 * 1024);
-    co.create(&runner, 64 * 1024);
-    int res = co.create(&runner, 64 * 1024); // can not be created muli times
+    co.get_allocator().attach(stack_buff, 128 * 1024);
+    co.create(&runner, 128 * 1024);
+    int res = co.create(&runner, 128 * 1024); // can not be created muli times
     CASE_EXPECT_EQ(res, copp::COPP_EC_ALREADY_INITED);
 
     co.start();
@@ -58,7 +58,7 @@ CASE_TEST(coroutine, context_base)
 
 CASE_TEST(coroutine, shared_runner)
 {
-    const int stack_len = 16 * 1024;
+    const int stack_len = 128 * 1024;
     char* stack_buff = new char[4 * stack_len];
     g_test_coroutine_base_status = 0;
     ++ g_test_coroutine_base_status;

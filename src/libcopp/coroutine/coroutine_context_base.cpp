@@ -121,7 +121,7 @@ namespace copp {
 
                     // already running
                     if (status_t::EN_CRS_RUNNING == from_status) {
-                        return COPP_EC_SUCCESS;
+                        return COPP_EC_IS_RUNNING;
                     }
                 }
             } while (true);
@@ -136,6 +136,18 @@ namespace copp {
 #else
             jump_to(callee_, callee_stack_, callee_stack_, jump_data);
 #endif
+
+            // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
+            // Move changing status to the end of start(private data)
+            {
+                int from_status = status_.load();
+                if (status_t::EN_CRS_RUNNING == from_status) {
+                    status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+                } else if (status_t::EN_CRS_FINISHED == from_status) {
+                    // if in finished status, change it to exited
+                    status_.store(status_t::EN_CRS_EXITED);
+                }
+            }
 
             return COPP_EC_SUCCESS;
         }
@@ -187,8 +199,8 @@ namespace copp {
 
             copp::fcontext::transfer_t res;
             jump_src_data_t *jump_src;
-            int from_status;
-            bool swap_success;
+            //int from_status;
+            //bool swap_success;
 // can not use any more stack now
 // can not initialize those vars here
 
@@ -236,13 +248,14 @@ namespace copp {
 
             if (UTIL_CONFIG_NULLPTR != jump_src->from_co) {
                 jump_src->from_co->callee_ = res.fctx;
-                from_status = jump_src->from_co->status_.load();
-                if (status_t::EN_CRS_RUNNING == from_status) {
-                    jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
-                } else if (status_t::EN_CRS_FINISHED == from_status) {
-                    // if in finished status, change it to exited
-                    jump_src->from_co->status_.store(status_t::EN_CRS_EXITED);
-                }
+                // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
+                // from_status = jump_src->from_co->status_.load();
+                // if (status_t::EN_CRS_RUNNING == from_status) {
+                //     jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+                // } else if (status_t::EN_CRS_FINISHED == from_status) {
+                //     // if in finished status, change it to exited
+                //     jump_src->from_co->status_.store(status_t::EN_CRS_EXITED);
+                // }
             }
 
             // private data
@@ -250,14 +263,16 @@ namespace copp {
 
             // this_coroutine
             set_this_coroutine_context(jump_transfer.from_co);
-            // resume running status of from_co
-            if (NULL != jump_transfer.from_co) {
-                from_status = jump_transfer.from_co->status_.load();
-                swap_success = false;
-                while (!swap_success && status_t::EN_CRS_READY == from_status) {
-                    swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING);
-                }
-            }
+
+            // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
+            // // resume running status of from_co
+            // if (NULL != jump_transfer.from_co) {
+            //     from_status = jump_transfer.from_co->status_.load();
+            //     swap_success = false;
+            //     while (!swap_success && status_t::EN_CRS_READY == from_status) {
+            //         swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING);
+            //     }
+            // }
         }
 
         void coroutine_context_base::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
@@ -284,8 +299,9 @@ namespace copp {
             // save from_co's fcontext and switch status
             if (UTIL_CONFIG_NULLPTR != jump_src.from_co) {
                 jump_src.from_co->callee_ = src_ctx.fctx;
-                int from_status = status_t::EN_CRS_RUNNING; // from coroutine change status from running to ready
-                jump_src.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+                // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
+                // int from_status = status_t::EN_CRS_RUNNING; // from coroutine change status from running to ready
+                // jump_src.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
             }
 
             // this_coroutine

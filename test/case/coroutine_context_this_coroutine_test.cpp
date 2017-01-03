@@ -85,7 +85,7 @@ CASE_TEST(this_context, get_coroutine) {
 
     co_type co_arr[5];
     for (co_type &co : co_arr) {
-        co.create(new test_this_context_get_cotoutine_runner(), 32 * 1024);
+        co.create(new test_this_context_get_cotoutine_runner(), 128 * 1024);
 
         th_pool.push_back(std::thread(std::bind(test_this_context_thread_func, std::ref(co))));
     }
@@ -137,7 +137,7 @@ CASE_TEST(this_context, yield_) {
     typedef copp::coroutine_context_default co_type;
 
     co_type co;
-    co.create(new test_this_context_yield_runner(), 32 * 1024);
+    co.create(new test_this_context_yield_runner(), 128 * 1024);
     co.set_private_data(&co);
 
     CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
@@ -209,8 +209,8 @@ CASE_TEST(this_context, start_in_co) {
     co_type co1, co2;
     test_this_context_rec_runner cor1(&co1), cor2(&co2);
 
-    co1.create(&cor1, 32 * 1024);
-    co2.create(&cor2, 32 * 1024);
+    co1.create(&cor1, 128 * 1024);
+    co2.create(&cor2, 128 * 1024);
     co1.set_private_data(co_startup);
     co2.set_private_data(co_startup);
 
@@ -229,6 +229,46 @@ CASE_TEST(this_context, start_in_co) {
 
     CASE_EXPECT_EQ(&co1, co_startup[0]);
     CASE_EXPECT_EQ(&co2, co_startup[1]);
+}
+
+struct test_this_context_start_into_yield_runner : public copp::coroutine_runnable_base {
+    typedef copp::coroutine_context_default value_type;
+
+    test_this_context_start_into_yield_runner(): is_start(false) {}
+    int operator()() {
+        copp::detail::coroutine_context_base *ptr = copp::this_coroutine::get_coroutine();
+
+        value_type *co_jump = reinterpret_cast<value_type *>(ptr->get_private_data());
+
+        if (is_start) {
+            CASE_EXPECT_NE(NULL, co_jump);
+            co_jump->start();
+        } else {
+            CASE_EXPECT_NE(NULL, co_jump);
+            int res = co_jump->start(); // this should be COPP_EC_IS_RUNNING
+            CASE_EXPECT_EQ(copp::COPP_EC_IS_RUNNING, res);
+        }
+
+        // finished and return to caller
+        return 0;
+    }
+
+    bool is_start;
+};
+
+CASE_TEST(this_context, start_turn_into_yield) {
+    typedef test_this_context_start_into_yield_runner::value_type co_type;
+
+    co_type co1, co2;
+    test_this_context_start_into_yield_runner cor1, cor2;
+
+    co1.create(&cor1, 128 * 1024);
+    co2.create(&cor2, 128 * 1024);
+    co1.set_private_data(&co2);
+    co2.set_private_data(&co1);
+
+    cor1.is_start = true;
+    co1.start();
 }
 
 

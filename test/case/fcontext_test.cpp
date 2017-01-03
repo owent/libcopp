@@ -7,8 +7,8 @@
 
 
 copp::fcontext::fcontext_t test_core_fcontext_main_func, test_core_fcontext_a_func, test_core_fcontext_b_func;
-char test_core_fcontext_stack_a[64 * 1024] = { 0 };
-char test_core_fcontext_stack_b[64 * 1024] = { 0 };
+char test_core_fcontext_stack_a[128 * 1024] = { 0 };
+char test_core_fcontext_stack_b[128 * 1024] = { 0 };
 int g_test_core_fcontext_status = 0;
 
 void test_core_fcontext_func_a(::copp::fcontext::transfer_t src)
