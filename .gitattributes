@@ -1,0 +1,4 @@
+*.sh eol=lf
+*.py eol=lf
+/src/libcopp/fcontext/asm/*.S eol=crlf
+/src/libcopp/fcontext/asm/*.asm eol=crlf
