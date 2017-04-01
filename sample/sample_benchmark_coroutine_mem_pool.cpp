@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     }
 
     stack_mem_pool = new char[MAX_COROUTINE_NUMBER * stack_size];
-    memset(stack_mem_pool, 0, sizeof(MAX_COROUTINE_NUMBER * stack_size));
+    memset(stack_mem_pool, 0, MAX_COROUTINE_NUMBER * stack_size);
 
     time_t begin_time = time(NULL);
     clock_t begin_clock = clock();
