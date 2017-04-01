@@ -9,11 +9,11 @@
 
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <inttypes.h>
 #include <stdint.h>
-#include <ctime>
-#include <cstdlib>
 #include <vector>
 
 // include manager header file
@@ -23,30 +23,33 @@
 
 typedef cotask::task<> my_task_t;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     int test_code = 128;
 
     // create a task using lambda expression
-    my_task_t::ptr_t first_task = my_task_t::create([&](){
+    my_task_t::ptr_t first_task = my_task_t::create([&]() {
         puts("|first task running and will be yield ...");
         cotask::this_task::get_task()->yield();
         puts("|first task resumed ...");
-        printf("test code already reset => %d\n", ++ test_code);
+        printf("test code already reset => %d\n", ++test_code);
     });
 
     // add many next task using lambda expression
-    first_task->next([=](){
-        puts("|second task running...");
-        printf("test code should be inited 128 => %d\n", test_code);
-    })->next([&](){
-        puts("|haha ... this is the third task.");
-        printf("test code is the same => %d\n", ++ test_code);
-        return "return value will be ignored";
-    })->next([&](){
-        puts("|it's boring");
-        printf("test code is %d\n", ++ test_code);
-        return 0;
-    });
+    first_task
+        ->next([=]() {
+            puts("|second task running...");
+            printf("test code should be inited 128 => %d\n", test_code);
+        })
+        ->next([&]() {
+            puts("|haha ... this is the third task.");
+            printf("test code is the same => %d\n", ++test_code);
+            return "return value will be ignored";
+        })
+        ->next([&]() {
+            puts("|it's boring");
+            printf("test code is %d\n", ++test_code);
+            return 0;
+        });
 
     test_code = 0;
     // start a task
@@ -54,7 +57,7 @@ int main(int argc, char* argv[]) {
     first_task->resume();
 
     // these code below will failed.
-    first_task->next([](){
+    first_task->next([]() {
         puts("this will never run.");
         return 0;
     });

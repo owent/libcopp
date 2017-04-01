@@ -9,11 +9,11 @@
 
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <inttypes.h>
 #include <stdint.h>
-#include <ctime>
-#include <cstdlib>
 #include <vector>
 
 // include manager header file
@@ -22,26 +22,26 @@
 #ifdef COTASK_MACRO_ENABLED
 
 #define CALC_MS_CLOCK(x) static_cast<int>((x) / (CLOCKS_PER_SEC / 1000))
-#define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / (y?y:1))
+#define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / (y ? y : 1))
 
 typedef cotask::task<> my_task_t;
 
 int switch_count = 100;
 int max_task_number = 100000; // 协程Task数量
-std::vector< my_task_t::ptr_t > task_arr;
+std::vector<my_task_t::ptr_t> task_arr;
 
 // define a coroutine runner
 int my_task_action() {
     // ... your code here ...
     int count = switch_count; // 每个task地切换次数
 
-    while (count -- > 0)
+    while (count-- > 0)
         cotask::this_task::get_task()->yield();
 
     return 0;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 #ifdef COPP_MACRO_SYS_POSIX
     puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
 #elif defined(COPP_MACRO_SYS_WIN)
@@ -50,8 +50,8 @@ int main(int argc, char* argv[]) {
     puts("###################### context coroutine (stack using default allocator ###################");
 #endif
     printf("########## Cmd:");
-    for (int i = 0; i < argc; ++ i) {
-            printf(" %s", argv[i]);
+    for (int i = 0; i < argc; ++i) {
+        printf(" %s", argv[i]);
     }
     puts("");
 
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // create coroutines
     task_arr.reserve(static_cast<size_t>(max_task_number));
-    while(task_arr.size() < static_cast<size_t>(max_task_number)) {
+    while (task_arr.size() < static_cast<size_t>(max_task_number)) {
         my_task_t::ptr_t new_task = my_task_t::create(my_task_action, stack_size);
         if (!new_task) {
             fprintf(stderr, "create coroutine task failed, real size is %d.\n", static_cast<int>(task_arr.size()));
@@ -85,18 +85,14 @@ int main(int argc, char* argv[]) {
 
     time_t end_time = time(NULL);
     clock_t end_clock = clock();
-    printf("create %d task, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        max_task_number,
-        static_cast<int>(end_time - begin_time), 
-        CALC_MS_CLOCK(end_clock - begin_clock),
-        CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number)
-    );
+    printf("create %d task, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, static_cast<int>(end_time - begin_time),
+           CALC_MS_CLOCK(end_clock - begin_clock), CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number));
 
     begin_time = end_time;
     begin_clock = end_clock;
 
     // start a task
-    for (int i = 0; i < max_task_number; ++ i) {
+    for (int i = 0; i < max_task_number; ++i) {
         task_arr[i]->start();
     }
 
@@ -106,10 +102,10 @@ int main(int argc, char* argv[]) {
 
     while (continue_flag) {
         continue_flag = false;
-        for (int i = 0; i < max_task_number; ++ i) {
-            if (false == task_arr[i]->is_completed()){
+        for (int i = 0; i < max_task_number; ++i) {
+            if (false == task_arr[i]->is_completed()) {
                 continue_flag = true;
-                ++ real_switch_times;
+                ++real_switch_times;
                 task_arr[i]->resume();
             }
         }
@@ -117,13 +113,9 @@ int main(int argc, char* argv[]) {
 
     end_time = time(NULL);
     end_clock = clock();
-    printf("switch %d tasks %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        max_task_number,
-        real_switch_times,
-        static_cast<int>(end_time - begin_time),
-        CALC_MS_CLOCK(end_clock - begin_clock),
-        CALC_NS_AVG_CLOCK(end_clock - begin_clock, real_switch_times)
-    );
+    printf("switch %d tasks %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, real_switch_times,
+           static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
+           CALC_NS_AVG_CLOCK(end_clock - begin_clock, real_switch_times));
 
     begin_time = end_time;
     begin_clock = end_clock;
@@ -132,12 +124,8 @@ int main(int argc, char* argv[]) {
 
     end_time = time(NULL);
     end_clock = clock();
-    printf("remove %d tasks, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
-        max_task_number,
-        static_cast<int>(end_time - begin_time),
-        CALC_MS_CLOCK(end_clock - begin_clock),
-        CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number)
-    );
+    printf("remove %d tasks, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, static_cast<int>(end_time - begin_time),
+           CALC_MS_CLOCK(end_clock - begin_clock), CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number));
 
     return 0;
 }
