@@ -1,8 +1,11 @@
-# USAGE
+USAGE
+=====
 
 > Just include headers and linking library file of your platform to use libcopp
 
-## Example
+Example
+-------
+
 ### coroutine_context example
 There is a simple example of using coroutine context below:
 
@@ -60,7 +63,7 @@ And then, you can custom many function such as set your stack allocator, corouti
 
 
 ### coroutine task example
-There is also a simple example of using coroutine task below:
+There is a simple example of using coroutine task below:
 
 ``` {.cpp}
 #include <iostream>
@@ -72,22 +75,24 @@ typedef cotask::task<> my_task_t;
 
 int main(int argc, char* argv[]) {
     // create a task using factory function [with lambda expression]
-	my_task_t::prt_t task = my_task_t::create([](){
-	    std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " started"<< std::endl;
+    my_task_t::prt_t task = my_task_t::create([](){
+        std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " started"<< std::endl;
         cotask::this_task::get_task()->yield();
-		std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " resumed"<< std::endl;
-		return 0;
+        std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " resumed"<< std::endl;
+        return 0;
     });
-	
-	std::cout<< "task "<< task->get_id()<< " created"<< std::endl;
+    
+    std::cout<< "task "<< task->get_id()<< " created"<< std::endl;
     // start a task
     task->start();
 
-	std::cout<< "task "<< task->get_id()<< " yield"<< std::endl;
-	task->resume();
-	std::cout<< "task "<< task->get_id()<< " stoped, ready to be destroyed."<< std::endl;
+    std::cout<< "task "<< task->get_id()<< " yield"<< std::endl;
+    task->resume();
+    std::cout<< "task "<< task->get_id()<< " stoped, ready to be destroyed."<< std::endl;
 
     return 0;
 }
 ```
 And then, you can custom many functions by set your macro type of coroutine and task to do some other function.
+
+

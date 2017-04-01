@@ -52,6 +52,13 @@ int my_task_action() {
 }
 
 int main(int argc, char* argv[]) {
+    puts("###################### task (stack using malloc/free) ###################");
+    printf("########## Cmd:");
+    for (int i = 0; i < argc; ++ i) {
+            printf(" %s", argv[i]);
+    }
+    puts("");
+
     if (argc > 1) {
         max_task_number = atoi(argv[1]);
     }

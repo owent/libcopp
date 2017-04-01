@@ -49,6 +49,13 @@ my_cotoutine_t* co_arr = NULL;
 my_runner* runner = NULL;
 
 int main(int argc, char* argv[]) {
+    puts("###################### context coroutine (stack using malloc/free) ###################");
+    printf("########## Cmd:");
+    for (int i = 0; i < argc; ++ i) {
+            printf(" %s", argv[i]);
+    }
+    puts("");
+
     if (argc > 1) {
         MAX_COROUTINE_NUMBER = atoi(argv[1]);
     }

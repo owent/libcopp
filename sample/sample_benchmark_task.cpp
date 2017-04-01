@@ -42,6 +42,19 @@ int my_task_action() {
 }
 
 int main(int argc, char* argv[]) {
+#ifdef COPP_MACRO_SYS_POSIX
+    puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
+#elif defined(COPP_MACRO_SYS_WIN)
+    puts("###################### context coroutine (stack using default allocator[VirtualAlloc]) ###################");
+#else
+    puts("###################### context coroutine (stack using default allocator ###################");
+#endif
+    printf("########## Cmd:");
+    for (int i = 0; i < argc; ++ i) {
+            printf(" %s", argv[i]);
+    }
+    puts("");
+
     if (argc > 1) {
         max_task_number = atoi(argv[1]);
     }

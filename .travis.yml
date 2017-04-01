@@ -4,7 +4,7 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_VERSION=3.5.2 ;
+    - CMAKE_VERSION=3.7.2 ;
 matrix:
   include:
     - os: osx
@@ -86,11 +86,12 @@ script:
   - REPO_DIR=$PWD;
   - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
   - echo "$CMAKE_PREFIX/bin/cmake .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
-  - $CMAKE_PREFIX/bin/cmake .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
+  - $CMAKE_PREFIX/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
   - make -j4
 
 after_success:
-  - test/coroutine_test
+  - cd $REPO_DIR/build ;
+  - make make unit_test benchmark ;
 
 cache: 
   apt: true

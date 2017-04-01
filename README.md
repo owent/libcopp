@@ -1,14 +1,14 @@
 libcopp
 =======
 
-> cross-platform coroutine library of c++
+> cross-platform coroutine library in c++
 >
 > in developing ...
 >
 > Build & Run Unit Test in |  Linux+OSX(Clang+GCC) | Windows(VC+MinGW) |
 > -------------------------|-----------------------|-------------|
 > Status |  [![Build Status](https://travis-ci.org/owt5008137/libcopp.svg?branch=master)](https://travis-ci.org/owt5008137/libcopp) | [![Build status](https://ci.appveyor.com/api/projects/status/7w6dfnpeahfmgaqj?svg=true)](https://ci.appveyor.com/project/owt5008137/libcopp) |
-> Compilers | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-6 <br /> linux-clang-3.5 <br /> osx-apple-clang-6.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> Mingw64-gcc
+> Compilers | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-6 <br /> linux-clang-3.5 <br /> osx-apple-clang-6.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> MinGW64-gcc
 >
 
 
@@ -27,6 +27,7 @@ Document
 Generate document with doxygen.
 
 Doxygen file located at *doc/libcopp.doxyfile* .
+
 
 INSTALL
 =======
@@ -78,13 +79,18 @@ Build
 
 **4. run test** *[optional]*
 
-    test/coroutine_test
+    make unit_test
 
-**5. install** *[optional]*
+**5. run benchmark** *[optional]*
+
+    make benchmark
+
+**6. install** *[optional]*
 
     make install
 
 > Or you can just copy include directory and libcopp.a in lib or lib64 into your project to use it.
+
 
 USAGE
 =====
@@ -163,20 +169,20 @@ typedef cotask::task<> my_task_t;
 
 int main(int argc, char* argv[]) {
     // create a task using factory function [with lambda expression]
-	my_task_t::prt_t task = my_task_t::create([](){
-	    std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " started"<< std::endl;
+    my_task_t::prt_t task = my_task_t::create([](){
+        std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " started"<< std::endl;
         cotask::this_task::get_task()->yield();
-		std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " resumed"<< std::endl;
-		return 0;
+        std::cout<< "task "<< cotask::this_task::get_task()->get_id()<< " resumed"<< std::endl;
+        return 0;
     });
-	
-	std::cout<< "task "<< task->get_id()<< " created"<< std::endl;
+    
+    std::cout<< "task "<< task->get_id()<< " created"<< std::endl;
     // start a task
     task->start();
 
-	std::cout<< "task "<< task->get_id()<< " yield"<< std::endl;
-	task->resume();
-	std::cout<< "task "<< task->get_id()<< " stoped, ready to be destroyed."<< std::endl;
+    std::cout<< "task "<< task->get_id()<< " yield"<< std::endl;
+    task->resume();
+    std::cout<< "task "<< task->get_id()<< " stoped, ready to be destroyed."<< std::endl;
 
     return 0;
 }
@@ -226,9 +232,12 @@ HISTORY
 ------
 v0.1.0
 
+CONSTRIBUTORS
+======
++ [owent](https://github.com/owt5008137)
 
 THANKS TO
-========
+======
 
-[mutouyun](https://github.com/mutouyun)
++ [mutouyun](https://github.com/mutouyun)
 

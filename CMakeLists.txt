@@ -47,9 +47,11 @@ configure_file(
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src")
 
 if(PROJECT_ENABLE_SAMPLE)
+    add_custom_target(benchmark)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/sample")
 endif()
 
 if(PROJECT_ENABLE_UNITTEST)
+    add_custom_target(unit_test)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/test")
 endif()

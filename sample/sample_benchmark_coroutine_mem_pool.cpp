@@ -52,6 +52,13 @@ my_runner* runner = NULL;
 char * stack_mem_pool = NULL;
 
 int main(int argc, char* argv[]) {
+    puts("###################### context coroutine (stack using memory pool) ###################");
+    printf("########## Cmd:");
+    for (int i = 0; i < argc; ++ i) {
+        printf(" %s", argv[i]);
+    }
+    puts("");
+
     if (argc > 1) {
         MAX_COROUTINE_NUMBER = atoi(argv[1]);
     }

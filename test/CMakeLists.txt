@@ -1,7 +1,6 @@
 
 EchoWithColor(COLOR GREEN "-- Configure Test Projects")
 
-enable_testing()
 find_package(GTest)
 set (PROJECT_LIBCOPP_TEST_LIB_LINK "")
 
@@ -73,4 +72,9 @@ target_link_libraries(coroutine_test
     ${COMPILER_OPTION_EXTERN_CXX_LIBS}
 )
 
-add_test(test coroutine_test)
+add_custom_target(run_test_coroutine_test
+    ./coroutine_test
+    WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+)
+add_dependencies(unit_test run_test_coroutine_test)
+add_dependencies(run_test_coroutine_test coroutine_test)

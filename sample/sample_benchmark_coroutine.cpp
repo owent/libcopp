@@ -43,6 +43,19 @@ int max_coroutine_number = 100000; // 协程数量
 copp::coroutine_context_default* co_arr = NULL;
 my_runner* runner = NULL;
 int main(int argc, char* argv[]) {
+#ifdef COPP_MACRO_SYS_POSIX
+    puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
+#elif defined(COPP_MACRO_SYS_WIN)
+    puts("###################### context coroutine (stack using default allocator[VirtualAlloc]) ###################");
+#else
+    puts("###################### context coroutine (stack using default allocator ###################");
+#endif
+    printf("########## Cmd:");
+    for (int i = 0; i < argc; ++ i) {
+            printf(" %s", argv[i]);
+    }
+    puts("");
+
     if (argc > 1) {
         max_coroutine_number = atoi(argv[1]);
     }
