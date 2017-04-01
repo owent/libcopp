@@ -3,8 +3,6 @@ libcopp
 
 > cross-platform coroutine library in c++
 >
-> in developing ...
->
 > Build & Run Unit Test in |  Linux+OSX(Clang+GCC) | Windows(VC+MinGW) |
 > -------------------------|-----------------------|-------------|
 > Status |  [![Build Status](https://travis-ci.org/owt5008137/libcopp.svg?branch=master)](https://travis-ci.org/owt5008137/libcopp) | [![Build status](https://ci.appveyor.com/api/projects/status/7w6dfnpeahfmgaqj?svg=true)](https://ci.appveyor.com/project/owt5008137/libcopp) |

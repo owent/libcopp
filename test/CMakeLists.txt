@@ -72,9 +72,11 @@ target_link_libraries(coroutine_test
     ${COMPILER_OPTION_EXTERN_CXX_LIBS}
 )
 
-add_custom_target(run_test_coroutine_test
-    ./coroutine_test
-    WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
-)
-add_dependencies(unit_test run_test_coroutine_test)
-add_dependencies(run_test_coroutine_test coroutine_test)
+if(NOT MSVC)
+    add_custom_target(run_test_coroutine_test
+        ./coroutine_test
+        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    )
+    add_dependencies(unit_test run_test_coroutine_test)
+    add_dependencies(run_test_coroutine_test coroutine_test)
+endif()
