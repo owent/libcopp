@@ -91,7 +91,7 @@ script:
 
 after_success:
   - cd $REPO_DIR/build ;
-  - make make unit_test benchmark ;
+  - make unit_test benchmark ;
 
 cache: 
   apt: true
