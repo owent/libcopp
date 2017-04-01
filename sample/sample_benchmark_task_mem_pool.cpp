@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 
     stack_mem_pool.index = 0;
     stack_mem_pool.buff = new char[stack_size * max_task_number];
-    memset(stack_mem_pool.buff, 0, MAX_COROUTINE_NUMBER * stack_size);
+    memset(stack_mem_pool.buff, 0, stack_size * max_task_number);
 
     time_t begin_time = time(NULL);
     clock_t begin_clock = clock();
