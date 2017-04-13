@@ -25,18 +25,28 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
 
     if(NOT MSVC)
         # add benchmark script
+        string(FIND ${SAMPLE_SRC_BIN_NAME} "_benchmark_" SAMPLE_SRC_IS_BENCHMARK)
+
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_10000"
             "./${SAMPLE_SRC_BIN_NAME}" 10000 1000 200
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
         )
-        add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_10000")
+        if (${SAMPLE_SRC_IS_BENCHMARK} LESS 0)
+            add_dependencies(run_sample "run_test_${SAMPLE_SRC_BIN_NAME}_10000")
+        else()
+            add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_10000")
+        endif()
         add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_10000" ${SAMPLE_SRC_BIN_NAME})
 
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1000"
             "./${SAMPLE_SRC_BIN_NAME}" 1000 1000 2048
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
         )
-        add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1000")
+        if (${SAMPLE_SRC_IS_BENCHMARK} LESS 0)
+            add_dependencies(run_sample "run_test_${SAMPLE_SRC_BIN_NAME}_1000")
+        else ()
+            add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1000")
+        endif()
         add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1000" ${SAMPLE_SRC_BIN_NAME})
     endif()
 endforeach()

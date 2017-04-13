@@ -29,14 +29,14 @@ namespace cotask {
 
         bool task_impl::is_faulted() const UTIL_CONFIG_NOEXCEPT { return EN_TS_KILLED <= get_status(); }
 
-        task_impl::ptr_t task_impl::next(ptr_t next_task) {
+        task_impl::ptr_t task_impl::next(ptr_t next_task, void *priv_data) {
             // can not refers to self
             if (this == next_task.get()) return shared_from_this();
 
             // can not add next task when finished
             if (get_status() >= EN_TS_DONE) return next_task;
 
-            next_list_.member_list_.push_back(next_task);
+            next_list_.member_list_.push_back(std::make_pair(next_task, priv_data));
             return next_task;
         }
 
@@ -64,13 +64,14 @@ namespace cotask {
 
         void task_impl::active_next_tasks() {
             // do next task
-            for (std::list<ptr_t>::iterator iter = next_list_.member_list_.begin(); iter != next_list_.member_list_.end(); ++iter) {
-                if (!(*iter) || EN_TS_INVALID == (*iter)->get_status()) continue;
+            for (std::list<std::pair<ptr_t, void *> >::iterator iter = next_list_.member_list_.begin();
+                 iter != next_list_.member_list_.end(); ++iter) {
+                if (!iter->first || EN_TS_INVALID == iter->first->get_status()) continue;
 
-                if ((*iter)->get_status() < EN_TS_RUNNING)
-                    (*iter)->start();
+                if (iter->first->get_status() < EN_TS_RUNNING)
+                    iter->first->start(iter->second);
                 else
-                    (*iter)->resume();
+                    iter->first->resume(iter->second);
             }
             next_list_.member_list_.clear();
         }

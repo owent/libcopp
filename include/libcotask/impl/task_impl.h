@@ -39,7 +39,7 @@ namespace cotask {
             typedef std::shared_ptr<task_action_impl> action_ptr_t;
 
             struct task_group {
-                std::list<ptr_t> member_list_;
+                std::list<std::pair<ptr_t, void *> > member_list_;
             };
 
         private:
@@ -64,9 +64,10 @@ namespace cotask {
              * @note please not to make tasks refer to each other. [it will lead to memory leak]
              * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
              * @param next_task next stack
+             * @param priv_data priv_data passed to resume or start next stack
              * @return next_task
              */
-            ptr_t next(ptr_t next_task);
+            ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR);
 
         public:
             virtual int get_ret_code() const = 0;

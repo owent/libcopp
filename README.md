@@ -77,7 +77,7 @@ Build
 
 **4. run test** *[optional]*
 
-    make unit_test
+    make run_test
 
 **5. run benchmark** *[optional]*
 

@@ -18,58 +18,63 @@ namespace cotask {
 
         struct task_action_functor_check {
             // ================================================
-            template<typename TR, typename TF>
-            static int call(TR (TF::*)(), TF& fn) {
+            template <typename TR, typename TF>
+            static int call(TR (TF::*)(), TF &fn) {
                 fn();
                 return 0;
             }
 
-            template<typename TR, typename TF>
-            static int call(TR (TF::*)() const, const TF& fn) {
+            template <typename TR, typename TF>
+            static int call(TR (TF::*)() const, const TF &fn) {
                 fn();
                 return 0;
             }
 
             // ------------------------------------------------
-            template<typename TF>
-            static int call(int (TF::*)(), TF& fn) {
+            template <typename TF>
+            static int call(int (TF::*)(), TF &fn) {
                 return fn();
             }
 
-            template<typename TF>
-            static int call(int (TF::*)() const, const TF& fn) {
+            template <typename TF>
+            static int call(int (TF::*)() const, const TF &fn) {
                 return fn();
             }
         };
     }
 
     // functor
-    template<typename Ty>
-    class task_action_functor : public impl::task_action_impl
-    {
+    template <typename Ty>
+    class task_action_functor : public impl::task_action_impl {
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+    public:
+        typedef typename std::remove_reference<Ty>::type value_type;
+
+        task_action_functor(value_type &&functor) : functor_(functor) {}
+
+        task_action_functor(task_action_functor &&other) : functor_(other.functor_) {}
+        inline task_action_functor &operator=(task_action_functor &&other) { functor_ = other.functor_; }
+
+#else
     public:
         typedef Ty value_type;
+        task_action_functor(const value_type &functor) : functor_(functor) {}
+#endif
 
-    public:
-        task_action_functor(value_type functor): functor_(functor){}
-
-        virtual int operator()() {
-            return detail::task_action_functor_check::call(&value_type::operator(), functor_);
-        }
+        virtual int operator()() { return detail::task_action_functor_check::call(&value_type::operator(), functor_); }
 
     private:
         value_type functor_;
     };
 
     // function
-    template<typename Ty>
-    class task_action_function: public impl::task_action_impl
-    {
+    template <typename Ty>
+    class task_action_function : public impl::task_action_impl {
     public:
         typedef Ty (*value_type)();
 
     public:
-        task_action_function(value_type func): func_(func){}
+        task_action_function(value_type func) : func_(func) {}
 
         virtual int operator()() {
             (*func_)();
@@ -80,32 +85,28 @@ namespace cotask {
         value_type func_;
     };
 
-    template<>
-    class task_action_function<int>: public impl::task_action_impl
-    {
+    template <>
+    class task_action_function<int> : public impl::task_action_impl {
     public:
         typedef int (*value_type)();
 
     public:
-        task_action_function(value_type func): func_(func){}
+        task_action_function(value_type func) : func_(func) {}
 
-        virtual int operator()() {
-            return (*func_)();
-        }
+        virtual int operator()() { return (*func_)(); }
 
     private:
         value_type func_;
     };
 
     // mem function
-    template<typename Ty, typename Tc>
-    class task_action_mem_function: public impl::task_action_impl
-    {
+    template <typename Ty, typename Tc>
+    class task_action_mem_function : public impl::task_action_impl {
     public:
-        typedef Ty Tc::* value_type;
+        typedef Ty Tc::*value_type;
 
     public:
-        task_action_mem_function(value_type func, Tc* inst): instacne_(inst), func_(func){}
+        task_action_mem_function(value_type func, Tc *inst) : instacne_(inst), func_(func) {}
 
         virtual int operator()() {
             (instacne_->*func_)();
@@ -113,25 +114,22 @@ namespace cotask {
         }
 
     private:
-        Tc* instacne_;
+        Tc *instacne_;
         value_type func_;
     };
 
-    template<typename Tc>
-    class task_action_mem_function<int, Tc>: public impl::task_action_impl
-    {
+    template <typename Tc>
+    class task_action_mem_function<int, Tc> : public impl::task_action_impl {
     public:
-        typedef int Tc::* value_type;
+        typedef int Tc::*value_type;
 
     public:
-        task_action_mem_function(value_type func, Tc* inst): instacne_(inst), func_(func){}
+        task_action_mem_function(value_type func, Tc *inst) : instacne_(inst), func_(func) {}
 
-        virtual int operator()() {
-            return (instacne_->*func_)();
-        }
+        virtual int operator()() { return (instacne_->*func_)(); }
 
     private:
-        Tc* instacne_;
+        Tc *instacne_;
         value_type func_;
     };
 }

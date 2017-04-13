@@ -82,14 +82,19 @@ namespace cotask {
             return ret;
         }
 
-        /**
-         * @brief create task with functor
-         * @param action
-         * @param stack_size stack size
-         * @return task smart pointer
-         */
+/**
+ * @brief create task with functor
+ * @param action
+ * @param stack_size stack size
+ * @return task smart pointer
+ */
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
-        static ptr_t create(Ty functor, size_t stack_size = copp::stack_traits::default_size()) {
+        static ptr_t create(Ty &&functor, size_t stack_size = copp::stack_traits::default_size()) {
+#else
+        template <typename Ty>
+        static ptr_t create(const Ty &functor, size_t stack_size = copp::stack_traits::default_size()) {
+#endif
             typedef task_action_functor<Ty> a_t;
 
             // step 1. create task instance
@@ -100,7 +105,14 @@ namespace cotask {
             }
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), functor), _action_deleter);
+            action_ptr_t action = action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL),
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+                                                                            std::forward<Ty>(functor)
+#else
+                                                                            functor
+#endif
+                                                                                ),
+                                               _action_deleter);
 
             if (!action) {
                 return ptr_t();
@@ -223,55 +235,73 @@ namespace cotask {
          * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
          * @see impl::task_impl::next
          * @param next_task next stack
+         * @param priv_data priv_data passed to resume or start next stack
          * @return next_task
          */
-        ptr_t next(ptr_t next_task) {
-            return std::static_pointer_cast<self_t>(impl::task_impl::next(std::static_pointer_cast<impl::task_impl>(next_task)));
+        inline ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) {
+            return std::static_pointer_cast<self_t>(impl::task_impl::next(std::static_pointer_cast<impl::task_impl>(next_task), priv_data));
         }
 
         /**
          * @brief create next task with action
          * @see next
-         * @param action
+         * @param action task action
+         * @param priv_data priv_data passed to start task action
          * @param stack_size stack size
          * @return task smart pointer
          */
-        ptr_t next(action_ptr_t action, size_t stack_size = copp::stack_traits::default_size()) { return next(create(action, stack_size)); }
+        inline ptr_t next(action_ptr_t action, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = copp::stack_traits::default_size()) {
+            return next(create(action, stack_size), priv_data);
+        }
+
+/**
+ * @brief create next task with functor
+ * @see next
+ * @param functor
+ * @param priv_data priv_data passed to start functor
+ * @param stack_size stack size
+ * @return task smart pointer
+ */
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        template <typename Ty>
+        inline ptr_t next(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = copp::stack_traits::default_size()) {
+            return next(create(std::forward<Ty>(functor), stack_size), priv_data);
+        }
+#else
+        template <typename Ty>
+        inline ptr_t next(Ty functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = copp::stack_traits::default_size()) {
+            return next(create(functor, stack_size), priv_data);
+        }
+#endif
 
         /**
-         * @brief create next task with functor
+         * @brief create next task with function
          * @see next
-         * @param action
+         * @param func function
+         * @param priv_data priv_data passed to start function
          * @param stack_size stack size
          * @return task smart pointer
          */
         template <typename Ty>
-        ptr_t next(Ty functor, size_t stack_size = copp::stack_traits::default_size()) {
-            return next(create(functor, stack_size));
+        inline ptr_t next(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = copp::stack_traits::default_size()) {
+            return next(create(func, stack_size), priv_data);
         }
 
         /**
          * @brief create next task with function
          * @see next
-         * @param action
-         * @param stack_size stack size
-         * @return task smart pointer
-         */
-        template <typename Ty>
-        ptr_t next(Ty (*func)(), size_t stack_size = copp::stack_traits::default_size()) {
-            return next(create(func, stack_size));
-        }
-
-        /**
-         * @brief create next task with function
-         * @see next
-         * @param action
+         * @param func member function
+         * @param instance instance
+         * @param priv_data priv_data passed to start (instance->*func)(priv_data)
          * @param stack_size stack size
          * @return task smart pointer
          */
         template <typename Ty, typename TInst>
-        ptr_t next(Ty(TInst::*func), TInst *instance, size_t stack_size = copp::stack_traits::default_size()) {
-            return next(create(func, instance, stack_size));
+        inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = copp::stack_traits::default_size()) {
+            return next(create(func, instance, stack_size), priv_data);
         }
 
         /**
