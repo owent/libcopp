@@ -15,10 +15,13 @@ environment:
         MSYS2_PREFIX: C:/tools/msys64
         MSYS2_LOG_FILE: C:/Users/appveyor/pkg_src/output.log
     matrix:
-        - os: Visual Studio 2015
+        - image: Visual Studio 2017
+          platform: x64
+          CMAKE_GEN: Visual Studio 15 2017 Win64
+        - image: Visual Studio 2015
           platform: x64
           CMAKE_GEN: Visual Studio 14 2015 Win64
-        - os: Visual Studio 2013
+        - image: Visual Studio 2013
           platform: x64
           CMAKE_GEN: Visual Studio 12 2013 Win64
         #- os: MinGW
