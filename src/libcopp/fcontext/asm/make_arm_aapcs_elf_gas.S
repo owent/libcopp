@@ -47,7 +47,7 @@ copp_make_fcontext:
     bic  a1, a1, #15
 
     @ reserve space for context-data on context-stack
-    sub  a1, a1, #128
+    sub  a1, a1, #124
 
     @ third arg of copp_make_fcontext() == address of context-function
     str  a3, [a1, #104]

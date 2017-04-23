@@ -32,8 +32,7 @@ _copp_make_fcontext:
     movq  %rdi, %rax
 
     /* shift address in RAX to lower 16 byte boundary */
-    movabs  $-16,           %r8
-    andq    %r8,            %rax
+    andq  $-16, %rax
 
     /* reserve space for context-data on context-stack */
     /* on context-function entry: (RSP -0x8) % 16 == 0 */

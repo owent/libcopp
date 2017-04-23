@@ -8,7 +8,7 @@
 #define _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_WIN_H
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
@@ -16,11 +16,11 @@
 #include <cstddef>
 #include <stdint.h>
 
-#include "libcopp/utils/features.h"
 #include "libcopp/fcontext/detail/config.hpp"
+#include "libcopp/utils/features.h"
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 
@@ -28,54 +28,39 @@ namespace copp {
     namespace fcontext {
 
 
-extern "C" {
+        extern "C" {
 
 #define COPP_BOOST_CONTEXT_CALLDECL
 
-struct stack_t
-{
-    void    *   sp;
-    std::size_t size;
-    void    *   limit;
+        struct stack_t {
+            void *sp;
+            std::size_t size;
+            void *limit;
 
-    stack_t() :
-        sp( 0), size( 0), limit( 0)
-    {}
-};
+            stack_t() : sp(0), size(0), limit(0) {}
+        };
 
-struct fp_t
-{
-    uint32_t     fc_freg[16];
+        struct fp_t {
+            uint32_t fc_freg[16];
 
-    fp_t() :
-        fc_freg()
-    {}
-};
+            fp_t() : fc_freg() {}
+        };
 
-struct fcontext_t
-{
-    uint32_t     fc_greg[11];
-    stack_t             fc_stack;
-    fp_t                fc_fp;
-    uint32_t     fc_dealloc;
+        struct fcontext_t {
+            uint32_t fc_greg[11];
+            stack_t fc_stack;
+            fp_t fc_fp;
+            uint32_t fc_dealloc;
 
-    fcontext_t() :
-        fc_greg(),
-        fc_stack(),
-        fc_fp(),
-        fc_dealloc( 0)
-    {}
-};
-
+            fcontext_t() : fc_greg(), fc_stack(), fc_fp(), fc_dealloc(0) {}
+        };
+        }
+    }
 }
 
-}}
-
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
-
-
 
 
 #endif // _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_WIN_H

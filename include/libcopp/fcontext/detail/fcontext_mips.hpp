@@ -12,11 +12,11 @@
 #include <cstddef>
 #include <stdint.h>
 
-#include "libcopp/utils/features.h"
 #include "libcopp/fcontext/detail/config.hpp"
+#include "libcopp/utils/features.h"
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 namespace copp {
@@ -26,46 +26,34 @@ namespace copp {
 
 #define COPP_BOOST_CONTEXT_CALLDECL
 
-// on MIPS we assume 64bit regsiters - even for 32bit ABIs
+        // on MIPS we assume 64bit regsiters - even for 32bit ABIs
 
-struct stack_t
-{
-    void    *   sp;
-    std::size_t size;
+        struct stack_t {
+            void *sp;
+            std::size_t size;
 
-    stack_t() :
-        sp( 0), size( 0)
-    {}
-};
+            stack_t() : sp(0), size(0) {}
+        };
 
-struct fp_t
-{
-    uint64_t     fc_freg[6];
+        struct fp_t {
+            uint64_t fc_freg[6];
 
-    fp_t() :
-        fc_freg()
-    {}
-};
+            fp_t() : fc_freg() {}
+        };
 
-struct fcontext_t
-{
-    uint32_t     fc_greg[12];
-    stack_t             fc_stack;
-    fp_t                fc_fp;
+        struct fcontext_t {
+            uint32_t fc_greg[12];
+            stack_t fc_stack;
+            fp_t fc_fp;
 
-    fcontext_t() :
-        fc_greg(),
-        fc_stack(),
-        fc_fp()
-    {}
-};
-
+            fcontext_t() : fc_greg(), fc_stack(), fc_fp() {}
+        };
+        }
+    }
 }
 
-}}
-
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
 
 #endif // BOOST_CONTEXT_DETAIL_FCONTEXT_MIPS_H

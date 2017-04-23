@@ -45,7 +45,7 @@
 .ent copp_jump_fcontext
 copp_jump_fcontext:
     # reserve space on stack
-    addiu $sp, $sp, -112
+    addiu $sp, $sp, -96
 
     sw  $s0, 48($sp)  # save S0
     sw  $s1, 52($sp)  # save S1
@@ -100,7 +100,7 @@ copp_jump_fcontext:
     lw  $t9, 92($sp)
 
     # adjust stack
-    addiu $sp, $sp, 112
+    addiu $sp, $sp, 96
     
     # return transfer_t from jump
     sw  $a0, ($t0)  # fctx of transfer_t

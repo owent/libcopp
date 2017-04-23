@@ -115,7 +115,7 @@ copp_jump_fcontext:
     std  %r25, 96(%r1)  # save R25
     std  %r26, 104(%r1)  # save R26
     std  %r27, 112(%r1)  # save R27
-    std  %r29, 120(%r1)  # save R28
+    std  %r28, 120(%r1)  # save R28
     std  %r29, 128(%r1)  # save R29
     std  %r30, 136(%r1)  # save R30
     std  %r31, 144(%r1)  # save R31
@@ -174,9 +174,21 @@ copp_jump_fcontext:
     # adjust stack
     addi  %r1, %r1, 184
 
+    # zero in r3 indicates first jump to context-function
+    cmpdi %r3, 0
+    beq use_entry_arg
+
     # return transfer_t
     std  %r6, 0(%r3)
     std  %r5, 8(%r3)
+
+    # jump to context
+    bctr
+
+use_entry_arg:
+    # copy transfer_t into transfer_fn arg registers
+    mr  %r3, %r6
+    mr  %r4, %r5
 
     # jump to context
     bctr

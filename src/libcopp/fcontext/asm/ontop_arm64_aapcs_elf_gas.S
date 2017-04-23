@@ -51,7 +51,6 @@
  *                                                     *
  *******************************************************/
 
-.cpu    generic+fp+simd
 .text
 .align  2
 .global copp_ontop_fcontext

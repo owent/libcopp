@@ -14,11 +14,11 @@
 #include <cstddef>
 #include <stdint.h>
 
-#include "libcopp/utils/features.h"
 #include "libcopp/fcontext/detail/config.hpp"
+#include "libcopp/utils/features.h"
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 
@@ -26,50 +26,37 @@ namespace copp {
     namespace fcontext {
 
 
-extern "C" {
+        extern "C" {
 
 #define COPP_BOOST_CONTEXT_CALLDECL
 
-struct stack_t
-{
-    void    *   sp;
-    std::size_t size;
+        struct stack_t {
+            void *sp;
+            std::size_t size;
 
-    stack_t() :
-        sp( 0), size( 0)
-    {}
-};
+            stack_t() : sp(0), size(0) {}
+        };
 
-struct fp_t
-{
-    uint32_t     fc_freg[16];
+        struct fp_t {
+            uint32_t fc_freg[16];
 
-    fp_t() :
-        fc_freg()
-    {}
-};
+            fp_t() : fc_freg() {}
+        };
 
-struct fcontext_t
-{
-    uint32_t     fc_greg[11];
-    stack_t             fc_stack;
-    fp_t                fc_fp;
-    void            *   fc_unwind_sjlj;
+        struct fcontext_t {
+            uint32_t fc_greg[11];
+            stack_t fc_stack;
+            fp_t fc_fp;
+            void *fc_unwind_sjlj;
 
-    fcontext_t() :
-        fc_greg(),
-        fc_stack(),
-        fc_fp(),
-        fc_unwind_sjlj( 0)
-    {}
-};
-
+            fcontext_t() : fc_greg(), fc_stack(), fc_fp(), fc_unwind_sjlj(0) {}
+        };
+        }
+    }
 }
 
-}}
-
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
 
 #endif // BOOST_CONTEXT_DETAIL_FCONTEXT_ARM_MAC_H
