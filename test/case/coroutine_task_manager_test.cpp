@@ -208,4 +208,78 @@ CASE_TEST(coroutine_task_manager, protect_this_task) {
     CASE_EXPECT_EQ(3, (int)g_test_coroutine_task_manager_status);
 }
 
+
+#if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
+    defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+
+static util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
+
+
+struct test_context_task_manager_action_mt_thread : public cotask::impl::task_action_impl {
+public:
+    int operator()(void *run_count_p) {
+        assert(run_count_p);
+        int *run_count = reinterpret_cast<int *>(run_count_p);
+
+        while (*run_count < 10000) {
+            ++(*run_count);
+            ++g_test_coroutine_task_manager_atomic;
+
+            cotask::this_task::get_task()->yield(&run_count_p);
+
+            run_count = reinterpret_cast<int *>(run_count_p);
+        }
+        return 0;
+    }
+};
+
+struct test_context_task_manager_mt_thread_runner {
+    typedef cotask::task_manager<cotask::task<>::id_t> mgr_t;
+    int run_count;
+    mgr_t::ptr_t task_mgr;
+    cotask::task<>::action_ptr_t action;
+    test_context_task_manager_mt_thread_runner(mgr_t::ptr_t mgr, const cotask::task<>::action_ptr_t &act)
+        : run_count(0), task_mgr(mgr), action(act) {}
+
+    int operator()() {
+        typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+
+        task_ptr_type co_task = cotask::task<>::create(action, 16 * 1024); // use 16KB for stack
+        cotask::task<>::id_t task_id = co_task->get_id();
+        task_mgr->add_task(co_task);
+
+        action.reset();
+
+        task_mgr->start(task_id, &run_count);
+
+        while (false == co_task->is_completed()) {
+            task_mgr->resume(task_id, &run_count);
+        }
+
+        CASE_EXPECT_EQ(10000, run_count);
+        return 0;
+    }
+};
+
+CASE_TEST(coroutine_task_manager, create_and_run_mt) {
+    typedef cotask::task_manager<cotask::task<>::id_t> mgr_t;
+    mgr_t::ptr_t task_mgr = mgr_t::create();
+    cotask::task<>::action_ptr_t action = cotask::task<>::action_ptr_t(new test_context_task_manager_action_mt_thread());
+
+    g_test_coroutine_task_manager_atomic.store(0);
+
+    std::unique_ptr<std::thread> thds[1000];
+    for (int i = 0; i < 1000; ++i) {
+        thds[i].reset(new std::thread(test_context_task_manager_mt_thread_runner(task_mgr, action)));
+    }
+
+    for (int i = 0; i < 1000; ++i) {
+        thds[i]->join();
+    }
+
+    CASE_EXPECT_EQ(10000000, g_test_coroutine_task_manager_atomic.load());
+}
+
+#endif
+
 #endif
