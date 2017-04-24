@@ -57,19 +57,20 @@ int test_manager::run() {
     failed_ = 0;
 
     clock_t all_begin_time = clock();
-    shell_stream ss(std::cout);
-    ss() << shell_font_style::SHELL_FONT_COLOR_GREEN << shell_font_style::SHELL_FONT_SPEC_BOLD << "[==========] "
-         << shell_font_style::SHELL_FONT_SPEC_NULL << "Running " << tests_.size() << " test(s)" << std::endl;
+    util::cli::shell_stream ss(std::cout);
+    ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << util::cli::shell_font_style::SHELL_FONT_SPEC_BOLD << "[==========] "
+         << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << "Running " << tests_.size() << " test(s)" << std::endl;
 
     for (test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++iter) {
         ss() << std::endl
-             << shell_font_style::SHELL_FONT_COLOR_GREEN << shell_font_style::SHELL_FONT_SPEC_BOLD << "[----------] "
-             << shell_font_style::SHELL_FONT_SPEC_NULL << iter->second.size() << " test case(s) from " << iter->first << std::endl;
+             << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << util::cli::shell_font_style::SHELL_FONT_SPEC_BOLD << "[----------] "
+             << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << iter->second.size() << " test case(s) from " << iter->first
+             << std::endl;
 
         clock_t test_begin_time = clock();
         for (test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++iter2) {
-            ss() << shell_font_style::SHELL_FONT_COLOR_GREEN << "[ RUN      ] " << shell_font_style::SHELL_FONT_SPEC_NULL << iter->first
-                 << "." << iter2->first << std::endl;
+            ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << "[ RUN      ] "
+                 << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << iter->first << "." << iter2->first << std::endl;
 
             clock_t case_begin_time = clock();
             iter2->second->run();
@@ -77,38 +78,40 @@ int test_manager::run() {
 
             if (0 == iter2->second->failed_) {
                 ++success_;
-                ss() << shell_font_style::SHELL_FONT_COLOR_GREEN << "[       OK ] " << shell_font_style::SHELL_FONT_SPEC_NULL << iter->first
-                     << "." << iter2->first << " (" << get_expire_time(case_begin_time, case_end_time) << ")" << std::endl;
+                ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << "[       OK ] "
+                     << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << iter->first << "." << iter2->first << " ("
+                     << get_expire_time(case_begin_time, case_end_time) << ")" << std::endl;
             } else {
                 ++failed_;
-                ss() << shell_font_style::SHELL_FONT_COLOR_RED << "[  FAILED  ] " << shell_font_style::SHELL_FONT_SPEC_NULL << iter->first
-                     << "." << iter2->first << " (" << get_expire_time(case_begin_time, case_end_time) << ")" << std::endl;
+                ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "[  FAILED  ] "
+                     << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << iter->first << "." << iter2->first << " ("
+                     << get_expire_time(case_begin_time, case_end_time) << ")" << std::endl;
             }
         }
 
         clock_t test_end_time = clock();
-        ss() << shell_font_style::SHELL_FONT_COLOR_GREEN << shell_font_style::SHELL_FONT_SPEC_BOLD << "[----------] "
-             << shell_font_style::SHELL_FONT_SPEC_NULL << iter->second.size() << " test case(s) from " << iter->first << " ("
+        ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << util::cli::shell_font_style::SHELL_FONT_SPEC_BOLD << "[----------] "
+             << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << iter->second.size() << " test case(s) from " << iter->first << " ("
              << get_expire_time(test_begin_time, test_end_time) << " total)" << std::endl;
     }
 
     clock_t all_end_time = clock();
-    ss() << shell_font_style::SHELL_FONT_COLOR_GREEN << shell_font_style::SHELL_FONT_SPEC_BOLD << "[==========] "
-         << shell_font_style::SHELL_FONT_SPEC_NULL << tests_.size() << " test(s) ran."
+    ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << util::cli::shell_font_style::SHELL_FONT_SPEC_BOLD << "[==========] "
+         << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << tests_.size() << " test(s) ran."
          << " (" << get_expire_time(all_begin_time, all_end_time) << " total)" << std::endl;
 
-    ss() << shell_font_style::SHELL_FONT_COLOR_GREEN << "[  PASSED  ] " << shell_font_style::SHELL_FONT_SPEC_NULL << success_
-         << " test case(s)." << std::endl;
+    ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << "[  PASSED  ] " << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL
+         << success_ << " test case(s)." << std::endl;
 
     if (failed_ > 0) {
-        ss() << shell_font_style::SHELL_FONT_COLOR_RED << "[  FAILED  ] " << shell_font_style::SHELL_FONT_SPEC_NULL << failed_
-             << " test case(s), listed below:" << std::endl;
+        ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "[  FAILED  ] " << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL
+             << failed_ << " test case(s), listed below:" << std::endl;
 
         for (test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++iter) {
             for (test_type::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++iter2) {
                 if (iter2->second->failed_ > 0) {
-                    ss() << shell_font_style::SHELL_FONT_COLOR_RED << "[  FAILED  ] " << shell_font_style::SHELL_FONT_SPEC_NULL
-                         << iter->first << "." << iter2->first << std::endl;
+                    ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "[  FAILED  ] "
+                         << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << iter->first << "." << iter2->first << std::endl;
                 }
             }
         }

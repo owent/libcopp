@@ -95,8 +95,8 @@ namespace cotask {
             static task_impl *this_task();
 
         protected:
-            void _set_action(action_ptr_t action);
-            action_ptr_t _get_action();
+            void _set_action(const action_ptr_t &action);
+            const action_ptr_t &_get_action();
 
             bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);
 

@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cstdlib>
 
+#include <assert.h>
+
 #include <libcopp/coroutine/coroutine_context_base.h>
 #include <libcotask/impl/task_action_impl.h>
 #include <libcotask/impl/task_impl.h>
@@ -19,7 +21,7 @@ namespace cotask {
     namespace impl {
         task_impl::task_impl() : action_(), status_(EN_TS_CREATED), finish_priv_data_(UTIL_CONFIG_NULLPTR) {}
 
-        task_impl::~task_impl() {}
+        task_impl::~task_impl() { assert(status_ <= EN_TS_CREATED || status_ >= EN_TS_DONE); }
 
         EN_TASK_STATUS task_impl::get_status() const UTIL_CONFIG_NOEXCEPT { return static_cast<EN_TASK_STATUS>(status_.load()); }
 
@@ -51,9 +53,9 @@ namespace cotask {
             return reinterpret_cast<task_impl *>(this_co->get_private_data());
         }
 
-        void task_impl::_set_action(action_ptr_t action) { action_ = action; }
+        void task_impl::_set_action(const action_ptr_t &action) { action_ = action; }
 
-        task_impl::action_ptr_t task_impl::_get_action() { return action_; }
+        const task_impl::action_ptr_t &task_impl::_get_action() { return action_; }
 
         bool task_impl::_cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired) {
             uint32_t expected_int = expected;
