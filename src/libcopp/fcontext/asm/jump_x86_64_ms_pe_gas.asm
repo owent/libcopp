@@ -179,7 +179,7 @@ copp_jump_fcontext:
     movq  0x100(%rsp), %rbx  /* restore RBX */
     movq  0x108(%rsp), %rbp  /* restore RBP */
 
-    movq  0x110(%rsp), %rcx  /* restore hidden address of transport_t */
+    movq  0x110(%rsp), %rax  /* restore hidden address of transport_t */
 
     leaq  0x118(%rsp), %rsp /* prepare stack */
 
@@ -188,7 +188,7 @@ copp_jump_fcontext:
 
     /* transport_t returned in RAX */
     /* return parent fcontext_t */
-    movq  %r9, (%rax)
+    movq  %r9, 0x0(%rax)
     /* return data */
     movq  %r8, 0x8(%rax)
 

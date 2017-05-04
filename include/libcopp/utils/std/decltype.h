@@ -16,34 +16,30 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
-    #define STD_DECLTYPE decltype
+#include <libcopp/utils/config/compiler_features.h>
 
-#elif defined(__clang__) && defined(__has_feature)
-    #if __has_feature(cxx_decltype) || __has_extension(cxx_decltype)
-        #define STD_DECLTYPE decltype
-    #endif
+#if UTIL_CONFIG_COMPILER_CXX_DECLTYPE && UTIL_CONFIG_COMPILER_CXX_DECLTYPE
+#define STD_DECLTYPE decltype
 #endif
 
 #if !defined(STD_DECLTYPE)
-    #if defined(__COMO__) && defined(__GNUG__)
-        #define STD_DECLTYPE typeof
+#if defined(__COMO__) && defined(__GNUG__)
+#define STD_DECLTYPE typeof
 
-    #elif !defined(__COMO__) && defined(__GNUC__)
-        #define STD_DECLTYPE __typeof__
+#elif !defined(__COMO__) && defined(__GNUC__)
+#define STD_DECLTYPE __typeof__
 
-    #elif !defined(__COMO__) && defined(__MWERKS__) && __MWERKS__ > 0x3003
-        #define STD_DECLTYPE __typeof__
+#elif !defined(__COMO__) && defined(__MWERKS__) && __MWERKS__ > 0x3003
+#define STD_DECLTYPE __typeof__
 
-    #elif !defined(__COMO__) && defined(__SUNPRO_CC) && __SUNPRO_CC > 0x590
-        #define STD_DECLTYPE __typeof__
-
-    #endif
+#elif !defined(__COMO__) && defined(__SUNPRO_CC) && __SUNPRO_CC > 0x590
+#define STD_DECLTYPE __typeof__
 
 #endif
 
 #endif
 
+#endif
