@@ -4,37 +4,37 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_VERSION=3.7.2 ;
+    - CMAKE_LINUX_URL=https://cmake.org/files/v3.8/cmake-3.8.1-Linux-x86_64.sh ;
 matrix:
   include:
     - os: osx
-      env: USE_CC=clang USE_CXX=clang++
+      env: USE_CC=clang USE_CXX=clang++ CMAKE_BIN=cmake
     - os: osx
-      env: USE_CC=gcc USE_CXX=g++
+      env: USE_CC=gcc USE_CXX=g++ CMAKE_BIN=cmake
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc USE_CXX=g++
+      env: USE_CC=gcc USE_CXX=g++ CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-4.4 USE_CXX=g++-4.4
+      env: USE_CC=gcc-4.4 USE_CXX=g++-4.4 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-4.9 USE_CXX=g++-4.9
+      env: USE_CC=gcc-4.9 USE_CXX=g++-4.9 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-6 USE_CXX=g++-6
+      env: USE_CC=gcc-6 USE_CXX=g++-6 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=clang USE_CXX=clang++
+      env: USE_CC=clang USE_CXX=clang++ CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     # - os: linux
     #   dist: trusty
     #   sudo: required
-    #   env: USE_CC=clang-3.8 USE_CXX=clang++-3.8
+    #   env: USE_CC=clang-3.8 USE_CXX=clang++-3.8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
 
 addons:
   apt:
@@ -64,30 +64,31 @@ addons:
       # - clang-3.8
       # - libclang-common-3.8-dev
       # - libclang-3.8-dev
-  
-before_script:
-  - REPO_DIR=$PWD;
-  - cd /tmp
-  - if [ ! -e "$CMAKE_PREFIX/bin/cmake" ]; then
-        mkdir -p "$CMAKE_PREFIX";
-        wget -c "https://github.com/Kitware/CMake/archive/v$CMAKE_VERSION.tar.gz" -O CMake-$CMAKE_VERSION.tar.gz ;
-        tar -xf CMake-$CMAKE_VERSION.tar.gz;
-        cd CMake-$CMAKE_VERSION ;
-        ./bootstrap --prefix=$CMAKE_PREFIX;
-        make -j4 install > /dev/null;
-        cd -;
-        rm -rf CMake-$CMAKE_VERSION CMake-$CMAKE_VERSION.tar.gz;
-    fi
-  - cd "$REPO_DIR";
+
+before_install:
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get -qq update; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+
+install:
+    - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
+    
+          if [ ! -e "$CMAKE_BIN" ]; then
+            mkdir -p "$CMAKE_PREFIX";
+            curl --insecure -L "$CMAKE_LINUX_URL" -o cmake-linux.sh ;
+            bash cmake-linux.sh --skip-license --prefix=$CMAKE_PREFIX ;
+          fi
+
+      fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew upgrade cmake; fi
 
 script:
   - export CC=$USE_CC
   - export CXX=$USE_CXX
-  - REPO_DIR=$PWD;
+  - REPO_DIR=$PWD ;
   - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
-  - echo "$CMAKE_PREFIX/bin/cmake .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
-  - $CMAKE_PREFIX/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
-  - make -j4
+  - echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
+  - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=Release -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
+  - $CMAKE_BIN --build .
 
 after_success:
   - cd $REPO_DIR/build ;
@@ -97,7 +98,7 @@ cache:
   apt: true
   ccache: true
   directories:
-  - $CMAKE_PREFIX
+  - /home/travis/prebuilt
     
 branches:
   only:

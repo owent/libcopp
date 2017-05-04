@@ -14,7 +14,6 @@ environment:
         PKG_SRC_ROOT: C:/Users/appveyor/pkg_src
         MSYS2_PREFIX: C:/tools/msys64
         MSYS2_LOG_FILE: C:/Users/appveyor/pkg_src/output.log
-        MSBUILD: msbuild
     matrix:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           platform: x64
@@ -152,13 +151,13 @@ build_script:
 
         } else {
 
-            echo "cmake ..  -G '$Env:CMAKE_GEN' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON "
+            echo "cmake ..  -G '$Env:CMAKE_GEN' -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=$Env:CONFIGURATION "
 
-            & cmake ..  -G "$Env:CMAKE_GEN" -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON
+            & cmake ..  -G "$Env:CMAKE_GEN" -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=$Env:CONFIGURATION 
 
-            echo "'$Env:MSBUILD' 'libcopp.sln' /verbosity:minimal /p:Configuration=$Env:CONFIGURATION /p:Platform=$Env:PLATFORM"
+            echo "cmake --build . --config $Env:CONFIGURATION"
 
-            & "$Env:MSBUILD" "libcopp.sln" /verbosity:minimal /p:Configuration=$Env:CONFIGURATION /p:Platform=$Env:PLATFORM
+            & cmake --build . --config $Env:CONFIGURATION
 
         }
 #
