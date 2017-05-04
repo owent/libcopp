@@ -105,7 +105,12 @@ branches:
     - master
 
 notifications:
-  email: false
+  email:
+    recipients:
+      - admin@owent.net
+      - owt5008137@live.com
+    on_success: change
+    on_failure: change
   irc:
     template:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"

@@ -233,3 +233,12 @@ branches:
     - master
 
 # no need artifacts
+
+notifications:
+    - provider: Email
+      to:
+      - admin@owent.net
+      - owt5008137@live.com
+      on_build_success: false
+      on_build_failure: false
+      on_build_status_changed: true
