@@ -36,7 +36,17 @@ namespace copp {
              * @param max_size buffer size
              */
             stack_allocator_memory(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_memory(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT;
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+            stack_allocator_memory(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT;
+#endif
             ~stack_allocator_memory();
+
+            stack_allocator_memory &operator=(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT;
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+            stack_allocator_memory &operator=(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT;
+#endif
+            void swap(stack_allocator_memory &other);
 
             /**
              * specify memory section allocated

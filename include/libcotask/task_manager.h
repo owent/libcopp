@@ -48,11 +48,11 @@ namespace cotask {
     /**
      * @brief task manager
      */
-    template <typename TID = macro_task::id_t, typename TTaskComtainer = std::map<TID, task_mgr_node<TID> > >
+    template <typename TID = macro_task::id_t, typename TTaskContainer = std::map<TID, task_mgr_node<TID> > >
     class task_manager {
     public:
         typedef TID id_t;
-        typedef TTaskComtainer container_t;
+        typedef TTaskContainer container_t;
         typedef impl::task_impl::ptr_t task_ptr_t;
         typedef task_manager<id_t, container_t> self_t;
         typedef std::shared_ptr<self_t> ptr_t;
@@ -61,6 +61,7 @@ namespace cotask {
             enum type {
                 EN_TM_NONE = 0x00,
                 EN_TM_IN_TICK = 0x01,
+                EN_TM_IN_RESET = 0x02,
             };
         };
 
@@ -93,8 +94,34 @@ namespace cotask {
 
         ~task_manager() {
             // safe remove all task
-            for (typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
-                iter->second.task_->kill(EN_TS_KILLED);
+            reset();
+        }
+
+        void reset() {
+            flag_guard_t reset_flag(&flags_, flag_t::EN_TM_IN_RESET);
+            if (!reset_flag) {
+                return;
+            }
+
+            std::vector<impl::task_impl::ptr_t> all_tasks;
+            // first, lock and reset all data
+            {
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+
+                for (typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
+                    all_tasks.push_back(iter->second.task_);
+                }
+
+                tasks_.clear();
+                task_timeout_checkpoints_.clear();
+                flags_ = 0;
+                last_tick_time_.tv_sec = 0;
+                last_tick_time_.tv_nsec = 0;
+            }
+
+            // then, kill all tasks
+            for (typename std::vector<impl::task_impl::ptr_t>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
+                (*iter)->kill(EN_TS_KILLED);
             }
         }
 
@@ -124,6 +151,10 @@ namespace cotask {
             if (!task) {
                 assert(task);
                 return copp::COPP_EC_ARGS_ERROR;
+            }
+
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
             }
 
             // try to cast type
@@ -181,6 +212,10 @@ namespace cotask {
          * @return 0 or error code
          */
         int remove_task(id_t id) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
+            }
+
             impl::task_impl::ptr_t task_inst;
             {
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -210,6 +245,10 @@ namespace cotask {
          * @return smart pointer of task
          */
         task_ptr_t find_task(id_t id) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return task_ptr_t();
+            }
+
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 
             typedef typename container_t::iterator iter_type;
@@ -224,6 +263,10 @@ namespace cotask {
         // int scheduling_loop();
 
         int start(id_t id, void *priv_data = NULL) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
+            }
+
             impl::task_impl::ptr_t task_inst;
             {
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -253,6 +296,10 @@ namespace cotask {
         }
 
         int resume(id_t id, void *priv_data = NULL) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
+            }
+
             impl::task_impl::ptr_t task_inst;
             {
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -282,6 +329,10 @@ namespace cotask {
         }
 
         int cancel(id_t id, void *priv_data = NULL) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
+            }
+
             impl::task_impl::ptr_t task_inst;
             {
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -305,6 +356,10 @@ namespace cotask {
         }
 
         int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = NULL) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
+            }
+
             impl::task_impl::ptr_t task_inst;
             {
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -346,6 +401,10 @@ namespace cotask {
             flag_guard_t tick_flag(&flags_, flag_t::EN_TM_IN_TICK);
             if (!tick_flag) {
                 return copp::COPP_EC_SUCCESS;
+            }
+
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
             }
 
             // first tick, init and reset task timeout
@@ -409,19 +468,19 @@ namespace cotask {
          * @brief get timeout checkpoint number in this manager
          * @return checkpoint number
          */
-        size_t get_tick_checkpoint_size() { return task_timeout_checkpoints_.size(); }
+        size_t get_tick_checkpoint_size() const { return task_timeout_checkpoints_.size(); }
 
         /**
          * @brief get task number in this manager
          * @return task number
          */
-        size_t get_task_size() { return tasks_.size(); }
+        size_t get_task_size() const { return tasks_.size(); }
 
         /**
          * @brief get last tick time
          * @return last tick time
          */
-        detail::tickspec_t get_last_tick_time() { return last_tick_time_; }
+        detail::tickspec_t get_last_tick_time() const { return last_tick_time_; }
 
     private:
         container_t tasks_;

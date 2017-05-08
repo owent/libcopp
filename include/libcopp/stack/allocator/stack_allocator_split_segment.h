@@ -3,7 +3,7 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_PREFIX
+#include COPP_ABI_PREFIX
 #endif
 
 namespace copp {
@@ -23,8 +23,7 @@ namespace copp {
          * @brief memory allocator
          * this allocator will create buffer using gcc split segment api
          */
-        class stack_allocator_split_segment
-        {
+        class stack_allocator_split_segment {
         public:
             stack_allocator_split_segment() UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_split_segment();
@@ -42,12 +41,11 @@ namespace copp {
              */
             void deallocate(stack_context &) UTIL_CONFIG_NOEXCEPT;
         };
-
-    } 
+    }
 }
 
 #ifdef COPP_HAS_ABI_HEADERS
-# include COPP_ABI_SUFFIX
+#include COPP_ABI_SUFFIX
 #endif
 
 #endif

@@ -26,7 +26,36 @@ namespace copp {
             : start_ptr_(start_ptr),
               memory_size_(max_size) {}
 
+        stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT : start_ptr_(NULL),
+                                                                                                             memory_size_(0) {
+            swap(other);
+        }
+
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT : start_ptr_(NULL),
+                                                                                                              memory_size_(0) {
+            swap(other);
+        }
+#endif
+
         stack_allocator_memory::~stack_allocator_memory() {}
+
+        stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT {
+            swap(other);
+            return *this;
+        }
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT {
+            swap(other);
+            return *this;
+        }
+#endif
+
+        void stack_allocator_memory::swap(stack_allocator_memory &other) {
+            using std::swap;
+            swap(start_ptr_, other.start_ptr_);
+            swap(memory_size_, other.memory_size_);
+        }
 
         void stack_allocator_memory::attach(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT {
             start_ptr_ = start_ptr;

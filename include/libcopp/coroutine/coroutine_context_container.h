@@ -6,54 +6,48 @@
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
+#pragma once
 #endif
 
 #include <cstddef>
 
-#include <libcopp/utils/errno.h>
 #include <libcopp/coroutine/coroutine_context_base.h>
-#include <libcopp/stack/stack_traits.h>
 #include <libcopp/stack/stack_allocator.h>
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/utils/errno.h>
 
 namespace copp {
-    namespace detail{
+    namespace detail {
 
         /**
          * @brief coroutine container
          * contain stack context, stack allocator and runtime fcontext
          */
-        template<typename TCOC, typename TALLOC>
+        template <typename TCOC, typename TALLOC>
         class coroutine_context_container : public TCOC {
         public:
             typedef TCOC coroutine_context_type;
             typedef TCOC base_type;
             typedef TALLOC allocator_type;
 
-        COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
+            COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
         public:
-            coroutine_context_container() UTIL_CONFIG_NOEXCEPT : base_type(), alloc_(){}
-            coroutine_context_container(const allocator_type& alloc) UTIL_CONFIG_NOEXCEPT : alloc_(alloc){}
+            coroutine_context_container() UTIL_CONFIG_NOEXCEPT : base_type(), alloc_() {}
+            coroutine_context_container(const allocator_type &alloc) UTIL_CONFIG_NOEXCEPT : alloc_(alloc) {}
 
-            ~coroutine_context_container() {
-                _reset_stack();
-            }
+            ~coroutine_context_container() { _reset_stack(); }
 
             /**
              * @brief get stack allocator
              * @return stack allocator
              */
-            inline const allocator_type& get_allocator() const UTIL_CONFIG_NOEXCEPT {
-                return alloc_;
-            }
+            inline const allocator_type &get_allocator() const UTIL_CONFIG_NOEXCEPT { return alloc_; }
 
             /**
              * @brief get stack allocator
              * @return stack allocator
              */
-            inline allocator_type& get_allocator() UTIL_CONFIG_NOEXCEPT {
-                return alloc_;
-            }
+            inline allocator_type &get_allocator() UTIL_CONFIG_NOEXCEPT { return alloc_; }
 
 
         protected:
@@ -77,7 +71,8 @@ namespace copp {
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code
              */
-            int create(coroutine_runnable_base* runner, std::size_t stack_size_, void(*func)(::copp::fcontext::transfer_t) = NULL) UTIL_CONFIG_NOEXCEPT {
+            int create(coroutine_runnable_base *runner, std::size_t stack_size_,
+                       void (*func)(::copp::fcontext::transfer_t) = NULL) UTIL_CONFIG_NOEXCEPT {
                 if (NULL != callee_stack_.sp) {
                     return COPP_EC_ALREADY_INITED;
                 }
@@ -97,7 +92,7 @@ namespace copp {
              * @param func fcontext callback(set NULL to use default callback)
              * @return COPP_EC_SUCCESS or error code
              */
-            int create(coroutine_runnable_base* runner, void(*func)(::copp::fcontext::transfer_t) = NULL) UTIL_CONFIG_NOEXCEPT {
+            int create(coroutine_runnable_base *runner, void (*func)(::copp::fcontext::transfer_t) = NULL) UTIL_CONFIG_NOEXCEPT {
                 if (NULL != callee_stack_.sp) {
                     return COPP_EC_ALREADY_INITED;
                 }
@@ -112,17 +107,15 @@ namespace copp {
             }
 
         private:
-            coroutine_context_container(const coroutine_context_container&) UTIL_CONFIG_DELETED_FUNCTION;
+            coroutine_context_container(const coroutine_context_container &) UTIL_CONFIG_DELETED_FUNCTION;
 
         private:
             allocator_type alloc_; /** stack allocator **/
         };
     }
 
-    typedef detail::coroutine_context_container<
-        detail::coroutine_context_base,
-        allocator::default_statck_allocator
-    > coroutine_context_default;
+    typedef detail::coroutine_context_container<detail::coroutine_context_base, allocator::default_statck_allocator>
+        coroutine_context_default;
 }
 
 #endif
