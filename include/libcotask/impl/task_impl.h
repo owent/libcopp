@@ -10,12 +10,15 @@
 #ifndef _COTASK_IMPL_TASK_IMPL_H_
 #define _COTASK_IMPL_TASK_IMPL_H_
 
-#include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/config/compiler_features.h>
-#include <libcopp/utils/std/smart_ptr.h>
 #include <list>
 #include <stdint.h>
 
+#include <libcopp/utils/atomic_int_type.h>
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/std/smart_ptr.h>
+
+#include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/spin_lock.h>
 
 #include <libcotask/task_actions.h>
 
@@ -108,6 +111,7 @@ namespace cotask {
             action_ptr_t action_;
             ::util::lock::atomic_int_type<uint32_t> status_;
 
+            util::lock::spin_lock next_list_lock_;
             task_group next_list_;
 
         protected:

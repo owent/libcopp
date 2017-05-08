@@ -38,6 +38,7 @@ namespace cotask {
             // can not add next task when finished
             if (get_status() >= EN_TS_DONE) return next_task;
 
+            util::lock::lock_holder<util::lock::spin_lock> lock_guard(next_list_lock_);
             next_list_.member_list_.push_back(std::make_pair(next_task, priv_data));
             return next_task;
         }
@@ -65,17 +66,25 @@ namespace cotask {
         }
 
         void task_impl::active_next_tasks() {
-            // do next task
-            for (std::list<std::pair<ptr_t, void *> >::iterator iter = next_list_.member_list_.begin();
-                 iter != next_list_.member_list_.end(); ++iter) {
-                if (!iter->first || EN_TS_INVALID == iter->first->get_status()) continue;
+            std::list<std::pair<ptr_t, void *> > next_list;
+
+            // first, lock and swap container
+            {
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(next_list_lock_);
+                next_list.swap(next_list_.member_list_);
+            }
+
+            // then, do all the pending tasks
+            for (std::list<std::pair<ptr_t, void *> >::iterator iter = next_list.begin(); iter != next_list.end(); ++iter) {
+                if (!iter->first || EN_TS_INVALID == iter->first->get_status()) {
+                    continue;
+                }
 
                 if (iter->first->get_status() < EN_TS_RUNNING)
                     iter->first->start(iter->second);
                 else
                     iter->first->resume(iter->second);
             }
-            next_list_.member_list_.clear();
         }
 
         int task_impl::_notify_finished(void *priv_data) {

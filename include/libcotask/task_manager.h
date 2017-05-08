@@ -17,9 +17,6 @@
 #include <stdint.h>
 #include <vector>
 
-
-#include <libcopp/utils/lock_holder.h>
-#include <libcopp/utils/spin_lock.h>
 #include <libcotask/task_macros.h>
 
 
