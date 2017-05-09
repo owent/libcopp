@@ -27,16 +27,16 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         # add benchmark script
         string(FIND ${SAMPLE_SRC_BIN_NAME} "_benchmark_" SAMPLE_SRC_IS_BENCHMARK)
 
-        add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_10000"
-            "./${SAMPLE_SRC_BIN_NAME}" 10000 1000 200
+        add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_40000"
+            "./${SAMPLE_SRC_BIN_NAME}" 40000 1000 64
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
         )
         if (${SAMPLE_SRC_IS_BENCHMARK} LESS 0)
-            add_dependencies(run_sample "run_test_${SAMPLE_SRC_BIN_NAME}_10000")
+            add_dependencies(run_sample "run_test_${SAMPLE_SRC_BIN_NAME}_40000")
         else()
-            add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_10000")
+            add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_40000")
         endif()
-        add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_10000" ${SAMPLE_SRC_BIN_NAME})
+        add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_40000" ${SAMPLE_SRC_BIN_NAME})
 
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1000"
             "./${SAMPLE_SRC_BIN_NAME}" 1000 1000 2048

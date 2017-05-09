@@ -24,7 +24,7 @@ Document
 
 Generate document with doxygen.
 
-Doxygen file located at *doc/libcopp.doxyfile* .
+Doxygen file located at *docs/libcopp.doxyfile* .
 
 
 INSTALL
@@ -202,9 +202,9 @@ On MinGW64, We use ms_pe_gas ASM code in boost.context to configure and build li
 DEVELOPER
 =========
 
-[basic coroutine object summary](doc/basic_coroutine_class.txt)
+[basic coroutine object summary](docs/basic_coroutine_class.txt)
 
-[safe coroutine object summary](doc/safe_basic_coroutine_class.txt)
+[safe coroutine object summary](docs/safe_basic_coroutine_class.txt)
 
 HISTORY
 ========

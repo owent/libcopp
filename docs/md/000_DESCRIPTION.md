@@ -24,6 +24,6 @@ Document
 
 Generate document with doxygen.
 
-Doxygen file located at *doc/libcopp.doxyfile* .
+Doxygen file located at *docs/libcopp.doxyfile* .
 
 

@@ -18,6 +18,7 @@
 
 # generated docs
 doc/doxygen/*
+docs/doxygen/*
 
 # IDE & Editors
 /.vscode

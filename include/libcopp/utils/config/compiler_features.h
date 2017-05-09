@@ -112,7 +112,7 @@
 # undef UTIL_CONFIG_COMPILER_IS_Clang
 # define UTIL_CONFIG_COMPILER_IS_Clang 1
 
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUC__)
 # undef UTIL_CONFIG_COMPILER_IS_GNU
 # define UTIL_CONFIG_COMPILER_IS_GNU 1
 
@@ -145,11 +145,7 @@
 #      error Unsupported compiler version
 #    endif
 
-# if defined(__GNUC__)
-#  define UTIL_CONFIG_COMPILER_VERSION_MAJOR (__GNUC__)
-# else
-#  define UTIL_CONFIG_COMPILER_VERSION_MAJOR (__GNUG__)
-# endif
+# define UTIL_CONFIG_COMPILER_VERSION_MAJOR (__GNUC__)
 # if defined(__GNUC_MINOR__)
 #  define UTIL_CONFIG_COMPILER_VERSION_MINOR (__GNUC_MINOR__)
 # endif
@@ -255,7 +251,7 @@
 
 #  elif UTIL_CONFIG_COMPILER_IS_Clang
 
-#    if !(((__clang_major__ * 100) + __clang_minor__) >= 301)
+#    if !(((__clang_major__ * 100) + __clang_minor__) >= 304)
 #      error Unsupported compiler version
 #    endif
 
@@ -268,19 +264,19 @@
 #  define UTIL_CONFIG_SIMULATE_VERSION_MINOR (_MSC_VER % 100)
 # endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_auto_type)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_auto_type)
 #      define UTIL_CONFIG_COMPILER_CXX_AUTO_TYPE 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_AUTO_TYPE 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_constexpr)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_constexpr)
 #      define UTIL_CONFIG_COMPILER_CXX_CONSTEXPR 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_CONSTEXPR 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_decltype)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_decltype)
 #      define UTIL_CONFIG_COMPILER_CXX_DECLTYPE 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_DECLTYPE 0
@@ -292,73 +288,73 @@
 #      define UTIL_CONFIG_COMPILER_CXX_DECLTYPE_AUTO 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_defaulted_functions)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_defaulted_functions)
 #      define UTIL_CONFIG_COMPILER_CXX_DEFAULTED_FUNCTIONS 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_DEFAULTED_FUNCTIONS 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_deleted_functions)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_deleted_functions)
 #      define UTIL_CONFIG_COMPILER_CXX_DELETED_FUNCTIONS 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_DELETED_FUNCTIONS 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_override_control)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_override_control)
 #      define UTIL_CONFIG_COMPILER_CXX_FINAL 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_FINAL 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_override_control)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_override_control)
 #      define UTIL_CONFIG_COMPILER_CXX_OVERRIDE 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_OVERRIDE 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_range_for)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_range_for)
 #      define UTIL_CONFIG_COMPILER_CXX_RANGE_FOR 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_RANGE_FOR 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_noexcept)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_noexcept)
 #      define UTIL_CONFIG_COMPILER_CXX_NOEXCEPT 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_NOEXCEPT 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_nullptr)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_nullptr)
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_NULLPTR 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_rvalue_references)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_rvalue_references)
 #      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_static_assert)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_static_assert)
 #      define UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_thread_local)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_thread_local)
 #      define UTIL_CONFIG_COMPILER_CXX_THREAD_LOCAL 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_THREAD_LOCAL 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_variadic_templates)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_variadic_templates)
 #      define UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES 0
 #    endif
 
-#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_lambdas)
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_lambdas)
 #      define UTIL_CONFIG_COMPILER_CXX_LAMBDAS 1
 #    else
 #      define UTIL_CONFIG_COMPILER_CXX_LAMBDAS 0
@@ -598,35 +594,35 @@
 #    error Unsupported compiler
 #  endif
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
+#  if UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
 #    define UTIL_CONFIG_CONSTEXPR constexpr
 #  else
-#    define UTIL_CONFIG_CONSTEXPR 
+#    define UTIL_CONFIG_CONSTEXPR
 #  endif
 
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_DELETED_FUNCTIONS) && UTIL_CONFIG_COMPILER_CXX_DELETED_FUNCTIONS
+#  if UTIL_CONFIG_COMPILER_CXX_DELETED_FUNCTIONS
 #    define UTIL_CONFIG_DELETED_FUNCTION = delete
 #  else
-#    define UTIL_CONFIG_DELETED_FUNCTION 
+#    define UTIL_CONFIG_DELETED_FUNCTION
 #  endif
 
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_FINAL) && UTIL_CONFIG_COMPILER_CXX_FINAL
+#  if UTIL_CONFIG_COMPILER_CXX_FINAL
 #    define UTIL_CONFIG_FINAL final
 #  else
-#    define UTIL_CONFIG_FINAL 
+#    define UTIL_CONFIG_FINAL
 #  endif
 
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_OVERRIDE) && UTIL_CONFIG_COMPILER_CXX_OVERRIDE
+#  if UTIL_CONFIG_COMPILER_CXX_OVERRIDE
 #    define UTIL_CONFIG_OVERRIDE override
 #  else
-#    define UTIL_CONFIG_OVERRIDE 
+#    define UTIL_CONFIG_OVERRIDE
 #  endif
 
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_NOEXCEPT) && UTIL_CONFIG_COMPILER_CXX_NOEXCEPT
+#  if UTIL_CONFIG_COMPILER_CXX_NOEXCEPT
 #    define UTIL_CONFIG_NOEXCEPT noexcept
 #    define UTIL_CONFIG_NOEXCEPT_EXPR(X) noexcept(X)
 #  else
@@ -635,13 +631,13 @@
 #  endif
 
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_NULLPTR) && UTIL_CONFIG_COMPILER_CXX_NULLPTR
+#  if UTIL_CONFIG_COMPILER_CXX_NULLPTR
 #    define UTIL_CONFIG_NULLPTR nullptr
 #  else
 #    define UTIL_CONFIG_NULLPTR 0
 #  endif
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
+#  if UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
 #    define UTIL_CONFIG_STATIC_ASSERT(X) static_assert(X, #X)
 #    define UTIL_CONFIG_STATIC_ASSERT_MSG(X, MSG) static_assert(X, MSG)
 #  else
@@ -652,7 +648,7 @@ template<> struct UTIL_CONFIGStaticAssert<true>{};
 #  endif
 
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_THREAD_LOCAL) && UTIL_CONFIG_COMPILER_CXX_THREAD_LOCAL
+#  if UTIL_CONFIG_COMPILER_CXX_THREAD_LOCAL
 #    define UTIL_CONFIG_THREAD_LOCAL thread_local
 #  elif UTIL_CONFIG_COMPILER_IS_GNU || UTIL_CONFIG_COMPILER_IS_Clang || UTIL_CONFIG_COMPILER_IS_AppleClang
 #    define UTIL_CONFIG_THREAD_LOCAL __thread

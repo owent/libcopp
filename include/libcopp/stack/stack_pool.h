@@ -1,0 +1,286 @@
+#ifndef _COPP_STACKCONTEXT_STACK_POOL_H_
+#define _COPP_STACKCONTEXT_STACK_POOL_H_
+
+#pragma once
+
+#include <assert.h>
+#include <cstring>
+#include <list>
+
+#include <libcopp/utils/features.h>
+#include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/spin_lock.h>
+#include <libcopp/utils/std/smart_ptr.h>
+
+
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+
+
+namespace copp {
+    template <typename TAlloc>
+    class stack_pool {
+    public:
+        typedef TAlloc allocator_t;
+        typedef std::shared_ptr<stack_pool<TAlloc> > ptr_t;
+
+        struct limit_t {
+            size_t used_stack_number;
+            size_t used_stack_size;
+            size_t free_stack_number;
+            size_t free_stack_size;
+        };
+
+        struct configure_t {
+            size_t stack_size;
+            size_t stack_offset;
+            size_t gc_number;
+            size_t max_stack_number;
+            size_t max_stack_size;
+            size_t min_stack_number;
+            size_t min_stack_size;
+            bool auto_gc;
+        };
+
+    private:
+        struct constructor_delegator {};
+
+        stack_pool() UTIL_CONFIG_DELETED_FUNCTION;
+        stack_pool(const stack_pool &) UTIL_CONFIG_DELETED_FUNCTION;
+
+    public:
+        static ptr_t create() { return std::make_shared<stack_pool>(constructor_delegator()); }
+
+        stack_pool(constructor_delegator d) {
+            memset(&limits_, 0, sizeof(limits_));
+            memset(&conf_, 0, sizeof(conf_));
+            conf_.stack_size = copp::stack_traits::default_size();
+            conf_.auto_gc = true;
+        }
+        ~stack_pool() { clear(); }
+
+        inline const limit_t &get_limit() const { return limits_; }
+
+        // configure
+        inline allocator_t &get_origin_allocator() COPP_MACRO_NOEXCEPT { return alloc_; }
+        inline const allocator_t &get_origin_allocator() const COPP_MACRO_NOEXCEPT { return alloc_; }
+
+        size_t set_stack_size(size_t sz) {
+            if (sz <= copp::stack_traits::minimum_size()) {
+                sz = copp::stack_traits::minimum_size();
+            } else {
+                sz = copp::stack_traits::round_to_page_size(sz);
+            }
+
+            if (sz != conf_.stack_size) {
+                clear();
+            }
+
+            return conf_.stack_size = sz;
+        }
+        size_t get_stack_size() const { return conf_.stack_size; }
+
+        inline void set_max_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_size = sz; }
+        inline size_t get_max_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_size; }
+        inline void set_max_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_number = sz; }
+        inline size_t get_max_stack_number() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_number; }
+
+        inline void set_min_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_size = sz; }
+        inline size_t get_min_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.min_stack_size; }
+        inline void set_min_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_number = sz; }
+        inline size_t get_min_stack_number() const COPP_MACRO_NOEXCEPT { return conf_.min_stack_number; }
+
+        inline void set_auto_gc(bool v) COPP_MACRO_NOEXCEPT { conf_.auto_gc = v; }
+        inline bool is_auto_gc() const COPP_MACRO_NOEXCEPT { return conf_.auto_gc; }
+
+        // actions
+
+        /**
+         * allocate memory and attach to stack context [standard function]
+         * @param ctx stack context
+         * @param size stack size
+         * @note size must less or equal than attached
+         */
+        void allocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+            // check limit
+            if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
+                ctx.sp = NULL;
+                ctx.size = 0;
+                return;
+            }
+
+            if (0 != conf_.max_stack_number && limits_.used_stack_size + conf_.stack_size > conf_.max_stack_size) {
+                ctx.sp = NULL;
+                ctx.size = 0;
+                return;
+            }
+
+            // get from pool
+            if (!free_list_.empty()) {
+                typename std::list<stack_context>::iterator iter = free_list_.begin();
+                assert(iter != free_list_.end());
+
+                // free limit
+                if (likely(limits_.free_stack_number > 0)) {
+                    --limits_.free_stack_number;
+                } else {
+                    limits_.free_stack_number = free_list_.size() - 1;
+                }
+
+                if (likely(limits_.free_stack_size >= (*iter).size)) {
+                    limits_.free_stack_size -= (*iter).size;
+                } else {
+                    limits_.free_stack_size = 0;
+                }
+
+                ctx = *iter;
+                free_list_.pop_front();
+
+                // used limit
+                ++limits_.used_stack_number;
+                limits_.used_stack_size += ctx.size;
+                return;
+            }
+
+            // get from origin allocator
+            alloc_.allocate(ctx, conf_.stack_size);
+            if (NULL != ctx.sp && ctx.size > 0) {
+                // used limit
+                ++limits_.used_stack_number;
+                limits_.used_stack_size += ctx.size;
+
+                conf_.stack_offset = ctx.size - conf_.stack_size;
+            }
+        }
+
+        /**
+         * deallocate memory from stack context [standard function]
+         * @param ctx stack context
+         */
+        void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+            assert(ctx.sp && ctx.size > 0);
+            do {
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                // check ctx
+                if (ctx.sp == NULL || 0 == ctx.size) {
+                    break;
+                }
+
+                // limits
+                if (likely(limits_.used_stack_size >= ctx.size)) {
+                    limits_.used_stack_size -= ctx.size;
+                } else {
+                    limits_.used_stack_size = 0;
+                }
+
+                if (likely(limits_.used_stack_number > 0)) {
+                    --limits_.used_stack_number;
+                }
+
+                // check size
+                if (ctx.size != conf_.stack_size + conf_.stack_offset) {
+                    alloc_.deallocate(ctx);
+                    break;
+                }
+
+                // push to free list
+                free_list_.push_back(ctx);
+
+                // limits
+                ++limits_.free_stack_number;
+                limits_.free_stack_size += ctx.size;
+            } while (false);
+
+            // check GC
+            if (conf_.auto_gc) {
+                gc();
+            }
+        }
+
+        size_t gc() {
+            size_t ret = 0;
+            // gc only if free stacks is greater than used
+            if (limits_.used_stack_size >= limits_.free_stack_size && limits_.used_stack_number >= limits_.free_stack_number) {
+                return ret;
+            }
+
+            // gc when stack is too large
+            if (0 != conf_.min_stack_size || 0 != conf_.min_stack_number) {
+                bool min_stack_size =
+                    conf_.min_stack_size == 0 || limits_.used_stack_size + limits_.free_stack_size <= conf_.min_stack_size;
+                bool min_stack_number =
+                    conf_.min_stack_number == 0 || limits_.free_stack_number + limits_.used_stack_number <= conf_.min_stack_number;
+                if (min_stack_size && min_stack_number) {
+                    return ret;
+                }
+            }
+
+            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+
+            size_t keep_size = limits_.free_stack_size >> 1;
+            size_t keep_number = limits_.free_stack_number >> 1;
+            size_t left_gc = conf_.gc_number;
+            while (limits_.free_stack_size > keep_size || limits_.free_stack_number > keep_number) {
+                if (free_list_.empty()) {
+                    limits_.free_stack_size = 0;
+                    limits_.free_stack_number = 0;
+                    break;
+                }
+
+                typename std::list<stack_context>::iterator iter = free_list_.begin();
+                assert(iter != free_list_.end());
+
+                if (likely(limits_.free_stack_number > 0)) {
+                    --limits_.free_stack_number;
+                } else {
+                    limits_.free_stack_number = free_list_.size() - 1;
+                }
+
+                if (likely(limits_.free_stack_size >= (*iter).size)) {
+                    limits_.free_stack_size -= (*iter).size;
+                } else {
+                    limits_.free_stack_size = 0;
+                }
+
+                alloc_.deallocate(*iter);
+                free_list_.pop_front();
+                ++ret;
+
+                // gc max stacks once
+                if (0 != left_gc) {
+                    --left_gc;
+                    if (0 == left_gc) {
+                        break;
+                    }
+                }
+            }
+
+            UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+
+            return ret;
+        }
+
+        void clear() {
+            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+
+            limits_.free_stack_size = 0;
+            limits_.free_stack_number = 0;
+
+            for (typename std::list<stack_context>::iterator iter = free_list_.begin(); iter != free_list_.end(); ++iter) {
+                alloc_.deallocate(*iter);
+            }
+
+            UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+        }
+
+    private:
+        limit_t limits_;
+        configure_t conf_;
+        allocator_t alloc_;
+        util::lock::spin_lock action_lock_;
+        std::list<stack_context> free_list_;
+    };
+}
+
+#endif

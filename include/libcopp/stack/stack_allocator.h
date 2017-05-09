@@ -4,8 +4,9 @@
 
 #include <libcopp/utils/features.h>
 
-#include "allocator/stack_allocator_memory.h"
 #include "allocator/stack_allocator_malloc.h"
+#include "allocator/stack_allocator_memory.h"
+#include "allocator/stack_allocator_pool.h"
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
 #include "allocator/stack_allocator_split_segment.h"
@@ -28,7 +29,7 @@ namespace copp {
     }
 }
 
-#else 
+#else
 
 #error unknown stack allocator
 
