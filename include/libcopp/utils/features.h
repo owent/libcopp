@@ -162,4 +162,35 @@
 
 #include "errno.h"
 
+
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+
+#if !defined(COPP_MACRO_RV_REF)
+#define COPP_MACRO_RV_REF &&
+#endif
+
+#if !defined(COPP_MACRO_STD_MOVE)
+#define COPP_MACRO_STD_MOVE(x) std::move(x)
+#endif
+
+#if !defined(COPP_MACRO_STD_FORWARD)
+#define COPP_MACRO_STD_FORWARD(t, x) std::forward<t>(x)
+#endif
+
+#else
+
+#if !defined(COPP_MACRO_RV_REF)
+#define COPP_MACRO_RV_REF
+#endif
+
+#if !defined(COPP_MACRO_STD_MOVE)
+#define COPP_MACRO_STD_MOVE(x) (x)
+#endif
+
+#if !defined(COPP_MACRO_STD_FORWARD)
+#define COPP_MACRO_STD_FORWARD(t, x) (x)
+#endif
+
+#endif
+
 #endif

@@ -41,9 +41,6 @@ namespace cotask {
         typedef impl::task_impl::action_ptr_t action_ptr_t;
         typedef impl::task_impl::ptr_t task_ptr_t;
 
-    private:
-        static void _action_deleter(impl::task_action_impl *action) { action_allocator_t::deallocate(action); }
-
     public:
         /**
          * @brief constuctor
@@ -64,9 +61,8 @@ namespace cotask {
          */
         static ptr_t create(action_ptr_t action, size_t stack_size = copp::stack_traits::default_size()) {
             // step 1. create task instance
-            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
-            ptr_t ret = ptr_t(inst);
-            if (NULL == inst) {
+            ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
+            if (NULL == ret) {
                 return ret;
             }
 
@@ -76,7 +72,7 @@ namespace cotask {
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
             if (res < 0) {
-                return ptr_t();
+                return NULL;
             }
 
             return ret;
@@ -98,31 +94,29 @@ namespace cotask {
             typedef task_action_functor<Ty> a_t;
 
             // step 1. create task instance
-            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
-            ptr_t ret = ptr_t(inst);
-            if (NULL == inst) {
+            ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
+            if (NULL == ret) {
                 return ret;
             }
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL),
+            action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL),
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-                                                                            std::forward<Ty>(functor)
+                                                               std::forward<Ty>(functor)
 #else
-                                                                            functor
+                                                               functor
 #endif
-                                                                                ),
-                                               _action_deleter);
+                                                                   );
 
             if (!action) {
-                return ptr_t();
+                return NULL;
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return ptr_t();
+            if (res < 0) return NULL;
 
             return ret;
         }
@@ -138,22 +132,23 @@ namespace cotask {
             typedef task_action_function<Ty> a_t;
 
             // step 1. create task instance
-            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
-            ptr_t ret = ptr_t(inst);
-            if (NULL == inst) return ret;
+            ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
+            if (NULL == ret) {
+                return ret;
+            }
 
             // step 2. create action
-            action_ptr_t action = action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func), _action_deleter);
+            action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func);
 
             if (!action) {
-                return ptr_t();
+                return NULL;
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return ptr_t();
+            if (res < 0) return NULL;
 
             return ret;
         }
@@ -169,25 +164,23 @@ namespace cotask {
             typedef task_action_mem_function<Ty, TInst> a_t;
 
             // step 1. create task instance
-            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
-            ptr_t ret = ptr_t(inst);
-            if (NULL == inst) {
+            ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
+            if (NULL == ret) {
                 return ret;
             }
 
             // step 2. create action
-            action_ptr_t action =
-                action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func, instance), _action_deleter);
+            action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func, instance);
 
             if (!action) {
-                return ptr_t();
+                return NULL;
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return ptr_t();
+            if (res < 0) return NULL;
 
             return ret;
         }
@@ -204,23 +197,23 @@ namespace cotask {
             typedef Ty a_t;
 
             // step 1. create task instance
-            self_t *inst = task_allocator_t::allocate(static_cast<self_t *>(NULL));
-            ptr_t ret = ptr_t(inst);
-            if (NULL == inst) return ret;
+            ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
+            if (NULL == ret) {
+                return ret;
+            }
 
             // step 2. create action
-            action_ptr_t action =
-                action_ptr_t(action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), std::forward<TParams>(args)...), _action_deleter);
+            action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), std::forward<TParams>(args)...);
 
             if (!action) {
-                return ptr_t();
+                return NULL;
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return ptr_t();
+            if (res < 0) return NULL;
 
             return ret;
         }

@@ -29,7 +29,7 @@ environment:
         - os: MinGW
           CMAKE_GEN: MinGW64
 
-configuration: Release
+configuration: RelWithDebInfo
 
 #
 # Cache Cygwin files to speed up build
@@ -199,29 +199,37 @@ test_script:
 
             & "test/$Env:CONFIGURATION/coroutine_test.exe"
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_mem_pool.exe" 10000 1000 200
+            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_mem_pool.exe" 40000 1000 64
 
             & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_mem_pool.exe" 1000 1000 2048
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine.exe" 10000 1000 200
+            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine.exe" 40000 1000 64
 
             & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine.exe" 1000 1000 2048
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_malloc.exe" 10000 1000 200
+            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_malloc.exe" 40000 1000 64
 
             & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_malloc.exe" 1000 1000 2048
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_mem_pool.exe" 10000 1000 200
+            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_stack_pool.exe" 40000 1000 64
+
+            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_stack_pool.exe" 1000 1000 2048
+
+            & "sample/$Env:CONFIGURATION/sample_benchmark_task_mem_pool.exe" 40000 1000 64
 
             & "sample/$Env:CONFIGURATION/sample_benchmark_task_mem_pool.exe" 1000 1000 2048
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task.exe" 10000 1000 200
+            & "sample/$Env:CONFIGURATION/sample_benchmark_task.exe" 40000 1000 64
 
             & "sample/$Env:CONFIGURATION/sample_benchmark_task.exe" 1000 1000 2048
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_malloc.exe" 10000 1000 200
+            & "sample/$Env:CONFIGURATION/sample_benchmark_task_malloc.exe" 40000 1000 64
 
             & "sample/$Env:CONFIGURATION/sample_benchmark_task_malloc.exe" 1000 1000 2048
+
+            & "sample/$Env:CONFIGURATION/sample_benchmark_task_stack_pool.exe" 40000 1000 64
+
+            & "sample/$Env:CONFIGURATION/sample_benchmark_task_stack_pool.exe" 1000 1000 2048
 
         }
 

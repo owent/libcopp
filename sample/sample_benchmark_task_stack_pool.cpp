@@ -49,10 +49,10 @@ public:
      * @return pointer of new object
      */
     template <typename Ty, typename... TARGS>
-    static Ty *allocate(Ty *t, TARGS... args) {
-        Ty *ret = cotask::macro_task::task_allocator_t::allocate(t, args...);
+    static std::shared_ptr<Ty> allocate(Ty *t, TARGS COPP_MACRO_RV_REF... args) {
+        std::shared_ptr<Ty> ret = cotask::macro_task::task_allocator_t::allocate(t, COPP_MACRO_STD_FORWARD(TARGS, args)...);
         ret->get_coroutine_context().get_allocator().attach(global_stack_pool);
-        return ret;
+        return COPP_MACRO_STD_MOVE(ret);
     }
 #else
     /**
@@ -60,10 +60,10 @@ public:
      * @return pointer of new object
      */
     template <typename Ty>
-    static Ty *allocate(Ty *t) {
-        Ty *ret = cotask::macro_task::task_allocator_t::allocate(t);
+    static std::shared_ptr<Ty> allocate(Ty *t) {
+        std::shared_ptr<Ty> ret = cotask::macro_task::task_allocator_t::allocate(t);
         ret->get_coroutine_context().get_allocator().attach(global_stack_pool);
-        return ret;
+        return COPP_MACRO_STD_MOVE(ret);
     }
 #endif
 };
