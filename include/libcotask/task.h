@@ -72,7 +72,7 @@ namespace cotask {
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
             if (res < 0) {
-                return NULL;
+                return ptr_t();
             }
 
             return ret;
@@ -109,14 +109,16 @@ namespace cotask {
                                                                    );
 
             if (!action) {
-                return NULL;
+                return ptr_t();
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return NULL;
+            if (res < 0) {
+                return ptr_t();
+            }
 
             return ret;
         }
@@ -141,14 +143,16 @@ namespace cotask {
             action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func);
 
             if (!action) {
-                return NULL;
+                return ptr_t();
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return NULL;
+            if (res < 0) {
+                return ptr_t();
+            }
 
             return ret;
         }
@@ -173,14 +177,16 @@ namespace cotask {
             action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), func, instance);
 
             if (!action) {
-                return NULL;
+                return ptr_t();
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return NULL;
+            if (res < 0) {
+                return ptr_t();
+            }
 
             return ret;
         }
@@ -206,14 +212,16 @@ namespace cotask {
             action_ptr_t action = action_allocator_t::allocate(reinterpret_cast<a_t *>(NULL), std::forward<TParams>(args)...);
 
             if (!action) {
-                return NULL;
+                return ptr_t();
             }
 
             ret->_set_action(action);
 
             // step 3. init coroutine context
             int res = ret->get_coroutine_context().create(ret->_get_action().get(), stack_size);
-            if (res < 0) return NULL;
+            if (res < 0) {
+                return ptr_t();
+            }
 
             return ret;
         }
