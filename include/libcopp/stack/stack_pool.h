@@ -79,6 +79,7 @@ namespace copp {
             return conf_.stack_size = sz;
         }
         size_t get_stack_size() const { return conf_.stack_size; }
+        size_t get_stack_size_offset() const { return conf_.stack_offset; }
 
         inline void set_max_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_size = sz; }
         inline size_t get_max_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_size; }
@@ -92,6 +93,9 @@ namespace copp {
 
         inline void set_auto_gc(bool v) COPP_MACRO_NOEXCEPT { conf_.auto_gc = v; }
         inline bool is_auto_gc() const COPP_MACRO_NOEXCEPT { return conf_.auto_gc; }
+
+        inline void set_gc_once_number(size_t v) COPP_MACRO_NOEXCEPT { conf_.gc_number = v; }
+        inline size_t get_gc_once_number() const COPP_MACRO_NOEXCEPT { return conf_.gc_number; }
 
         // actions
 
@@ -110,7 +114,7 @@ namespace copp {
                 return;
             }
 
-            if (0 != conf_.max_stack_number && limits_.used_stack_size + conf_.stack_size > conf_.max_stack_size) {
+            if (0 != conf_.max_stack_size && limits_.used_stack_size + conf_.stack_size > conf_.max_stack_size) {
                 ctx.sp = NULL;
                 ctx.size = 0;
                 return;
