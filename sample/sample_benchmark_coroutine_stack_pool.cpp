@@ -75,7 +75,12 @@ static void benchmark_round(int index) {
     // create a runner
     // bind runner to coroutine object
     for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-        co_arr[i].create(&runner[i], 0, NULL);
+        // maybe vm.max_map_count not enough
+        if (co_arr[i].create(&runner[i], 0, NULL) < 0) {
+            fprintf(stderr, "coroutine create failed, the real number is %d\n", i);
+            fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
+            MAX_COROUTINE_NUMBER = i;
+        }
     }
 
     end_time = time(NULL);

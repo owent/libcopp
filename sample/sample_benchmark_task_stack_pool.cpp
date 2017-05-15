@@ -101,7 +101,14 @@ static void benchmark_round(int index) {
     // create coroutines
     task_arr.reserve(static_cast<size_t>(max_task_number));
     while (task_arr.size() < static_cast<size_t>(max_task_number)) {
-        task_arr.push_back(my_task_t::create(my_task_action, 0));
+        my_task_t::ptr_t new_task = my_task_t::create(my_task_action, 0);
+        if (!new_task) {
+            fprintf(stderr, "create coroutine task failed, real size is %d.\n", static_cast<int>(task_arr.size()));
+            fprintf(stderr, "maybe sysconf [vm.max_map_count] extended.\n");
+            max_task_number = static_cast<int>(task_arr.size());
+        } else {
+            task_arr.push_back(my_task_t::create(my_task_action, 0));
+        }
     }
 
     time_t end_time = time(NULL);
