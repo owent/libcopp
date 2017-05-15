@@ -120,10 +120,10 @@ namespace copp {
                 return;
             }
 
-            // get from pool
+            // get from pool, in order to max reuse cache, we use FILO to allocate stack
             if (!free_list_.empty()) {
-                typename std::list<stack_context>::iterator iter = free_list_.begin();
-                assert(iter != free_list_.end());
+                typename std::list<stack_context>::reverse_iterator iter = free_list_.rbegin();
+                assert(iter != free_list_.rend());
 
                 // free limit
                 if (likely(limits_.free_stack_number > 0)) {
@@ -139,7 +139,7 @@ namespace copp {
                 }
 
                 ctx = *iter;
-                free_list_.pop_front();
+                free_list_.pop_back();
 
                 // used limit
                 ++limits_.used_stack_number;
