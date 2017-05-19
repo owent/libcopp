@@ -15,10 +15,7 @@
 #ifndef _STD_SMARTPTR_H_
 #define _STD_SMARTPTR_H_
 
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
-#endif
 
 // ============================================================
 // 公共包含部分
@@ -64,6 +61,7 @@ namespace std {
     using tr1::static_pointer_cast;
     using tr1::swap;
     using tr1::weak_ptr;
+    using tr1::unique_ptr;
 }
 #endif
 #else
@@ -80,7 +78,10 @@ namespace std {
     using tr1::static_pointer_cast;
     using tr1::swap;
     using tr1::weak_ptr;
+    using tr1::unique_ptr;
 }
 #endif
+
+#include "intrusive_ptr.h"
 
 #endif

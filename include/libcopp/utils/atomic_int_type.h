@@ -39,7 +39,7 @@
 // In gcc 4.7 and upper, we can use -std=c++11 or upper
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=51038
 // #elif defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4) && defined(__GXX_EXPERIMENTAL_CXX0X__)
-// 
+//
 // #include <atomic>
 // #define __UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
 
@@ -50,6 +50,9 @@
 #endif
 
 #include <cstddef>
+
+#include <libcopp/utils/features.h>
+
 
 namespace util {
     namespace lock {
@@ -62,8 +65,8 @@ namespace util {
         using ::std::memory_order_acq_rel;
         using ::std::memory_order_seq_cst;
 
-        #define UTIL_LOCK_ATOMIC_THREAD_FENCE(order) ::std::atomic_thread_fence(order)
-        #define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(order) ::std::atomic_signal_fence(order)
+#define UTIL_LOCK_ATOMIC_THREAD_FENCE(order) ::std::atomic_thread_fence(order)
+#define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(order) ::std::atomic_signal_fence(order)
 
         /**
          * @brief atomic - C++ 0x/11版实现
@@ -71,24 +74,32 @@ namespace util {
          * @exception noexcept
          * @note Ty can only be a integer or enum, can not be bool or raw pointer
          */
-        template<typename Ty = int>
+        template <typename Ty = int>
         class atomic_int_type {
         public:
             typedef Ty value_type;
 
         private:
             ::std::atomic<value_type> data_;
-            atomic_int_type(const atomic_int_type&);
+            atomic_int_type(const atomic_int_type &);
 
         public:
             atomic_int_type() : data_() {}
             atomic_int_type(value_type desired) : data_(desired) {}
 
-            inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { data_.store(desired, order); }
-            inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { data_.store(desired, order); }
+            inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                data_.store(desired, order);
+            }
+            inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                data_.store(desired, order);
+            }
 
-            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const { return data_.load(order); }
-            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const volatile { return data_.load(order); }
+            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const {
+                return data_.load(order);
+            }
+            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const volatile {
+                return data_.load(order);
+            }
 
             inline operator value_type() const { return load(); }
             inline operator value_type() const volatile { return load(); }
@@ -96,41 +107,89 @@ namespace util {
             inline value_type operator++() { return ++data_; }
             inline value_type operator++() volatile { return ++data_; }
             inline value_type operator++(int) { return data_++; }
-            inline value_type operator++(int) volatile { return data_++; }
+            inline value_type operator++(int)volatile { return data_++; }
             inline value_type operator--() { return --data_; }
             inline value_type operator--() volatile { return --data_; }
             inline value_type operator--(int) { return data_--; }
-            inline value_type operator--(int) volatile { return data_--; }
+            inline value_type operator--(int)volatile { return data_--; }
 
-            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.exchange(desired, order); }
-            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.exchange(desired, order); }
+            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.exchange(desired, order);
+            }
+            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.exchange(desired, order);
+            }
 
-            inline bool compare_exchange_weak(value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure) { return data_.compare_exchange_weak(expected, desired, success, failure); }
-            inline bool compare_exchange_weak(value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure) volatile { return data_.compare_exchange_weak(expected, desired, success, failure); }
+            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                              ::util::lock::memory_order failure) {
+                return data_.compare_exchange_weak(expected, desired, success, failure);
+            }
+            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                              ::util::lock::memory_order failure) volatile {
+                return data_.compare_exchange_weak(expected, desired, success, failure);
+            }
 
-            inline bool compare_exchange_weak(value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.compare_exchange_weak(expected, desired, order); }
-            inline bool compare_exchange_weak(value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.compare_exchange_weak(expected, desired, order); }
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.compare_exchange_weak(expected, desired, order);
+            }
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.compare_exchange_weak(expected, desired, order);
+            }
 
-            inline bool compare_exchange_strong(value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure) { return data_.compare_exchange_strong(expected, desired, success, failure); }
-            inline bool compare_exchange_strong(value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure) volatile { return data_.compare_exchange_strong(expected, desired, success, failure); }
+            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                                ::util::lock::memory_order failure) {
+                return data_.compare_exchange_strong(expected, desired, success, failure);
+            }
+            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                                ::util::lock::memory_order failure) volatile {
+                return data_.compare_exchange_strong(expected, desired, success, failure);
+            }
 
-            inline bool compare_exchange_strong(value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.compare_exchange_strong(expected, desired, order); }
-            inline bool compare_exchange_strong(value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.compare_exchange_strong(expected, desired, order); }
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.compare_exchange_strong(expected, desired, order);
+            }
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.compare_exchange_strong(expected, desired, order);
+            }
 
-            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.fetch_add(arg, order); }
-            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.fetch_add(arg, order); }
+            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.fetch_add(arg, order);
+            }
+            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.fetch_add(arg, order);
+            }
 
-            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.fetch_sub(arg, order); }
-            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.fetch_sub(arg, order); }
+            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.fetch_sub(arg, order);
+            }
+            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.fetch_sub(arg, order);
+            }
 
-            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.fetch_and(arg, order); }
-            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.fetch_and(arg, order); }
+            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.fetch_and(arg, order);
+            }
+            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.fetch_and(arg, order);
+            }
 
-            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.fetch_or(arg, order); }
-            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.fetch_or(arg, order); }
+            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.fetch_or(arg, order);
+            }
+            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.fetch_or(arg, order);
+            }
 
-            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) { return data_.fetch_xor(arg, order); }
-            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile { return data_.fetch_xor(arg, order); }
+            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return data_.fetch_xor(arg, order);
+            }
+            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return data_.fetch_xor(arg, order);
+            }
         };
 #else
 
@@ -141,10 +200,10 @@ namespace util {
 #endif
 
 #if defined(__GCC_ATOMIC_INT_LOCK_FREE)
-        // @see https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
+// @see https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
 #define __UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC 1
 #else
-        // @see https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
+// @see https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
 #define __UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC 1
 #endif
 
@@ -187,8 +246,8 @@ namespace util {
             memory_order_seq_cst = __ATOMIC_SEQ_CST
         };
 
-        #define UTIL_LOCK_ATOMIC_THREAD_FENCE(order) __atomic_thread_fence(order)
-        #define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(order) __atomic_signal_fence(order)
+#define UTIL_LOCK_ATOMIC_THREAD_FENCE(order) __atomic_thread_fence(order)
+#define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(order) __atomic_signal_fence(order)
 
 #elif !defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC) // old gcc and old msvc use this
         enum memory_order {
@@ -209,7 +268,7 @@ namespace util {
 #define UTIL_LOCK_ATOMIC_SIGNAL_FENCE(x)
 #endif
 
-        template<typename Ty = int>
+        template <typename Ty = int>
         class atomic_int_type {
         public:
             typedef Ty value_type;
@@ -224,17 +283,17 @@ namespace util {
 #else
             volatile value_type data_;
 #endif
-            atomic_int_type(const atomic_int_type&);
+            atomic_int_type(const atomic_int_type &);
 
         public:
-            atomic_int_type(): data_() {}
-            atomic_int_type(value_type desired): data_(desired) {}
+            atomic_int_type() : data_() {}
+            atomic_int_type(value_type desired) : data_(desired) {}
 
             inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                int_opr_t::exchange(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(desired), order);
+                int_opr_t::exchange(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(desired), order);
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 __atomic_store_n(&data_, desired, order);
@@ -247,7 +306,7 @@ namespace util {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                int_opr_t::exchange(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), order);
+                int_opr_t::exchange(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired), order);
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 __atomic_store_n(&data_, desired, order);
@@ -256,11 +315,11 @@ namespace util {
 #endif
             }
 
-            inline value_type load( ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) const {
+            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::or(const_cast<opr_t*>(reinterpret_cast<volatile const opr_t*>(&data_)), static_cast<opr_t>(0), order);
+                return int_opr_t:: or (const_cast<opr_t *>(reinterpret_cast<volatile const opr_t *>(&data_)), static_cast<opr_t>(0), order);
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_load_n(&data_, order);
@@ -270,11 +329,11 @@ namespace util {
 #endif
             }
 
-            inline value_type load( ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) const volatile {
+            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::or(const_cast<opr_t*>(reinterpret_cast<volatile const opr_t*>(&data_)), static_cast<opr_t>(0), order);
+                return int_opr_t:: or (const_cast<opr_t *>(reinterpret_cast<volatile const opr_t *>(&data_)), static_cast<opr_t>(0), order);
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_load_n(&data_, order);
@@ -283,122 +342,125 @@ namespace util {
                 return data_;
 #endif
             }
-    
+
             inline operator value_type() const { return load(); }
             inline operator value_type() const volatile { return load(); }
 
-            inline value_type operator++() { 
+            inline value_type operator++() {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst);
+                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
 #else
                 return fetch_add(1) + 1;
 #endif
             }
-            inline value_type operator++() volatile { 
+            inline value_type operator++() volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst);
+                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
 #else
                 return fetch_add(1) + 1;
 #endif
             }
-            inline value_type operator++( int ) { 
+            inline value_type operator++(int) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst) - 1;
+                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst) - 1;
 #else
                 return fetch_add(1);
 #endif
             }
-            inline value_type operator++( int ) volatile  { 
+            inline value_type operator++(int)volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst) - 1;
+                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst) - 1;
 #else
                 return fetch_add(1);
 #endif
             }
-            inline value_type operator--() { 
+            inline value_type operator--() {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst);
+                return int_opr_t::dec(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
 #else
                 return fetch_sub(1) - 1;
 #endif
             }
-            inline value_type operator--() volatile { 
+            inline value_type operator--() volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst);
+                return int_opr_t::dec(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
 #else
                 return fetch_sub(1) - 1;
 #endif
             }
-            inline value_type operator--( int ) { 
+            inline value_type operator--(int) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(reinterpret_cast<volatile opr_t*>(&data_), ::util::lock::memory_order_seq_cst) + 1;
+                return int_opr_t::dec(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst) + 1;
 #else
                 return fetch_sub(1);
 #endif
             }
-            inline value_type operator--( int ) volatile { 
+            inline value_type operator--(int)volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(static_cast<opr_t*>(&data_), ::util::lock::memory_order_seq_cst) + 1;
+                return int_opr_t::dec(static_cast<opr_t *>(&data_), ::util::lock::memory_order_seq_cst) + 1;
 #else
                 return fetch_sub(1);
 #endif
             }
 
-            inline value_type exchange( value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::exchange(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(desired), order));
+                return static_cast<value_type>(
+                    int_opr_t::exchange(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(desired), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_exchange_n(&data_, desired, order);
 #else
                 value_type old_value = data_;
-                while(!__sync_bool_compare_and_swap(&data_, old_value, desired)) {
+                while (!__sync_bool_compare_and_swap(&data_, old_value, desired)) {
                     old_value = data_;
                 }
                 return old_value;
 #endif
             }
 
-            inline value_type exchange( value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
+            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::exchange(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), order));
+                return static_cast<value_type>(int_opr_t::exchange(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_exchange_n(&data_, desired, order);
 #else
                 value_type old_value = data_;
-                while(!__sync_bool_compare_and_swap(&data_, old_value, desired)) {
+                while (!__sync_bool_compare_and_swap(&data_, old_value, desired)) {
                     old_value = data_;
                 }
                 return old_value;
 #endif
             }
-    
-            inline bool compare_exchange_weak( value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure ) {
+
+            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                              ::util::lock::memory_order failure) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
+                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
+                                                                       static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
                     expected = data_;
@@ -408,7 +470,7 @@ namespace util {
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
 #else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
                     return true;
                 } else {
                     expected = data_;
@@ -417,11 +479,13 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_weak( value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure ) volatile {
+            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                              ::util::lock::memory_order failure) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
+                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
+                                                                       static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
                     expected = data_;
@@ -431,7 +495,7 @@ namespace util {
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
 #else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
                     return true;
                 } else {
                     expected = data_;
@@ -440,34 +504,13 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_weak( value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
-
-#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-                return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
-#else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
-#endif
-            }
-
-            inline bool compare_exchange_weak( value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
-#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
-                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
+                if (expected == static_cast<value_type>(int_opr_t::cas(reinterpret_cast<volatile opr_t *>(&data_),
+                                                                       static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
                     return true;
                 } else {
                     expected = data_;
@@ -477,7 +520,7 @@ namespace util {
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
 #else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
                     return true;
                 } else {
                     expected = data_;
@@ -486,11 +529,38 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_strong( value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure ) {
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
+                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
+                                                                       static_cast<opr_t>(expected), order))) {
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+
+#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+                return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
+#else
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+#endif
+            }
+
+            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                                ::util::lock::memory_order failure) {
+#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
+                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
+                typedef typename int_opr_t::opr_t opr_t;
+                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
+                                                                       static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
                     expected = data_;
@@ -500,7 +570,7 @@ namespace util {
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_compare_exchange_n(&data_, &expected, desired, false, success, failure);
 #else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
                     return true;
                 } else {
                     expected = data_;
@@ -509,11 +579,13 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_strong( value_type& expected, value_type desired, ::util::lock::memory_order success, ::util::lock::memory_order failure ) volatile {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                                ::util::lock::memory_order failure) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
+                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
+                                                                       static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
                     expected = data_;
@@ -523,7 +595,7 @@ namespace util {
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_compare_exchange_n(&data_, &expected, desired, false, success, failure);
 #else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
                     return true;
                 } else {
                     expected = data_;
@@ -532,34 +604,13 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_strong( value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
-
-#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-                return __atomic_compare_exchange_n(&data_, &expected, desired, false, order, order);
-#else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
-#endif
-            }
-
-            inline bool compare_exchange_strong( value_type& expected, value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
-#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
-                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if(expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t*>(&data_), static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
+                if (expected == static_cast<value_type>(int_opr_t::cas(reinterpret_cast<volatile opr_t *>(&data_),
+                                                                       static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
                     return true;
                 } else {
                     expected = data_;
@@ -569,7 +620,7 @@ namespace util {
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_compare_exchange_n(&data_, &expected, desired, false, order, order);
 #else
-                if(__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
                     return true;
                 } else {
                     expected = data_;
@@ -578,11 +629,37 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_add( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::add(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(arg), order)) - arg;
+                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
+                                                                       static_cast<opr_t>(expected), order))) {
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+
+#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+                return __atomic_compare_exchange_n(&data_, &expected, desired, false, order, order);
+#else
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+#endif
+            }
+
+            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
+                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
+                typedef typename int_opr_t::opr_t opr_t;
+                return static_cast<value_type>(int_opr_t::add(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order)) -
+                       arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_add(&data_, arg, order);
@@ -590,11 +667,11 @@ namespace util {
                 return __sync_fetch_and_add(&data_, arg);
 #endif
             }
-            inline value_type fetch_add( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
+            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::add(static_cast<opr_t*>(&data_), static_cast<opr_t>(arg), order)) - arg;
+                return static_cast<value_type>(int_opr_t::add(static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order)) - arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_add(&data_, arg, order);
@@ -603,11 +680,12 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_sub( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::sub(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(arg), order)) + arg;
+                return static_cast<value_type>(int_opr_t::sub(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order)) +
+                       arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_sub(&data_, arg, order);
@@ -615,11 +693,11 @@ namespace util {
                 return __sync_fetch_and_sub(&data_, arg);
 #endif
             }
-            inline value_type fetch_sub( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
+            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::sub(static_cast<opr_t*>(&data_), static_cast<opr_t>(arg), order)) + arg;
+                return static_cast<value_type>(int_opr_t::sub(static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order)) + arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_sub(&data_, arg, order);
@@ -628,11 +706,11 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_and( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::and(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(arg), order));
+                return static_cast<value_type>(int_opr_t::and(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_and(&data_, arg, order);
@@ -640,11 +718,11 @@ namespace util {
                 return __sync_fetch_and_and(&data_, arg);
 #endif
             }
-            inline value_type fetch_and( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
+            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::and(static_cast<opr_t*>(&data_), static_cast<opr_t>(arg), order));
+                return static_cast<value_type>(int_opr_t::and(static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_and(&data_, arg, order);
@@ -653,11 +731,11 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_or( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::or(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(arg), order));
+                return static_cast<value_type>(int_opr_t:: or (reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_or(&data_, arg, order);
@@ -665,11 +743,11 @@ namespace util {
                 return __sync_fetch_and_or(&data_, arg);
 #endif
             }
-            inline value_type fetch_or( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
+            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::or(static_cast<opr_t*>(&data_), static_cast<opr_t>(arg), order));
+                return static_cast<value_type>(int_opr_t:: or (static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_or(&data_, arg, order);
@@ -678,11 +756,12 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_xor( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) {
+            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::xor(reinterpret_cast<volatile opr_t*>(&data_), static_cast<opr_t>(arg), order));
+                return static_cast<value_type>(int_opr_t:: xor
+                                               (reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_xor(&data_, arg, order);
@@ -690,11 +769,11 @@ namespace util {
                 return __sync_fetch_and_xor(&data_, arg);
 #endif
             }
-            inline value_type fetch_xor( value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst ) volatile {
+            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
                 typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::xor(static_cast<opr_t*>(&data_), static_cast<opr_t>(arg), order));
+                return static_cast<value_type>(int_opr_t:: xor (static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_xor(&data_, arg, order);
@@ -705,6 +784,162 @@ namespace util {
         };
 
 #endif
+
+        // used for unsafe (not multi-thread safe)
+        template <typename Ty = int>
+        struct unsafe_int_type {
+            typedef Ty value_type;
+        };
+
+        template <typename Ty>
+        class atomic_int_type<unsafe_int_type<Ty> > {
+        public:
+            typedef typename unsafe_int_type<Ty>::value_type value_type;
+
+        private:
+            value_type data_;
+            atomic_int_type(const atomic_int_type &);
+
+        public:
+            atomic_int_type() : data_() {}
+            atomic_int_type(value_type desired) : data_(desired) {}
+
+            inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                data_ = desired;
+            }
+            inline void store(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                data_ = desired;
+            }
+
+            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const { return data_; }
+            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const volatile { return data_; }
+
+            inline operator value_type() const { return load(); }
+            inline operator value_type() const volatile { return load(); }
+
+            inline value_type operator++() { return ++data_; }
+            inline value_type operator++() volatile { return ++data_; }
+            inline value_type operator++(int) { return data_++; }
+            inline value_type operator++(int)volatile { return data_++; }
+            inline value_type operator--() { return --data_; }
+            inline value_type operator--() volatile { return --data_; }
+            inline value_type operator--(int) { return data_--; }
+            inline value_type operator--(int)volatile { return data_--; }
+
+            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                value_type ret = data_;
+                data_ = desired;
+                return ret;
+            }
+            inline value_type exchange(value_type desired, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                value_type ret = data_;
+                data_ = desired;
+                return ret;
+            }
+
+        private:
+            inline bool cas(value_type &expected, value_type desired) {
+                if (likely(data_ == expected)) {
+                    data_ = desired;
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+            }
+
+        public:
+            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                              ::util::lock::memory_order failure) {
+                return cas(expected, desired);
+            }
+            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                              ::util::lock::memory_order failure) volatile {
+                return cas(expected, desired);
+            }
+
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return cas(expected, desired);
+            }
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return cas(expected, desired);
+            }
+
+            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                                ::util::lock::memory_order failure) {
+                return cas(expected, desired);
+            }
+            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
+                                                ::util::lock::memory_order failure) volatile {
+                return cas(expected, desired);
+            }
+
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                return cas(expected, desired);
+            }
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                return cas(expected, desired);
+            }
+
+            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                value_type ret = data_;
+                data_ += arg;
+                return ret;
+            }
+            inline value_type fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                value_type ret = data_;
+                data_ += arg;
+                return ret;
+            }
+
+            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                value_type ret = data_;
+                data_ -= arg;
+                return ret;
+            }
+            inline value_type fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                value_type ret = data_;
+                data_ -= arg;
+                return ret;
+            }
+
+            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                value_type ret = data_;
+                data_ &= arg;
+                return ret;
+            }
+            inline value_type fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                value_type ret = data_;
+                data_ &= arg;
+                return ret;
+            }
+
+            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                value_type ret = data_;
+                data_ |= arg;
+                return ret;
+            }
+            inline value_type fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                value_type ret = data_;
+                data_ |= arg;
+                return ret;
+            }
+
+            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) {
+                value_type ret = data_;
+                data_ ^= arg;
+                return ret;
+            }
+            inline value_type fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile {
+                value_type ret = data_;
+                data_ ^= arg;
+                return ret;
+            }
+        };
     }
 }
 
