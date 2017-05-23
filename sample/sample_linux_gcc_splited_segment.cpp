@@ -20,7 +20,7 @@
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
 
-typedef copp::detail::coroutine_context_container<copp::detail::coroutine_context_base, copp::allocator::stack_allocator_split_segment>
+typedef copp::coroutine_context_container<copp::allocator::stack_allocator_split_segment>
     co_context_t;
 
 // define a coroutine runner
@@ -46,7 +46,7 @@ private:
     }
 
 public:
-    int operator()() {
+    int operator()(void*) {
         // test split stack(64MB of stack)
         is_running_ = true;
         min_ = std::numeric_limits<intptr_t>::max();

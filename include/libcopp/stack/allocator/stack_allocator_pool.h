@@ -29,6 +29,7 @@ namespace copp {
 
         public:
             stack_allocator_pool() UTIL_CONFIG_NOEXCEPT {}
+            stack_allocator_pool(const std::shared_ptr<pool_t>& p) UTIL_CONFIG_NOEXCEPT : pool_(p){}
             ~stack_allocator_pool() {}
 
             /**

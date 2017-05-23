@@ -9,19 +9,17 @@
 
 #ifndef _COTASK_IMPL_TASK_ACTION_IMPL_H_
 #define _COTASK_IMPL_TASK_ACTION_IMPL_H_
-
-#include <libcopp/coroutine/coroutine_runnable_base.h>
-
 namespace cotask {
 
     namespace impl {
 
         class task_impl;
 
-        class task_action_impl : public copp::coroutine_runnable_base
-        {
+        class task_action_impl {
         public:
-            virtual int on_finished(task_impl&) { return 0; }
+            virtual ~task_action_impl() {}
+            virtual int operator()(void *) = 0;
+            virtual int on_finished(task_impl &) { return 0; }
         };
     }
 }

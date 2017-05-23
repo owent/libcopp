@@ -27,25 +27,21 @@ typedef copp::stack_pool<copp::allocator::default_statck_allocator> stack_pool_t
 stack_pool_t::ptr_t global_stack_pool;
 int switch_count = 100;
 
-typedef copp::detail::coroutine_context_container<copp::detail::coroutine_context_base,
-                                                  copp::allocator::stack_allocator_pool<stack_pool_t> >
+typedef copp::coroutine_context_container<copp::allocator::stack_allocator_pool<stack_pool_t> >
     my_cotoutine_t;
 
 // define a coroutine runner
-class my_runner : public copp::detail::coroutine_runnable_base {
-public:
-    int operator()() {
-        // ... your code here ...
-        int count = switch_count; // 每个协程N次切换
-        my_cotoutine_t *addr = copp::this_coroutine::get<my_cotoutine_t>();
+static int my_runner(void*) {
+    // ... your code here ...
+    int count = switch_count; // 每个协程N次切换
+    my_cotoutine_t *addr = copp::this_coroutine::get<my_cotoutine_t>();
 
-        while (count-- > 0) {
-            addr->yield();
-        }
-
-        return 1;
+    while (count-- > 0) {
+        addr->yield();
     }
-};
+
+    return 1;
+}
 
 int MAX_COROUTINE_NUMBER = 100000; // 协程数量
 
@@ -56,8 +52,7 @@ static void benchmark_round(int index) {
     clock_t begin_clock = clock();
 
     // create coroutines
-    my_cotoutine_t *co_arr = new my_cotoutine_t[MAX_COROUTINE_NUMBER];
-    my_runner *runner = new my_runner[MAX_COROUTINE_NUMBER];
+    my_cotoutine_t::ptr_t *co_arr = new my_cotoutine_t::ptr_t[MAX_COROUTINE_NUMBER];
 
     time_t end_time = time(NULL);
     clock_t end_clock = clock();
@@ -66,20 +61,13 @@ static void benchmark_round(int index) {
            CALC_NS_AVG_CLOCK(end_clock - begin_clock, MAX_COROUTINE_NUMBER));
 
     for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-        co_arr[i].get_allocator().attach(global_stack_pool);
-    }
-
-    begin_time = end_time;
-    begin_clock = end_clock;
-
-    // create a runner
-    // bind runner to coroutine object
-    for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-        // maybe vm.max_map_count not enough
-        if (co_arr[i].create(&runner[i], 0, NULL) < 0) {
+        copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
+        co_arr[i] = my_cotoutine_t::create(my_runner, alloc, 0, NULL);
+        if (!co_arr[i]) {
             fprintf(stderr, "coroutine create failed, the real number is %d\n", i);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
             MAX_COROUTINE_NUMBER = i;
+            break;
         }
     }
 
@@ -94,7 +82,7 @@ static void benchmark_round(int index) {
 
     // start a coroutine
     for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-        co_arr[i].start();
+        co_arr[i]->start();
     }
 
     // yield & resume from runner
@@ -104,10 +92,10 @@ static void benchmark_round(int index) {
     while (continue_flag) {
         continue_flag = false;
         for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-            if (false == co_arr[i].is_finished()) {
+            if (false == co_arr[i]->is_finished()) {
                 continue_flag = true;
                 ++real_switch_times;
-                co_arr[i].resume();
+                co_arr[i]->resume();
             }
         }
     }
@@ -122,7 +110,6 @@ static void benchmark_round(int index) {
     begin_clock = end_clock;
 
     delete[] co_arr;
-    delete[] runner;
 
     end_time = time(NULL);
     end_clock = clock();

@@ -29,10 +29,9 @@ int max_task_number = 100000; // 协程Task数量
 size_t stack_size = 16 * 1024;
 
 struct my_macro_coroutine {
-    typedef copp::detail::coroutine_context_base coroutine_t;
     typedef copp::allocator::stack_allocator_malloc stack_allocator_t;
 
-    typedef copp::detail::coroutine_context_container<coroutine_t, stack_allocator_t> coroutine_container_t;
+    typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
 };
 
 typedef cotask::task<my_macro_coroutine> my_task_t;
@@ -40,12 +39,13 @@ typedef cotask::task<my_macro_coroutine> my_task_t;
 std::vector<my_task_t::ptr_t> task_arr;
 
 // define a coroutine runner
-int my_task_action() {
+int my_task_action(void*) {
     // ... your code here ...
     int count = switch_count; // 每个task地切换次数
 
-    while (count-- > 0)
+    while (count-- > 0) {
         cotask::this_task::get_task()->yield();
+    }
 
     return 0;
 }

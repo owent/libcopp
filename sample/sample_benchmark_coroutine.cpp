@@ -24,23 +24,19 @@
 int switch_count = 100;
 
 // define a coroutine runner
-class my_runner : public copp::detail::coroutine_runnable_base {
-public:
-    int operator()() {
-        // ... your code here ...
-        int count = switch_count; // 每个协程N次切换
-        copp::coroutine_context_default *addr = copp::this_coroutine::get<copp::coroutine_context_default>();
+static int my_runner(void*) {
+    // ... your code here ...
+    int count = switch_count; // 每个协程N次切换
+    copp::coroutine_context_default *addr = copp::this_coroutine::get<copp::coroutine_context_default>();
 
-        while (count-- > 0)
-            addr->yield();
+    while (count-- > 0)
+        addr->yield();
 
-        return 1;
-    }
-};
+    return 1;
+}
 
 int max_coroutine_number = 100000; // 协程数量
-copp::coroutine_context_default *co_arr = NULL;
-my_runner *runner = NULL;
+copp::coroutine_context_default::ptr_t* co_arr = NULL;
 int main(int argc, char *argv[]) {
 #ifdef COPP_MACRO_SYS_POSIX
     puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
@@ -72,8 +68,7 @@ int main(int argc, char *argv[]) {
     clock_t begin_clock = clock();
 
     // create coroutines
-    co_arr = new copp::coroutine_context_default[max_coroutine_number];
-    runner = new my_runner[max_coroutine_number];
+    co_arr = new copp::coroutine_context_default::ptr_t[max_coroutine_number];
 
     time_t end_time = time(NULL);
     clock_t end_clock = clock();
@@ -84,7 +79,7 @@ int main(int argc, char *argv[]) {
     // create a runner
     // bind runner to coroutine object
     for (int i = 0; i < max_coroutine_number; ++i) {
-        int res = co_arr[i].create(&runner[i], stack_size);
+        int res = co_arr[i] = copp::coroutine_context_default::create(my_runner, stack_size);
         if (res < 0) {
             fprintf(stderr, "coroutine create failed, the real number is %d, ret: %d\n", i, res);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
@@ -103,7 +98,7 @@ int main(int argc, char *argv[]) {
 
     // start a coroutine
     for (int i = 0; i < max_coroutine_number; ++i) {
-        co_arr[i].start();
+        co_arr[i]->start();
     }
 
     // yield & resume from runner
@@ -113,10 +108,10 @@ int main(int argc, char *argv[]) {
     while (continue_flag) {
         continue_flag = false;
         for (int i = 0; i < max_coroutine_number; ++i) {
-            if (false == co_arr[i].is_finished()) {
+            if (false == co_arr[i]->is_finished()) {
                 continue_flag = true;
                 ++real_switch_times;
-                co_arr[i].resume();
+                co_arr[i]->resume();
             }
         }
     }
@@ -131,7 +126,6 @@ int main(int argc, char *argv[]) {
     begin_clock = end_clock;
 
     delete[] co_arr;
-    delete[] runner;
 
     end_time = time(NULL);
     end_clock = clock();

@@ -31,7 +31,7 @@ int max_task_number = 100000; // 协程Task数量
 std::vector<my_task_t::ptr_t> task_arr;
 
 // define a coroutine runner
-int my_task_action() {
+static int my_task_action(void *) {
     // ... your code here ...
     int count = switch_count; // 每个task地切换次数
 

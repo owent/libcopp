@@ -34,54 +34,17 @@ int switch_count = 100;
 int max_task_number = 100000; // 协程Task数量
 
 struct my_macro_coroutine {
-    typedef copp::detail::coroutine_context_base coroutine_t;
     typedef copp::allocator::stack_allocator_pool<stack_pool_t> stack_allocator_t;
 
-    typedef copp::detail::coroutine_context_container<coroutine_t, stack_allocator_t> coroutine_container_t;
+    typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
 };
 
-struct my_task_allocator : public cotask::macro_task::task_allocator_t {
-public:
-#if defined(COPP_MACRO_ENABLE_VARIADIC_TEMPLATE) && COPP_MACRO_ENABLE_VARIADIC_TEMPLATE
-    /**
-     * @brief allocate a object
-     * @param args construct parameters
-     * @return pointer of new object
-     */
-    template <typename Ty, typename... TARGS>
-    static std::shared_ptr<Ty> allocate(Ty *t, TARGS COPP_MACRO_RV_REF... args) {
-        std::shared_ptr<Ty> ret = cotask::macro_task::task_allocator_t::allocate(t, COPP_MACRO_STD_FORWARD(TARGS, args)...);
-        ret->get_coroutine_context().get_allocator().attach(global_stack_pool);
-        return COPP_MACRO_STD_MOVE(ret);
-    }
-#else
-    /**
-     * @brief allocate a object with 0 parameter(s).
-     * @return pointer of new object
-     */
-    template <typename Ty>
-    static std::shared_ptr<Ty> allocate(Ty *t) {
-        std::shared_ptr<Ty> ret = cotask::macro_task::task_allocator_t::allocate(t);
-        ret->get_coroutine_context().get_allocator().attach(global_stack_pool);
-        return COPP_MACRO_STD_MOVE(ret);
-    }
-#endif
-};
-
-struct my_macro_task {
-    typedef cotask::macro_task::id_t id_t;
-    typedef cotask::macro_task::id_allocator_t id_allocator_t;
-
-    typedef cotask::macro_task::action_allocator_t action_allocator_t;
-    typedef my_task_allocator task_allocator_t;
-};
-
-typedef cotask::task<my_macro_coroutine, my_macro_task> my_task_t;
+typedef cotask::task<my_macro_coroutine> my_task_t;
 
 std::vector<my_task_t::ptr_t> task_arr;
 
 // define a coroutine runner
-int my_task_action() {
+int my_task_action(void*) {
     // ... your code here ...
     int count = switch_count; // 每个task地切换次数
 
@@ -101,13 +64,14 @@ static void benchmark_round(int index) {
     // create coroutines
     task_arr.reserve(static_cast<size_t>(max_task_number));
     while (task_arr.size() < static_cast<size_t>(max_task_number)) {
-        my_task_t::ptr_t new_task = my_task_t::create(my_task_action, 0);
+        copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
+        my_task_t::ptr_t new_task = my_task_t::create(my_task_action, alloc, 0);
         if (!new_task) {
             fprintf(stderr, "create coroutine task failed, real size is %d.\n", static_cast<int>(task_arr.size()));
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended.\n");
             max_task_number = static_cast<int>(task_arr.size());
         } else {
-            task_arr.push_back(my_task_t::create(my_task_action, 0));
+            task_arr.push_back(new_task);
         }
     }
 

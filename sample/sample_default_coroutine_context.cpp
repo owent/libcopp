@@ -18,9 +18,9 @@
 #include <libcopp/coroutine/coroutine_context_container.h>
 
 // define a coroutine runner
-class my_runner : public copp::detail::coroutine_runnable_base {
+class my_runner {
 public:
-    int operator()() {
+    int operator()(void*) {
         // ... your code here ...printf("cortoutine %" PRIxPTR " exit and return %d.\n", (intptr_t)&co_obj, co_obj.get_ret_code());
         copp::coroutine_context_default *addr = copp::this_coroutine::get<copp::coroutine_context_default>();
         std::cout << "cortoutine " << addr << " is running." << std::endl;
@@ -34,22 +34,16 @@ public:
 
 int main() {
     // create a coroutine
-    copp::coroutine_context_default co_obj;
+    copp::coroutine_context_default::ptr_t co_obj = copp::coroutine_context_default::create(my_runner());
     std::cout << "cortoutine " << &co_obj << " is created." << std::endl;
 
-    // create a runner
-    my_runner runner;
-
-    // bind runner to coroutine object
-    co_obj.create(&runner);
-
     // start a coroutine
-    co_obj.start();
+    co_obj->start();
 
     // yield from runner
     std::cout << "cortoutine " << &co_obj << " is yield." << std::endl;
-    co_obj.resume();
+    co_obj->resume();
 
-    std::cout << "cortoutine " << &co_obj << " exit and return " << co_obj.get_ret_code() << "." << std::endl;
+    std::cout << "cortoutine " << &co_obj << " exit and return " << co_obj->get_ret_code() << "." << std::endl;
     return 0;
 }

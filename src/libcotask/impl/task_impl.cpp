@@ -12,7 +12,7 @@
 
 #include <assert.h>
 
-#include <libcopp/coroutine/coroutine_context_base.h>
+#include <libcopp/coroutine/coroutine_context.h>
 #include <libcotask/impl/task_action_impl.h>
 #include <libcotask/impl/task_impl.h>
 
@@ -46,12 +46,12 @@ namespace cotask {
         int task_impl::on_finished() { return 0; }
 
         task_impl *task_impl::this_task() {
-            copp::detail::coroutine_context_base *this_co = copp::this_coroutine::get_coroutine();
-            if (NULL == this_co) {
-                return NULL;
+            copp::coroutine_context *this_co = copp::this_coroutine::get_coroutine();
+            if (UTIL_CONFIG_NULLPTR == this_co) {
+                return UTIL_CONFIG_NULLPTR;
             }
 
-            return reinterpret_cast<task_impl *>(this_co->get_private_data());
+            return *((task_impl **)this_co->get_private_buffer());
         }
 
         void task_impl::_set_action(const action_ptr_t &action) { action_ = action; }
