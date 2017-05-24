@@ -6,15 +6,15 @@
 #include <libcopp/coroutine/coroutine_context_container.h>
 
 
-typedef copp::detail::coroutine_context_container<copp::detail::coroutine_context_base, copp::allocator::stack_allocator_memory>
+typedef copp::coroutine_context_container<copp::allocator::stack_allocator_memory>
     test_context_base_coroutine_context_test_type;
 
 static int g_test_coroutine_base_status = 0;
 
-class test_context_base_foo_runner : public copp::coroutine_runnable_base {
+class test_context_base_foo_runner {
 public:
     int call_times;
-    int operator()() {
+    int operator()(void*) {
         ++call_times;
         ++g_test_coroutine_base_status;
         copp::this_coroutine::get<test_context_base_coroutine_context_test_type>()->yield();
@@ -30,25 +30,25 @@ CASE_TEST(coroutine, context_base) {
     ++g_test_coroutine_base_status;
     CASE_EXPECT_EQ(g_test_coroutine_base_status, 1);
 
-    test_context_base_coroutine_context_test_type co;
     test_context_base_foo_runner runner;
-    runner.call_times = 0;
+    {
+        copp::allocator::stack_allocator_memory alloc(stack_buff, 128 * 1024);
+        test_context_base_coroutine_context_test_type::ptr_t co = test_context_base_coroutine_context_test_type::create(&runner, alloc);
+        runner.call_times = 0;
 
-    co.get_allocator().attach(stack_buff, 128 * 1024);
-    co.create(&runner, 128 * 1024);
-    int res = co.create(&runner, 128 * 1024); // can not be created muli times
-    CASE_EXPECT_EQ(res, copp::COPP_EC_ALREADY_INITED);
+        CASE_EXPECT_TRUE(!!co);
 
-    co.start();
+        co->start();
 
-    ++g_test_coroutine_base_status;
-    CASE_EXPECT_EQ(g_test_coroutine_base_status, 3);
-    co.resume();
+        ++g_test_coroutine_base_status;
+        CASE_EXPECT_EQ(g_test_coroutine_base_status, 3);
+        co->resume();
 
-    ++g_test_coroutine_base_status;
-    CASE_EXPECT_EQ(g_test_coroutine_base_status, 5);
+        ++g_test_coroutine_base_status;
+        CASE_EXPECT_EQ(g_test_coroutine_base_status, 5);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_READY, co.resume());
+        CASE_EXPECT_EQ(::copp::COPP_EC_NOT_READY, co->resume());
+    }
 
     delete[] stack_buff;
 }
@@ -61,24 +61,27 @@ CASE_TEST(coroutine, shared_runner) {
     ++g_test_coroutine_base_status;
     CASE_EXPECT_EQ(g_test_coroutine_base_status, 1);
 
-    test_context_base_coroutine_context_test_type co[4];
     test_context_base_foo_runner runner;
     runner.call_times = 0;
 
-    for (int i = 0; i < 4; ++i) {
-        co[i].get_allocator().attach(stack_buff + i * stack_len, stack_len);
-        co[i].create(&runner, stack_len);
-        co[i].start();
+    {
+        test_context_base_coroutine_context_test_type::ptr_t co[4];
+        for (int i = 0; i < 4; ++i) {
+            copp::allocator::stack_allocator_memory alloc(stack_buff + i * stack_len, stack_len);
+            co[i] = test_context_base_coroutine_context_test_type::create(&runner, alloc);
+            co[i]->start();
+        }
+
+        CASE_EXPECT_EQ(g_test_coroutine_base_status, 5);
+
+        for (int i = 0; i < 4; ++i) {
+            co[i]->resume();
+        }
+
+        CASE_EXPECT_EQ(g_test_coroutine_base_status, 9);
+
+        CASE_EXPECT_EQ(runner.call_times, 4);
     }
-
-    CASE_EXPECT_EQ(g_test_coroutine_base_status, 5);
-
-    for (int i = 0; i < 4; ++i)
-        co[i].resume();
-
-    CASE_EXPECT_EQ(g_test_coroutine_base_status, 9);
-
-    CASE_EXPECT_EQ(runner.call_times, 4);
 
     delete[] stack_buff;
 }

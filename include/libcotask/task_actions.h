@@ -19,26 +19,50 @@ namespace cotask {
         struct task_action_functor_check {
             // ================================================
             template <typename TR, typename TF>
-            static int call(TR (TF::*)(), TF &fn, void* priv_data) {
+            static int call(TR (TF::*)(void*), TF &fn, void* priv_data) {
                 fn(priv_data);
                 return 0;
             }
 
             template <typename TR, typename TF>
-            static int call(TR (TF::*)() const, const TF &fn, void* priv_data) {
+            static int call(TR (TF::*)(void*) const, const TF &fn, void* priv_data) {
                 fn(priv_data);
                 return 0;
             }
 
             // ------------------------------------------------
             template <typename TF>
-            static int call(int (TF::*)(), TF &fn, void* priv_data) {
+            static int call(int (TF::*)(void*), TF &fn, void* priv_data) {
                 return fn(priv_data);
             }
 
             template <typename TF>
-            static int call(int (TF::*)() const, const TF &fn, void* priv_data) {
+            static int call(int (TF::*)(void*) const, const TF &fn, void* priv_data) {
                 return fn(priv_data);
+            }
+
+            // ------------------------------------------------
+            template <typename TR, typename TF>
+            static int call(TR(TF::*)(), TF &fn, void* priv_data) {
+                fn();
+                return 0;
+            }
+
+            template <typename TR, typename TF>
+            static int call(TR(TF::*)() const, const TF &fn, void* priv_data) {
+                fn();
+                return 0;
+            }
+
+            // ------------------------------------------------
+            template <typename TF>
+            static int call(int (TF::*)(), TF &fn, void* priv_data) {
+                return fn();
+            }
+
+            template <typename TF>
+            static int call(int (TF::*)() const, const TF &fn, void* priv_data) {
+                return fn();
             }
         };
     }
@@ -48,7 +72,7 @@ namespace cotask {
     class task_action_functor : public impl::task_action_impl {
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
     public:
-        typedef typename std::remove_reference<Ty>::type value_type;
+        typedef typename std::remove_cv<Ty>::type value_type;
 
         task_action_functor(value_type &&functor) : functor_(functor) {}
 

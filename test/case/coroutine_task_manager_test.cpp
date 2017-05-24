@@ -13,7 +13,7 @@
 static int g_test_coroutine_task_manager_status = 0;
 class test_context_task_manager_action : public cotask::impl::task_action_impl {
 public:
-    int operator()() {
+    int operator()(void*) {
         ++g_test_coroutine_task_manager_status;
 
         // CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
@@ -149,7 +149,7 @@ CASE_TEST(coroutine_task_manager, multi_checkpoints) {
 
 class test_context_task_manager_action_protect_this_task : public cotask::impl::task_action_impl {
 public:
-    int operator()() {
+    int operator()(void*) {
         int use_count = (int)cotask::this_task::get_task()->shared_from_this().use_count();
         CASE_EXPECT_EQ(3, use_count);
         cotask::this_task::get_task()->yield();

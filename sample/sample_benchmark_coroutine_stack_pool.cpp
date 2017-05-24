@@ -27,11 +27,10 @@ typedef copp::stack_pool<copp::allocator::default_statck_allocator> stack_pool_t
 stack_pool_t::ptr_t global_stack_pool;
 int switch_count = 100;
 
-typedef copp::coroutine_context_container<copp::allocator::stack_allocator_pool<stack_pool_t> >
-    my_cotoutine_t;
+typedef copp::coroutine_context_container<copp::allocator::stack_allocator_pool<stack_pool_t> > my_cotoutine_t;
 
 // define a coroutine runner
-static int my_runner(void*) {
+static int my_runner(void *) {
     // ... your code here ...
     int count = switch_count; // 每个协程N次切换
     my_cotoutine_t *addr = copp::this_coroutine::get<my_cotoutine_t>();
@@ -62,7 +61,7 @@ static void benchmark_round(int index) {
 
     for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
         copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
-        co_arr[i] = my_cotoutine_t::create(my_runner, alloc, 0, NULL);
+        co_arr[i] = my_cotoutine_t::create(my_runner, alloc);
         if (!co_arr[i]) {
             fprintf(stderr, "coroutine create failed, the real number is %d\n", i);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");

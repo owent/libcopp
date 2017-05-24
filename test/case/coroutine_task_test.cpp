@@ -73,7 +73,7 @@ CASE_TEST(coroutine_task, custom_action) {
 
 struct test_context_task_functor {
 public:
-    int operator()() const {
+    int operator()(void*) const {
         ++g_test_coroutine_task_status;
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 
@@ -108,7 +108,7 @@ CASE_TEST(coroutine_task, functor_action) {
 }
 
 
-static int test_context_task_function_1() {
+static int test_context_task_function_1(void*) {
     ++g_test_coroutine_task_status;
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 
@@ -120,7 +120,7 @@ static int test_context_task_function_1() {
     return 100;
 }
 
-static void test_context_task_function_2() {
+static void test_context_task_function_2(void*) {
     ++g_test_coroutine_task_status;
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 
@@ -148,7 +148,7 @@ CASE_TEST(coroutine_task, function_action) {
 
         ++g_test_coroutine_task_status;
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
-        CASE_EXPECT_EQ(co_task->get_coroutine_context().get_ret_code(), 100);
+        CASE_EXPECT_EQ(co_task->get_coroutine_context()->get_ret_code(), 100);
     }
 
     {
@@ -172,7 +172,7 @@ CASE_TEST(coroutine_task, function_action) {
 }
 
 // task start and coroutine context yield
-static void test_context_task_function_3() {
+static void test_context_task_function_3(void*) {
     ++g_test_coroutine_task_status;
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 
@@ -212,7 +212,7 @@ CASE_TEST(coroutine_task, coroutine_context_yield) {
 struct test_context_task_mem_function {
     cotask::task<>::id_t task_id_;
 
-    int real_run() {
+    int real_run(void*) {
         ++g_test_coroutine_task_status;
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
 
@@ -247,7 +247,7 @@ CASE_TEST(coroutine_task, mem_function_action) {
     ++g_test_coroutine_task_status;
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
-    CASE_EXPECT_NE(co_task->get_coroutine_context().get_ret_code(), -1);
+    CASE_EXPECT_NE(co_task->get_coroutine_context()->get_ret_code(), -1);
 }
 
 CASE_TEST(coroutine_task, auto_finish) {
@@ -283,7 +283,7 @@ struct test_context_task_next_action : public cotask::impl::task_action_impl {
     int check_;
     test_context_task_next_action(int s, int c) : cotask::impl::task_action_impl(), set_(s), check_(c) {}
 
-    int operator()() {
+    int operator()(void*) {
         CASE_EXPECT_EQ(g_test_coroutine_task_status, check_);
         g_test_coroutine_task_status = set_;
 
@@ -317,7 +317,7 @@ public:
     int b_;
     test_context_task_functor_drived(int a, int b) : a_(a), b_(b) {}
 
-    virtual int operator()() {
+    virtual int operator()(void*) {
         CASE_EXPECT_EQ(a_, 1);
         CASE_EXPECT_EQ(3, b_);
 
@@ -327,7 +327,8 @@ public:
 
 CASE_TEST(coroutine_task, functor_drived_action) {
     typedef std::shared_ptr<cotask::task<> > task_ptr_type;
-    task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(copp::stack_traits::default_size(), 1, 3);
+    cotask::task<>::coroutine_t::allocator_type alloc;
+    task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(copp::stack_traits::default_size(), alloc, 1, 3);
     CASE_EXPECT_EQ(0, co_task->start());
 }
 

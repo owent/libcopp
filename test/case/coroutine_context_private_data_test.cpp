@@ -5,12 +5,12 @@
 #include "frame/test_macros.h"
 #include <libcopp/coroutine/coroutine_context_container.h>
 
-typedef copp::detail::coroutine_context_container<copp::detail::coroutine_context_base, copp::allocator::default_statck_allocator>
+typedef copp::coroutine_context_container<copp::allocator::default_statck_allocator>
     test_context_private_data_context_type;
 
 static int g_test_coroutine_private_data_status = 0;
 
-class test_context_private_data_foo_runner : public copp::coroutine_runnable_base {
+class test_context_private_data_foo_runner {
 public:
     int operator()(void *priv_data) {
         ++g_test_coroutine_private_data_status;
@@ -37,14 +37,12 @@ CASE_TEST(coroutine, context_private_data) {
     ++g_test_coroutine_private_data_status;
     CASE_EXPECT_EQ(g_test_coroutine_private_data_status, 1);
 
-    test_context_private_data_context_type co;
-    test_context_private_data_foo_runner runner;
-    co.create(&runner);
-    co.start(&g_test_coroutine_private_data_status);
+    test_context_private_data_context_type::ptr_t co = test_context_private_data_context_type::create(test_context_private_data_foo_runner());
+    co->start(&g_test_coroutine_private_data_status);
 
     ++g_test_coroutine_private_data_status;
     CASE_EXPECT_EQ(g_test_coroutine_private_data_status, 4);
-    co.resume(&co);
+    co->resume(co.get());
 
     ++g_test_coroutine_private_data_status;
     CASE_EXPECT_EQ(g_test_coroutine_private_data_status, 6);
