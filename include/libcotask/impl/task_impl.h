@@ -56,7 +56,7 @@ namespace cotask {
              * get task status
              * @return task status
              */
-            EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT;
+            EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT { return static_cast<EN_TASK_STATUS>(status_.load()); }
 
             virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;
@@ -75,8 +75,8 @@ namespace cotask {
         public:
             virtual int get_ret_code() const = 0;
 
-            virtual int start(void *priv_data) = 0;
-            virtual int resume(void *priv_data) = 0;
+            virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) = 0;
+            virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) = 0;
             virtual int yield(void **priv_data) = 0;
             virtual int cancel(void *priv_data) = 0;
             virtual int kill(enum EN_TASK_STATUS status, void *priv_data) = 0;
@@ -109,9 +109,13 @@ namespace cotask {
 
         private:
             action_ptr_t action_;
-            ::util::lock::atomic_int_type<uint32_t> status_;
 
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+            ::util::lock::atomic_int_type<uint32_t> status_;
             util::lock::spin_lock next_list_lock_;
+#else
+            ::util::lock::atomic_int_type<::util::lock::unsafe_int_type<uint32_t> > status_
+#endif
             task_group next_list_;
 
         protected:

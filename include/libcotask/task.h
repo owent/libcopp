@@ -56,7 +56,8 @@ namespace cotask {
          * @param stack_size stack size
          * @return task smart pointer
          */
-        static ptr_t create(action_ptr_t action, typename coroutine_t::allocator_type& alloc, size_t stack_size = copp::stack_traits::default_size()) {
+        static ptr_t create(action_ptr_t action, typename coroutine_t::allocator_type &alloc,
+                            size_t stack_size = copp::stack_traits::default_size()) {
             // step 1. create task instance
             ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
             if (NULL == ret) {
@@ -67,12 +68,12 @@ namespace cotask {
             ret->_set_action(action);
 
             // step 3. init coroutine context
-            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl*));
+            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl *));
             if (!ret->coroutine_obj_) {
                 return ptr_t();
             }
 
-            *((impl::task_impl**)ret->coroutine_obj_->get_private_buffer()) = ret.get();
+            *((impl::task_impl **)ret->coroutine_obj_->get_private_buffer()) = ret.get();
             return ret;
         }
 
@@ -95,7 +96,8 @@ namespace cotask {
         }
 
         template <typename Ty>
-        static ptr_t create(Ty &&functor, typename coroutine_t::allocator_type& alloc, size_t stack_size = copp::stack_traits::default_size()) {
+        static ptr_t create(Ty &&functor, typename coroutine_t::allocator_type &alloc,
+                            size_t stack_size = copp::stack_traits::default_size()) {
 #else
         template <typename Ty>
         static inline ptr_t create(const Ty &functor, size_t stack_size = copp::stack_traits::default_size()) {
@@ -104,7 +106,8 @@ namespace cotask {
         }
 
         template <typename Ty>
-        static ptr_t create(const Ty &functor, typename coroutine_t::allocator_type& alloc, size_t stack_size = copp::stack_traits::default_size()) {
+        static ptr_t create(const Ty &functor, typename coroutine_t::allocator_type &alloc,
+                            size_t stack_size = copp::stack_traits::default_size()) {
 #endif
             typedef task_action_functor<Ty> a_t;
 
@@ -130,12 +133,12 @@ namespace cotask {
             ret->_set_action(action);
 
             // step 3. init coroutine context
-            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl*));
+            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl *));
             if (!ret->coroutine_obj_) {
                 return ptr_t();
             }
 
-            *((impl::task_impl**)ret->coroutine_obj_->get_private_buffer()) = ret.get();
+            *((impl::task_impl **)ret->coroutine_obj_->get_private_buffer()) = ret.get();
 
             return ret;
         }
@@ -147,7 +150,8 @@ namespace cotask {
          * @return task smart pointer
          */
         template <typename Ty>
-        static ptr_t create(Ty (*func)(void*), typename coroutine_t::allocator_type& alloc, size_t stack_size = copp::stack_traits::default_size()) {
+        static ptr_t create(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc,
+                            size_t stack_size = copp::stack_traits::default_size()) {
             typedef task_action_function<Ty> a_t;
 
             // step 1. create task instance
@@ -166,18 +170,18 @@ namespace cotask {
             ret->_set_action(action);
 
             // step 3. init coroutine context
-            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl*));
+            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl *));
             if (!ret->coroutine_obj_) {
                 return ptr_t();
             }
 
-            *((impl::task_impl**)ret->coroutine_obj_->get_private_buffer()) = ret.get();
+            *((impl::task_impl **)ret->coroutine_obj_->get_private_buffer()) = ret.get();
 
             return ret;
         }
 
         template <typename Ty>
-        inline static ptr_t create(Ty(*func)(void*), size_t stack_size = copp::stack_traits::default_size()) {
+        inline static ptr_t create(Ty (*func)(void *), size_t stack_size = copp::stack_traits::default_size()) {
             typename coroutine_t::allocator_type alloc;
             return create(func, alloc, stack_size);
         }
@@ -189,7 +193,8 @@ namespace cotask {
          * @return task smart pointer
          */
         template <typename Ty, typename TInst>
-        static ptr_t create(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type& alloc, size_t stack_size = copp::stack_traits::default_size()) {
+        static ptr_t create(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type &alloc,
+                            size_t stack_size = copp::stack_traits::default_size()) {
             typedef task_action_mem_function<Ty, TInst> a_t;
 
             // step 1. create task instance
@@ -208,12 +213,12 @@ namespace cotask {
             ret->_set_action(action);
 
             // step 3. init coroutine context
-            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl*));
+            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl *));
             if (!ret->coroutine_obj_) {
                 return ptr_t();
             }
 
-            *((impl::task_impl**)ret->coroutine_obj_->get_private_buffer()) = ret.get();
+            *((impl::task_impl **)ret->coroutine_obj_->get_private_buffer()) = ret.get();
 
             return ret;
         }
@@ -232,7 +237,7 @@ namespace cotask {
         * @return task smart pointer
         */
         template <typename Ty, typename... TParams>
-        static ptr_t create_with(size_t stack_size, typename coroutine_t::allocator_type& alloc, TParams &&... args) {
+        static ptr_t create_with(size_t stack_size, typename coroutine_t::allocator_type &alloc, TParams &&... args) {
             typedef Ty a_t;
 
             // step 1. create task instance
@@ -251,12 +256,12 @@ namespace cotask {
             ret->_set_action(action);
 
             // step 3. init coroutine context
-            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl*));
+            ret->coroutine_obj_ = coroutine_t::create(ret->_get_action().get(), alloc, stack_size, sizeof(impl::task_impl *));
             if (!ret->coroutine_obj_) {
                 return ptr_t();
             }
 
-            *((impl::task_impl**)ret->coroutine_obj_->get_private_buffer()) = ret.get();
+            *((impl::task_impl **)ret->coroutine_obj_->get_private_buffer()) = ret.get();
 
             return ret;
         }
@@ -348,8 +353,9 @@ namespace cotask {
 
     public:
         virtual ~task() {
+            EN_TASK_STATUS status = get_status();
             // inited but not finished will trigger timeout or finish other actor
-            if (get_status() < EN_TS_DONE && get_status() > EN_TS_CREATED) {
+            if (status < EN_TS_DONE && status > EN_TS_CREATED) {
                 kill(EN_TS_TIMEOUT);
             }
 
@@ -364,56 +370,66 @@ namespace cotask {
         inline id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
 
     public:
-        virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE { return coroutine_obj_->get_ret_code(); }
+        virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE { 
+            if (!coroutine_obj_) {
+                return 0;
+            }
 
-        virtual int start(void *priv_data) UTIL_CONFIG_OVERRIDE {
+            return coroutine_obj_->get_ret_code(); 
+        }
+
+        virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) UTIL_CONFIG_OVERRIDE {
             if (!coroutine_obj_) {
                 return copp::COPP_EC_NOT_INITED;
             }
 
-            EN_TASK_STATUS from_status = get_status();
+            EN_TASK_STATUS from_status = expected_status;
 
             do {
-                if (from_status >= EN_TS_DONE) {
+                if (unlikely(from_status >= EN_TS_DONE)) {
                     return copp::COPP_EC_ALREADY_FINISHED;
                 }
 
-                if (from_status == EN_TS_RUNNING) {
+                if (unlikely(from_status == EN_TS_RUNNING)) {
                     return copp::COPP_EC_IS_RUNNING;
                 }
 
-                if (likely(_cas_status(from_status, EN_TS_RUNNING))) {
+                if (likely(_cas_status(from_status, EN_TS_RUNNING))) { // Atomic.CAS here
                     break;
                 }
             } while (true);
 
             int ret = coroutine_obj_->start(priv_data);
 
-            from_status = get_status();
-            if (from_status > EN_TS_DONE) { // canceled or killed
+            from_status = EN_TS_RUNNING;
+            if (is_completed()) { // Atomic.CAS here
+                while (from_status < EN_TS_DONE) { 
+                    if (likely(_cas_status(from_status, EN_TS_DONE))) { // Atomic.CAS here
+                        break;
+                    }
+                }
+
+                finish_priv_data_ = priv_data;
+                _notify_finished(priv_data);
+            } else if (likely(_cas_status(from_status, EN_TS_WAITING))) { // Atomic.CAS here
+                // waiting
+            } else { // canceled or killed
                 _notify_finished(finish_priv_data_);
-
-            } else if (is_completed()) { // completed
-                while (!likely(_cas_status(from_status, EN_TS_DONE)))
-                    ;
-
-                _notify_finished(finish_priv_data_ = priv_data);
-            } else { // waiting
-                while (!likely(_cas_status(from_status, EN_TS_WAITING)))
-                    ;
             }
 
             return ret;
         }
 
-        virtual int resume(void *priv_data) UTIL_CONFIG_OVERRIDE { return start(priv_data); }
+        virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) UTIL_CONFIG_OVERRIDE {
+            return start(priv_data, expected_status);
+        }
 
-        virtual int yield(void **priv_data) UTIL_CONFIG_OVERRIDE { 
+        virtual int yield(void **priv_data) UTIL_CONFIG_OVERRIDE {
             if (!coroutine_obj_) {
                 return copp::COPP_EC_NOT_INITED;
             }
 
-            return coroutine_obj_->yield(priv_data); 
+            return coroutine_obj_->yield(priv_data);
         }
 
         virtual int cancel(void *priv_data) UTIL_CONFIG_OVERRIDE {
@@ -458,12 +474,12 @@ namespace cotask {
         using impl::task_impl::cancel;
 
     public:
-        virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT UTIL_CONFIG_OVERRIDE { 
+        virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT UTIL_CONFIG_OVERRIDE {
             if (!coroutine_obj_) {
                 return false;
             }
-            
-            return coroutine_obj_->is_finished(); 
+
+            return coroutine_obj_->is_finished();
         }
 
     private:

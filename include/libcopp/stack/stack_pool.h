@@ -106,7 +106,9 @@ namespace copp {
          * @note size must less or equal than attached
          */
         void allocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
             // check limit
             if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
                 ctx.sp = NULL;
@@ -165,7 +167,9 @@ namespace copp {
         void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
             assert(ctx.sp && ctx.size > 0);
             do {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
                 // check ctx
                 if (ctx.sp == NULL || 0 == ctx.size) {
                     break;
@@ -220,7 +224,9 @@ namespace copp {
                 }
             }
 
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
             size_t keep_size = limits_.free_stack_size >> 1;
             size_t keep_number = limits_.free_stack_number >> 1;
@@ -266,7 +272,9 @@ namespace copp {
         }
 
         void clear() {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
             limits_.free_stack_size = 0;
             limits_.free_stack_number = 0;
@@ -282,7 +290,9 @@ namespace copp {
         limit_t limits_;
         configure_t conf_;
         allocator_t alloc_;
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
         util::lock::spin_lock action_lock_;
+#endif
         std::list<stack_context> free_list_;
     };
 }

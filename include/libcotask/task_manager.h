@@ -106,7 +106,9 @@ namespace cotask {
             std::vector<impl::task_impl::ptr_t> all_tasks;
             // first, lock and reset all data
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 for (typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
                     all_tasks.push_back(iter->second.task_);
@@ -170,7 +172,9 @@ namespace cotask {
             }
 
             // lock before we will operator tasks_
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
             id_t task_id = task->get_id();
             if (tasks_.end() != tasks_.find(task_id)) {
@@ -218,7 +222,9 @@ namespace cotask {
 
             impl::task_impl::ptr_t task_inst;
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 typedef typename container_t::iterator iter_type;
                 iter_type iter = tasks_.find(id);
@@ -249,7 +255,9 @@ namespace cotask {
                 return task_ptr_t();
             }
 
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
             typedef typename container_t::iterator iter_type;
             iter_type iter = tasks_.find(id);
@@ -269,7 +277,9 @@ namespace cotask {
 
             impl::task_impl::ptr_t task_inst;
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 typedef typename container_t::iterator iter_type;
                 iter_type iter = tasks_.find(id);
@@ -285,7 +295,9 @@ namespace cotask {
                 // if task is finished, remove it
                 if (task_inst->get_status() >= EN_TS_DONE) {
                     // lock again and prepare to remove from tasks_
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                     util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
                     tasks_.erase(id);
                 }
 
@@ -302,7 +314,9 @@ namespace cotask {
 
             impl::task_impl::ptr_t task_inst;
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 typedef typename container_t::iterator iter_type;
                 iter_type iter = tasks_.find(id);
@@ -318,7 +332,9 @@ namespace cotask {
                 // if task is finished, remove it
                 if (task_inst->get_status() >= EN_TS_DONE) {
                     // lock again and prepare to remove from tasks_
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                     util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
                     tasks_.erase(id);
                 }
 
@@ -335,7 +351,9 @@ namespace cotask {
 
             impl::task_impl::ptr_t task_inst;
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 typedef typename container_t::iterator iter_type;
                 iter_type iter = tasks_.find(id);
@@ -362,7 +380,9 @@ namespace cotask {
 
             impl::task_impl::ptr_t task_inst;
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 typedef typename container_t::iterator iter_type;
                 iter_type iter = tasks_.find(id);
@@ -410,7 +430,9 @@ namespace cotask {
             // first tick, init and reset task timeout
             if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
                 // hold lock
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                 std::multimap<detail::tickspec_t, id_t> real_checkpoints;
                 for (typename std::multimap<detail::tickspec_t, id_t>::iterator iter = task_timeout_checkpoints_.begin();
@@ -433,7 +455,9 @@ namespace cotask {
 
                 {
                     // hold lock
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                     util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
 
                     typename std::multimap<detail::tickspec_t, id_t>::value_type &task_node = *task_timeout_checkpoints_.begin();
                     // all tasks those expired time less than now are timeout
@@ -486,7 +510,10 @@ namespace cotask {
         container_t tasks_;
         detail::tickspec_t last_tick_time_;
         std::multimap<detail::tickspec_t, id_t> task_timeout_checkpoints_;
+
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
         util::lock::spin_lock action_lock_;
+#endif
         int flags_;
     };
 }

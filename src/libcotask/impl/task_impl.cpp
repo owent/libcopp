@@ -23,8 +23,6 @@ namespace cotask {
 
         task_impl::~task_impl() { assert(status_ <= EN_TS_CREATED || status_ >= EN_TS_DONE); }
 
-        EN_TASK_STATUS task_impl::get_status() const UTIL_CONFIG_NOEXCEPT { return static_cast<EN_TASK_STATUS>(status_.load()); }
-
         bool task_impl::is_canceled() const UTIL_CONFIG_NOEXCEPT { return EN_TS_CANCELED == get_status(); }
 
         bool task_impl::is_completed() const UTIL_CONFIG_NOEXCEPT { return EN_TS_DONE <= get_status(); }
@@ -38,7 +36,10 @@ namespace cotask {
             // can not add next task when finished
             if (get_status() >= EN_TS_DONE) return next_task;
 
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(next_list_lock_);
+#endif
+
             next_list_.member_list_.push_back(std::make_pair(next_task, priv_data));
             return next_task;
         }
@@ -70,7 +71,9 @@ namespace cotask {
 
             // first, lock and swap container
             {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(next_list_lock_);
+#endif
                 next_list.swap(next_list_.member_list_);
             }
 
