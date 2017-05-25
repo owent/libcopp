@@ -75,8 +75,8 @@ namespace cotask {
         public:
             virtual int get_ret_code() const = 0;
 
-            virtual int start(void *priv_data) = 0;
-            virtual int resume(void *priv_data) = 0;
+            virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) = 0;
+            virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) = 0;
             virtual int yield(void **priv_data) = 0;
             virtual int cancel(void *priv_data) = 0;
             virtual int kill(enum EN_TASK_STATUS status, void *priv_data) = 0;

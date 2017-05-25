@@ -151,11 +151,14 @@ class test_context_task_manager_action_protect_this_task : public cotask::impl::
 public:
     int operator()() {
         int use_count = (int)cotask::this_task::get_task()->shared_from_this().use_count();
-        CASE_EXPECT_EQ(3, use_count);
+        CASE_EXPECT_EQ(4, use_count);
         cotask::this_task::get_task()->yield();
         use_count = (int)cotask::this_task::get_task()->shared_from_this().use_count();
-        // remove action will be 3, resume and destroy will be 2
-        CASE_EXPECT_TRUE(2 == use_count || 3 == use_count);
+        // remove action will be 4, resume and destroy will be 2
+        CASE_EXPECT_TRUE(2 == use_count || 4 == use_count);
+        if (2 != use_count && 4 != use_count) {
+            CASE_MSG_INFO() << use_count << std::endl;
+        }
 
         ++g_test_coroutine_task_manager_status;
         return 0;

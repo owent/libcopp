@@ -91,7 +91,7 @@ namespace cotask {
         template <typename Ty>
         static ptr_t create(const Ty &functor, size_t stack_size = copp::stack_traits::default_size()) {
 #endif
-            typedef task_action_functor<Ty> a_t;
+            typedef typename std::conditional<std::is_base_of<impl::task_action_impl, Ty>::value, Ty, task_action_functor<Ty> >::type a_t;
 
             // step 1. create task instance
             ptr_t ret = task_allocator_t::allocate(static_cast<self_t *>(NULL));
@@ -331,15 +331,15 @@ namespace cotask {
     public:
         virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE { return coroutine_obj_.get_ret_code(); }
 
-        virtual int start(void *priv_data) UTIL_CONFIG_OVERRIDE {
-            EN_TASK_STATUS from_status = get_status();
+        virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) UTIL_CONFIG_OVERRIDE {
+            EN_TASK_STATUS from_status = expected_status;
 
             do {
-                if (from_status >= EN_TS_DONE) {
+                if (unlikely(from_status >= EN_TS_DONE)) {
                     return copp::COPP_EC_ALREADY_FINISHED;
                 }
 
-                if (from_status == EN_TS_RUNNING) {
+                if (unlikely(from_status == EN_TS_RUNNING)) {
                     return copp::COPP_EC_IS_RUNNING;
                 }
 
@@ -348,26 +348,32 @@ namespace cotask {
                 }
             } while (true);
 
+            task_ptr_t protect_from_destroy(shared_from_this());
+
             int ret = coroutine_obj_.start(priv_data);
 
-            from_status = get_status();
-            if (from_status > EN_TS_DONE) { // canceled or killed
+            from_status = EN_TS_RUNNING;
+            if (is_completed()) { // Atomic.CAS here
+                while (from_status < EN_TS_DONE) {
+                    if (likely(_cas_status(from_status, EN_TS_DONE))) { // Atomic.CAS here
+                        break;
+                    }
+                }
+
+                finish_priv_data_ = priv_data;
+                _notify_finished(priv_data);
+            } else if (likely(_cas_status(from_status, EN_TS_WAITING))) { // Atomic.CAS here
+                // waiting
+            } else { // canceled or killed
                 _notify_finished(finish_priv_data_);
-
-            } else if (is_completed()) { // completed
-                while (!likely(_cas_status(from_status, EN_TS_DONE)))
-                    ;
-
-                _notify_finished(finish_priv_data_ = priv_data);
-            } else { // waiting
-                while (!likely(_cas_status(from_status, EN_TS_WAITING)))
-                    ;
             }
 
             return ret;
         }
 
-        virtual int resume(void *priv_data) UTIL_CONFIG_OVERRIDE { return start(priv_data); }
+        virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) UTIL_CONFIG_OVERRIDE {
+            return start(priv_data, expected_status);
+        }
 
         virtual int yield(void **priv_data) UTIL_CONFIG_OVERRIDE { return coroutine_obj_.yield(priv_data); }
 
