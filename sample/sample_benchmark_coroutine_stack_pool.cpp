@@ -80,6 +80,7 @@ static void benchmark_round(int index) {
             fprintf(stderr, "coroutine create failed, the real number is %d\n", i);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
             MAX_COROUTINE_NUMBER = i;
+            break;
         }
     }
 

@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "coroutine create failed, the real number is %d, ret: %d\n", i, res);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
             max_coroutine_number = i;
+            break;
         }
     }
 
