@@ -106,6 +106,7 @@ cache:
 branches:
   only:
     - master
+    - v2
 
 notifications:
   email:
