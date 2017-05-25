@@ -239,6 +239,7 @@ test_script:
 branches:
   only:
     - master
+    - v2
 
 # no need artifacts
 
