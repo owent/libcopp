@@ -55,7 +55,7 @@ namespace copp {
         int runner_ret_code_; /** coroutine return code **/
         callback_t runner_;   /** coroutine runner **/
         void *priv_data_;
-        size_t stack_offset_;
+        size_t private_buffer_size_;
 
 #if defined(PROJECT_DISABLE_MT) && PROJECT_DISABLE_MT
         util::lock::atomic_int_type<util::lock::unsafe_int_type<int> > status_; /** status **/
@@ -135,7 +135,7 @@ namespace copp {
             runner_ret_code_ = runner_(priv_data);
         }
 
-    protected:
+    public:
         /**
             * @brief set runner
             * @param runner
@@ -147,7 +147,6 @@ namespace copp {
         int set_runner(callback_t &&runner);
 #endif
 
-    public:
         /**
             * get runner of this coroutine context (const)
             * @return NULL of pointer of runner
@@ -174,7 +173,7 @@ namespace copp {
         /**
             * @brief get private buffer size
             */
-        inline size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return stack_offset_; }
+        inline size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
 
     protected:
         /**
@@ -193,6 +192,7 @@ namespace copp {
             */
         static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx);
 
+    public:
         static size_t align_private_data_size(size_t sz);
         inline static size_t align_address_size(size_t sz) {
             const size_t mask = sizeof(size_t) - 1;

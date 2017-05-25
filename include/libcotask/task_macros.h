@@ -31,9 +31,6 @@ namespace cotask {
     struct macro_task {
         typedef uint64_t id_t;
         typedef core::standard_int_id_allocator<uint64_t> id_allocator_t;
-
-        typedef core::standard_new_allocator action_allocator_t;
-        typedef core::standard_new_allocator task_allocator_t;
     };
 }
 

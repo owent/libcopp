@@ -36,15 +36,9 @@ namespace cotask {
 
     namespace impl {
 
-        class task_impl : public std::enable_shared_from_this<task_impl> {
-        public:
-            typedef std::shared_ptr<task_impl> ptr_t;
-            typedef std::shared_ptr<task_action_impl> action_ptr_t;
-
-            struct task_group {
-                std::list<std::pair<ptr_t, void *> > member_list_;
-            };
-
+        class task_impl {
+        protected:
+            typedef task_action_impl* action_ptr_t;
         private:
             task_impl(const task_impl &);
 
@@ -61,16 +55,6 @@ namespace cotask {
             virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_faulted() const UTIL_CONFIG_NOEXCEPT;
-
-            /**
-             * @brief add next task to run when task finished
-             * @note please not to make tasks refer to each other. [it will lead to memory leak]
-             * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
-             * @param next_task next stack
-             * @param priv_data priv_data passed to resume or start next stack
-             * @return next_task
-             */
-            ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR);
 
         public:
             virtual int get_ret_code() const = 0;
@@ -98,12 +82,10 @@ namespace cotask {
             static task_impl *this_task();
 
         protected:
-            void _set_action(const action_ptr_t &action);
-            const action_ptr_t &_get_action();
+            void _set_action(action_ptr_t action);
+            action_ptr_t _get_action();
 
             bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);
-
-            void active_next_tasks();
 
             int _notify_finished(void *priv_data);
 
@@ -112,12 +94,9 @@ namespace cotask {
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             ::util::lock::atomic_int_type<uint32_t> status_;
-            util::lock::spin_lock next_list_lock_;
 #else
-            ::util::lock::atomic_int_type<::util::lock::unsafe_int_type<uint32_t> > status_
+            ::util::lock::atomic_int_type<::util::lock::unsafe_int_type<uint32_t> > status_;
 #endif
-            task_group next_list_;
-
         protected:
             void *finish_priv_data_;
         };

@@ -10,6 +10,7 @@
 #include <libcotask/task.h>
 
 static int g_test_coroutine_task_status = 0;
+static int g_test_coroutine_task_on_finished = 0;
 class test_context_task_action : public cotask::impl::task_action_impl {
 public:
     int operator()(void *priv_data) {
@@ -27,47 +28,56 @@ public:
 
         return 0;
     }
+
+    virtual int on_finished(cotask::impl::task_impl & t) { 
+        ++g_test_coroutine_task_on_finished;
+        return 0; 
+    }
 };
 
 
 CASE_TEST(coroutine_task, custom_action) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
-    cotask::task<>::action_ptr_t action = cotask::task<>::action_ptr_t(new test_context_task_action());
-    task_ptr_type co_task = cotask::task<>::create(action);
-    task_ptr_type co_another_task = cotask::task<>::create(action); // share action
-
-    CASE_EXPECT_EQ(cotask::EN_TS_CREATED, co_task->get_status());
-    CASE_EXPECT_EQ(cotask::EN_TS_CREATED, co_another_task->get_status());
-
+    typedef cotask::task<>::ptr_t task_ptr_type;
     g_test_coroutine_task_status = 0;
+    g_test_coroutine_task_on_finished = 0;
 
-    CASE_EXPECT_EQ(0, co_task->start(&g_test_coroutine_task_status));
+    {
+        task_ptr_type co_task = cotask::task<>::create(test_context_task_action());
+        task_ptr_type co_another_task = cotask::task<>::create(test_context_task_action()); // share action
 
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
-    CASE_EXPECT_FALSE(co_task->is_completed());
+        CASE_EXPECT_EQ(cotask::EN_TS_CREATED, co_task->get_status());
+        CASE_EXPECT_EQ(cotask::EN_TS_CREATED, co_another_task->get_status());
 
-    CASE_EXPECT_EQ(0, co_another_task->start(&g_test_coroutine_task_status));
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
+        CASE_EXPECT_EQ(0, co_task->start(&g_test_coroutine_task_status));
 
-    CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_task->get_status());
-    CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_another_task->get_status());
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
+        CASE_EXPECT_FALSE(co_task->is_completed());
 
-    CASE_EXPECT_EQ(0, co_task->resume(co_task.get()));
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);
+        CASE_EXPECT_EQ(0, co_another_task->start(&g_test_coroutine_task_status));
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
 
-    CASE_EXPECT_EQ(0, co_another_task->resume(co_another_task.get()));
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
+        CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_task->get_status());
+        CASE_EXPECT_EQ(cotask::EN_TS_WAITING, co_another_task->get_status());
 
-    CASE_EXPECT_TRUE(co_task->is_completed());
-    CASE_EXPECT_TRUE(co_another_task->is_completed());
+        CASE_EXPECT_EQ(0, co_task->resume(co_task.get()));
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 3);
 
-    CASE_EXPECT_GT(0, co_another_task->resume(co_another_task.get()));
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
+        CASE_EXPECT_EQ(0, co_another_task->resume(co_another_task.get()));
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
 
-    ++g_test_coroutine_task_status;
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
+        CASE_EXPECT_TRUE(co_task->is_completed());
+        CASE_EXPECT_TRUE(co_another_task->is_completed());
 
-    CASE_EXPECT_NE(co_task->get_id(), 0);
+        CASE_EXPECT_GT(0, co_another_task->resume(co_another_task.get()));
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
+
+        ++g_test_coroutine_task_status;
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
+
+        CASE_EXPECT_NE(co_task->get_id(), 0);
+    }
+
+    CASE_EXPECT_EQ(g_test_coroutine_task_on_finished, 2);
 }
 
 
@@ -87,7 +97,7 @@ public:
 };
 
 CASE_TEST(coroutine_task, functor_action) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+    typedef cotask::task<>::ptr_t task_ptr_type;
     task_ptr_type co_task = cotask::task<>::create(test_context_task_functor());
     g_test_coroutine_task_status = 0;
 
@@ -132,7 +142,7 @@ static void test_context_task_function_2(void*) {
 
 CASE_TEST(coroutine_task, function_action) {
     {
-        typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+        typedef cotask::task<>::ptr_t task_ptr_type;
         task_ptr_type co_task = cotask::task<>::create(test_context_task_function_1);
         g_test_coroutine_task_status = 0;
 
@@ -152,7 +162,7 @@ CASE_TEST(coroutine_task, function_action) {
     }
 
     {
-        typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+        typedef cotask::task<>::ptr_t task_ptr_type;
         task_ptr_type co_task = cotask::task<>::create(test_context_task_function_2);
         g_test_coroutine_task_status = 0;
 
@@ -187,7 +197,7 @@ static void test_context_task_function_3(void*) {
 }
 
 CASE_TEST(coroutine_task, coroutine_context_yield) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+    typedef cotask::task<>::ptr_t task_ptr_type;
     task_ptr_type co_task = cotask::task<>::create(test_context_task_function_3);
     g_test_coroutine_task_status = 0;
 
@@ -228,7 +238,7 @@ struct test_context_task_mem_function {
 };
 
 CASE_TEST(coroutine_task, mem_function_action) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+    typedef cotask::task<>::ptr_t task_ptr_type;
     test_context_task_mem_function obj;
     task_ptr_type co_task = cotask::task<>::create(&test_context_task_mem_function::real_run, &obj);
     g_test_coroutine_task_status = 0;
@@ -251,7 +261,7 @@ CASE_TEST(coroutine_task, mem_function_action) {
 }
 
 CASE_TEST(coroutine_task, auto_finish) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+    typedef cotask::task<>::ptr_t task_ptr_type;
     {
         test_context_task_mem_function obj;
         task_ptr_type co_task = cotask::task<>::create(&test_context_task_mem_function::real_run, &obj);
@@ -293,7 +303,7 @@ struct test_context_task_next_action : public cotask::impl::task_action_impl {
 };
 
 CASE_TEST(coroutine_task, next) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+    typedef cotask::task<>::ptr_t task_ptr_type;
 
     task_ptr_type co_task = cotask::task<>::create(test_context_task_next_action(15, 0));
     co_task->next(test_context_task_next_action(7, 15))
@@ -309,7 +319,7 @@ CASE_TEST(coroutine_task, next) {
     CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
 }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
 
 struct test_context_task_functor_drived : public cotask::impl::task_action_impl {
 public:
@@ -326,12 +336,44 @@ public:
 };
 
 CASE_TEST(coroutine_task, functor_drived_action) {
-    typedef std::shared_ptr<cotask::task<> > task_ptr_type;
+    typedef cotask::task<>::ptr_t task_ptr_type;
     cotask::task<>::coroutine_t::allocator_type alloc;
-    task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(copp::stack_traits::default_size(), alloc, 1, 3);
+    task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(alloc, 0, 0, 1, 3);
     CASE_EXPECT_EQ(0, co_task->start());
 }
 
 #endif
+
+
+
+
+static int test_context_task_priavte_buffer(void*) {
+
+    void* priv_data = cotask::task<>::this_task()->get_private_buffer();
+    size_t priv_sz = cotask::task<>::this_task()->get_private_buffer_size();
+
+
+    CASE_EXPECT_GE(priv_sz, 256);
+
+    if (priv_sz >= 256) {
+        char checked_data[256];
+        memset(checked_data, 0x5e, 256);
+
+        CASE_EXPECT_EQ(0, memcmp(priv_data, checked_data, 256));
+    }
+
+    return 0;
+}
+
+CASE_TEST(coroutine_task, priavte_buffer) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    task_ptr_type co_task = cotask::task<>::create(test_context_task_priavte_buffer, 16384, 256);
+
+    void* priv_data = co_task->get_private_buffer();
+    memset(priv_data, 0x5e, 256);
+
+    CASE_EXPECT_EQ(0, co_task->start());
+}
+
 
 #endif

@@ -7,7 +7,9 @@ option(LIBCOPP_ENABLE_SEGMENTED_STACKS "Enable segmented stacks." OFF)
 
 # fast find valgrind header to decide wether to enable valgrind
 unset(_VALGRIND_HEADER)
+unset(_VALGRIND_EXECUTABLE)
 find_path(_VALGRIND_HEADER    NAMES valgrind/valgrind.h)
+find_program(_VALGRIND_EXECUTABLE NAMES valgrind)
 
 if (_VALGRIND_HEADER)
     option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." ON)

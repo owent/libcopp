@@ -109,7 +109,8 @@ namespace copp {
             }
 
             // after this call runner will be unavailable
-            if (coroutine_context::create(ret.get(), runner, ret->callee_stack_, coroutine_size, private_buffer_size) < 0) {
+            callback_t callback(COPP_MACRO_STD_MOVE(runner));
+            if (coroutine_context::create(ret.get(), callback, ret->callee_stack_, coroutine_size, private_buffer_size) < 0) {
                 ret.reset();
             }
 
@@ -119,12 +120,20 @@ namespace copp {
         template <class TRunner>
         static inline ptr_t create(TRunner *runner, allocator_type &alloc, size_t stack_size = 0, size_t private_buffer_size = 0,
                                    size_t coroutine_size = 0) UTIL_CONFIG_NOEXCEPT {
+            if (UTIL_CONFIG_NULLPTR == runner) {
+                return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
+            }
+
             return create(std::bind(&TRunner::operator(), runner, std::placeholders::_1), alloc, stack_size, private_buffer_size,
                           coroutine_size);
         }
 
         static inline ptr_t create(int (*fn)(void *), allocator_type &alloc, size_t stack_size = 0, size_t private_buffer_size = 0,
                                    size_t coroutine_size = 0) UTIL_CONFIG_NOEXCEPT {
+            if (UTIL_CONFIG_NULLPTR == fn) {
+                return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
+            }
+
             return create(callback_t(fn), alloc, stack_size, private_buffer_size, coroutine_size);
         }
 

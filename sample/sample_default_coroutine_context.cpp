@@ -35,15 +35,15 @@ public:
 int main() {
     // create a coroutine
     copp::coroutine_context_default::ptr_t co_obj = copp::coroutine_context_default::create(my_runner());
-    std::cout << "cortoutine " << &co_obj << " is created." << std::endl;
+    std::cout << "cortoutine " << co_obj.get() << " is created." << std::endl;
 
     // start a coroutine
     co_obj->start();
 
     // yield from runner
-    std::cout << "cortoutine " << &co_obj << " is yield." << std::endl;
+    std::cout << "cortoutine " << co_obj.get() << " is yield." << std::endl;
     co_obj->resume();
 
-    std::cout << "cortoutine " << &co_obj << " exit and return " << co_obj->get_ret_code() << "." << std::endl;
+    std::cout << "cortoutine " << co_obj.get() << " exit and return " << co_obj->get_ret_code() << "." << std::endl;
     return 0;
 }

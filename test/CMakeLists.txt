@@ -79,4 +79,13 @@ if(NOT MSVC)
     )
     add_dependencies(run_test run_test_coroutine_test)
     add_dependencies(run_test_coroutine_test coroutine_test)
+
+    if (_VALGRIND_EXECUTABLE)
+        add_custom_target(run_memcheck_coroutine_test
+            ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=coroutine_test.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 "./coroutine_test"
+            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+        )
+        add_dependencies(memcheck run_memcheck_coroutine_test)
+        add_dependencies(run_memcheck_coroutine_test coroutine_test)
+    endif()
 endif()

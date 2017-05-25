@@ -63,7 +63,7 @@ namespace copp {
     coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
                                                                     runner_(UTIL_CONFIG_NULLPTR),
                                                                     priv_data_(UTIL_CONFIG_NULLPTR),
-                                                                    stack_offset_(0),
+                                                                    private_buffer_size_(0),
                                                                     status_(status_t::EN_CRS_INVALID),
                                                                     caller_(UTIL_CONFIG_NULLPTR),
                                                                     callee_(UTIL_CONFIG_NULLPTR),
@@ -109,25 +109,23 @@ namespace copp {
             return COPP_EC_ARGS_ERROR;
         }
 
-        int ret = p->set_runner(COPP_MACRO_STD_MOVE(runner));
-        if (ret < 0) {
-            return ret;
-        }
+        // if runner is empty, we can set it later
+        p->set_runner(COPP_MACRO_STD_MOVE(runner));
 
         if (&p->callee_stack_ != &callee_stack) {
             p->callee_stack_ = callee_stack;
         }
-        p->stack_offset_ = private_buffer_size;
+        p->private_buffer_size_ = private_buffer_size;
 
         // stack down, left enough private data
-        p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->stack_offset_;
+        p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->private_buffer_size_;
         p->callee_ = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
                                                     p->callee_stack_.size - stack_offset, &coroutine_context::coroutine_context_callback);
         if (NULL == p->callee_) {
-            ret = COPP_EC_FCONTEXT_MAKE_FAILED;
+            return COPP_EC_FCONTEXT_MAKE_FAILED;
         }
 
-        return ret;
+        return COPP_EC_SUCCESS;
     }
 
     int coroutine_context::start(void *priv_data) {

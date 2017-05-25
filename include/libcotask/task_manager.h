@@ -39,22 +39,25 @@ namespace cotask {
         };
     }
 
-    template <typename TID>
+    template <typename TTask>
     struct task_mgr_node {
+        typedef typename TTask::ptr_t task_ptr_t;
+
         detail::tickspec_t expired_time_;
-        impl::task_impl::ptr_t task_;
+        task_ptr_t task_;
     };
 
     /**
      * @brief task manager
      */
-    template <typename TID = macro_task::id_t, typename TTaskContainer = std::map<TID, task_mgr_node<TID> > >
+    template <typename TTask, typename TTaskContainer = std::map<typename TTask::id_t, task_mgr_node<TTask> > >
     class task_manager {
     public:
-        typedef TID id_t;
+        typedef TTask task_t;
         typedef TTaskContainer container_t;
-        typedef impl::task_impl::ptr_t task_ptr_t;
-        typedef task_manager<id_t, container_t> self_t;
+        typedef typename task_t::id_t id_t;
+        typedef typename task_t::ptr_t task_ptr_t;
+        typedef task_manager<task_t, container_t> self_t;
         typedef std::shared_ptr<self_t> ptr_t;
 
         struct flag_t {
@@ -103,7 +106,7 @@ namespace cotask {
                 return;
             }
 
-            std::vector<impl::task_impl::ptr_t> all_tasks;
+            std::vector<task_ptr_t> all_tasks;
             // first, lock and reset all data
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
@@ -122,7 +125,7 @@ namespace cotask {
             }
 
             // then, kill all tasks
-            for (typename std::vector<impl::task_impl::ptr_t>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
+            for (typename std::vector<task_ptr_t>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
                 (*iter)->kill(EN_TS_KILLED);
             }
         }
@@ -136,7 +139,6 @@ namespace cotask {
         /**
          * @brief add task to manager
          *        please make the task has method of get_id() and will return a unique id
-         *        please make sure the task inherited from task_impl
          *
          * @param task task to be inserted
          * @param timeout_sec timeout in second ( unix time stamp recommanded )
@@ -145,11 +147,9 @@ namespace cotask {
          *
          * @note if a task added before the first calling of tick method,
          *       the timeout will be set releative to the first calling time of tick method
-         * @see impl::task_impl
          * @see tick
          */
-        template <typename TTask>
-        int add_task(std::shared_ptr<TTask> task, time_t timeout_sec, int timeout_nsec) {
+        int add_task(const task_ptr_t& task, time_t timeout_sec, int timeout_nsec) {
             if (!task) {
                 assert(task);
                 return copp::COPP_EC_ARGS_ERROR;
@@ -161,13 +161,13 @@ namespace cotask {
 
             // try to cast type
             typedef typename container_t::value_type pair_type;
-            task_mgr_node<id_t> task_node;
-            task_node.task_ = std::dynamic_pointer_cast<impl::task_impl>(task);
+            task_mgr_node<task_t> task_node;
+            task_node.task_ = task;
             task_node.expired_time_.tv_sec = last_tick_time_.tv_sec + timeout_sec;
             task_node.expired_time_.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
 
             if (!task_node.task_) {
-                assert(task_node.task_ && "cast to cotask::impl::task_impl failed.");
+                assert(task_node.task_);
                 return copp::COPP_EC_CAST_FAILED;
             }
 
@@ -198,16 +198,13 @@ namespace cotask {
         /**
          * @brief add task to manager
          *        please make the task has method of get_id() and will return a unique id
-         *        please make sure the task inherited from task_impl
          *
          * @param task task to be inserted
          * @return 0 or error code
          *
-         * @see impl::task_impl
          */
-        template <typename TTask>
-        int add_task(std::shared_ptr<TTask> task) {
-            return add_task<TTask>(task, 0, 0);
+        int add_task(const task_ptr_t& task) {
+            return add_task(task, 0, 0);
         }
 
         /**
@@ -220,7 +217,7 @@ namespace cotask {
                 return copp::COPP_EC_IN_RESET;
             }
 
-            impl::task_impl::ptr_t task_inst;
+            task_ptr_t task_inst;
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -231,7 +228,7 @@ namespace cotask {
                 if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
                 // make sure running task be killed first
-                task_inst = iter->second.task_;
+                task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
                 tasks_.erase(iter);
             }
 
@@ -275,7 +272,7 @@ namespace cotask {
                 return copp::COPP_EC_IN_RESET;
             }
 
-            impl::task_impl::ptr_t task_inst;
+            task_ptr_t task_inst;
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -312,7 +309,7 @@ namespace cotask {
                 return copp::COPP_EC_IN_RESET;
             }
 
-            impl::task_impl::ptr_t task_inst;
+            task_ptr_t task_inst;
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -349,7 +346,7 @@ namespace cotask {
                 return copp::COPP_EC_IN_RESET;
             }
 
-            impl::task_impl::ptr_t task_inst;
+            task_ptr_t task_inst;
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -361,7 +358,7 @@ namespace cotask {
                     return copp::COPP_EC_NOT_FOUND;
                 }
 
-                task_inst = iter->second.task_;
+                task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
                 tasks_.erase(iter); // remove from container
             }
 
@@ -378,7 +375,7 @@ namespace cotask {
                 return copp::COPP_EC_IN_RESET;
             }
 
-            impl::task_impl::ptr_t task_inst;
+            task_ptr_t task_inst;
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
@@ -390,7 +387,7 @@ namespace cotask {
                     return copp::COPP_EC_NOT_FOUND;
                 }
 
-                task_inst = iter->second.task_;
+                task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
                 tasks_.erase(iter); // remove from container
             }
 
@@ -451,7 +448,7 @@ namespace cotask {
 
             // remove timeout tasks
             while (false == task_timeout_checkpoints_.empty()) {
-                impl::task_impl::ptr_t task_inst;
+                task_ptr_t task_inst;
 
                 {
                     // hold lock
@@ -470,7 +467,7 @@ namespace cotask {
                     iter_type iter = tasks_.find(task_node.second);
                     if (tasks_.end() != iter && iter->second.expired_time_ < now_tick_time) {
                         // task may be removed before
-                        task_inst = iter->second.task_;
+                        task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
                         tasks_.erase(iter); // remove from container
                     }
 
