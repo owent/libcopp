@@ -24,7 +24,7 @@
 int switch_count = 100;
 
 // define a coroutine runner
-static int my_runner(void*) {
+static int my_runner(void *) {
     // ... your code here ...
     int count = switch_count; // 每个协程N次切换
     copp::coroutine_context_default *addr = copp::this_coroutine::get<copp::coroutine_context_default>();
@@ -36,7 +36,7 @@ static int my_runner(void*) {
 }
 
 int max_coroutine_number = 100000; // 协程数量
-copp::coroutine_context_default::ptr_t* co_arr = NULL;
+copp::coroutine_context_default::ptr_t *co_arr = NULL;
 int main(int argc, char *argv[]) {
 #ifdef COPP_MACRO_SYS_POSIX
     puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "coroutine create failed, the real number is %d, ret: %d\n", i, res);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
             max_coroutine_number = i;
+            break;
         }
     }
 

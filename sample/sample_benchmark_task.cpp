@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "create coroutine task failed, real size is %d.\n", static_cast<int>(task_arr.size()));
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended.\n");
             max_task_number = static_cast<int>(task_arr.size());
+            break;
         }
         task_arr.push_back(new_task);
     }

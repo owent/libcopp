@@ -44,7 +44,7 @@ typedef cotask::task<my_macro_coroutine> my_task_t;
 std::vector<my_task_t::ptr_t> task_arr;
 
 // define a coroutine runner
-int my_task_action(void*) {
+int my_task_action(void *) {
     // ... your code here ...
     int count = switch_count; // 每个task地切换次数
 
@@ -70,6 +70,7 @@ static void benchmark_round(int index) {
             fprintf(stderr, "create coroutine task failed, real size is %d.\n", static_cast<int>(task_arr.size()));
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended.\n");
             max_task_number = static_cast<int>(task_arr.size());
+            break;
         } else {
             task_arr.push_back(new_task);
         }
