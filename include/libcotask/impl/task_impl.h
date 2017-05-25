@@ -38,7 +38,8 @@ namespace cotask {
 
         class task_impl {
         protected:
-            typedef task_action_impl* action_ptr_t;
+            typedef task_action_impl *action_ptr_t;
+
         private:
             task_impl(const task_impl &);
 
@@ -95,7 +96,7 @@ namespace cotask {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             ::util::lock::atomic_int_type<uint32_t> status_;
 #else
-            ::util::lock::atomic_int_type<::util::lock::unsafe_int_type<uint32_t> > status_;
+            ::util::lock::atomic_int_type< ::util::lock::unsafe_int_type<uint32_t> > status_;
 #endif
         protected:
             void *finish_priv_data_;
