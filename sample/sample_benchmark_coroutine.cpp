@@ -79,8 +79,8 @@ int main(int argc, char *argv[]) {
     // create a runner
     // bind runner to coroutine object
     for (int i = 0; i < max_coroutine_number; ++i) {
-        int res = co_arr[i] = copp::coroutine_context_default::create(my_runner, stack_size);
-        if (res < 0) {
+        co_arr[i] = copp::coroutine_context_default::create(my_runner, stack_size);
+        if (!co_arr[i]) {
             fprintf(stderr, "coroutine create failed, the real number is %d, ret: %d\n", i, res);
             fprintf(stderr, "maybe sysconf [vm.max_map_count] extended?\n");
             max_coroutine_number = i;
