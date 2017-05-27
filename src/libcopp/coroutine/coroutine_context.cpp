@@ -377,8 +377,8 @@ namespace copp {
     }
 
     size_t coroutine_context::align_private_data_size(size_t sz) {
-        static size_t random_index = 0;
-        const size_t random_mask = 127;
+        // static size_t random_index = 0;
+        // const size_t random_mask = 127;
         const size_t align_mask = 63;
 
         // align
@@ -386,9 +386,9 @@ namespace copp {
         sz &= ~align_mask;
 
         // random
-        ++random_index;
-        random_index &= random_mask;
-        sz += random_index * sizeof(size_t);
+        // ++random_index;
+        // random_index &= random_mask;
+        // sz += random_index * sizeof(size_t);
         return sz;
     }
 
