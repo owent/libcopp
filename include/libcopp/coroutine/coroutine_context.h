@@ -195,7 +195,7 @@ namespace copp {
     public:
         static size_t align_private_data_size(size_t sz);
         inline static size_t align_address_size(size_t sz) {
-            const size_t mask = sizeof(size_t) - 1;
+            const size_t mask = 8 * sizeof(size_t) - 1;
             sz += mask;
             sz &= ~mask;
             return sz;
