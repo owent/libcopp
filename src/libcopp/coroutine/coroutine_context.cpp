@@ -376,22 +376,6 @@ namespace copp {
         ins_ptr->yield();
     }
 
-    size_t coroutine_context::align_private_data_size(size_t sz) {
-        // static size_t random_index = 0;
-        // const size_t random_mask = 127;
-        const size_t align_mask = 63;
-
-        // align
-        sz += align_mask;
-        sz &= ~align_mask;
-
-        // random
-        // ++random_index;
-        // random_index &= random_mask;
-        // sz += random_index * sizeof(size_t);
-        return sz;
-    }
-
     namespace this_coroutine {
         coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT { return detail::get_this_coroutine_context(); }
 

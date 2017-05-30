@@ -193,9 +193,24 @@ namespace copp {
         static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx);
 
     public:
-        static size_t align_private_data_size(size_t sz);
-        inline static size_t align_address_size(size_t sz) {
-            const size_t mask = 8 * sizeof(size_t) - 1;
+        static inline size_t align_private_data_size(size_t sz) {
+            // static size_t random_index = 0;
+            // const size_t random_mask = 63;
+            const size_t align_mask = 2 * sizeof(size_t) - 1;
+            
+            // align
+            sz += align_mask;
+            sz &= ~align_mask;
+           
+            // random
+            // ++random_index;
+            // random_index &= random_mask;
+            // sz += random_index * (align_mask + 1);
+            return sz;
+        }
+
+        static inline size_t align_address_size(size_t sz) {
+            const size_t mask = 2 * sizeof(size_t) - 1;
             sz += mask;
             sz &= ~mask;
             return sz;
