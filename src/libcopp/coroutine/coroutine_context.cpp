@@ -172,8 +172,6 @@ namespace copp {
             from_status = status_t::EN_CRS_RUNNING;
             if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
                 if (status_t::EN_CRS_FINISHED == from_status) {
-                    // add memory fence to flush flags_(used in is_finished())
-                    UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
                     // if in finished status, change it to exited
                     status_.store(status_t::EN_CRS_EXITED);
                 }
@@ -375,6 +373,9 @@ namespace copp {
 
         ins_ptr->flags_ |= flag_t::EN_CFT_FINISHED;
         ins_ptr->status_.store(status_t::EN_CRS_FINISHED);
+        // add memory fence to flush flags_(used in is_finished())
+        UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+
         // jump back to caller
         ins_ptr->yield();
     }
