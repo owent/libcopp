@@ -26,7 +26,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-6 USE_CXX=g++-6 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-7 USE_CXX=g++-7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     - os: linux
       dist: trusty
       sudo: required
@@ -52,10 +52,10 @@ addons:
       - gcc-4.9-multilib
       - g++-4.9
       - g++-4.9-multilib
-      - gcc-6
-      - gcc-6-multilib
-      - g++-6
-      - g++-6-multilib
+      - gcc-7
+      - gcc-7-multilib
+      - g++-7
+      - g++-7-multilib
       - clang
       ## - libc++1
       ## - libc++-dev

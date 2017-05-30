@@ -31,8 +31,8 @@ protected:                                           \
 
 namespace copp {
     /**
-        * @brief base type of all coroutine context
-        */
+     * @brief base type of all coroutine context
+     */
     class coroutine_context : utils::non_copyable {
     public:
         typedef std::intrusive_ptr<coroutine_context> ptr_t;
@@ -51,8 +51,16 @@ namespace copp {
             };
         };
 
+        struct flag_t {
+            enum type {
+                EN_CFT_UNKNOWN  = 0,
+                EN_CFT_FINISHED = 0x01,
+            };
+        };
+
     private:
         int runner_ret_code_; /** coroutine return code **/
+        int flags_;           /** flags **/
         callback_t runner_;   /** coroutine runner **/
         void *priv_data_;
         size_t private_buffer_size_;

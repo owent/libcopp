@@ -91,10 +91,9 @@ static void benchmark_round(int index) {
     while (continue_flag) {
         continue_flag = false;
         for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-            if (false == co_arr[i]->is_finished()) {
+            if (0 == co_arr[i]->resume()) {
                 continue_flag = true;
                 ++real_switch_times;
-                co_arr[i]->resume();
             }
         }
     }
