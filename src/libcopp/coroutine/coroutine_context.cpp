@@ -265,7 +265,7 @@ namespace copp {
 
     bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
         // return !!(flags_ & flag_t::EN_CFT_FINISHED);
-        return status_.load(util::lock::memory_order_acquire);
+        return status_.load(util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
     }
 
     void coroutine_context::jump_to(fcontext::fcontext_t &to_fctx, stack_context &from_sctx, stack_context &to_sctx,
