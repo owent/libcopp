@@ -197,39 +197,11 @@ test_script:
 
         } else {
 
-            & "test/$Env:CONFIGURATION/coroutine_test.exe"
+            & cmake --build . --config $Env:CONFIGURATION --target run_sample
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_mem_pool.exe" 40000 1000 64
+            & cmake --build . --config $Env:CONFIGURATION --target run_test
 
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_mem_pool.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_malloc.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_malloc.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_stack_pool.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_coroutine_stack_pool.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_mem_pool.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_mem_pool.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_malloc.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_malloc.exe" 1000 1000 2048
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_stack_pool.exe" 40000 1000 64
-
-            & "sample/$Env:CONFIGURATION/sample_benchmark_task_stack_pool.exe" 1000 1000 2048
+            & cmake --build . --config $Env:CONFIGURATION --target benchmark
 
         }
 

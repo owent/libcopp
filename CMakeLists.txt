@@ -55,6 +55,7 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src")
 if (_VALGRIND_EXECUTABLE)
     EchoWithColor(COLOR GREEN "-- Memcheck: valgrind found at ${_VALGRIND_EXECUTABLE}, enable target 'memcheck'")
     add_custom_target(memcheck)
+    add_custom_target(callgrind)
 endif()
 
 if(PROJECT_ENABLE_SAMPLE)
