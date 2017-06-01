@@ -1,10 +1,7 @@
 #ifndef _COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_BASE_H_
 #define _COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_BASE_H_
 
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
-#endif
 
 #include <cstddef>
 
@@ -205,8 +202,9 @@ namespace copp {
         static inline size_t align_private_data_size(size_t sz) {
 // static size_t random_index = 0;
 // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(std::max_align_t) - 1;
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
+    (defined(_MSC_VER) && _MSC_VER >= 1600)
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(max_align_t) - 1;
 #else
             UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
 #endif
@@ -223,8 +221,9 @@ namespace copp {
         }
 
         static inline size_t align_address_size(size_t sz) {
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(std::max_align_t) - 1;
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
+    (defined(_MSC_VER) && _MSC_VER >= 1600)
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(max_align_t) - 1;
 #else
             UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
 #endif
