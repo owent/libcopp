@@ -203,7 +203,7 @@ namespace copp {
 // static size_t random_index = 0;
 // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
-    (defined(_MSC_VER) && _MSC_VER >= 1600)
+    (defined(_MSC_VER) && _MSC_VER >= 1700)
             UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(max_align_t) - 1;
 #else
             UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
@@ -222,7 +222,7 @@ namespace copp {
 
         static inline size_t align_address_size(size_t sz) {
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
-    (defined(_MSC_VER) && _MSC_VER >= 1600)
+    (defined(_MSC_VER) && _MSC_VER >= 1700)
             UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(max_align_t) - 1;
 #else
             UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
