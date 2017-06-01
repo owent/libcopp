@@ -203,9 +203,13 @@ namespace copp {
 
     public:
         static inline size_t align_private_data_size(size_t sz) {
-            // static size_t random_index = 0;
-            // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(size_t) - 1;
+// static size_t random_index = 0;
+// UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(std::max_align_t) - 1;
+#else
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
+#endif
 
             // align
             sz += align_mask;
@@ -219,9 +223,14 @@ namespace copp {
         }
 
         static inline size_t align_address_size(size_t sz) {
-            UTIL_CONFIG_CONSTEXPR size_t mask = 2 * sizeof(size_t) - 1;
-            sz += mask;
-            sz &= ~mask;
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(std::max_align_t) - 1;
+#else
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
+#endif
+
+            sz += align_mask;
+            sz &= ~align_mask;
             return sz;
         }
     };
