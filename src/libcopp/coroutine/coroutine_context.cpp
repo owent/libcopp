@@ -60,17 +60,18 @@ namespace copp {
         }
     }
 
-    coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0), flags_(0),
-                                                                    runner_(UTIL_CONFIG_NULLPTR),
-                                                                    priv_data_(UTIL_CONFIG_NULLPTR),
-                                                                    private_buffer_size_(0),
-                                                                    status_(status_t::EN_CRS_INVALID),
-                                                                    caller_(UTIL_CONFIG_NULLPTR),
-                                                                    callee_(UTIL_CONFIG_NULLPTR),
-                                                                    callee_stack_()
+    coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
+                                                                  flags_(0),
+                                                                  runner_(UTIL_CONFIG_NULLPTR),
+                                                                  priv_data_(UTIL_CONFIG_NULLPTR),
+                                                                  private_buffer_size_(0),
+                                                                  status_(status_t::EN_CRS_INVALID),
+                                                                  caller_(UTIL_CONFIG_NULLPTR),
+                                                                  callee_(UTIL_CONFIG_NULLPTR),
+                                                                  callee_stack_()
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-                                                                        ,
-                                                                    caller_stack_()
+                                                                      ,
+                                                                  caller_stack_()
 #endif
     {
     }
@@ -78,7 +79,7 @@ namespace copp {
     coroutine_context::~coroutine_context() {}
 
     int coroutine_context::create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
-                                    size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+                                  size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
         if (UTIL_CONFIG_NULLPTR == p) {
             return COPP_EC_ARGS_ERROR;
         }
@@ -120,7 +121,7 @@ namespace copp {
         // stack down, left enough private data
         p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->private_buffer_size_;
         p->callee_ = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
-                                                    p->callee_stack_.size - stack_offset, &coroutine_context::coroutine_context_callback);
+                                                  p->callee_stack_.size - stack_offset, &coroutine_context::coroutine_context_callback);
         if (NULL == p->callee_) {
             return COPP_EC_FCONTEXT_MAKE_FAILED;
         }
@@ -139,7 +140,8 @@ namespace copp {
                 return COPP_EC_NOT_INITED;
             }
 
-            if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING)) {
+            if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING, util::lock::memory_order_acq_rel,
+                                                util::lock::memory_order_acquire)) {
                 break;
             } else {
                 // finished or stoped
@@ -170,10 +172,12 @@ namespace copp {
         {
             // assume it's running, or set into EN_CRS_EXITED if in EN_CRS_FINISHED
             from_status = status_t::EN_CRS_RUNNING;
-            if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
+            if (false ==
+                status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                                util::lock::memory_order_acquire)) {
                 if (status_t::EN_CRS_FINISHED == from_status) {
                     // if in finished status, change it to exited
-                    status_.store(status_t::EN_CRS_EXITED);
+                    status_.store(status_t::EN_CRS_EXITED, util::lock::memory_order_release);
                 }
             }
         }
@@ -189,7 +193,9 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_RUNNING;
-        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
+        if (false ==
+            status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                            util::lock::memory_order_acquire)) {
             switch (from_status) {
             case status_t::EN_CRS_INVALID:
                 return COPP_EC_NOT_INITED;
@@ -229,7 +235,9 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_INVALID;
-        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
+        if (false ==
+            status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                            util::lock::memory_order_acquire)) {
             return COPP_EC_ALREADY_INITED;
         }
 
@@ -244,7 +252,9 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_INVALID;
-        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY)) {
+        if (false ==
+            status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                            util::lock::memory_order_acquire)) {
             return COPP_EC_ALREADY_INITED;
         }
 
@@ -253,7 +263,10 @@ namespace copp {
     }
 #endif
 
-    bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT { return !!(flags_ & flag_t::EN_CFT_FINISHED); }
+    bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
+        // return !!(flags_ & flag_t::EN_CFT_FINISHED);
+        return status_.load(util::lock::memory_order_acquire);
+    }
 
     void coroutine_context::jump_to(fcontext::fcontext_t &to_fctx, stack_context &from_sctx, stack_context &to_sctx,
                                     jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT {
@@ -312,7 +325,8 @@ namespace copp {
             // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
             // from_status = jump_src->from_co->status_.load();
             // if (status_t::EN_CRS_RUNNING == from_status) {
-            //     jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+            //     jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+            //     util::lock::memory_order_acquire);
             // } else if (status_t::EN_CRS_FINISHED == from_status) {
             //     // if in finished status, change it to exited
             //     jump_src->from_co->status_.store(status_t::EN_CRS_EXITED);
@@ -331,7 +345,8 @@ namespace copp {
         //     from_status = jump_transfer.from_co->status_.load();
         //     swap_success = false;
         //     while (!swap_success && status_t::EN_CRS_READY == from_status) {
-        //         swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING);
+        //         swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING,
+        //         util::lock::memory_order_acq_rel, util::lock::memory_order_acquire);
         //     }
         // }
     }
@@ -362,7 +377,8 @@ namespace copp {
             jump_src.from_co->callee_ = src_ctx.fctx;
             // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
             // int from_status = status_t::EN_CRS_RUNNING; // from coroutine change status from running to ready
-            // jump_src.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY);
+            // jump_src.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+            // util::lock::memory_order_acquire);
         }
 
         // this_coroutine
@@ -372,9 +388,9 @@ namespace copp {
         ins_ptr->run_and_recv_retcode(jump_src.priv_data);
 
         ins_ptr->flags_ |= flag_t::EN_CFT_FINISHED;
-        ins_ptr->status_.store(status_t::EN_CRS_FINISHED);
+        ins_ptr->status_.store(status_t::EN_CRS_FINISHED, util::lock::memory_order_release);
         // add memory fence to flush flags_(used in is_finished())
-        UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+        // UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
 
         // jump back to caller
         ins_ptr->yield();

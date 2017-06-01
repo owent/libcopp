@@ -51,7 +51,9 @@ namespace cotask {
              * get task status
              * @return task status
              */
-            EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT { return static_cast<EN_TASK_STATUS>(status_.load()); }
+            EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT {
+                return static_cast<EN_TASK_STATUS>(status_.load(util::lock::memory_order_acquire));
+            }
 
             virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;

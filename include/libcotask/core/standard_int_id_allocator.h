@@ -10,8 +10,9 @@
 #ifndef _COTASK_CORE_STANDARD_INT_ID_ALLOCATOR_H_
 #define _COTASK_CORE_STANDARD_INT_ID_ALLOCATOR_H_
 
-#include <stdint.h>
 #include <ctime>
+#include <stdint.h>
+
 
 #include <libcopp/utils/atomic_int_type.h>
 #include <libcotask/impl/id_allocator_impl.h>
@@ -21,12 +22,11 @@ namespace cotask {
 
         /**
          * @biref allocate a id of specify type
-         * @note we guarantee id will not repeated for a short time. 
+         * @note we guarantee id will not repeated for a short time.
          *       the time depennd the length of TKey.
          */
-        template<typename TKey = uint64_t>
-        class standard_int_id_allocator
-        {
+        template <typename TKey = uint64_t>
+        class standard_int_id_allocator {
         public:
             typedef cotask::impl::id_allocator<TKey> base_type;
             typedef typename base_type::value_type value_type;
@@ -41,7 +41,7 @@ namespace cotask {
 
                 // always do not allocate 0 as a valid ID
                 value_type ret = npos;
-                while(npos == ret) {
+                while (npos == ret) {
                     value_type res = seq_alloc.load();
                     value_type time_part = res >> seq_bits;
 
@@ -54,11 +54,13 @@ namespace cotask {
                         }
 
                         // if failed, maybe another thread do it
-                        if (seq_alloc.compare_exchange_strong(res, now_time << seq_bits)) {
+                        if (seq_alloc.compare_exchange_strong(res, now_time << seq_bits, util::lock::memory_order_acq_rel,
+                                                              util::lock::memory_order_acquire)) {
                             ret = now_time << seq_bits;
                         }
                     } else {
-                        if (seq_alloc.compare_exchange_weak(res, next_ret)) {
+                        if (seq_alloc.compare_exchange_weak(res, next_ret, util::lock::memory_order_acq_rel,
+                                                            util::lock::memory_order_acquire)) {
                             ret = next_ret;
                         }
                     }

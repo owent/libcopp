@@ -53,7 +53,7 @@ namespace copp {
 
         struct flag_t {
             enum type {
-                EN_CFT_UNKNOWN  = 0,
+                EN_CFT_UNKNOWN = 0,
                 EN_CFT_FINISHED = 0x01,
             };
         };
@@ -104,10 +104,11 @@ namespace copp {
         static int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
                           size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
 
-        template<typename TRunner>
-        static int create(coroutine_context *p, TRunner* runner, const stack_context &callee_stack, size_t coroutine_size,
-            size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
-            return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size, private_buffer_size);
+        template <typename TRunner>
+        static int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack, size_t coroutine_size,
+                          size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+            return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
+                          private_buffer_size);
         }
 
         /**
@@ -203,13 +204,13 @@ namespace copp {
     public:
         static inline size_t align_private_data_size(size_t sz) {
             // static size_t random_index = 0;
-            // const size_t random_mask = 63;
-            const size_t align_mask = 2 * sizeof(size_t) - 1;
-            
+            // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(size_t) - 1;
+
             // align
             sz += align_mask;
             sz &= ~align_mask;
-           
+
             // random
             // ++random_index;
             // random_index &= random_mask;
@@ -218,7 +219,7 @@ namespace copp {
         }
 
         static inline size_t align_address_size(size_t sz) {
-            const size_t mask = 2 * sizeof(size_t) - 1;
+            UTIL_CONFIG_CONSTEXPR size_t mask = 2 * sizeof(size_t) - 1;
             sz += mask;
             sz &= ~mask;
             return sz;

@@ -46,7 +46,8 @@ namespace cotask {
 
         bool task_impl::_cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired) {
             uint32_t expected_int = expected;
-            bool ret = status_.compare_exchange_weak(expected_int, desired);
+            bool ret =
+                status_.compare_exchange_weak(expected_int, desired, util::lock::memory_order_acq_rel, util::lock::memory_order_acquire);
             expected = static_cast<EN_TASK_STATUS>(expected_int);
             return ret;
         }
