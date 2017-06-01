@@ -64,6 +64,13 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1000")
         add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1000" ${SAMPLE_SRC_BIN_NAME})
 
+        add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1"
+            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 1 10000000 16
+            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+        )
+        add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1")
+        add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1" ${SAMPLE_SRC_BIN_NAME})
+
         # for valgrind callgrind
         if (_VALGRIND_EXECUTABLE)
             add_custom_target("run_callgrind_${SAMPLE_SRC_BIN_NAME}_10000"
