@@ -62,12 +62,6 @@ namespace copp {
         void *priv_data_;
         size_t private_buffer_size_;
 
-#if defined(PROJECT_DISABLE_MT) && PROJECT_DISABLE_MT
-        util::lock::atomic_int_type<util::lock::unsafe_int_type<int> > status_; /** status **/
-#else
-        util::lock::atomic_int_type<int> status_; /** status **/
-#endif
-
         struct jump_src_data_t {
             coroutine_context *from_co;
             coroutine_context *to_co;
@@ -81,6 +75,13 @@ namespace copp {
         stack_context callee_stack_; /** callee stack context **/
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
         stack_context caller_stack_; /** caller stack context **/
+#endif
+
+    private:
+#if defined(PROJECT_DISABLE_MT) && PROJECT_DISABLE_MT
+        util::lock::atomic_int_type<util::lock::unsafe_int_type<int> > status_; /** status **/
+#else
+        util::lock::atomic_int_type<int> status_; /** status **/
 #endif
 
     protected:

@@ -19,7 +19,7 @@
 
 namespace cotask {
     namespace impl {
-        task_impl::task_impl() : action_(UTIL_CONFIG_NULLPTR), status_(EN_TS_CREATED), finish_priv_data_(UTIL_CONFIG_NULLPTR) {}
+        task_impl::task_impl() : action_(UTIL_CONFIG_NULLPTR), finish_priv_data_(UTIL_CONFIG_NULLPTR), status_(EN_TS_CREATED) {}
 
         task_impl::~task_impl() { assert(status_ <= EN_TS_CREATED || status_ >= EN_TS_DONE); }
 

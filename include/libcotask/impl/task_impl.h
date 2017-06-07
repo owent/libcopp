@@ -95,13 +95,15 @@ namespace cotask {
         private:
             action_ptr_t action_;
 
+        protected:
+            void *finish_priv_data_;
+
+        private:
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             ::util::lock::atomic_int_type<uint32_t> status_;
 #else
             ::util::lock::atomic_int_type< ::util::lock::unsafe_int_type<uint32_t> > status_;
 #endif
-        protected:
-            void *finish_priv_data_;
         };
     }
 }

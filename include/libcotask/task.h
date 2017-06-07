@@ -561,17 +561,18 @@ namespace cotask {
 
     private:
         id_t id_;
+        typename coroutine_t::ptr_t coroutine_obj_;
+        task_group next_list_;
+
+        // ============== action information ==============
+        void (*action_destroy_fn_)(void *);
+
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
         util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
         util::lock::spin_lock next_list_lock_;
 #else
         util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> > ref_count_; /** ref_count **/
 #endif
-        typename coroutine_t::ptr_t coroutine_obj_;
-        task_group next_list_;
-
-        // ============== action information ==============
-        void (*action_destroy_fn_)(void *);
     };
 }
 

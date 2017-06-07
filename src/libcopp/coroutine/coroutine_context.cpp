@@ -65,15 +65,13 @@ namespace copp {
                                                                   runner_(UTIL_CONFIG_NULLPTR),
                                                                   priv_data_(UTIL_CONFIG_NULLPTR),
                                                                   private_buffer_size_(0),
-                                                                  status_(status_t::EN_CRS_INVALID),
                                                                   caller_(UTIL_CONFIG_NULLPTR),
                                                                   callee_(UTIL_CONFIG_NULLPTR),
-                                                                  callee_stack_()
+                                                                  callee_stack_(),
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-                                                                      ,
-                                                                  caller_stack_()
+                                                                  caller_stack_(),
 #endif
-    {
+                                                                  status_(status_t::EN_CRS_INVALID) {
     }
 
     coroutine_context::~coroutine_context() {}
