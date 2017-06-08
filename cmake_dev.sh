@@ -11,6 +11,7 @@ CMAKE_CLANG_TIDY="";
 CMAKE_CLANG_ANALYZER=0;
 CMAKE_CLANG_ANALYZER_PATH="";
 BUILD_DIR=$(echo "build_$SYS_NAME" | tr '[:upper:]' '[:lower:]');
+CPPCHECK_PLATFORM=unix64;
 
 if [ ! -z "$MSYSTEM" ]; then
     CHECK_MSYS=$(echo "${MSYSTEM:0:5}" | tr '[:upper:]' '[:lower:]');
@@ -18,7 +19,7 @@ else
     CHECK_MSYS="";
 fi
 
-while getopts "ac:e:htus-" OPTION; do
+while getopts "ac:e:htusp:-" OPTION; do
     case $OPTION in
         a)
             echo "Ready to check ccc-analyzer and c++-analyzer, please do not use -c to change the compiler when using clang-analyzer.";
@@ -73,6 +74,7 @@ while getopts "ac:e:htus-" OPTION; do
             echo "-t                            enable clang-tidy.";
             echo "-u                            enable unit test.";
             echo "-s                            enable sample.";
+            echo "-p                            cppcheck platform(defult: $CPPCHECK_PLATFORM).";
             exit 0;
         ;;
         t)
@@ -83,6 +85,9 @@ while getopts "ac:e:htus-" OPTION; do
         ;;
         s)
             CMAKE_OPTIONS="$CMAKE_OPTIONS -DPROJECT_ENABLE_SAMPLE=YES";
+        ;;
+        p)
+            CPPCHECK_PLATFORM="$OPTARG";
         ;;
         -)
             break;
@@ -102,20 +107,28 @@ if [ ! -z "$CC" ]; then
     BUILD_DIR="${BUILD_DIR}_$CCNAME";
 fi
 
-SCRIPT_DIR="$(dirname $0)";
+SCRIPT_DIR="$(cd $(dirname $0) && pwd)";
 mkdir -p "$SCRIPT_DIR/$BUILD_DIR";
 cd "$SCRIPT_DIR/$BUILD_DIR";
+
+if [ "${CC:0-8}" == "cppcheck" ]; then
+    echo "Run cppcheck in $SCRIPT_DIR";
+    $CC --enable=all --xml --inconclusive --platform=$CPPCHECK_PLATFORM --xml-version=2 \
+        --language=c++ --std=c++11 --suppress=missingIncludeSystem --max-configs=256 \
+        --relative-paths=$SCRIPT_DIR -I $SCRIPT_DIR/include -I $SCRIPT_DIR/test $SCRIPT_DIR/src $SCRIPT_DIR/test $SCRIPT_DIR/sample 2>libcopp.cppcheck.xml ;
+    CPPCHECK_REPORTHTML="$(which cppcheck-htmlreport 2>/dev/null)";
+    if [ ! -z "$CPPCHECK_REPORTHTML" ]; then
+        echo "====== Try to generate html report. ======";
+        $CPPCHECK_REPORTHTML --file=libcopp.cppcheck.xml --report-dir=libcopp.cppcheck.html --source-dir=$SCRIPT_DIR ;
+    fi
+    exit 0;
+fi
 
 if [ ! -z "$CCACHE" ] && [ "$CCACHE" != "disable" ] && [ "$CCACHE" != "disabled" ] && [ "$CCACHE" != "no" ] && [ "$CCACHE" != "false" ] && [ -e "$CCACHE" ]; then
     #CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER=$CCACHE -DCMAKE_CXX_COMPILER=$CCACHE -DCMAKE_C_COMPILER_ARG1=$CC -DCMAKE_CXX_COMPILER_ARG1=$CXX";
     CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER_LAUNCHER=$CCACHE -DCMAKE_CXX_COMPILER_LAUNCHER=$CCACHE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX";
 elif [ ! -z "$CC" ]; then
-    if [ "${CC:0-8}" == "cppcheck" ]; then
-        $CC --enable=all --std=c++11 --xml --inconclusive --platform=unix64 --relative-paths=$SCRIPT_DIR -I $SCRIPT_DIR/include $SCRIPT_DIR/src 2>libcopp.cppcheck.xml ;
-        exit 0;
-    else
-        CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX";
-    fi
+    CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX";
 fi
 
 if [ "$CHECK_MSYS" == "mingw" ] && [ ! -z "$CC" ] ; then
