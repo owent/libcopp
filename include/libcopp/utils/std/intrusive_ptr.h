@@ -73,6 +73,9 @@ namespace std {
         }
 
         template <typename U>
+        friend class intrusive_ptr;
+
+        template <typename U>
         intrusive_ptr &operator=(intrusive_ptr<U> const &rhs) {
             self_type(rhs).swap(*this);
             return *this;

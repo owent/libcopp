@@ -13,7 +13,7 @@
 static int g_test_coroutine_task_manager_status = 0;
 class test_context_task_manager_action : public cotask::impl::task_action_impl {
 public:
-    int operator()(void*) {
+    int operator()(void *) {
         ++g_test_coroutine_task_manager_status;
 
         // CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
@@ -146,14 +146,15 @@ CASE_TEST(coroutine_task_manager, multi_checkpoints) {
 
 class test_context_task_manager_action_protect_this_task : public cotask::impl::task_action_impl {
 public:
-    int operator()(void*) {
+    int operator()(void *) {
         int use_count = (int)cotask::this_task::get<cotask::task<> >()->use_count();
-        CASE_EXPECT_EQ(3, use_count);
+        CASE_EXPECT_EQ(2, use_count);
         cotask::this_task::get_task()->yield();
         use_count = (int)cotask::this_task::get<cotask::task<> >()->use_count();
         // if we support rvalue-reference, reference may be smaller.
         // remove action will be 3, resume and destroy will be 1 or 2
-        CASE_EXPECT_TRUE(use_count >= 1 && use_count <= 3);
+        // CASE_EXPECT_TRUE(use_count >= 1 && use_count <= 3);
+        CASE_EXPECT_TRUE(use_count >= 1 && use_count <= 2);
 
         ++g_test_coroutine_task_manager_status;
         return 0;
@@ -231,8 +232,7 @@ struct test_context_task_manager_mt_thread_runner {
     typedef cotask::task_manager<cotask::task<> > mgr_t;
     int run_count;
     mgr_t::ptr_t task_mgr;
-    test_context_task_manager_mt_thread_runner(mgr_t::ptr_t mgr)
-        : run_count(0), task_mgr(mgr) {}
+    test_context_task_manager_mt_thread_runner(mgr_t::ptr_t mgr) : run_count(0), task_mgr(mgr) {}
 
     int operator()() {
         typedef cotask::task<>::ptr_t task_ptr_type;

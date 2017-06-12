@@ -51,7 +51,7 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         endif()
     else()
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_30000"
-            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 30000 1000 64
+            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 30000 100 64
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
         )
         add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_30000")
@@ -65,7 +65,7 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1000" ${SAMPLE_SRC_BIN_NAME})
 
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1"
-            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 1 10000000 16
+            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 1 3000000 16
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
         )
         add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1")

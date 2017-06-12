@@ -370,7 +370,7 @@ namespace cotask {
             } while (true);
 
             // use this smart ptr to avoid destroy of this
-            ptr_t protect_from_destroy(this);
+            // ptr_t protect_from_destroy(this);
 
             int ret = coroutine_obj_->start(priv_data);
 
