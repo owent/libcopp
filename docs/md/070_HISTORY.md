@@ -1,8 +1,16 @@
 HISTORY
 ========
+2017-05-10
+------
+1. [BOOST] merge boost.context 1.64.0
+2. [OPTIMIZE] add stack pool manager and unit test
+3. [OPTIMIZE] reduce memory fragment when allocate coroutine task and task action
+4. [CI] benchmark and sample will always be run in [Travis CI](https://travis-ci.org/owt5008137/libcopp) and [Appveyor CI](https://ci.appveyor.com/project/owt5008137/libcopp)
+
+
 2016-06-16
 ------
-1. [BOOST] merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/90QQw for detail)
+1. [BOOST] merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/2016/1270.html for detail)
 2. [BOOST] enable valgrind support if valgrind/valgrind.h exists
 3. [CXX] use cmake to detect the function of compiler
 4. [OPTIMIZE] using pthread key when c++11 TLS not available
