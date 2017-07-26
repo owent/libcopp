@@ -366,15 +366,19 @@ BENCHMARK
 ======
 Please see CI output for latest benchmark report. the [benchmark on Linux and macOS can be see here](https://travis-ci.org/owt5008137/libcopp) and the [benchmark on Windows can be see here](https://ci.appveyor.com/project/owt5008137/libcopp).
 
-On MinGW64, We use ms_pe_gas ASM code in boost.context to configure and build libcopp. It can be built successfully but will crash when running right now, so we don't support MinGW now.DEVELOPER
+DEVELOPER
 =========
 
-[basic coroutine object summary](docs/basic_coroutine_class.txt)
-
-[safe coroutine object summary](docs/safe_basic_coroutine_class.txt)
+[docs/libcopp.doxyfile](docs/libcopp.doxyfile)
 
 HISTORY
 ========
+2017-06-11
+------
+1. [OPTIMIZE] V2 framework and APIs completed, all reports in clang-analysis and cppcheck are fixed.
+2. [CI] benchmark and samples enabled in v2 branch
+3. [CI] add sample code in README.md into CI 
+
 2017-05-10
 ------
 1. [BOOST] merge boost.context 1.64.0
