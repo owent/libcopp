@@ -389,7 +389,7 @@ HISTORY
 
 2016-06-16
 ------
-1. [BOOST] merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/90QQw for detail)
+1. [BOOST] merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/2016/1270.html for detail)
 2. [BOOST] enable valgrind support if valgrind/valgrind.h exists
 3. [CXX] use cmake to detect the function of compiler
 4. [OPTIMIZE] using pthread key when c++11 TLS not available
