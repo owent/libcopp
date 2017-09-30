@@ -27,10 +27,10 @@ matrix:
       dist: trusty
       sudo: required
       env: USE_CC=gcc-7 USE_CXX=g++-7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: USE_CC=clang USE_CXX=clang++ CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+    # - os: linux
+    #   dist: trusty
+    #   sudo: required
+    #   env: USE_CC=clang USE_CXX=clang++ CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     # - os: linux
     #   dist: trusty
     #   sudo: required
@@ -67,7 +67,7 @@ addons:
 
 before_install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get -qq update; fi
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; brew upgrade cmake; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
 
 install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
@@ -79,6 +79,7 @@ install:
           fi
 
       fi
+
     - if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew upgrade cmake; fi
 
 script:
