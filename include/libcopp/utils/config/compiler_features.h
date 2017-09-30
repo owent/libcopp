@@ -645,10 +645,12 @@
 #    define UTIL_CONFIG_STATIC_ASSERT(X) static_assert(X, #X)
 #    define UTIL_CONFIG_STATIC_ASSERT_MSG(X, MSG) static_assert(X, MSG)
 #  else
+#    define UTIL_CONFIG_STATIC_ASSERT_JOIN(X, Y) UTIL_CONFIG_STATIC_ASSERT_JOIN_IMPL(X, Y)
+#    define UTIL_CONFIG_STATIC_ASSERT_JOIN_IMPL(X, Y) X##Y
 template<bool> struct UTIL_CONFIGStaticAssert;
 template<> struct UTIL_CONFIGStaticAssert<true>{};
-#    define UTIL_CONFIG_STATIC_ASSERT(X) sizeof(UTIL_CONFIGStaticAssert<X>)
-#    define UTIL_CONFIG_STATIC_ASSERT_MSG(X, MSG) sizeof(UTIL_CONFIGStaticAssert<X>)
+#    define UTIL_CONFIG_STATIC_ASSERT(X) enum { UTIL_CONFIG_STATIC_ASSERT_JOIN(UTIL_CONFIGStaticAssertEnum, __LINE__) = sizeof(UTIL_CONFIGStaticAssert<X>) }
+#    define UTIL_CONFIG_STATIC_ASSERT_MSG(X, MSG) enum { UTIL_CONFIG_STATIC_ASSERT_JOIN(UTIL_CONFIGStaticAssertEnum, __LINE__) = sizeof(UTIL_CONFIGStaticAssert<X>) }
 #  endif
 
 
