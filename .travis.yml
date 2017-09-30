@@ -4,7 +4,7 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://cmake.org/files/v3.8/cmake-3.8.1-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://cmake.org/files/v3.9/cmake-3.9.3-Linux-x86_64.sh ;
 matrix:
   include:
     - os: osx
@@ -26,7 +26,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-6 USE_CXX=g++-6 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-7 USE_CXX=g++-7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
     - os: linux
       dist: trusty
       sudo: required
@@ -52,10 +52,10 @@ addons:
       - gcc-4.9-multilib
       - g++-4.9
       - g++-4.9-multilib
-      - gcc-6
-      - gcc-6-multilib
-      - g++-6
-      - g++-6-multilib
+      - gcc-7
+      - gcc-7-multilib
+      - g++-7
+      - g++-7-multilib
       - clang
       ## - libc++1
       ## - libc++-dev
