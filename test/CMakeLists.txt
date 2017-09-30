@@ -62,10 +62,9 @@ if ( NOT MSVC )
 endif()
 
 # ============ test - coroutine test frame ============
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/test")
 
-add_executable(coroutine_test ${COPP_TEST_SRC_LIST})
-target_link_libraries(coroutine_test 
+add_executable(libcopp_unit_test ${COPP_TEST_SRC_LIST})
+target_link_libraries(libcopp_unit_test 
     ${PROJECT_LIBCOTASK_LIB_LINK}
     ${PROJECT_LIBCOPP_LIB_LINK} 
     ${PROJECT_LIBCOPP_TEST_LIB_LINK}
@@ -73,10 +72,10 @@ target_link_libraries(coroutine_test
 )
 
 if(NOT MSVC)
-    add_custom_target(run_test_coroutine_test
-        ./coroutine_test
+    add_custom_target(run_test_libcopp_unit_test
+        ./libcopp_unit_test
         WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
     )
-    add_dependencies(run_test run_test_coroutine_test)
-    add_dependencies(run_test_coroutine_test coroutine_test)
+    add_dependencies(run_test run_test_libcopp_unit_test)
+    add_dependencies(run_test_libcopp_unit_test libcopp_unit_test)
 endif()

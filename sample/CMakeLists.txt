@@ -11,10 +11,9 @@ file(GLOB SAMPLE_SRC_LIST RELATIVE "${PROJECT_SAMPLE_SRC_DIR}"
     ${PROJECT_SAMPLE_SRC_DIR}/*.cxx
 )
 
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/sample")
-
 foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
-    get_filename_component(SAMPLE_SRC_BIN_NAME "${SAMPLE_SRC_FILE}" NAME_WE)
+    get_filename_component(SAMPLE_SRC_BIN_NAME ${SAMPLE_SRC_FILE} NAME_WE)
+    set(SAMPLE_SRC_BIN_NAME "libcopp_${SAMPLE_SRC_BIN_NAME}")
     
     add_executable(${SAMPLE_SRC_BIN_NAME} ${SAMPLE_SRC_FILE})
     target_link_libraries(${SAMPLE_SRC_BIN_NAME}
