@@ -36,7 +36,7 @@ Prerequisites
 -------------
 
 -   **[required]** GCC or Clang or VC support ISO C++ 03 and upper
--   **[required]** [cmake](www.cmake.org) 3.3.0 and upper
+-   **[required]** [cmake](www.cmake.org) 3.7.0 and upper
 -   **[optional]** [gtest](https://code.google.com/p/googletest/) 1.6.0 and upper (better test supported)
 -   **[optional]** [Boost.Test](http://www.boost.org/doc/libs/release/libs/test/) (Boost.Test supported)
 
