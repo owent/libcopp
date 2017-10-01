@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.7.0)
+
+enable_testing()
+
 project(libcopp)
 
 ########################################################################

@@ -62,6 +62,11 @@ if ( NOT MSVC )
 endif()
 
 # ============ test - coroutine test frame ============
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/test")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 add_executable(libcopp_unit_test ${COPP_TEST_SRC_LIST})
 target_link_libraries(libcopp_unit_test 
@@ -71,11 +76,9 @@ target_link_libraries(libcopp_unit_test
     ${COMPILER_OPTION_EXTERN_CXX_LIBS}
 )
 
-if(NOT MSVC)
-    add_custom_target(run_test_libcopp_unit_test
-        ./libcopp_unit_test
-        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
-    )
-    add_dependencies(run_test run_test_libcopp_unit_test)
-    add_dependencies(run_test_libcopp_unit_test libcopp_unit_test)
-endif()
+add_custom_target(run_test_libcopp_unit_test
+    "./libcopp_unit_test${CMAKE_EXECUTABLE_SUFFIX}"
+    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
+add_dependencies(run_test run_test_libcopp_unit_test)
+add_dependencies(run_test_libcopp_unit_test libcopp_unit_test)

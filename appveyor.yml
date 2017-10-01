@@ -197,39 +197,11 @@ test_script:
 
         } else {
 
-            & "bin/$Env:CONFIGURATION/libcopp_unit_test.exe"
+            & cmake --build . --config $Env:CONFIGURATION --target run_sample
 
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine_mem_pool.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine_mem_pool.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine_malloc.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine_malloc.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine_stack_pool.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_coroutine_stack_pool.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task_mem_pool.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task_mem_pool.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task_malloc.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task_malloc.exe" 1000 1000 2048
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task_stack_pool.exe" 40000 1000 64
-
-            & "bin/$Env:CONFIGURATION/libcopp_sample_benchmark_task_stack_pool.exe" 1000 1000 2048
+            & cmake --build . --config $Env:CONFIGURATION --target run_test
+            
+            & cmake --build . --config $Env:CONFIGURATION --target benchmark
 
         }
 
