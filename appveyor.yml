@@ -169,14 +169,6 @@ test_script:
 
         if ( "$Env:OS" -ieq "MinGW" ) {
 
-            if ( -not (  Test-Path "$Env:APPVEYOR_BUILD_FOLDER/build/test/coroutine_test.exe" ) ) {
-
-                echo "Build failed.";
-
-                exit -1;
-
-            }
-
             if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
 
                 echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; make run_sample run_test benchmark;"
