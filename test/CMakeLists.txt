@@ -62,12 +62,11 @@ if ( NOT MSVC )
 endif()
 
 # ============ test - coroutine test frame ============
-if (MSVC)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXECUTABLE_OUTPUT_PATH})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${EXECUTABLE_OUTPUT_PATH})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXECUTABLE_OUTPUT_PATH})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${EXECUTABLE_OUTPUT_PATH})
-endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/test")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 add_executable(libcopp_unit_test ${COPP_TEST_SRC_LIST})
 target_link_libraries(libcopp_unit_test 
@@ -78,16 +77,16 @@ target_link_libraries(libcopp_unit_test
 )
 
 add_custom_target(run_test_libcopp_unit_test
-    "./libcopp_unit_test"
-    WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    "./libcopp_unit_test${CMAKE_EXECUTABLE_SUFFIX}"
+    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 add_dependencies(run_test run_test_libcopp_unit_test)
 add_dependencies(run_test_libcopp_unit_test libcopp_unit_test)
 
 if (_VALGRIND_EXECUTABLE)
     add_custom_target(run_memcheck_libcopp_unit_test
-        ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=libcopp_unit_test.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 "./coroutine_test"
-        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+        ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=libcopp_unit_test.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 "./libcopp_unit_test${CMAKE_EXECUTABLE_SUFFIX}"
+        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     )
     add_dependencies(memcheck run_memcheck_libcopp_unit_test)
     add_dependencies(run_memcheck_libcopp_unit_test libcopp_unit_test)
