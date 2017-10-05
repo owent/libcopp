@@ -54,39 +54,48 @@ Build
 -----
 
 **1. make a build directory**
-
+```bash
     mkdir build
+```
 
 **2. run cmake command**
-
+```bash
     cmake <libcopp dir> [options]
+```
 
-> options can be cmake options. such as set compile toolchains, source directory or options of libcopp that control build actions. libcopp options are listed below:
+Options can be cmake options. such as set compile toolchains, source directory or options of libcopp that control build actions. libcopp options are listed below:
 
-> > -DBUILD\_SHARED\_LIBS=YES|NO [default=NO] enable build dynamic library.
-
-> > -DLIBCOPP\_ENABLE\_SEGMENTED\_STACKS=YES|NO [default=NO] enable split stack supported context.(it's only availabe in linux and gcc 4.7.0 or upper)
-
-> > -DLIBCOPP\_ENABLE\_VALGRIND=YES|NO [default=YES] enable valgrind supported context.
-
-> > -DGTEST\_ROOT=[path] set gtest library install prefix path
+Option  | Description
+--------|------------
+BUILD\_SHARED\_LIBS=YES\|NO | [default=NO] enable build dynamic library.
+LIBCOPP\_ENABLE\_SEGMENTED\_STACKS=YES\|NO | [default=NO] enable split stack supported context.(it's only availabe in linux and gcc 4.7.0 or upper)
+LIBCOPP\_ENABLE\_VALGRIND=YES\|NO | [default=YES] enable valgrind supported context.
+PROJECT\_ENABLE\_UNITTEST=YES\|NO | [default=NO] Build unit test.
+PROJECT\_ENABLE\_SAMPLE=YES\|NO | [default=NO] Build samples.
+PROJECT\_DISABLE\_MT=YES\|NO | [default=NO] Disable multi-thread support.
+LIBCOTASK\_ENABLE=YES\|NO | [default=YES] Enable build libcotask.
+GTEST\_ROOT=[path] | set gtest library install prefix path
 
 **3. make libcopp**
-
-    make [options]
-
+```bash
+    make [options] # or cmake --build . --config RelWithDebInfo
+```
 **4. run test** *[optional]*
-
-    make run_test
-
+```bash
+    make run_test # Required: PROJECT_ENABLE_UNITTEST=YES
+```
 **5. run benchmark** *[optional]*
-
-    make benchmark
-
+```bash
+    make benchmark # Required: PROJECT_ENABLE_SAMPLE=YES
+```
 **6. install** *[optional]*
-
+```bash
     make install
-
+```
+**7. run sample** *[optional]*
+```bash
+    make run_sample # Required: PROJECT_ENABLE_SAMPLE=YES
+```
 > Or you can just copy include directory and libcopp.a in lib or lib64 into your project to use it.
 
 
@@ -102,6 +111,7 @@ Get Start & Example
 This is a simple example of using basic coroutine context below:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_1.cpp
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
@@ -149,6 +159,7 @@ Also, you can use copp::coroutine_context_container<ALLOCATOR> instead of copp::
 This is a simple example of using coroutine task with lambda expression:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_2.cpp
 #include <iostream>
 
 // include task header file
@@ -185,6 +196,7 @@ Also, you can your stack allocator or id allocator by setting different paramete
 This is a simple example of using task manager:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_3.cpp
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -271,6 +283,7 @@ int main() {
 This is a simple example of using stack pool for cotask:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_4.cpp
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -299,18 +312,22 @@ typedef cotask::task<sample_macro_coroutine> sample_task_t;
 int main() {
 #if defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
+    global_stack_pool->set_min_stack_number(4);
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
               << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-              << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+              << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
               << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
     // create two coroutine task
     {
-        sample_task_t::ptr_t co_task = sample_task_t::create([]() {
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
-            cotask::this_task::get_task()->yield();
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
-            return 0;
-        });
+        copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
+        sample_task_t::ptr_t co_task = sample_task_t::create(
+            []() {
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
+                cotask::this_task::get_task()->yield();
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
+                return 0;
+            },
+            alloc);
 
         if (!co_task) {
             std::cerr << "create coroutine task with stack pool failed" << std::endl;
@@ -319,7 +336,7 @@ int main() {
 
         std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
                   << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-                  << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+                  << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
                   << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 
 
@@ -328,16 +345,19 @@ int main() {
 
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
               << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-              << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+              << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
               << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 
     {
-        sample_task_t::ptr_t co_another_task = sample_task_t::create([]() {
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
-            cotask::this_task::get_task()->yield();
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
-            return 0;
-        });
+        copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
+        sample_task_t::ptr_t co_another_task = sample_task_t::create(
+            []() {
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
+                cotask::this_task::get_task()->yield();
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
+                return 0;
+            },
+            alloc);
 
         if (!co_another_task) {
             std::cerr << "create coroutine task with stack pool failed" << std::endl;
@@ -349,7 +369,7 @@ int main() {
 
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
               << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-              << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+              << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
               << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 #else
     std::cerr << "lambda not supported, this sample is not available." << std::endl;
@@ -362,10 +382,11 @@ NOTICE
 
 Split stack support: if in Linux and user gcc 4.7.0 or upper, add -DLIBCOPP\_ENABLE\_SEGMENTED\_STACKS=YES to use split stack supported context.
 
+It's recommanded to use stack pool instead of gcc splited stack.
+
 BENCHMARK
 ======
 Please see CI output for latest benchmark report. the [benchmark on Linux and macOS can be see here](https://travis-ci.org/owt5008137/libcopp) and the [benchmark on Windows can be see here](https://ci.appveyor.com/project/owt5008137/libcopp).
-
 DEVELOPER
 =========
 
@@ -373,6 +394,13 @@ DEVELOPER
 
 HISTORY
 ========
+2017-10-01
+------
+1. [OPTIMIZE] optimize cmake files for all target
+2. [OPTIMIZE] update samples and readme(fix sample for stack pool in README.md)
+3. [CI] add gcc 7
+4. [OPTIMIZE] using -std=c++17 for gcc/clang and /std:c++17 for MSVC 15(2015) and upper
+
 2017-06-11
 ------
 1. [OPTIMIZE] V2 framework and APIs completed, all reports in clang-analysis and cppcheck are fixed.

@@ -10,6 +10,7 @@ Get Start & Example
 This is a simple example of using basic coroutine context below:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_1.cpp
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
@@ -57,6 +58,7 @@ Also, you can use copp::coroutine_context_container<ALLOCATOR> instead of copp::
 This is a simple example of using coroutine task with lambda expression:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_2.cpp
 #include <iostream>
 
 // include task header file
@@ -93,6 +95,7 @@ Also, you can your stack allocator or id allocator by setting different paramete
 This is a simple example of using task manager:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_3.cpp
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -179,6 +182,7 @@ int main() {
 This is a simple example of using stack pool for cotask:
 
 ```cpp
+// see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_4.cpp
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -207,18 +211,22 @@ typedef cotask::task<sample_macro_coroutine> sample_task_t;
 int main() {
 #if defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
+    global_stack_pool->set_min_stack_number(4);
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
               << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-              << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+              << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
               << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
     // create two coroutine task
     {
-        sample_task_t::ptr_t co_task = sample_task_t::create([]() {
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
-            cotask::this_task::get_task()->yield();
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
-            return 0;
-        });
+        copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
+        sample_task_t::ptr_t co_task = sample_task_t::create(
+            []() {
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
+                cotask::this_task::get_task()->yield();
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
+                return 0;
+            },
+            alloc);
 
         if (!co_task) {
             std::cerr << "create coroutine task with stack pool failed" << std::endl;
@@ -227,7 +235,7 @@ int main() {
 
         std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
                   << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-                  << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+                  << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
                   << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 
 
@@ -236,16 +244,19 @@ int main() {
 
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
               << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-              << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+              << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
               << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 
     {
-        sample_task_t::ptr_t co_another_task = sample_task_t::create([]() {
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
-            cotask::this_task::get_task()->yield();
-            std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
-            return 0;
-        });
+        copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
+        sample_task_t::ptr_t co_another_task = sample_task_t::create(
+            []() {
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
+                cotask::this_task::get_task()->yield();
+                std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " resumed" << std::endl;
+                return 0;
+            },
+            alloc);
 
         if (!co_another_task) {
             std::cerr << "create coroutine task with stack pool failed" << std::endl;
@@ -257,7 +268,7 @@ int main() {
 
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
               << ", used stack size: " << global_stack_pool->get_limit().used_stack_size
-              << "free stack number: " << global_stack_pool->get_limit().free_stack_number
+              << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
               << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 #else
     std::cerr << "lambda not supported, this sample is not available." << std::endl;

@@ -1,5 +1,12 @@
 HISTORY
 ========
+2017-10-01
+------
+1. [OPTIMIZE] optimize cmake files for all target
+2. [OPTIMIZE] update samples and readme(fix sample for stack pool in README.md)
+3. [CI] add gcc 7
+4. [OPTIMIZE] using -std=c++17 for gcc/clang and /std:c++17 for MSVC 15(2015) and upper
+
 2017-06-11
 ------
 1. [OPTIMIZE] V2 framework and APIs completed, all reports in clang-analysis and cppcheck are fixed.
