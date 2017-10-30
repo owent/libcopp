@@ -23,12 +23,10 @@
  *         1. using atomic_int_type
  */
 
-#ifndef _UTIL_LOCK_SPINLOCK_H_
-#define _UTIL_LOCK_SPINLOCK_H_
+#ifndef UTIL_LOCK_SPINLOCK_H
+#define UTIL_LOCK_SPINLOCK_H
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
-#endif
 
 #include "atomic_int_type.h"
 

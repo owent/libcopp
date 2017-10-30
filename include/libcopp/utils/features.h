@@ -1,12 +1,10 @@
 // cmake template file
 
-#ifndef _COPP_UTILS_FEATURES_H_
-#define _COPP_UTILS_FEATURES_H_
+#ifndef COPP_UTILS_FEATURES_H
+#define COPP_UTILS_FEATURES_H
 
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
-#endif
 
 #include <libcopp/utils/config/compiler_features.h>
 

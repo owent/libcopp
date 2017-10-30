@@ -12,8 +12,8 @@
  *
  */
 
-#ifndef _STD_SMARTPTR_H_
-#define _STD_SMARTPTR_H_
+#ifndef STD_SMARTPTR_H
+#define STD_SMARTPTR_H
 
 #pragma once
 

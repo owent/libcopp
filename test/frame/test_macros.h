@@ -10,6 +10,8 @@
 #ifndef TEST_MACROS_H_
 #define TEST_MACROS_H_
 
+#pragma once
+
 #include <iostream>
 #include <sstream>
 #include <cstdio>

@@ -7,8 +7,10 @@
  *  Released under the MIT license
  */
 
-#ifndef _COTASK_IMPL_ID_ALLOCATOR_IMPL_H_
-#define _COTASK_IMPL_ID_ALLOCATOR_IMPL_H_
+#ifndef COTASK_IMPL_ID_ALLOCATOR_IMPL_H
+#define COTASK_IMPL_ID_ALLOCATOR_IMPL_H
+
+#pragma once
 
 #include "libcopp/utils/config/compiler_features.h"
 

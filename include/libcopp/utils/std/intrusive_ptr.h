@@ -12,8 +12,8 @@
  *
  */
 
-#ifndef _STD_INTRUSIVE_PTR_H_
-#define _STD_INTRUSIVE_PTR_H_
+#ifndef STD_INTRUSIVE_PTR_H
+#define STD_INTRUSIVE_PTR_H
 
 #pragma once
 

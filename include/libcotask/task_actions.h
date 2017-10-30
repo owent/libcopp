@@ -7,8 +7,10 @@
  *  Released under the MIT license
  */
 
-#ifndef _COTASK_TASK_ACTIONS_H_
-#define _COTASK_TASK_ACTIONS_H_
+#ifndef COTASK_TASK_ACTIONS_H
+#define COTASK_TASK_ACTIONS_H
+
+#pragma once
 
 #include <libcotask/impl/task_action_impl.h>
 

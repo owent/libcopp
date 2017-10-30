@@ -10,6 +10,8 @@
 #ifndef TEST_CASE_BASE_H_
 #define TEST_CASE_BASE_H_
 
+#pragma once
+
 #include <string>
 
 #ifdef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST

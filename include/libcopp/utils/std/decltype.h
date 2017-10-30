@@ -11,13 +11,11 @@
  *
  */
 
-#ifndef _STD_DECLTYPE_H_
-#define _STD_DECLTYPE_H_
+#ifndef STD_DECLTYPE_H
+#define STD_DECLTYPE_H
 
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
-#endif
 
 #include <libcopp/utils/config/compiler_features.h>
 

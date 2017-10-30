@@ -9,8 +9,8 @@
  *    2015-06-30  增加Windows控制台支持，增加通用输出流
  */
 
-#ifndef _UTIL_CLI_SHELLFONT_H_
-#define _UTIL_CLI_SHELLFONT_H_
+#ifndef UTIL_CLI_SHELLFONT_H
+#define UTIL_CLI_SHELLFONT_H
 
 #pragma once
 
