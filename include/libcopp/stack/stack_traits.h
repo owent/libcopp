@@ -1,9 +1,7 @@
 #ifndef _COPP_STACKCONTEXT_STACK_TRAITS_H
 #define _COPP_STACKCONTEXT_STACK_TRAITS_H
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
-#endif
 
 #include <cstddef>
 #include <libcopp/utils/features.h>

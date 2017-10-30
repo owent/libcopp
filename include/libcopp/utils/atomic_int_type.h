@@ -15,8 +15,8 @@
  *     2016-06-14
  */
 
-#ifndef _UTIL_LOCK_ATOMIC_INT_TYPE_H_
-#define _UTIL_LOCK_ATOMIC_INT_TYPE_H_
+#ifndef UTIL_LOCK_ATOMIC_INT_TYPE_H
+#define UTIL_LOCK_ATOMIC_INT_TYPE_H
 
 #pragma once
 

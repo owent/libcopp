@@ -12,8 +12,8 @@
  * @history
  */
 
-#ifndef _UTIL_LOCK_LOCK_HOLDER_H_
-#define _UTIL_LOCK_LOCK_HOLDER_H_
+#ifndef UTIL_LOCK_LOCK_HOLDER_H
+#define UTIL_LOCK_LOCK_HOLDER_H
 
 #pragma once
 

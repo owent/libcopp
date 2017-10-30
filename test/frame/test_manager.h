@@ -10,6 +10,8 @@
 #ifndef TEST_MANAGER_H_
 #define TEST_MANAGER_H_
 
+#pragma once
+
 #include <ctime>
 #include <map>
 #include <stdint.h>

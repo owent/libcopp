@@ -1,36 +1,32 @@
 ﻿/**
- * Copyright (c) 2014, Tencent
- * All rights reserved.
- *
  * @file is_integral_impl.h
- * @brief 
- *
+ * @brief
+ * Licensed under the MIT licenses.
  *
  * @version 1.0
- * @author owentou, owentou@tencent.com
+ * @author OWenT, owt5008137@live.com
  * @date 2014年3月27日
  *
  * @history
  *
  */
 
-#ifndef _UTIL_TYPE_TRAITS_IS_INTEGRAL_IMPL_H_
-#define _UTIL_TYPE_TRAITS_IS_INTEGRAL_IMPL_H_
+#ifndef UTIL_TYPE_TRAITS_IS_INTEGRAL_IMPL_H
+#define UTIL_TYPE_TRAITS_IS_INTEGRAL_IMPL_H
+
+#pragma once
 
 #include "remove_cv.h"
 
-namespace util
-{
-    namespace type_traits
-    {
-        namespace detail
-        {
-            template<typename Ty>
-            struct _is_integral : public util::type_traits::false_type
-            {
-            };
+namespace util {
+    namespace type_traits {
+        namespace detail {
+            template <typename Ty>
+            struct _is_integral : public util::type_traits::false_type {};
 
-#define _DEFINE_INTEGRAL_SPEC(TYPE) template<> struct _is_integral<TYPE> : public util::type_traits::true_type {}
+#define _DEFINE_INTEGRAL_SPEC(TYPE) \
+    template <>                     \
+    struct _is_integral<TYPE> : public util::type_traits::true_type {}
 
             _DEFINE_INTEGRAL_SPEC(bool);
             _DEFINE_INTEGRAL_SPEC(char);
@@ -67,11 +63,11 @@ namespace util
 
 
 #undef _DEFINE_INTEGRAL_SPEC
-        }
+        } // namespace detail
 
-        template<typename Ty>
-        struct is_integral : public detail::_is_integral< typename remove_cv<Ty>::type > {};
-    }
-}
+        template <typename Ty>
+        struct is_integral : public detail::_is_integral<typename remove_cv<Ty>::type> {};
+    } // namespace type_traits
+} // namespace util
 
 #endif /* IS_INTEGRAL_IMPL_H_ */

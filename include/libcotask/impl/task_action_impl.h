@@ -7,8 +7,10 @@
  *  Released under the MIT license
  */
 
-#ifndef _COTASK_IMPL_TASK_ACTION_IMPL_H_
-#define _COTASK_IMPL_TASK_ACTION_IMPL_H_
+#ifndef COTASK_IMPL_TASK_ACTION_IMPL_H
+#define COTASK_IMPL_TASK_ACTION_IMPL_H
+
+#pragma once
 
 #include <libcopp/coroutine/coroutine_runnable_base.h>
 

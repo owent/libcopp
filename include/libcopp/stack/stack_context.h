@@ -1,10 +1,8 @@
-#ifndef _COPP_STACKCONTEXT_STACKCONTEXT_H_
-#define _COPP_STACKCONTEXT_STACKCONTEXT_H_
+#ifndef COPP_STACKCONTEXT_STACKCONTEXT_H
+#define COPP_STACKCONTEXT_STACKCONTEXT_H
 
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
-#endif
 
 #include <cstddef>
 

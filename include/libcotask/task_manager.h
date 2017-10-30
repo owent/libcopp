@@ -7,8 +7,10 @@
  *  Released under the MIT license
  */
 
-#ifndef _COTASK_TASK_MANAGER_H_
-#define _COTASK_TASK_MANAGER_H_
+#ifndef COTASK_TASK_MANAGER_H
+#define COTASK_TASK_MANAGER_H
+
+#pragma once
 
 #include <algorithm>
 #include <assert.h>

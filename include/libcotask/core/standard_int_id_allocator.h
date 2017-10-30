@@ -7,8 +7,10 @@
  *  Released under the MIT license
  */
 
-#ifndef _COTASK_CORE_STANDARD_INT_ID_ALLOCATOR_H_
-#define _COTASK_CORE_STANDARD_INT_ID_ALLOCATOR_H_
+#ifndef COTASK_CORE_STANDARD_INT_ID_ALLOCATOR_H
+#define COTASK_CORE_STANDARD_INT_ID_ALLOCATOR_H
+
+#pragma once
 
 #include <stdint.h>
 #include <ctime>

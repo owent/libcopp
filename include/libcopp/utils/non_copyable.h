@@ -7,8 +7,10 @@
  *  Released under the MIT license
  */
 
-#ifndef _COPP_UTILS_NON_COPYABLE_H_
-#define _COPP_UTILS_NON_COPYABLE_H_
+#ifndef COPP_UTILS_NON_COPYABLE_H
+#define COPP_UTILS_NON_COPYABLE_H
+
+#pragma once
 
 #include "libcopp/utils/config/compiler_features.h"
 

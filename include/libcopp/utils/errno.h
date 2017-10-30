@@ -1,10 +1,8 @@
-#ifndef _COPP_UTILS_ERRNO_H_
-#define _COPP_UTILS_ERRNO_H_
+#ifndef COPP_UTILS_ERRNO_H
+#define COPP_UTILS_ERRNO_H
 
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
-#endif
 
 namespace copp {
     /**

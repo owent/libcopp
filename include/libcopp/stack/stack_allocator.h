@@ -1,6 +1,8 @@
-#ifndef _COPP_STACKCONTEXT_STACK_ALLOCATOR_H_
-#define _COPP_STACKCONTEXT_STACK_ALLOCATOR_H_
+#ifndef COPP_STACKCONTEXT_STACK_ALLOCATOR_H
+#define COPP_STACKCONTEXT_STACK_ALLOCATOR_H
 
+
+#pragma once
 
 #include <libcopp/utils/features.h>
 
