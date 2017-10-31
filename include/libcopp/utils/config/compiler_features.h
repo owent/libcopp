@@ -647,8 +647,6 @@
 #  else
 #    define UTIL_CONFIG_STATIC_ASSERT_JOIN(X, Y) UTIL_CONFIG_STATIC_ASSERT_JOIN_IMPL(X, Y)
 #    define UTIL_CONFIG_STATIC_ASSERT_JOIN_IMPL(X, Y) X##Y
-#pragma once
-
 template<bool> struct UTIL_CONFIGStaticAssert;
 template<> struct UTIL_CONFIGStaticAssert<true>{};
 #    define UTIL_CONFIG_STATIC_ASSERT(X) enum { UTIL_CONFIG_STATIC_ASSERT_JOIN(UTIL_CONFIGStaticAssertEnum, __LINE__) = sizeof(UTIL_CONFIGStaticAssert<X>) }
