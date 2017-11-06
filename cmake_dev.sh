@@ -140,11 +140,25 @@ fi
 
 if [ 1 -eq $CMAKE_CLANG_ANALYZER ]; then
     echo "=========================================================================================================";
+    CMAKE_CLANG_ANALYZER_OPTIONS="";
+    if [ -e "$SCRIPT_DIR/.scan-build.enable" ]; then
+        for OPT in $(cat "$SCRIPT_DIR/.scan-build.enable"); do
+            CMAKE_CLANG_ANALYZER_OPTIONS="$CMAKE_CLANG_ANALYZER_OPTIONS -enable-checker $OPT";
+        done
+    fi
+
+    if [ -e "$SCRIPT_DIR/.scan-build.disable" ]; then
+        for OPT in $(cat "$SCRIPT_DIR/.scan-build.disable"); do
+            CMAKE_CLANG_ANALYZER_OPTIONS="$CMAKE_CLANG_ANALYZER_OPTIONS -disable-checker $OPT";
+        done
+    fi
+
     if [ -z "$CMAKE_CLANG_ANALYZER_PATH" ]; then
-        echo "cd '$SCRIPT_DIR/$BUILD_DIR' && scan-build -o report --html-title='libcopp static analysis' make -j4";
+        echo "cd '$SCRIPT_DIR/$BUILD_DIR' && scan-build -o report --html-title='libcopp static analysis' $CMAKE_CLANG_ANALYZER_OPTIONS make -j4";
     else
-        echo "cd '$SCRIPT_DIR/$BUILD_DIR' && env PATH=\"\$PATH:$CMAKE_CLANG_ANALYZER_PATH\" scan-build -o report --html-title='libcopp static analysis' make -j4";
+        echo "cd '$SCRIPT_DIR/$BUILD_DIR' && env PATH=\"\$PATH:$CMAKE_CLANG_ANALYZER_PATH\" scan-build -o report --html-title='libmt_core static analysis' $CMAKE_CLANG_ANALYZER_OPTIONS make -j4";
     fi
     echo "Now, you can run those code above to get a static analysis report";
     echo "You can get help and binary of clang-analyzer and scan-build at http://clang-analyzer.llvm.org/scan-build.html"
 fi
+
