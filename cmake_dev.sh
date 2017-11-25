@@ -11,6 +11,7 @@ CMAKE_CLANG_TIDY="";
 CMAKE_CLANG_ANALYZER=0;
 CMAKE_CLANG_ANALYZER_PATH="";
 BUILD_DIR=$(echo "build_$SYS_NAME" | tr '[:upper:]' '[:lower:]');
+CMAKE_BUILD_TYPE=Debug;
 CPPCHECK_PLATFORM=unix64;
 
 if [ ! -z "$MSYSTEM" ]; then
@@ -19,7 +20,7 @@ else
     CHECK_MSYS="";
 fi
 
-while getopts "ac:e:htusp:-" OPTION; do
+while getopts "ab:c:e:htusp:-" OPTION; do
     case $OPTION in
         a)
             echo "Ready to check ccc-analyzer and c++-analyzer, please do not use -c to change the compiler when using clang-analyzer.";
@@ -55,6 +56,9 @@ while getopts "ac:e:htusp:-" OPTION; do
             echo "clang-analyzer setup completed.";
             CMAKE_CLANG_ANALYZER=1;
             BUILD_DIR="${BUILD_DIR}_analyzer";
+        ;;
+        b)
+            CMAKE_BUILD_TYPE="$OPTARG";
         ;;
         c)
             CC="$OPTARG";
@@ -132,9 +136,9 @@ elif [ ! -z "$CC" ]; then
 fi
 
 if [ "$CHECK_MSYS" == "mingw" ] && [ ! -z "$CC" ] ; then
-    cmake .. -G "MSYS Makefiles" $CMAKE_OPTIONS "$@";
+    cmake .. -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE $CMAKE_OPTIONS "$@";
 else
-    cmake .. $CMAKE_OPTIONS "$@";
+    cmake .. -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE $CMAKE_OPTIONS "$@";
 fi
 
 
