@@ -93,14 +93,6 @@ script:
   - if [ "$USE_CC" == "doxygen" ]; then
       
       cd "docs";
-      
-      if [ ! -e "$PANDOC_BIN" ]; then
-        mkdir -p "$PANDOC_PREFIX" ;
-        curl --insecure -L "$PANDOC_LINUX_URL" -o pandoc-linux.tar.gz ;
-        tar -axvf pandoc-linux.tar.gz ;
-        PANDOC_DIR=$(ls -d pandoc-* | grep -v grep | grep -v ".tar.gz");
-        cp -rf $PANDOC_DIR/* "$PANDOC_PREFIX";
-      fi
 
       if [ ! -e "$DOXYGEN_BIN" ]; then
         mkdir -p "$DOXYGEN_PREFIX";
@@ -109,11 +101,6 @@ script:
         DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
         cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
       fi
-      
-      for MD_FILE in $(find .. -name "*.md"); do
-        $PANDOC_BIN -f gfm -t markdown_strict -o "$MD_FILE" "$MD_FILE" ;
-        echo "Convert md file $MD_FILE";
-      done
 
       if [ -e doxygen/html ]; then
       
