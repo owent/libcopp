@@ -95,7 +95,15 @@ script:
       cd "docs";
       
       pandoc -f gfm -t markdown_strict -o README.md ../README.md ;
+      
+      cat README.md;
 
+      if [ -e doxygen/html ]; then
+      
+        rm -rf doxygen/html;
+      
+      fi
+      
       $USE_CC libcopp.doxyfile;
 
       if [ -e doxygen/html ]; then
