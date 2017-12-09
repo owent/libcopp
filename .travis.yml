@@ -95,7 +95,21 @@ script:
 
       $USE_CC libcopp.doxyfile;
 
-      cd .. ;
+      if [ -e doxygen/html ]; then
+      
+        cd doxygen/html ;
+
+        git init ;
+
+        git checkout -b master ;
+
+        git add . ; 
+
+        git -c user.name='travis' -c user.email='deploy@travis-ci.org' commit -m "Delpoy document for $TRAVIS_BRANCH($TRAVIS_COMMIT)";
+
+        git push -f -q https://owt5008137:$GITHUB_API_KEY@github.com/owt5008137/libcopp-doc master ;
+      
+      fi
 
     else
 
@@ -151,11 +165,3 @@ notifications:
   irc:
     template:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
-
-deploy:
-  provider: pages
-  target_branch: gh-pages
-  local_dir: "doxygen/html"
-  github_token: $GITHUB_API_KEY
-  on:
-    branch: v2
