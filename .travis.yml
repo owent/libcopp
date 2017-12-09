@@ -7,6 +7,8 @@ env:
     - CMAKE_LINUX_URL=https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
     - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.0.4/pandoc-2.0.4-linux.tar.gz
+    - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
+    - DOXYGEN_LINUX_URL=http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.13.linux.bin.tar.gz
 matrix:
   include:
     - os: osx
@@ -30,7 +32,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc
+      env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc DOXYGEN_BIN=$DOXYGEN_PREFIX/bin/doxygen
     # - os: linux
     #   dist: trusty
     #   sudo: required
@@ -61,7 +63,6 @@ addons:
       - g++-7
       - g++-7-multilib
       - clang
-      - doxygen
       - graphviz
       ## - libc++1
       ## - libc++-dev
@@ -97,13 +98,22 @@ script:
         mkdir -p "$PANDOC_PREFIX" ;
         curl --insecure -L "$PANDOC_LINUX_URL" -o pandoc-linux.tar.gz ;
         tar -axvf pandoc-linux.tar.gz ;
-        PANDOC_DIR=$(ls pandoc-* | grep -v grep | grep -v ".tar.gz");
+        PANDOC_DIR=$(ls -d pandoc-* | grep -v grep | grep -v ".tar.gz");
         cp -rf $PANDOC_DIR/* "$PANDOC_PREFIX";
       fi
+
+      if [ ! -e "$DOXYGEN_BIN" ]; then
+        mkdir -p "$DOXYGEN_PREFIX";
+        curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
+        tar -axvf doxygen.linux.bin.tar.gz ;
+        DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
+        cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
+      fi
       
-      $PANDOC_BIN -f gfm -t markdown_strict -o README.md ../README.md ;
-      
-      cat README.md;
+      for MD_FILE in $(find .. -name "*.md"); do
+        $PANDOC_BIN -f gfm -t markdown_strict -o "$MD_FILE" "$MD_FILE" ;
+        echo "Convert md file $MD_FILE";
+      done
 
       if [ -e doxygen/html ]; then
       
@@ -111,7 +121,7 @@ script:
       
       fi
       
-      $USE_CC libcopp.doxyfile;
+      $DOXYGEN_BIN libcopp.doxyfile;
 
       if [ -e doxygen/html ]; then
       
