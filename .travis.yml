@@ -106,13 +106,11 @@ script:
 
         git init ;
 
-        git checkout -b master ;
-
         git add . ; 
 
         git -c user.name='travis' -c user.email='deploy@travis-ci.org' commit -m "Delpoy document for $TRAVIS_BRANCH($TRAVIS_COMMIT)";
 
-        git push -f -q https://owt5008137:$GITHUB_API_KEY@github.com/owt5008137/libcopp-doc master ;
+        git push -f -q https://owt5008137:$GITHUB_API_KEY@github.com/owt5008137/libcopp-doc HEAD:master ;
       
       fi
 
