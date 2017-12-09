@@ -94,13 +94,15 @@ script:
       
       cd "docs";
       
-      pandoc -f gfm -t markdown_strict -o ../README.md ../README.md ;
+      pandoc -f gfm -t markdown_strict -o README.md ../README.md ;
 
       $USE_CC libcopp.doxyfile;
 
       if [ -e doxygen/html ]; then
       
         cd doxygen/html ;
+        
+        echo "libcopp.atframe.work" > CNAME ;
 
         git init ;
 
