@@ -63,6 +63,7 @@ addons:
       - clang
       - doxygen
       - graphviz
+      - pandoc
       ## - libc++1
       ## - libc++-dev
       ## - libc++abi1
@@ -92,6 +93,8 @@ script:
   - if [ "$USE_CC" == "doxygen" ]; then
       
       cd "docs";
+      
+      pandoc -f gfm -t markdown_strict -o ../README.md ../README.md ;
 
       $USE_CC libcopp.doxyfile;
 
