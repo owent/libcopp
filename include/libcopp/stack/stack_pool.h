@@ -140,13 +140,19 @@ namespace copp {
                     limits_.free_stack_size = 0;
                 }
 
-                ctx = *iter;
-                free_list_.pop_back();
+                // make sure the stack must be greater or equal than configure after reset
+                if (likely(iter->size >= conf_.stack_size)) {
+                    ctx = *iter;
+                    free_list_.pop_back();
 
-                // used limit
-                ++limits_.used_stack_number;
-                limits_.used_stack_size += ctx.size;
-                return;
+                    // used limit
+                    ++limits_.used_stack_number;
+                    limits_.used_stack_size += ctx.size;
+                    return;
+                } else {
+                    // just pop cache
+                    free_list_.pop_back();
+                }
             }
 
             // get from origin allocator
@@ -295,6 +301,6 @@ namespace copp {
 #endif
         std::list<stack_context> free_list_;
     };
-}
+} // namespace copp
 
 #endif
