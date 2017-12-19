@@ -125,6 +125,11 @@ copp_make_fcontext:
     xorq  %rcx, %rcx
     movq  %rcx, 0xb0(%rax)
 
+	/* save MMX control- and status-word */
+    stmxcsr  0xa0(%rax)
+    /* save x87 control-word */
+    fnstcw   0xa4(%rax)
+
     /* compute address of transport_t */
     leaq  0x140(%rax), %rcx
     /* store address of transport_t in hidden field */

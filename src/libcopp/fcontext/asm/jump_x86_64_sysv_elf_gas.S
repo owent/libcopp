@@ -31,8 +31,10 @@
 copp_jump_fcontext:
     leaq  -0x38(%rsp), %rsp /* prepare stack */
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     stmxcsr  (%rsp)     /* save MMX control- and status-word */
     fnstcw   0x4(%rsp)  /* save x87 control-word */
+#endif
 
     movq  %r12, 0x8(%rsp)  /* save R12 */
     movq  %r13, 0x10(%rsp)  /* save R13 */
@@ -49,8 +51,10 @@ copp_jump_fcontext:
 
     movq  0x38(%rsp), %r8  /* restore return-address */
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     ldmxcsr  (%rsp)     /* restore MMX control- and status-word */
     fldcw    0x4(%rsp)  /* restore x87 control-word */
+#endif
 
     movq  0x8(%rsp), %r12  /* restore R12 */
     movq  0x10(%rsp), %r13  /* restore R13 */

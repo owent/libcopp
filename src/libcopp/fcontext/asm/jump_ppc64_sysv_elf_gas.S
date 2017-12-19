@@ -119,7 +119,9 @@ copp_jump_fcontext:
     std  %r29, 128(%r1)  # save R29
     std  %r30, 136(%r1)  # save R30
     std  %r31, 144(%r1)  # save R31
+#if _CALL_ELF != 2
     std  %r3,  152(%r1)  # save hidden
+#endif
 
     # save CR
     mfcr  %r0
@@ -133,10 +135,13 @@ copp_jump_fcontext:
     # store RSP (pointing to context-data) in R6
     mr  %r6, %r1
 
+#if _CALL_ELF == 2
+    # restore RSP (pointing to context-data) from R3
+    mr  %r1, %r3
+#else
     # restore RSP (pointing to context-data) from R4
     mr  %r1, %r4
 
-#if _CALL_ELF != 2
     ld  %r2,  0(%r1)  # restore TOC
 #endif
     ld  %r14, 8(%r1)  # restore R14
@@ -157,7 +162,9 @@ copp_jump_fcontext:
     ld  %r29, 128(%r1)  # restore R29
     ld  %r30, 136(%r1)  # restore R30
     ld  %r31, 144(%r1)  # restore R31
+#if _CALL_ELF != 2
     ld  %r3,  152(%r1)  # restore hidden
+#endif
 
     # restore CR
     ld  %r0, 160(%r1)
@@ -174,6 +181,15 @@ copp_jump_fcontext:
     # adjust stack
     addi  %r1, %r1, 184
 
+#if _CALL_ELF == 2
+    # copy transfer_t into transfer_fn arg registers
+    mr  %r3, %r6
+    # arg pointer already in %r4
+
+    # jump to context
+    bctr
+	.size copp_jump_fcontext, .-copp_jump_fcontext
+#else
     # zero in r3 indicates first jump to context-function
     cmpdi %r3, 0
     beq use_entry_arg
@@ -192,9 +208,6 @@ use_entry_arg:
 
     # jump to context
     bctr
-#if _CALL_ELF == 2
-	.size copp_jump_fcontext, .-copp_jump_fcontext
-#else
 # ifdef _CALL_LINUX
 	.size .copp_jump_fcontext, .-.L.copp_jump_fcontext
 # else

@@ -124,8 +124,10 @@ copp_make_fcontext:
     li   %r0, 0
     std  %r0, 184(%r3)
 
+#if _CALL_ELF != 2
     # zero in r3 indicates first jump to context-function
     std  %r0, 152(%r3)
+#endif
 
     # load LR
     mflr  %r0

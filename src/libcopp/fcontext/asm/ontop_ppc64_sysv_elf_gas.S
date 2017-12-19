@@ -119,7 +119,9 @@ copp_ontop_fcontext:
     std  %r29, 128(%r1)  # save R29
     std  %r30, 136(%r1)  # save R30
     std  %r31, 144(%r1)  # save R31
+#if _CALL_ELF != 2
     std  %r3,  152(%r1)  # save hidden
+#endif
 
     # save CR
     mfcr  %r0
@@ -133,8 +135,13 @@ copp_ontop_fcontext:
     # store RSP (pointing to context-data) in R7
     mr  %r7, %r1
 
+#if _CALL_ELF == 2
+    # restore RSP (pointing to context-data) from R3
+    mr  %r1, %r3
+#else
     # restore RSP (pointing to context-data) from R4
     mr  %r1, %r4
+#endif
 
     ld  %r14, 8(%r1)  # restore R14
     ld  %r15, 16(%r1)  # restore R15
@@ -154,32 +161,37 @@ copp_ontop_fcontext:
     ld  %r29, 128(%r1)  # restore R29
     ld  %r30, 136(%r1)  # restore R30
     ld  %r31, 144(%r1)  # restore R31
+#if _CALL_ELF != 2
     ld  %r3,  152(%r1)  # restore hidden
+#endif
 
     # restore CR
     ld  %r0, 160(%r1)
     mtcr  %r0
 
+#if _CALL_ELF == 2
+    # restore CTR
+    mtctr  %r5
+
+    # copy transfer_t into ontop_fn arg registers
+    mr  %r3, %r7
+    # arg pointer already in %r4
+#else
     # copy transfer_t into ontop_fn arg registers
     mr  %r4, %r7
     # arg pointer already in %r5
+    # hidden arg already in %r3
 
-#if _CALL_ELF == 2
-    # restore CTR
-    mtctr  %r6
-#else
     # restore CTR
     ld   %r7, 0(%r6)
     mtctr  %r7
     # restore TOC
     ld   %r2, 8(%r6)
-#endif
 
     # zero in r3 indicates first jump to context-function
     cmpdi  %r3, 0
     beq  use_entry_arg
-
-    # hidden arg already in %r3
+#endif
 
 return_to_ctx:
     # restore LR
@@ -192,6 +204,9 @@ return_to_ctx:
     # jump to context
     bctr
 
+#if _CALL_ELF == 2
+	.size copp_ontop_fcontext, .-copp_ontop_fcontext
+#else
 use_entry_arg:
     # compute return-value struct address
     # (passed has hidden arg to ontop_fn)
@@ -213,9 +228,6 @@ use_entry_arg:
     ld  %r4, 16(%r1)
 
     b  return_to_ctx
-#if _CALL_ELF == 2
-	.size copp_ontop_fcontext, .-copp_ontop_fcontext
-#else
 # ifdef _CALL_LINUX
 	.size .copp_ontop_fcontext, .-.L.copp_ontop_fcontext
 # else

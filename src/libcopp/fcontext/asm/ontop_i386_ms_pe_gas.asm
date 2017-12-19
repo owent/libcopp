@@ -32,10 +32,12 @@ _copp_ontop_fcontext:
     /* prepare stack */
     leal  -0x2c(%esp), %esp
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     /* save MMX control- and status-word */
     stmxcsr  (%esp)
     /* save x87 control-word */
     fnstcw  0x4(%esp)
+#endif
 
     /* load NT_TIB */
     movl  %fs:(0x18), %edx
@@ -81,10 +83,12 @@ _copp_ontop_fcontext:
     /* restore ESP (pointing to context-data) from EDX */
     movl  %eax, %esp
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     /* restore MMX control- and status-word */
     ldmxcsr  (%esp)
     /* restore x87 control-word */
     fldcw  0x4(%esp)
+#endif
 
     /* restore NT_TIB into EDX */
     movl  %fs:(0x18), %edx

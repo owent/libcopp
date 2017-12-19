@@ -12,14 +12,14 @@
  *  ----------------------------------------------------------------------------------  *
  *  |   0x0   |   0x4   |   0x8   |   0xc   |   0x10   |   0x14  |   0x18  |   0x1c  |  *
  *  ----------------------------------------------------------------------------------  *
- *  | fc_mxcsr|fc_x87_cw|   EDI   |   ESI   |   EBX    |   EBP   |   EIP   |  hidden |  *
+ *  | fc_mxcsr|fc_x87_cw|   EDI   |   ESI   |   EBX    |   EBP   |   EIP   |    to   |  *
  *  ----------------------------------------------------------------------------------  *
  *  ----------------------------------------------------------------------------------  *
  *  |    8    |    9    |    10   |    11   |    12    |    13   |    14   |    15   |  *
  *  ----------------------------------------------------------------------------------  *
- *  |   0x20  |   0x24  |                                                            |  *
+ *  |   0x20  |                                                                      |  *
  *  ----------------------------------------------------------------------------------  *
- *  |    to   |   data  |                                                            |  *
+ *  |   data  |                                                                      |  *
  *  ----------------------------------------------------------------------------------  *
  *                                                                                      *
  ****************************************************************************************/
@@ -39,7 +39,7 @@ _copp_make_fcontext:
     andl  $-16, %eax
 
     /* reserve space for context-data on context-stack */
-    leal  -0x28(%eax), %eax
+    leal  -0x2c(%eax), %eax
 
     /* third arg of copp_make_fcontext() == address of context-function */
     /* stored in EBX */
@@ -50,11 +50,6 @@ _copp_make_fcontext:
     stmxcsr (%eax)
     /* save x87 control-word */
     fnstcw  0x4(%eax)
-
-    /* return transport_t */
-    /* FCTX == EDI, DATA == ESI */
-    leal  0x8(%eax), %ecx
-    movl  %ecx, 0x1c(%eax)
 
     /* compute abs address of label trampoline */
     call  1f
@@ -80,8 +75,8 @@ _copp_make_fcontext:
 
 trampoline:
     /* move transport_t for entering context-function */
-    movl  %edi, (%esp)
-    movl  %esi, 0x4(%esp)
+    movl  %eax, (%esp)
+    movl  %edx, 0x4(%esp)
     pushl %ebp
     /* jump to context-function */
     jmp *%ebx

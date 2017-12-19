@@ -12,14 +12,14 @@
  *  ----------------------------------------------------------------------------------  *
  *  |   0x0   |   0x4   |   0x8   |   0xc   |   0x10   |   0x14  |   0x18  |   0x1c  |  *
  *  ----------------------------------------------------------------------------------  *
- *  | fc_mxcsr|fc_x87_cw|   EDI   |   ESI   |   EBX    |   EBP   |   EIP   |  hidden |  *
+ *  | fc_mxcsr|fc_x87_cw|   EDI   |   ESI   |   EBX    |   EBP   |   EIP   |    to   |  *
  *  ----------------------------------------------------------------------------------  *
  *  ----------------------------------------------------------------------------------  *
  *  |    8    |    9    |    10   |    11   |    12    |    13   |    14   |    15   |  *
  *  ----------------------------------------------------------------------------------  *
- *  |   0x20  |   0x24  |                                                            |  *
+ *  |   0x20  |                                                                      |  *
  *  ----------------------------------------------------------------------------------  *
- *  |    to   |   data  |                                                            |  *
+ *  |   data  |                                                                      |  *
  *  ----------------------------------------------------------------------------------  *
  *                                                                                      *
  ****************************************************************************************/
@@ -30,8 +30,10 @@
 _copp_ontop_fcontext:
     leal  -0x18(%esp), %esp  /* prepare stack */
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     stmxcsr  (%esp)     /* save MMX control- and status-word */
     fnstcw   0x4(%esp)  /* save x87 control-word */
+#endif
 
     movl  %edi, 0x8(%esp)  /* save EDI */
     movl  %esi, 0xc(%esp)  /* save ESI */
@@ -42,32 +44,31 @@ _copp_ontop_fcontext:
     movl  %esp, %ecx
 
     /* first arg of copp_ontop_fcontext() == fcontext to jump to */
-    movl  0x20(%esp), %eax
+    movl  0x1c(%esp), %eax
 
     /* pass parent fcontext_t */
-    movl  %ecx, 0x20(%eax)
+    movl  %ecx, 0x1c(%eax)
 
     /* second arg of copp_ontop_fcontext() == data to be transferred */
-    movl  0x24(%esp), %ecx
+    movl  0x20(%esp), %ecx
 
     /* pass data */
-    movl %ecx, 0x24(%eax)
+    movl %ecx, 0x20(%eax)
 
     /* third arg of copp_ontop_fcontext() == ontop-function */
-    movl  0x28(%esp), %ecx
+    movl  0x24(%esp), %ecx
 
     /* restore ESP (pointing to context-data) from EAX */
     movl  %eax, %esp
 
-    /* address of returned transport_t */
-    movl 0x1c(%esp), %eax
     /* return parent fcontext_t */
-    movl  %ecx, (%eax)
-    /* return data */
-    movl %edx, 0x4(%eax)
+    movl  %ecx, %eax
+    /* returned data is stored in EDX */
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     ldmxcsr  (%esp)     /* restore MMX control- and status-word */
     fldcw    0x4(%esp)  /* restore x87 control-word */
+#endif
 
     movl  0x8(%esp), %edi  /* restore EDI */
     movl  0xc(%esp), %esi  /* restore ESI */

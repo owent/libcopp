@@ -97,6 +97,7 @@ copp_jump_fcontext:
 
     leaq  -0x118(%rsp), %rsp /* prepare stack */
 
+#if !defined(COPP_FCONTEXT_USE_TSX)
     /* save XMM storage */
     movaps  %xmm6, 0x0(%rsp)
     movaps  %xmm7, 0x10(%rsp)
@@ -110,11 +111,12 @@ copp_jump_fcontext:
     movaps  %xmm15, 0x90(%rsp)
     stmxcsr  0xa0(%rsp)  /* save MMX control- and status-word */
     fnstcw   0xa4(%rsp)  /* save x87 control-word */
+#endif
 
     /* load NT_TIB */
     movq  %gs:(0x30), %r10
     /* save fiber local storage */
-    movq  0x18(%r10), %rax
+    movq  0x20(%r10), %rax
     movq  %rax, 0xb0(%rsp)
     /* save current deallocation stack */
     movq  0x1478(%r10), %rax
@@ -143,7 +145,8 @@ copp_jump_fcontext:
     /* restore RSP (pointing to context-data) from RDX */
     movq  %rdx, %rsp
 
-    /* save XMM storage */
+#if !defined(COPP_FCONTEXT_USE_TSX)
+    /* restore XMM storage */
     movaps  0x0(%rsp), %xmm6
     movaps  0x10(%rsp), %xmm7
     movaps  0x20(%rsp), %xmm8
@@ -154,12 +157,15 @@ copp_jump_fcontext:
     movaps  0x70(%rsp), %xmm13
     movaps  0x80(%rsp), %xmm14
     movaps  0x90(%rsp), %xmm15
+ 	ldmxcsr 0xa0(%rsp) /* restore MMX control- and status-word */
+ 	fldcw   0xa4(%rsp) /* restore x87 control-word */
+#endif
 
     /* load NT_TIB */
     movq  %gs:(0x30), %r10
     /* restore fiber local storage */
     movq  0xb0(%rsp), %rax
-    movq  %rax, 0x18(%r10)
+    movq  %rax, 0x20(%r10)
     /* restore current deallocation stack */
     movq  0xb8(%rsp), %rax
     movq  %rax, 0x1478(%r10)
