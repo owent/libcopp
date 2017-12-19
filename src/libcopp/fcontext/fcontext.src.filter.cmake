@@ -7,6 +7,11 @@ set (PROJECT_LIBCOPP_FCONTEXT_BIN_NAME_MAKE "fcontext_make.o")
 set (PROJECT_LIBCOPP_FCONTEXT_BIN_NAME_JUMP "fcontext_jump.o")
 set (PROJECT_LIBCOPP_FCONTEXT_BIN_NAME_ONTOP "fcontext_ontop.o")
 
+if (LIBCOPP_FCONTEXT_USE_TSX)
+	EchoWithColor(COLOR GREEN "-- enable Intel Transactional Synchronisation Extensions (TSX).")
+	set(COPP_FCONTEXT_USE_TSX 1)
+endif()
+
 # ========== set platform, abi, binary format and as tool ==========
 include("${PROJECT_LIBCOPP_FCONTEXT_SRC_DIR}/detect/fcontext.detect.cmake")
 
@@ -23,6 +28,7 @@ EchoWithColor(COLOR GREEN "-- fcontext.abi => ${LIBCOPP_FCONTEXT_ABI}")
 EchoWithColor(COLOR GREEN "-- fcontext.bin_formation => ${LIBCOPP_FCONTEXT_BIN_FORMAT}")
 EchoWithColor(COLOR GREEN "-- fcontext.as_tool => ${LIBCOPP_FCONTEXT_AS_TOOL}")
 EchoWithColor(COLOR GREEN "-- fcontext.as_action => ${LIBCOPP_FCONTEXT_AS_ACTION}")
+EchoWithColor(COLOR GREEN "-- fcontext.use_tsx => ${LIBCOPP_FCONTEXT_USE_TSX}")
 
 # ========== msvc x86 disable safeseh ==========
 if (MSVC AND "${LIBCOPP_FCONTEXT_OS_PLATFORM}" STREQUAL "i386")

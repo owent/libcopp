@@ -23,6 +23,10 @@ else()
         set (LIBCOPP_FCONTEXT_AS_BIN "ml")
     endif()
 
+    if (LIBCOPP_FCONTEXT_USE_TSX)
+        set (LIBCOPP_FCONTEXT_AS_TOOL_OPTION "${LIBCOPP_FCONTEXT_AS_TOOL_OPTION} /DCOPP_FCONTEXT_USE_TSX=1")
+    endif()
+
     find_program(LIBCOPP_FCONTEXT_AS_TOOL_BIN ${LIBCOPP_FCONTEXT_AS_BIN})
     if(NOT LIBCOPP_FCONTEXT_AS_TOOL_BIN)
         EchoWithColor(COLOR RED "-- ${LIBCOPP_FCONTEXT_AS_BIN} not found in path, please add as's directory into path")

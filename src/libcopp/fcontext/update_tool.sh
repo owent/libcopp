@@ -12,3 +12,4 @@ perl -p -i -e 's;\b_ontop_fcontext\b;_copp_ontop_fcontext;g' ${ALL_FILES[@]};
 perl -p -i -e 's;\bontop_fcontext\b;copp_ontop_fcontext;g' ${ALL_FILES[@]};
 
 perl -p -i -e 's;\bBOOST_CONTEXT_EXPORT\b;EXPORT;g' ${ALL_FILES[@]};
+perl -p -i -e 's;\bBOOST_USE_TSX\b;COPP_FCONTEXT_USE_TSX;g' ${ALL_FILES[@]};
