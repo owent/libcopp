@@ -170,9 +170,8 @@ namespace copp {
         {
             // assume it's running, or set into EN_CRS_EXITED if in EN_CRS_FINISHED
             from_status = status_t::EN_CRS_RUNNING;
-            if (false ==
-                status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                                util::lock::memory_order_acquire)) {
+            if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                                         util::lock::memory_order_acquire)) {
                 if (status_t::EN_CRS_FINISHED == from_status) {
                     // if in finished status, change it to exited
                     status_.store(status_t::EN_CRS_EXITED, util::lock::memory_order_release);
@@ -191,9 +190,8 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_RUNNING;
-        if (false ==
-            status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                            util::lock::memory_order_acquire)) {
+        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                                     util::lock::memory_order_acquire)) {
             switch (from_status) {
             case status_t::EN_CRS_INVALID:
                 return COPP_EC_NOT_INITED;
@@ -233,9 +231,8 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_INVALID;
-        if (false ==
-            status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                            util::lock::memory_order_acquire)) {
+        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                                     util::lock::memory_order_acquire)) {
             return COPP_EC_ALREADY_INITED;
         }
 
@@ -250,9 +247,8 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_INVALID;
-        if (false ==
-            status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                            util::lock::memory_order_acquire)) {
+        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
+                                                     util::lock::memory_order_acquire)) {
             return COPP_EC_ALREADY_INITED;
         }
 
@@ -271,10 +267,10 @@ namespace copp {
 
         copp::fcontext::transfer_t res;
         jump_src_data_t *jump_src;
-// int from_status;
-// bool swap_success;
-// can not use any more stack now
-// can not initialize those vars here
+        // int from_status;
+        // bool swap_success;
+        // can not use any more stack now
+        // can not initialize those vars here
 
 #ifdef COPP_MACRO_USE_SEGMENTED_STACKS
         assert(&from_sctx != &to_sctx);
@@ -300,18 +296,18 @@ namespace copp {
         assert(jump_src);
 
         /**
-            * save from_co's fcontext and switch status
-            * we should use from_co in transfer_t, because it may not jump from jump_transfer.to_co
-            *
-            * if we jump sequence is A->B->C->A.resume(), and if this call is A->B, then
-            * jump_src->from_co = C, jump_src->to_co = A, jump_transfer.from_co = A, jump_transfer.to_co = B
-            * and now we should save the callee of C and set the caller of A = C
-            *
-            * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
-            * jump_src->from_co = B, jump_src->to_co = NULL, jump_transfer.from_co = A, jump_transfer.to_co = B
-            * and now we should save the callee of B and should change the caller of A
-            *
-            */
+         * save from_co's fcontext and switch status
+         * we should use from_co in transfer_t, because it may not jump from jump_transfer.to_co
+         *
+         * if we jump sequence is A->B->C->A.resume(), and if this call is A->B, then
+         * jump_src->from_co = C, jump_src->to_co = A, jump_transfer.from_co = A, jump_transfer.to_co = B
+         * and now we should save the callee of C and set the caller of A = C
+         *
+         * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
+         * jump_src->from_co = B, jump_src->to_co = NULL, jump_transfer.from_co = A, jump_transfer.to_co = B
+         * and now we should save the callee of B and should change the caller of A
+         *
+         */
 
         // update caller of to_co if not jump from yield mode
         if (UTIL_CONFIG_NULLPTR != jump_src->to_co) {
@@ -353,7 +349,7 @@ namespace copp {
         assert(src_ctx.data);
         if (NULL == src_ctx.data) {
             abort();
-            return;
+            // return; // clang-analyzer will report "Unreachable code"
         }
 
         // copy jump_src_data_t in case it's destroyed later
@@ -364,7 +360,7 @@ namespace copp {
         assert(ins_ptr);
         if (NULL == ins_ptr) {
             abort();
-            return;
+            // return; // clang-analyzer will report "Unreachable code"
         }
 
         // update caller of to_co
@@ -405,5 +401,5 @@ namespace copp {
 
             return COPP_EC_NOT_RUNNING;
         }
-    }
-}
+    } // namespace this_coroutine
+} // namespace copp
