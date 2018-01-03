@@ -109,14 +109,17 @@ namespace cotask {
                 return ret;
             }
 
+            typedef int (a_t::*a_t_fn_t)(void *);
+            a_t_fn_t a_t_fn = &a_t::operator();
+
             // redirect runner
             coroutine->set_runner(
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-                std::move(std::bind(&a_t::operator(), action, std::placeholders::_1))
+                std::move(std::bind(a_t_fn, action, std::placeholders::_1))
 #else
-                std::bind(&a_t::operator(), action, std::placeholders::_1)
+                std::bind(a_t_fn, action, std::placeholders::_1)
 #endif
-                    );
+            );
 
             ret->action_destroy_fn_ = get_placement_destroy(action);
             ret->_set_action(action);
@@ -126,12 +129,12 @@ namespace cotask {
 
 
 /**
-* @brief create task with functor
-* @param action
-* @param stack_size stack size
-* @param private_buffer_size buffer size to store private data
-* @return task smart pointer
-*/
+ * @brief create task with functor
+ * @param action
+ * @param stack_size stack size
+ * @param private_buffer_size buffer size to store private data
+ * @return task smart pointer
+ */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
         static inline ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
@@ -202,11 +205,11 @@ namespace cotask {
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
         /**
-        * @brief create task with functor type and parameters
-        * @param stack_size stack size
-        * @param args all parameters passed to construtor of type Ty
-        * @return task smart pointer
-        */
+         * @brief create task with functor type and parameters
+         * @param stack_size stack size
+         * @param args all parameters passed to construtor of type Ty
+         * @return task smart pointer
+         */
         template <typename Ty, typename... TParams>
         static ptr_t create_with(typename coroutine_t::allocator_type &alloc, size_t stack_size, size_t private_buffer_size,
                                  TParams &&... args) {
@@ -442,11 +445,11 @@ namespace cotask {
             return copp::COPP_EC_SUCCESS;
         }
 
-        using impl::task_impl::kill;
-        using impl::task_impl::start;
-        using impl::task_impl::resume;
-        using impl::task_impl::yield;
         using impl::task_impl::cancel;
+        using impl::task_impl::kill;
+        using impl::task_impl::resume;
+        using impl::task_impl::start;
+        using impl::task_impl::yield;
 
     public:
         virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT UTIL_CONFIG_OVERRIDE {
@@ -576,7 +579,7 @@ namespace cotask {
         util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> > ref_count_; /** ref_count **/
 #endif
     };
-}
+} // namespace cotask
 
 
 #endif /* _COTASK_TASK_H_ */

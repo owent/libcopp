@@ -16,9 +16,9 @@
 
 namespace copp {
     /**
-        * @brief coroutine container
-        * contain stack context, stack allocator and runtime fcontext
-        */
+     * @brief coroutine container
+     * contain stack context, stack allocator and runtime fcontext
+     */
     template <typename TALLOC>
     class coroutine_context_container : public coroutine_context {
     public:
@@ -42,9 +42,9 @@ namespace copp {
         ~coroutine_context_container() {}
 
         /**
-          * @brief get stack allocator
-          * @return stack allocator
-          */
+         * @brief get stack allocator
+         * @return stack allocator
+         */
         inline const allocator_type &get_allocator() const UTIL_CONFIG_NOEXCEPT { return alloc_; }
 
         /**
@@ -55,13 +55,13 @@ namespace copp {
 
     public:
         /**
-          * @brief create and init coroutine with specify runner and specify stack size
-          * @param runner runner
-          * @param stack_size stack size
-          * @param private_buffer_size private buffer size
-          * @param coroutine_size extend buffer before coroutine
-          * @return COPP_EC_SUCCESS or error code
-          */
+         * @brief create and init coroutine with specify runner and specify stack size
+         * @param runner runner
+         * @param stack_size stack size
+         * @param private_buffer_size private buffer size
+         * @param coroutine_size extend buffer before coroutine
+         * @return COPP_EC_SUCCESS or error code
+         */
         static ptr_t create(
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
             callback_t &&runner,
@@ -122,8 +122,9 @@ namespace copp {
                 return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
             }
 
-            return create(std::bind(&TRunner::operator(), runner, std::placeholders::_1), alloc, stack_size, private_buffer_size,
-                          coroutine_size);
+            typedef int (TRunner::*runner_fn_t)(void *);
+            runner_fn_t fn = &TRunner::operator();
+            return create(std::bind(fn, runner, std::placeholders::_1), alloc, stack_size, private_buffer_size, coroutine_size);
         }
 
         static inline ptr_t create(int (*fn)(void *), allocator_type &alloc, size_t stack_size = 0, size_t private_buffer_size = 0,
@@ -149,7 +150,9 @@ namespace copp {
         template <class TRunner>
         static inline ptr_t create(TRunner *runner, size_t stack_size = 0, size_t private_buffer_size = 0,
                                    size_t coroutine_size = 0) UTIL_CONFIG_NOEXCEPT {
-            return create(std::bind(&TRunner::operator(), runner, std::placeholders::_1), stack_size, private_buffer_size, coroutine_size);
+            typedef int (TRunner::*runner_fn_t)(void *);
+            runner_fn_t fn = &TRunner::operator();
+            return create(std::bind(fn, runner, std::placeholders::_1), stack_size, private_buffer_size, coroutine_size);
         }
 
         static inline ptr_t create(int (*fn)(void *), size_t stack_size = 0, size_t private_buffer_size = 0,
@@ -199,6 +202,6 @@ namespace copp {
     };
 
     typedef coroutine_context_container<allocator::default_statck_allocator> coroutine_context_default;
-}
+} // namespace copp
 
 #endif
