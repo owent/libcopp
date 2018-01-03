@@ -36,8 +36,8 @@ namespace copp {
         typedef std::function<int(void *)> callback_t;
 
         /**
-        * @brief status of safe coroutine context base
-        */
+         * @brief status of safe coroutine context base
+         */
         struct status_t {
             enum type {
                 EN_CRS_INVALID = 0, //!< EN_CRS_INVALID
@@ -92,13 +92,13 @@ namespace copp {
 
     public:
         /**
-            * @brief create coroutine context at stack context callee_
-            * @param runner runner
-            * @param callee_stack stack context
-            * @param coroutine_size size of coroutine object
-            * @param private_buffer_size size of private buffer
-            * @return COPP_EC_SUCCESS or error code
-            */
+         * @brief create coroutine context at stack context callee_
+         * @param runner runner
+         * @param callee_stack stack context
+         * @param coroutine_size size of coroutine object
+         * @param private_buffer_size size of private buffer
+         * @return COPP_EC_SUCCESS or error code
+         */
         static int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
                           size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
 
@@ -110,32 +110,32 @@ namespace copp {
         }
 
         /**
-            * @brief start coroutine
-            * @param priv_data private data, will be passed to runner operator() or return to yield
-            * @return COPP_EC_SUCCESS or error code
-            */
+         * @brief start coroutine
+         * @param priv_data private data, will be passed to runner operator() or return to yield
+         * @return COPP_EC_SUCCESS or error code
+         */
         int start(void *priv_data = UTIL_CONFIG_NULLPTR);
 
         /**
-            * @brief resume coroutine
-            * @param priv_data private data, will be passed to runner operator() or return to yield
-            * @return COPP_EC_SUCCESS or error code
-            */
+         * @brief resume coroutine
+         * @param priv_data private data, will be passed to runner operator() or return to yield
+         * @return COPP_EC_SUCCESS or error code
+         */
         int resume(void *priv_data = UTIL_CONFIG_NULLPTR);
 
 
         /**
-            * @brief yield coroutine
-            * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
-            * @return COPP_EC_SUCCESS or error code
-            */
+         * @brief yield coroutine
+         * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
+         * @return COPP_EC_SUCCESS or error code
+         */
         int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
 
 
     protected:
         /**
-            * @brief coroutine entrance function
-            */
+         * @brief coroutine entrance function
+         */
         inline void run_and_recv_retcode(void *priv_data) {
             if (!runner_) return;
 
@@ -144,59 +144,59 @@ namespace copp {
 
     public:
         /**
-            * @brief set runner
-            * @param runner
-            * @return COPP_EC_SUCCESS or error code
-            */
-        int set_runner(const callback_t &runner);
-
+         * @brief set runner
+         * @param runner
+         * @return COPP_EC_SUCCESS or error code
+         */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         int set_runner(callback_t &&runner);
+#else
+        int set_runner(const callback_t &runner);
 #endif
 
         /**
-            * get runner of this coroutine context (const)
-            * @return NULL of pointer of runner
-            */
+         * get runner of this coroutine context (const)
+         * @return NULL of pointer of runner
+         */
         inline const std::function<int(void *)> &get_runner() const UTIL_CONFIG_NOEXCEPT { return runner_; }
 
         /**
-            * @brief get runner return code
-            * @return
-            */
+         * @brief get runner return code
+         * @return
+         */
         inline int get_ret_code() const UTIL_CONFIG_NOEXCEPT { return runner_ret_code_; }
 
         /**
-            * @brief get runner return code
-            * @return true if coroutine has run and finished
-            */
+         * @brief get runner return code
+         * @return true if coroutine has run and finished
+         */
         bool is_finished() const UTIL_CONFIG_NOEXCEPT;
 
         /**
-            * @brief get private buffer(raw pointer)
-            */
+         * @brief get private buffer(raw pointer)
+         */
         inline void *get_private_buffer() const UTIL_CONFIG_NOEXCEPT { return priv_data_; }
 
         /**
-            * @brief get private buffer size
-            */
+         * @brief get private buffer size
+         */
         inline size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
 
     protected:
         /**
-            * @brief call platform jump to asm instruction
-            * @param to_fctx jump to function context
-            * @param from_sctx jump from stack context(only used for save segment stack)
-            * @param to_sctx jump to stack context(only used for set segment stack)
-            * @param jump_transfer jump data
-            */
+         * @brief call platform jump to asm instruction
+         * @param to_fctx jump to function context
+         * @param from_sctx jump from stack context(only used for save segment stack)
+         * @param to_sctx jump to stack context(only used for set segment stack)
+         * @param jump_transfer jump data
+         */
         static void jump_to(fcontext::fcontext_t &to_fctx, stack_context &from_sctx, stack_context &to_sctx,
                             jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT;
 
         /**
-            * @brief fcontext entrance function
-            * @param src_ctx where jump from
-            */
+         * @brief fcontext entrance function
+         * @param src_ctx where jump from
+         */
         static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx);
 
     public:
@@ -260,7 +260,7 @@ namespace copp {
          * @return 0 or error code
          */
         int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
-    }
-}
+    } // namespace this_coroutine
+} // namespace copp
 
 #endif

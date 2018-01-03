@@ -225,23 +225,11 @@ namespace copp {
         return COPP_EC_SUCCESS;
     }
 
-    int coroutine_context::set_runner(const callback_t &runner) {
-        if (!runner) {
-            return COPP_EC_ARGS_ERROR;
-        }
-
-        int from_status = status_t::EN_CRS_INVALID;
-        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                                     util::lock::memory_order_acquire)) {
-            return COPP_EC_ALREADY_INITED;
-        }
-
-        runner_ = runner;
-        return COPP_EC_SUCCESS;
-    }
-
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
     int coroutine_context::set_runner(callback_t &&runner) {
+#else
+    int coroutine_context::set_runner(const callback_t &runner) {
+#endif
         if (!runner) {
             return COPP_EC_ARGS_ERROR;
         }
@@ -255,7 +243,6 @@ namespace copp {
         runner_ = COPP_MACRO_STD_MOVE(runner);
         return COPP_EC_SUCCESS;
     }
-#endif
 
     bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
         // return !!(flags_ & flag_t::EN_CFT_FINISHED);
