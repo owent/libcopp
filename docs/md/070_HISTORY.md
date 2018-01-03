@@ -1,5 +1,16 @@
 HISTORY
 ========
+2018-01-01
+------
+1. [BOOST] merge boost.context 1.66.0
+2. [OPTIMIZE] add support for [Intel Transactional Synchronisation Extensions (TSX)](https://software.intel.com/en-us/node/695149)
+3. [OPTIMIZE] fix a warning reported by clang-analyzer.
+4. [CI] update README.md and automatic documents.(published at https://libcopp.atframe.work)
+5. [FIX] make sure all the allocated stacks are always greater than the configure value after reloaded when using stack pool.
+6. [FIX] allow segmented stacks when using clang and llvm.
+7. [OPTIMIZE] using the new script to run clang-analyzer.
+8. [OPTIMIZE] optimize the doxygen output and fix some markdown synax not supported by doxygen.
+
 2017-10-01
 ------
 1. [OPTIMIZE] optimize cmake files for all target
