@@ -102,6 +102,7 @@ namespace cotask {
 
             *(reinterpret_cast<impl::task_impl **>(coroutine->get_private_buffer())) = ret.get();
             ret->coroutine_obj_ = coroutine;
+            ret->coroutine_obj_->set_flags(impl::task_impl::ext_coroutine_flag_t::EN_ECFT_COTASK);
 
             // placement new action
             a_t *action = new (action_addr) a_t(COPP_MACRO_STD_FORWARD(Ty, callable));

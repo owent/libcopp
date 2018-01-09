@@ -52,6 +52,7 @@ namespace copp {
             enum type {
                 EN_CFT_UNKNOWN = 0,
                 EN_CFT_FINISHED = 0x01,
+                EN_CFT_MASK = 0xFF,
             };
         };
 
@@ -131,6 +132,26 @@ namespace copp {
          */
         int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
 
+        /**
+         * @brief set all flags to true
+         * @param flags (flags & EN_CFT_MASK) must be 0
+         * @return true if flags is available, or return false
+         */
+        bool set_flags(int flags);
+
+        /**
+         * @brief set all flags to false
+         * @param flags (flags & EN_CFT_MASK) must be 0
+         * @return true if flags is available, or return false
+         */
+        bool unset_flags(int flags);
+
+        /**
+         * @brief check flags
+         * @param flags flags to be checked
+         * @return true if flags any flags is true
+         */
+        bool check_flags(int flags) const;
 
     protected:
         /**

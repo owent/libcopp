@@ -37,6 +37,10 @@ namespace cotask {
                 return UTIL_CONFIG_NULLPTR;
             }
 
+            if (false == this_co->check_flags(ext_coroutine_flag_t::EN_ECFT_COTASK)) {
+                return UTIL_CONFIG_NULLPTR;
+            }
+
             return *((task_impl **)this_co->get_private_buffer());
         }
 
@@ -60,5 +64,5 @@ namespace cotask {
 
             return ret;
         }
-    }
-}
+    } // namespace impl
+} // namespace cotask

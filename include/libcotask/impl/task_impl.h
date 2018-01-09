@@ -42,6 +42,14 @@ namespace cotask {
         protected:
             typedef task_action_impl *action_ptr_t;
 
+            struct ext_coroutine_flag_t {
+                enum type {
+                    EN_ECFT_UNKNOWN = 0,
+                    EN_ECFT_COTASK = 0x0100,
+                    EN_ECFT_MASK = 0xFF00,
+                };
+            };
+
         private:
             task_impl(const task_impl &);
 
@@ -107,8 +115,8 @@ namespace cotask {
             ::util::lock::atomic_int_type< ::util::lock::unsafe_int_type<uint32_t> > status_;
 #endif
         };
-    }
-}
+    } // namespace impl
+} // namespace cotask
 
 
 #endif /* TASK_IMPL_H_ */

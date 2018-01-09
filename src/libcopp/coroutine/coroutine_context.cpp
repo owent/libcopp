@@ -225,6 +225,26 @@ namespace copp {
         return COPP_EC_SUCCESS;
     }
 
+    bool coroutine_context::set_flags(int flags) {
+        if (flags & flag_t::EN_CFT_MASK) {
+            return false;
+        }
+
+        flags_ |= flags;
+        return true;
+    }
+
+    bool coroutine_context::unset_flags(int flags) {
+        if (flags & flag_t::EN_CFT_MASK) {
+            return false;
+        }
+
+        flags_ &= ~flags;
+        return true;
+    }
+
+    bool coroutine_context::check_flags(int flags) const { return 0 != (flags_ & flags); }
+
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
     int coroutine_context::set_runner(callback_t &&runner) {
 #else
