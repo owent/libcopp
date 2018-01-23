@@ -83,8 +83,10 @@ namespace util {
         private:
             ::std::atomic<value_type> data_;
             atomic_int_type(const atomic_int_type &) UTIL_CONFIG_DELETED_FUNCTION;
-            atomic_int_type<value_type> &operator=(const atomic_int_type<value_type> &) UTIL_CONFIG_DELETED_FUNCTION;
-            atomic_int_type<value_type> &operator=(const atomic_int_type<value_type> &) volatile UTIL_CONFIG_DELETED_FUNCTION;
+#ifndef _MSC_VER
+            atomic_int_type &operator=(const atomic_int_type &) UTIL_CONFIG_DELETED_FUNCTION;
+            atomic_int_type &operator=(const atomic_int_type &) volatile UTIL_CONFIG_DELETED_FUNCTION;
+#endif
 
         public:
             atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {}
@@ -309,8 +311,10 @@ namespace util {
             volatile value_type data_;
 #endif
             atomic_int_type(const atomic_int_type &) UTIL_CONFIG_DELETED_FUNCTION;
-            atomic_int_type<value_type> &operator=(const atomic_int_type<value_type> &) UTIL_CONFIG_DELETED_FUNCTION;
-            atomic_int_type<value_type> &operator=(const atomic_int_type<value_type> &) volatile UTIL_CONFIG_DELETED_FUNCTION;
+#ifndef _MSC_VER
+            atomic_int_type &operator=(const atomic_int_type &) UTIL_CONFIG_DELETED_FUNCTION;
+            atomic_int_type &operator=(const atomic_int_type &) volatile UTIL_CONFIG_DELETED_FUNCTION;
+#endif
 
         public:
             atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {}
@@ -848,8 +852,10 @@ namespace util {
         private:
             value_type data_;
             atomic_int_type(const atomic_int_type &) UTIL_CONFIG_DELETED_FUNCTION;
-            atomic_int_type<value_type> &operator=(const atomic_int_type<value_type> &) UTIL_CONFIG_DELETED_FUNCTION;
-            atomic_int_type<value_type> &operator=(const atomic_int_type<value_type> &) volatile UTIL_CONFIG_DELETED_FUNCTION;
+#ifndef _MSC_VER
+            atomic_int_type &operator=(const atomic_int_type &) UTIL_CONFIG_DELETED_FUNCTION;
+            atomic_int_type &operator=(const atomic_int_type &) volatile UTIL_CONFIG_DELETED_FUNCTION;
+#endif
 
         public:
             atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {}

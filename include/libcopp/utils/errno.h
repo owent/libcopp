@@ -32,6 +32,6 @@ namespace copp {
 
         COPP_EC_FCONTEXT_MAKE_FAILED = -2001, //!< COPP_EC_FCONTEXT_MAKE_FAILED
     };
-}
+} // namespace copp
 
 #endif

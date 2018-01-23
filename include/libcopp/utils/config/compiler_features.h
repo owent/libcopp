@@ -124,7 +124,7 @@
 # undef UTIL_CONFIG_COMPILER_IS_ADSP
 # define UTIL_CONFIG_COMPILER_IS_ADSP 1
 
-#elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
+#elif defined(__IAR_SYSTEMS_ICC__ ) || defined(__IAR_SYSTEMS_ICC)
 # undef UTIL_CONFIG_COMPILER_IS_IAR
 # define UTIL_CONFIG_COMPILER_IS_IAR 1
 
