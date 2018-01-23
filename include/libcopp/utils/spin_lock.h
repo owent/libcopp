@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <libcopp/utils/config/build_feature.h>
+
 #include "atomic_int_type.h"
 
 /**
@@ -37,10 +39,10 @@
  */
 #if defined(_MSC_VER)
 
-#include <intrin.h>
-#include <Windows.h> // YieldProcessor
-#include <Synchapi.h> // Windows server
 #include <Processthreadsapi.h>
+#include <Synchapi.h> // Windows server
+#include <Windows.h>  // YieldProcessor
+#include <intrin.h>
 
 
 /*
@@ -109,8 +111,8 @@
  * ==============================================
  */
 #if defined(__UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD)
-#include <thread>
 #include <chrono>
+#include <thread>
 #define __UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() ::std::this_thread::yield()
 #define __UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() ::std::this_thread::sleep_for(::std::chrono::milliseconds(1))
 #elif defined(_MSC_VER)
@@ -160,7 +162,14 @@ namespace util {
         class spin_lock {
         private:
             typedef enum { UNLOCKED = 0, LOCKED = 1 } lock_state_t;
-            ::util::lock::atomic_int_type<unsigned int> lock_status_;
+            ::util::lock::atomic_int_type<
+#if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
+                ::util::lock::unsafe_int_type<unsigned int>
+#else
+                unsigned int
+#endif
+                >
+                lock_status_;
 
         public:
             spin_lock() { lock_status_.store(UNLOCKED); }
@@ -175,11 +184,15 @@ namespace util {
 
             bool is_locked() { return lock_status_.load(::util::lock::memory_order_acquire) == LOCKED; }
 
-            bool try_lock() { return lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::util::lock::memory_order_acq_rel) == UNLOCKED; }
+            bool try_lock() {
+                return lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::util::lock::memory_order_acq_rel) == UNLOCKED;
+            }
 
-            bool try_unlock() { return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED), ::util::lock::memory_order_acq_rel) == LOCKED; }
+            bool try_unlock() {
+                return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED), ::util::lock::memory_order_acq_rel) == LOCKED;
+            }
         };
-    }
-}
+    } // namespace lock
+} // namespace util
 
 #endif /* SPINLOCK_H_ */

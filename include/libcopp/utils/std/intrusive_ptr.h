@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <ostream>
 
+#include <libcopp/utils/config/build_feature.h>
 #include <libcopp/utils/config/compiler_features.h>
 
 namespace std {
@@ -81,7 +82,7 @@ namespace std {
             return *this;
         }
 
-// Move support
+            // Move support
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
 
@@ -240,6 +241,46 @@ namespace std {
         os << p.get();
         return os;
     }
-}
+} // namespace std
+
+
+#if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
+#define UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> >
+#else
+#define UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::util::lock::atomic_int_type<size_t>
+#endif
+
+#define UTIL_INTRUSIVE_PTR_REF_MEMBER_DECL(T)              \
+private:                                                   \
+    UTIL_INTRUSIVE_PTR_ATOMIC_TYPE intrusive_ref_counter_; \
+    friend void intrusive_ptr_add_ref(T *p);               \
+    friend void intrusive_ptr_release(T *p);               \
+                                                           \
+public:                                                    \
+    const size_t use_count() const { return intrusive_ref_counter_.load(); }
+
+#define UTIL_INTRUSIVE_PTR_REF_FN_DECL(T) \
+    void intrusive_ptr_add_ref(T *p);     \
+    void intrusive_ptr_release(T *p);
+
+#define UTIL_INTRUSIVE_PTR_REF_MEMBER_INIT() this->intrusive_ref_counter_.store(0)
+
+#define UTIL_INTRUSIVE_PTR_REF_FN_DEFI(T)             \
+    void intrusive_ptr_add_ref(T *p) {                \
+        if (nullptr != p) {                           \
+            ++p->intrusive_ref_counter_;              \
+        }                                             \
+    }                                                 \
+    void intrusive_ptr_release(T *p) {                \
+        if (nullptr == p) {                           \
+            return;                                   \
+        }                                             \
+        assert(p->intrusive_ref_counter_.load() > 0); \
+        size_t ref = --p->intrusive_ref_counter_;     \
+        if (0 == ref) {                               \
+            delete p;                                 \
+        }                                             \
+    }
+
 
 #endif

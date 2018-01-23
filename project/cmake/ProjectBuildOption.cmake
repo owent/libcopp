@@ -19,7 +19,11 @@ endif()
 
 option(PROJECT_ENABLE_UNITTEST "Build unit test." OFF)
 option(PROJECT_ENABLE_SAMPLE "Build samples." OFF)
-option(PROJECT_DISABLE_MT "Disable multi-thread support." OFF)
+option(PROJECT_DISABLE_MT "Disable multi-thread support for libcopp." OFF)
+option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." OFF)
+if (PROJECT_DISABLE_MT)
+    set(LOCK_DISABLE_MT ON)
+endif()
 
 set(LIBCOPP_FCONTEXT_OS_PLATFORM "" CACHE STRING "set system platform. arm/arm64/i386/x86_64/combined/mips/ppc32/ppc64 and etc.")
 set(LIBCOPP_FCONTEXT_ABI "" CACHE STRING "set abi. sysv/aapcs/mips/o32/ms and etc.")
