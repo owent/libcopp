@@ -4,11 +4,11 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://cmake.org/files/v3.10/cmake-3.10.2-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
-    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.0.4/pandoc-2.0.4-linux.tar.gz
+    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.1.1/pandoc-2.1.1-linux.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
-    - DOXYGEN_LINUX_URL=http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.13.linux.bin.tar.gz
+    - DOXYGEN_LINUX_URL=http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.14.linux.bin.tar.gz
 matrix:
   include:
     - os: osx
@@ -21,18 +21,90 @@ matrix:
       dist: trusty
       sudo: required
       env: USE_CC=gcc-4.4 USE_CXX=g++-4.4 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.4
+            - g++-4.4-multilib
+            - gcc-4.4
+            - gcc-4.4-multilib
     - os: linux
       dist: trusty
       sudo: required
       env: USE_CC=gcc-4.9 USE_CXX=g++-4.9 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - gcc-4.9-multilib
+            - g++-4.9
+            - g++-4.9-multilib
     - os: linux
       dist: trusty
       sudo: required
       env: USE_CC=gcc-7 USE_CXX=g++-7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - gcc-7-multilib
+            - g++-7
+            - g++-7-multilib
     - os: linux
       dist: trusty
       sudo: required
       env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc DOXYGEN_BIN=$DOXYGEN_PREFIX/bin/doxygen
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - graphviz
+      script:
+        - cd "docs";
+        - if [ ! -e "$DOXYGEN_BIN" ]; then
+
+            mkdir -p "$DOXYGEN_PREFIX";
+
+            curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
+
+            tar -axvf doxygen.linux.bin.tar.gz ;
+
+            DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
+
+            cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
+
+          fi
+
+          if [ -e doxygen/html ]; then
+          
+            rm -rf doxygen/html;
+          
+          fi
+          
+          $DOXYGEN_BIN libcopp.doxyfile;
+      after_success:
+        - if [ -e doxygen/html ]; then
+          
+            cd doxygen/html ;
+            
+            echo "libcopp.atframe.work" > CNAME ;
+
+            git init ;
+
+            git add . ; 
+
+            git -c user.name='travis' -c user.email='deploy@travis-ci.org' commit -m "Delpoy document for $TRAVIS_BRANCH($TRAVIS_COMMIT)";
+
+            git push -f -q https://owt5008137:$GITHUB_API_KEY@github.com/owt5008137/libcopp-doc HEAD:master ;
+          
+          fi
     # - os: linux
     #   dist: trusty
     #   sudo: required
@@ -41,36 +113,22 @@ matrix:
     #   dist: trusty
     #   sudo: required
     #   env: USE_CC=clang-3.8 USE_CXX=clang++-3.8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      # - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main'
-      #   key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
-
-    packages:
-      - g++-4.4
-      - g++-4.4-multilib
-      - gcc-4.4
-      - gcc-4.4-multilib
-      - gcc-4.9
-      - gcc-4.9-multilib
-      - g++-4.9
-      - g++-4.9-multilib
-      - gcc-7
-      - gcc-7-multilib
-      - g++-7
-      - g++-7-multilib
-      - clang
-      - graphviz
-      ## - libc++1
-      ## - libc++-dev
-      ## - libc++abi1
-      ## - libc++abi-dev
-      # - clang-3.8
-      # - libclang-common-3.8-dev
-      # - libclang-3.8-dev
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: COVERALLS_SERVICE_NAME=travis-ci GCOV_FLAGS='--coverage -fprofile-arcs -ftest-coverage' CMAKE_BIN=$CMAKE_PREFIX/bin/cmake CTEST_BIN=$CMAKE_PREFIX/bin/ctest
+      # COVERALLS_REPO_TOKEN is set in travis-ci
+      script:
+        - REPO_DIR=$PWD;
+        - USE_MSGPACK_ROOT=$MSGPACK_PREFIX ;
+        - if [ -e "$REPO_DIR/build" ]; then rm -rf "$REPO_DIR/build"; fi
+        - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
+        - $CMAKE_BIN .. "-DCMAKE_C_FLAGS=$GCOV_FLAGS" "-DCMAKE_CXX_FLAGS=$GCOV_FLAGS" "-DCMAKE_EXE_LINKER_FLAGS=$GCOV_FLAGS" -DCMAKE_BUILD_TYPE=Debug -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
+        - $CMAKE_BIN --build .
+      after_success:
+        - make run_sample run_test benchmark ;
+        - pip install --user cpp-coveralls
+        - coveralls -r .. --gcov-options '\-lp' -e sample -e test -e build/CMakeFiles
 
 before_install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ulimit -a; sysctl -a; sudo apt-get -qq update; fi
@@ -80,9 +138,13 @@ install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$USE_CC" != "doxygen" ] ; then
     
           if [ ! -e "$CMAKE_BIN" ]; then
+
             mkdir -p "$CMAKE_PREFIX";
+
             curl --insecure -L "$CMAKE_LINUX_URL" -o cmake-linux.sh ;
+
             bash cmake-linux.sh --skip-license --prefix=$CMAKE_PREFIX ;
+            
           fi
 
       fi
@@ -90,74 +152,20 @@ install:
     - if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew upgrade cmake; fi
 
 script:
-  - if [ "$USE_CC" == "doxygen" ]; then
-      
-      cd "docs";
-
-      if [ ! -e "$DOXYGEN_BIN" ]; then
-        mkdir -p "$DOXYGEN_PREFIX";
-        curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
-        tar -axvf doxygen.linux.bin.tar.gz ;
-        DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
-        cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
-      fi
-
-      if [ -e doxygen/html ]; then
-      
-        rm -rf doxygen/html;
-      
-      fi
-      
-      $DOXYGEN_BIN libcopp.doxyfile;
-
-      if [ -e doxygen/html ]; then
-      
-        cd doxygen/html ;
-        
-        echo "libcopp.atframe.work" > CNAME ;
-
-        git init ;
-
-        git add . ; 
-
-        git -c user.name='travis' -c user.email='deploy@travis-ci.org' commit -m "Delpoy document for $TRAVIS_BRANCH($TRAVIS_COMMIT)";
-
-        git push -f -q https://owt5008137:$GITHUB_API_KEY@github.com/owt5008137/libcopp-doc HEAD:master ;
-      
-      fi
-
-    else
-
-      export CC=$USE_CC
-
-      export CXX=$USE_CXX
-
-      REPO_DIR=$PWD ;
-
-      mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
-
-      echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
-
-      $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
-
-      $CMAKE_BIN --build . ;
-
-      echo "============================== run in thread-safe mode ==============================" ;
-
-      make run_sample run_test benchmark ;
-
-      rm -rf * ;
-
-      echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON" ;
-
-      $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON ;
-
-      echo "============================== run in thread-unsafe mode ==============================" ;
-
-      make benchmark ;
-
-
-    fi
+    - export CC=$USE_CC
+    - export CXX=$USE_CXX
+    - REPO_DIR=$PWD ;
+    - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
+    - echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
+    - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
+    - $CMAKE_BIN --build . ;
+    - echo "============================== run in thread-safe mode ==============================" ;
+    - make run_sample run_test benchmark ;
+    - rm -rf * ;
+    - echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON" ;
+    - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON ;
+    - echo "============================== run in thread-unsafe mode ==============================" ;
+    - make benchmark ;
 
 cache: 
   apt: true
