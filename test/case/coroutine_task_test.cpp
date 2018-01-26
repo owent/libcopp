@@ -63,6 +63,8 @@ CASE_TEST(coroutine_task, custom_action) {
 
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 1);
         CASE_EXPECT_FALSE(co_task->is_completed());
+        CASE_EXPECT_FALSE(co_task->is_canceled());
+        CASE_EXPECT_FALSE(co_task->is_faulted());
 
         CASE_EXPECT_EQ(0, co_another_task->start(&g_test_coroutine_task_status));
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
@@ -78,6 +80,8 @@ CASE_TEST(coroutine_task, custom_action) {
 
         CASE_EXPECT_TRUE(co_task->is_completed());
         CASE_EXPECT_TRUE(co_another_task->is_completed());
+        CASE_EXPECT_FALSE(co_task->is_canceled());
+        CASE_EXPECT_FALSE(co_task->is_faulted());
 
         CASE_EXPECT_GT(0, co_another_task->resume(co_another_task.get()));
         CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
