@@ -22,15 +22,15 @@
 // ============================================================
 
 /**
-* 导入可调用对象（functional）
-* 如果是G++且支持c++0x草案1（tr1版本）的functional[GCC版本高于4.3]
-* 则会启用GNU-C++的functional
-*
-* 如果是VC++且支持c++0x草案1（tr1版本）的functional[VC++版本高于9.0 SP1]
-* 则会启用VC++的functional
-*
-* 否则启用boost中的functional库（如果是这种情况需要加入boost库）
-*/
+ * 导入可调用对象（functional）
+ * 如果是G++且支持c++0x草案1（tr1版本）的functional[GCC版本高于4.3]
+ * 则会启用GNU-C++的functional
+ *
+ * 如果是VC++且支持c++0x草案1（tr1版本）的functional[VC++版本高于9.0 SP1]
+ * 则会启用VC++的functional
+ *
+ * 否则启用boost中的functional库（如果是这种情况需要加入boost库）
+ */
 
 #include <cstdlib>
 
@@ -48,9 +48,9 @@
 #else
 #include <tr1/functional>
 namespace std {
-    using tr1::ref;
     using tr1::cref;
     using tr1::hash;
+    using tr1::ref;
     using tr1::reference_wrapper;
     using tr1::result_of;
     using tr1::swap;
@@ -66,15 +66,15 @@ namespace std {
     namespace placeholders {
         using namespace tr1::placeholders;
     }
-}
+} // namespace std
 #endif
 #else
 // 采用boost tr1库
 #include <boost/tr1/functional>
 namespace std {
-    using tr1::ref;
     using tr1::cref;
     using tr1::hash;
+    using tr1::ref;
     using tr1::reference_wrapper;
     using tr1::result_of;
     using tr1::swap;
@@ -90,7 +90,7 @@ namespace std {
     namespace placeholders {
         using namespace tr1::placeholders;
     }
-}
+} // namespace std
 #endif
 
 

@@ -16,21 +16,39 @@
 #include <map>
 #include <stdint.h>
 #include <string>
+#include <type_traits>
 #include <vector>
 
-#include "shell_font.h"
-#include "std/type_traits/is_xxx_impl.h"
+
+#include "cli/shell_font.h"
 
 #include "test_case_base.h"
 
-/*
+
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+
+#include <unordered_map>
+#include <unordered_set>
+#define UTILS_TEST_ENV_AUTO_MAP(...) std::unordered_map<__VA_ARGS__>
+#define UTILS_TEST_ENV_AUTO_SET(...) std::unordered_set<__VA_ARGS__>
+#define UTILS_TEST_ENV_AUTO_UNORDERED 1
+#else
+
+#include <map>
+#include <set>
+#define UTILS_TEST_ENV_AUTO_MAP(...) std::map<__VA_ARGS__>
+#define UTILS_TEST_ENV_AUTO_SET(...) std::set<__VA_ARGS__>
+
+#endif
+
+/**
  *
  */
 class test_manager {
 public:
     typedef test_case_base *case_ptr_type;
     typedef std::vector<std::pair<std::string, case_ptr_type> > test_type;
-    typedef std::map<std::string, test_type> test_data_type;
+    typedef UTILS_TEST_ENV_AUTO_MAP(std::string, test_type) test_data_type;
 
 public:
     test_manager();
@@ -39,6 +57,8 @@ public:
     void append(const std::string &test_name, const std::string &case_name, case_ptr_type);
 
     int run();
+
+    void set_cases(const std::vector<std::string> &case_names);
 
     static test_manager &me();
 
@@ -83,9 +103,8 @@ public:
     // expect functions
     template <typename TL, typename TR>
     bool expect_eq(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-        pick_param<TL, TR, util::type_traits::is_pointer<TL>::value || util::type_traits::is_pointer<TR>::value,
-                   util::type_traits::is_integral<TL>::value || util::type_traits::is_integral<TR>::value,
-                   util::type_traits::is_integral<TL>::value && util::type_traits::is_integral<TR>::value>
+        pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
+                   std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
         if (pp(l) == pp(r)) {
             ++(*success_counter_ptr);
@@ -104,9 +123,8 @@ public:
 
     template <typename TL, typename TR>
     bool expect_ne(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-        pick_param<TL, TR, util::type_traits::is_pointer<TL>::value || util::type_traits::is_pointer<TR>::value,
-                   util::type_traits::is_integral<TL>::value || util::type_traits::is_integral<TR>::value,
-                   util::type_traits::is_integral<TL>::value && util::type_traits::is_integral<TR>::value>
+        pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
+                   std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
 
         if (pp(l) != pp(r)) {
@@ -126,9 +144,8 @@ public:
 
     template <typename TL, typename TR>
     bool expect_lt(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-        pick_param<TL, TR, util::type_traits::is_pointer<TL>::value || util::type_traits::is_pointer<TR>::value,
-                   util::type_traits::is_integral<TL>::value || util::type_traits::is_integral<TR>::value,
-                   util::type_traits::is_integral<TL>::value && util::type_traits::is_integral<TR>::value>
+        pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
+                   std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
 
         if (pp(l) < pp(r)) {
@@ -148,9 +165,8 @@ public:
 
     template <typename TL, typename TR>
     bool expect_le(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-        pick_param<TL, TR, util::type_traits::is_pointer<TL>::value || util::type_traits::is_pointer<TR>::value,
-                   util::type_traits::is_integral<TL>::value || util::type_traits::is_integral<TR>::value,
-                   util::type_traits::is_integral<TL>::value && util::type_traits::is_integral<TR>::value>
+        pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
+                   std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
 
         if (pp(l) <= pp(r)) {
@@ -170,9 +186,8 @@ public:
 
     template <typename TL, typename TR>
     bool expect_gt(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-        pick_param<TL, TR, util::type_traits::is_pointer<TL>::value || util::type_traits::is_pointer<TR>::value,
-                   util::type_traits::is_integral<TL>::value || util::type_traits::is_integral<TR>::value,
-                   util::type_traits::is_integral<TL>::value && util::type_traits::is_integral<TR>::value>
+        pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
+                   std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
 
         if (pp(l) > pp(r)) {
@@ -192,9 +207,8 @@ public:
 
     template <typename TL, typename TR>
     bool expect_ge(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-        pick_param<TL, TR, util::type_traits::is_pointer<TL>::value || util::type_traits::is_pointer<TR>::value,
-                   util::type_traits::is_integral<TL>::value || util::type_traits::is_integral<TR>::value,
-                   util::type_traits::is_integral<TL>::value && util::type_traits::is_integral<TR>::value>
+        pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
+                   std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
 
         if (pp(l) >= pp(r)) {
@@ -248,8 +262,10 @@ private:
     test_data_type tests_;
     int success_;
     int failed_;
+    UTILS_TEST_ENV_AUTO_SET(std::string) run_cases_;
+    UTILS_TEST_ENV_AUTO_SET(std::string) run_groups_;
 };
 
-int run_tests();
+int run_tests(int argc, char *argv[]);
 
 #endif /* TEST_MANAGER_H_ */
