@@ -227,7 +227,7 @@ namespace cotask {
          * @see impl::task_impl::next
          * @param next_task next stack
          * @param priv_data priv_data passed to resume or start next stack
-         * @return next_task
+         * @return next_task if success , or self if failed
          */
         inline ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) {
             // can not refers to self
@@ -236,8 +236,8 @@ namespace cotask {
             }
 
             // can not add next task when finished
-            if (get_status() >= EN_TS_DONE) {
-                return next_task;
+            if (is_exiting()) {
+                return ptr_t(this);
             }
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
@@ -254,7 +254,7 @@ namespace cotask {
  * @param functor
  * @param priv_data priv_data passed to start functor
  * @param stack_size stack size
- * @return task smart pointer
+ * @return the created task if success , or self if failed
  */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
@@ -286,7 +286,7 @@ namespace cotask {
          * @param func function
          * @param priv_data priv_data passed to start function
          * @param stack_size stack size
-         * @return task smart pointer
+         * @return the created task if success , or self if failed
          */
         template <typename Ty>
         inline ptr_t next(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
@@ -307,7 +307,7 @@ namespace cotask {
          * @param instance instance
          * @param priv_data priv_data passed to start (instance->*func)(priv_data)
          * @param stack_size stack size
-         * @return task smart pointer
+         * @return the created task if success , or self if failed
          */
         template <typename Ty, typename TInst>
         inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
@@ -390,10 +390,19 @@ namespace cotask {
 
                 finish_priv_data_ = priv_data;
                 _notify_finished(priv_data);
-            } else if (likely(_cas_status(from_status, EN_TS_WAITING))) { // Atomic.CAS here
-                // waiting
-            } else { // canceled or killed
-                _notify_finished(finish_priv_data_);
+                return ret;
+            }
+
+            while (true) {
+                if (from_status >= EN_TS_DONE) { // canceled or killed
+                    _notify_finished(finish_priv_data_);
+                    break;
+                }
+
+                if (likely(_cas_status(from_status, EN_TS_WAITING))) { // Atomic.CAS here
+                    break;
+                    // waiting
+                }
             }
 
             return ret;

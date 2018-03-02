@@ -388,5 +388,36 @@ CASE_TEST(coroutine_task, priavte_buffer) {
     CASE_EXPECT_EQ(0, co_task->start());
 }
 
+static int test_context_task_timeout(void *) {
+
+    cotask::task<>::this_task()->yield();
+
+    CASE_EXPECT_TRUE(cotask::task<>::this_task()->is_timeout());
+    CASE_EXPECT_TRUE(cotask::task<>::this_task()->is_faulted());
+    CASE_EXPECT_FALSE(cotask::task<>::this_task()->is_completed());
+    CASE_EXPECT_TRUE(cotask::task<>::this_task()->is_exiting());
+
+    return 0;
+}
+
+CASE_TEST(coroutine_task, kill_and_timeout) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    task_ptr_type co_task = cotask::task<>::create(test_context_task_timeout, 16384, 256);
+
+    void *priv_data = co_task->get_private_buffer();
+    memset(priv_data, 0x5e, 256);
+
+    CASE_EXPECT_EQ(0, co_task->start());
+
+    CASE_EXPECT_FALSE(co_task->is_timeout());
+    CASE_EXPECT_FALSE(co_task->is_faulted());
+    CASE_EXPECT_FALSE(co_task->is_completed());
+    CASE_EXPECT_FALSE(co_task->is_exiting());
+
+    CASE_EXPECT_EQ(0, co_task->kill(cotask::EN_TS_TIMEOUT, NULL));
+
+    CASE_EXPECT_TRUE(co_task->is_completed());
+}
+
 
 #endif
