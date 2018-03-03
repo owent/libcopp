@@ -103,6 +103,13 @@ namespace cotask {
              */
             static task_impl *this_task();
 
+            /**
+             * @brief get raw action pointer
+             * @note this function is provided just for debug or show some information, it may return the inner type created by cotask
+             * @return pointer to task_action instance
+             */
+            inline action_ptr_t get_raw_action() const UTIL_CONFIG_NOEXCEPT { return action_; }
+
         protected:
             void _set_action(action_ptr_t action);
             action_ptr_t _get_action();

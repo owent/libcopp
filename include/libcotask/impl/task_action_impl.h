@@ -23,8 +23,8 @@ namespace cotask {
             virtual int operator()(void *) = 0;
             virtual int on_finished(task_impl &) { return 0; }
         };
-    }
-}
+    } // namespace impl
+} // namespace cotask
 
 
 #endif /* _COTASK_IMPL_TASK_ACTION_IMPL_H_ */
