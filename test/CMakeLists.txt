@@ -42,9 +42,10 @@ elseif(LIBCOPP_TEST_ENABLE_BOOST_UNIT_TEST)
     endif()
 endif()
 
+include("${CMAKE_CURRENT_LIST_DIR}/test.custom-macro.cmake")
 include_directories(${PROJECT_TEST_INC_DIR})
 
-file(GLOB_RECURSE COPP_TEST_SRC_LIST 
+file(GLOB_RECURSE COPP_TEST_SRC_LIST
     ${PROJECT_TEST_SRC_DIR}/*.h 
     ${PROJECT_TEST_SRC_DIR}/*.hpp 
     ${PROJECT_TEST_SRC_DIR}/*.c 

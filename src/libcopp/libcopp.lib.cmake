@@ -1,5 +1,5 @@
 # =========== libcopp/src ===========
-set (PROJECT_LIBCOPP_INC_DIR "${PROJECT_ROOT_INC_DIR}/libcopp") 
+set (PROJECT_LIBCOPP_INC_DIR "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp") 
 set (PROJECT_LIBCOPP_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set (PROJECT_LIBCOPP_LIB_LINK copp)
 
