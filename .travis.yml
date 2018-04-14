@@ -64,8 +64,11 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-6.0
           packages:
             - graphviz
+            - libclang-dev
+            - libclang-6.0-dev
       script:
         - cd "docs";
         - if [ ! -e "$DOXYGEN_BIN" ]; then
