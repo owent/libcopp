@@ -28,13 +28,13 @@ include_macro_recurse(${CMAKE_CURRENT_LIST_DIR})
 # feature detect
 include(WriteCompilerDetectionHeader)
 
-if (NOT EXISTS "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config")
-    file(MAKE_DIRECTORY "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config")
+if (NOT EXISTS "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
+    file(MAKE_DIRECTORY "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
 endif()
 
 # generate check header
 write_compiler_detection_header(
-    FILE "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h"
+    FILE "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h"
     PREFIX UTIL_CONFIG
     COMPILERS GNU Clang AppleClang MSVC
     FEATURES cxx_auto_type cxx_constexpr cxx_decltype cxx_decltype_auto cxx_defaulted_functions cxx_deleted_functions cxx_final cxx_override cxx_range_for cxx_noexcept cxx_nullptr cxx_rvalue_references cxx_static_assert cxx_thread_local cxx_variadic_templates cxx_lambdas
@@ -47,8 +47,8 @@ else()
 endif()
 
 configure_file(
-    "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h.in"
-    "${PROJECT_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
+    "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h.in"
+    "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
     @ONLY
 )
 

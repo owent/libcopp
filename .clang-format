@@ -2,6 +2,8 @@ BasedOnStyle: LLVM
 Language: Cpp
 AccessModifierOffset: -4
 AlignEscapedNewlinesLeft: true
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortIfStatementsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: true

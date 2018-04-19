@@ -2,6 +2,7 @@
 
 EchoWithColor(COLOR GREEN "-- Configure Sample Projects")
 
+include ("${CMAKE_CURRENT_LIST_DIR}/sample.custom-macro.cmake")
 # ============ sample - [...] ============
 
 file(GLOB SAMPLE_SRC_LIST RELATIVE "${PROJECT_SAMPLE_SRC_DIR}"

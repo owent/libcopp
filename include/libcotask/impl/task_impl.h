@@ -68,6 +68,15 @@ namespace cotask {
             virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;
             virtual bool is_faulted() const UTIL_CONFIG_NOEXCEPT;
+            virtual bool is_timeout() const UTIL_CONFIG_NOEXCEPT;
+            /**
+             * @brief check if a cotask is exiting
+             * @note cotask is exiting means the cotask is is_completed() or is killed.
+             *       if a cotask is killed and is running, then is_completed() == false but is_exiting() == true,
+             *       and after the cotask finished, is_completed() == true
+             * @return return true if a cotask is exiting.
+             */
+            bool is_exiting() const UTIL_CONFIG_NOEXCEPT;
 
         public:
             virtual int get_ret_code() const = 0;
@@ -93,6 +102,13 @@ namespace cotask {
              * @return current running task or empty pointer
              */
             static task_impl *this_task();
+
+            /**
+             * @brief get raw action pointer
+             * @note this function is provided just for debug or show some information, it may return the inner type created by cotask
+             * @return pointer to task_action instance
+             */
+            inline action_ptr_t get_raw_action() const UTIL_CONFIG_NOEXCEPT { return action_; }
 
         protected:
             void _set_action(action_ptr_t action);

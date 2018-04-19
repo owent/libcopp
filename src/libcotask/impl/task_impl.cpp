@@ -25,9 +25,13 @@ namespace cotask {
 
         bool task_impl::is_canceled() const UTIL_CONFIG_NOEXCEPT { return EN_TS_CANCELED == get_status(); }
 
-        bool task_impl::is_completed() const UTIL_CONFIG_NOEXCEPT { return EN_TS_DONE <= get_status(); }
+        bool task_impl::is_completed() const UTIL_CONFIG_NOEXCEPT { return is_exiting(); }
 
         bool task_impl::is_faulted() const UTIL_CONFIG_NOEXCEPT { return EN_TS_KILLED <= get_status(); }
+
+        bool task_impl::is_timeout() const UTIL_CONFIG_NOEXCEPT { return EN_TS_TIMEOUT == get_status(); }
+
+        bool task_impl::is_exiting() const UTIL_CONFIG_NOEXCEPT { return EN_TS_DONE <= get_status(); }
 
         int task_impl::on_finished() { return 0; }
 

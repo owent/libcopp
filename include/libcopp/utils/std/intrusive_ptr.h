@@ -251,11 +251,12 @@ namespace std {
 #endif
 
 #define UTIL_INTRUSIVE_PTR_REF_MEMBER_DECL(T)              \
+    \
 private:                                                   \
     UTIL_INTRUSIVE_PTR_ATOMIC_TYPE intrusive_ref_counter_; \
     friend void intrusive_ptr_add_ref(T *p);               \
     friend void intrusive_ptr_release(T *p);               \
-                                                           \
+    \
 public:                                                    \
     const size_t use_count() const { return intrusive_ref_counter_.load(); }
 

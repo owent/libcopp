@@ -15,10 +15,11 @@
 #include <algorithm>
 #include <stdint.h>
 
-
 #include <libcopp/stack/stack_traits.h>
+#include <libcopp/utils/errno.h>
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
+
 
 namespace cotask {
 
@@ -26,14 +27,14 @@ namespace cotask {
     class task : public impl::task_impl {
     public:
         typedef task<TCO_MACRO, TTASK_MACRO> self_t;
-        typedef std::intrusive_ptr<self_t> ptr_t;
-        typedef TCO_MACRO macro_coroutine_t;
-        typedef TTASK_MACRO macro_task_t;
+        typedef std::intrusive_ptr<self_t>   ptr_t;
+        typedef TCO_MACRO                    macro_coroutine_t;
+        typedef TTASK_MACRO                  macro_task_t;
 
-        typedef typename macro_coroutine_t::coroutine_t coroutine_t;
+        typedef typename macro_coroutine_t::coroutine_t       coroutine_t;
         typedef typename macro_coroutine_t::stack_allocator_t stack_allocator_t;
 
-        typedef typename macro_task_t::id_t id_t;
+        typedef typename macro_task_t::id_t           id_t;
         typedef typename macro_task_t::id_allocator_t id_allocator_t;
 
 
@@ -79,7 +80,7 @@ namespace cotask {
             }
 
             size_t action_size = coroutine_t::align_address_size(sizeof(a_t));
-            size_t task_size = coroutine_t::align_address_size(sizeof(self_t));
+            size_t task_size   = coroutine_t::align_address_size(sizeof(self_t));
 
             if (stack_size <= sizeof(impl::task_impl *) + private_buffer_size + action_size + task_size) {
                 return ptr_t();
@@ -92,7 +93,7 @@ namespace cotask {
             }
 
             void *action_addr = sub_buffer_offset(coroutine.get(), action_size);
-            void *task_addr = sub_buffer_offset(action_addr, task_size);
+            void *task_addr   = sub_buffer_offset(action_addr, task_size);
 
             // placement new task
             ptr_t ret(new (task_addr) self_t());
@@ -101,7 +102,7 @@ namespace cotask {
             }
 
             *(reinterpret_cast<impl::task_impl **>(coroutine->get_private_buffer())) = ret.get();
-            ret->coroutine_obj_ = coroutine;
+            ret->coroutine_obj_                                                      = coroutine;
             ret->coroutine_obj_->set_flags(impl::task_impl::ext_coroutine_flag_t::EN_ECFT_COTASK);
 
             // placement new action
@@ -220,14 +221,65 @@ namespace cotask {
         }
 #endif
 
+
+        /**
+         * @brief await another cotask to finish
+         * @note please not to make tasks refer to each other. [it will lead to memory leak]
+         * @note [don't do that] ptr_t a = ..., b = ...; a.await(b); b.await(a);
+         * @param wait_task which stack to wait for
+         * @return 0 or error code
+         */
+        inline int await(ptr_t wait_task) {
+            if (!wait_task) {
+                return copp::COPP_EC_ARGS_ERROR;
+            }
+
+            if (this == wait_task.get()) {
+                return copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF;
+            }
+
+            // if target is exiting or completed, just return
+            if (wait_task->is_exiting() || wait_task->is_completed()) {
+                return copp::COPP_EC_TASK_IS_EXITING;
+            }
+
+            if (is_exiting()) {
+                return copp::COPP_EC_TASK_IS_EXITING;
+            }
+
+            if (this_task() != this) {
+                return copp::COPP_EC_TASK_NOT_IN_ACTION;
+            }
+
+            // add to next list failed
+            if (wait_task->next(ptr_t(this)).get() != this) {
+                return copp::COPP_EC_TASK_ADD_NEXT_FAILED;
+            }
+
+            int ret = 0;
+            while (!(wait_task->is_exiting() || wait_task->is_completed())) {
+                if (is_exiting()) {
+                    return copp::COPP_EC_TASK_IS_EXITING;
+                }
+
+                ret = yield();
+            }
+
+            return ret;
+        }
+
+        template <typename TTask>
+        inline int await(TTask *wait_task) {
+            return await(ptr_t(wait_task));
+        }
+
         /**
          * @brief add next task to run when task finished
          * @note please not to make tasks refer to each other. [it will lead to memory leak]
          * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
-         * @see impl::task_impl::next
          * @param next_task next stack
          * @param priv_data priv_data passed to resume or start next stack
-         * @return next_task
+         * @return next_task if success , or self if failed
          */
         inline ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) {
             // can not refers to self
@@ -236,8 +288,8 @@ namespace cotask {
             }
 
             // can not add next task when finished
-            if (get_status() >= EN_TS_DONE) {
-                return next_task;
+            if (is_exiting()) {
+                return ptr_t(this);
             }
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
@@ -254,7 +306,7 @@ namespace cotask {
  * @param functor
  * @param priv_data priv_data passed to start functor
  * @param stack_size stack size
- * @return task smart pointer
+ * @return the created task if success , or self if failed
  */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
@@ -286,7 +338,7 @@ namespace cotask {
          * @param func function
          * @param priv_data priv_data passed to start function
          * @param stack_size stack size
-         * @return task smart pointer
+         * @return the created task if success , or self if failed
          */
         template <typename Ty>
         inline ptr_t next(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
@@ -307,7 +359,7 @@ namespace cotask {
          * @param instance instance
          * @param priv_data priv_data passed to start (instance->*func)(priv_data)
          * @param stack_size stack size
-         * @return task smart pointer
+         * @return the created task if success , or self if failed
          */
         template <typename Ty, typename TInst>
         inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
@@ -340,7 +392,7 @@ namespace cotask {
             id_alloc_.deallocate(id_);
         }
 
-        inline typename coroutine_t::ptr_t &get_coroutine_context() UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
+        inline typename coroutine_t::ptr_t &      get_coroutine_context() UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
         inline const typename coroutine_t::ptr_t &get_coroutine_context() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
 
         inline id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
@@ -390,10 +442,19 @@ namespace cotask {
 
                 finish_priv_data_ = priv_data;
                 _notify_finished(priv_data);
-            } else if (likely(_cas_status(from_status, EN_TS_WAITING))) { // Atomic.CAS here
-                // waiting
-            } else { // canceled or killed
-                _notify_finished(finish_priv_data_);
+                return ret;
+            }
+
+            while (true) {
+                if (from_status >= EN_TS_DONE) { // canceled or killed
+                    _notify_finished(finish_priv_data_);
+                    break;
+                }
+
+                if (likely(_cas_status(from_status, EN_TS_WAITING))) { // Atomic.CAS here
+                    break;
+                    // waiting
+                }
             }
 
             return ret;
@@ -566,16 +627,16 @@ namespace cotask {
         }
 
     private:
-        id_t id_;
+        id_t                        id_;
         typename coroutine_t::ptr_t coroutine_obj_;
-        task_group next_list_;
+        task_group                  next_list_;
 
         // ============== action information ==============
         void (*action_destroy_fn_)(void *);
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
         util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
-        util::lock::spin_lock next_list_lock_;
+        util::lock::spin_lock               next_list_lock_;
 #else
         util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> > ref_count_; /** ref_count **/
 #endif
