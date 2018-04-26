@@ -3,12 +3,12 @@ libcopp
 
 Cross-platform coroutine library in C++ .
 
-|                 |  Linux+OSX(Clang+GCC)[linux-link] | [Windows(VC+MinGW)][windows-link] |      [Coveralls][coverage-link]     |
-|:---------------:|:---------------------------------:|:---------------------------------:|:-----------------------------------:|
-Build & Unit Test | [![linux-badge]][linux-link]      | [![windows-badge]][windows-link]  | [![coverage-badge]][coverage-link]  |
+|                 | [Linux+OSX(Clang+GCC)][linux-link] | [Windows(VC+MinGW)][windows-link] |      [Coveralls][coverage-link]     |
+|:---------------:|:----------------------------------:|:---------------------------------:|:-----------------------------------:|
+Build & Unit Test | ![linux-badge]                     | ![windows-badge]                  | ![coverage-badge]                   |
 | Compilers       | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-7 <br /> macos-apple-clang-6.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> MSVC 15(Visual Studio 2017) <br /> MinGW64-gcc |  |
 
-[![Gitter](https://badges.gitter.im/owt5008137/libcopp.svg)](https://gitter.im/owt5008137/libcopp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[Gitter][gitter-link]: ![gitter-badge]
 
 [linux-badge]: https://travis-ci.org/owt5008137/libcopp.svg?branch=v2 "Travis build status"
 [linux-link]:  https://travis-ci.org/owt5008137/libcopp "Travis build status"
