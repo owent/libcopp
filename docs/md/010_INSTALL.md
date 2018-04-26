@@ -24,9 +24,10 @@ Prerequisites
 Build
 -----
 
-**1. make a build directory**
+**1. clone and make a build directory**
 ~~~~~~~~~~bash
-mkdir build && cd build
+git clone --single-branch --depth=1 -b v2 https://github.com/owt5008137/libcopp.git 
+mkdir libcopp/build && cd libcopp/build
 ~~~~~~~~~~
 
 **2. run cmake command**
