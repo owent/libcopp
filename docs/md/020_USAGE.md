@@ -9,7 +9,7 @@ Get Start & Example
 ### coroutine_context example
 This is a simple example of using basic coroutine context below:
 
-```cpp
+~~~~~~~~~~cpp
 // see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_1.cpp
 #include <cstdio>
 #include <cstring>
@@ -50,14 +50,14 @@ int main() {
     std::cout << "cortoutine " << co_obj << " exit and return " << co_obj->get_ret_code() << "." << std::endl;
     return 0;
 }
-```
+~~~~~~~~~~
 
 Also, you can use copp::coroutine_context_container<ALLOCATOR> instead of copp::coroutine_context_default to use a different stack allocator.
 
 ### coroutine task example
 This is a simple example of using coroutine task with lambda expression:
 
-```cpp
+~~~~~~~~~~cpp
 // see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_2.cpp
 #include <iostream>
 
@@ -88,13 +88,13 @@ int main(int argc, char *argv[]) {
 #endif
     return 0;
 }
-```
+~~~~~~~~~~
 Also, you can your stack allocator or id allocator by setting different parameters in template class **cotask::task<TCO_MACRO, TTASK_MACRO>**
 
 ### using coroutine task manager
 This is a simple example of using task manager:
 
-```cpp
+~~~~~~~~~~cpp
 // see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_3.cpp
 #include <cstdio>
 #include <cstring>
@@ -176,12 +176,12 @@ int main() {
 #endif
     return 0;
 }
-```
+~~~~~~~~~~
 
 ### using stack pool
 This is a simple example of using stack pool for cotask:
 
-```cpp
+~~~~~~~~~~cpp
 // see https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_4.cpp
 #include <cstdio>
 #include <cstring>
@@ -275,4 +275,4 @@ int main() {
 #endif
     return 0;
 }
-```
+~~~~~~~~~~

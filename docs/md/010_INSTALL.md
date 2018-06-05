@@ -24,44 +24,45 @@ Prerequisites
 Build
 -----
 
-**1. make a build directory**
-```bash
-    mkdir build && cd build
-```
+**1. clone and make a build directory**
+~~~~~~~~~~bash
+git clone --single-branch --depth=1 -b v2 https://github.com/owt5008137/libcopp.git 
+mkdir libcopp/build && cd libcopp/build
+~~~~~~~~~~
 
 **2. run cmake command**
-```bash
-    # cmake <libcopp dir> [options...]
-    cmake .. -DLIBCOPP_FCONTEXT_USE_TSX=YES -DPROJECT_ENABLE_UNITTEST=YES -DPROJECT_ENABLE_SAMPLE=YES
-```
+~~~~~~~~~~bash
+# cmake <libcopp dir> [options...]
+cmake .. -DLIBCOPP_FCONTEXT_USE_TSX=YES -DPROJECT_ENABLE_UNITTEST=YES -DPROJECT_ENABLE_SAMPLE=YES
+~~~~~~~~~~
 
 **3. make libcopp**
-```bash
-    cmake --build . --config RelWithDebInfo # or make [options] when using Makefile
-```
+~~~~~~~~~~bash
+cmake --build . --config RelWithDebInfo # or make [options] when using Makefile
+~~~~~~~~~~
 
 **4. run test/sample/benchmark** *[optional]*
-```bash
-    # Run test => Required: PROJECT_ENABLE_UNITTEST=YES
-    cmake --build . --config RelWithDebInfo --target run_test # or make run_test when using Makefile
-    # Run sample => Required: PROJECT_ENABLE_SAMPLE=YES
-    cmake --build . --config RelWithDebInfo --target run_sample # or make run_sample when using Makefile
-    # Run benchmark => Required: PROJECT_ENABLE_SAMPLE=YES
-    cmake --build . --config RelWithDebInfo --target benchmark # or make benchmark when using Makefile
-```
+~~~~~~~~~~bash
+# Run test => Required: PROJECT_ENABLE_UNITTEST=YES
+cmake --build . --config RelWithDebInfo --target run_test # or make run_test when using Makefile
+# Run sample => Required: PROJECT_ENABLE_SAMPLE=YES
+cmake --build . --config RelWithDebInfo --target run_sample # or make run_sample when using Makefile
+# Run benchmark => Required: PROJECT_ENABLE_SAMPLE=YES
+cmake --build . --config RelWithDebInfo --target benchmark # or make benchmark when using Makefile
+~~~~~~~~~~
 
 **5. install** *[optional]*
-```bash
-    cmake --build . --config RelWithDebInfo --target install # or make install when using Makefile
-```
+~~~~~~~~~~bash
+cmake --build . --config RelWithDebInfo --target install # or make install when using Makefile
+~~~~~~~~~~
 
 > Or you can just copy include directory and libcopp.a in lib or lib64 into your project to use it.
 
 ### CMake Options
 Options can be cmake options. such as set compile toolchains, source directory or options of libcopp that control build actions. libcopp options are listed below:
 
-Option  | Description
---------|------------
+| Option  | Description |
+|---------|-------------|
 BUILD\_SHARED\_LIBS=YES\|NO | [default=NO] Build dynamic library.
 LIBCOPP\_ENABLE\_SEGMENTED\_STACKS=YES\|NO | [default=NO] Enable split stack supported context.(it's only availabe in linux and gcc 4.7.0 or upper)
 LIBCOPP\_ENABLE\_VALGRIND=YES\|NO | [default=YES] Enable valgrind supported context.
