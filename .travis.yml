@@ -4,7 +4,7 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://cmake.org/files/v3.10/cmake-3.10.2-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://cmake.org/files/v3.11/cmake-3.11.3-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
     - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.1.1/pandoc-2.1.1-linux.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
@@ -46,16 +46,16 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-7 USE_CXX=g++-7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-8 USE_CXX=g++-8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-7
-            - gcc-7-multilib
-            - g++-7
-            - g++-7-multilib
+            - gcc-8
+            - gcc-8-multilib
+            - g++-8
+            - g++-8-multilib
     - os: linux
       dist: trusty
       sudo: required

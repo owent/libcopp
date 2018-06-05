@@ -21,13 +21,23 @@
 
 #ifdef COTASK_MACRO_ENABLED
 
+#if defined(PROJECT_LIBCOPP_SAMPLE_HAS_CHRONO) && PROJECT_LIBCOPP_SAMPLE_HAS_CHRONO
+#include <chrono>
+#define CALC_CLOCK_T std::chrono::system_clock::time_point
+#define CALC_CLOCK_NOW() std::chrono::system_clock::now()
+#define CALC_MS_CLOCK(x) static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(x).count())
+#define CALC_NS_AVG_CLOCK(x, y) static_cast<long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(x).count() / (y ? y : 1))
+#else
+#define CALC_CLOCK_T clock_t
+#define CALC_CLOCK_NOW() clock()
 #define CALC_MS_CLOCK(x) static_cast<int>((x) / (CLOCKS_PER_SEC / 1000))
 #define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / (y ? y : 1))
+#endif
 
 typedef cotask::task<> my_task_t;
 
-int switch_count = 100;
-int max_task_number = 100000; // 协程Task数量
+int                           switch_count    = 100;
+int                           max_task_number = 100000; // 协程Task数量
 std::vector<my_task_t::ptr_t> task_arr;
 
 // define a coroutine runner
@@ -68,8 +78,8 @@ int main(int argc, char *argv[]) {
         stack_size = atoi(argv[3]) * 1024;
     }
 
-    time_t begin_time = time(NULL);
-    clock_t begin_clock = clock();
+    time_t       begin_time  = time(NULL);
+    CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
     // create coroutines
     task_arr.reserve(static_cast<size_t>(max_task_number));
@@ -84,12 +94,12 @@ int main(int argc, char *argv[]) {
         task_arr.push_back(new_task);
     }
 
-    time_t end_time = time(NULL);
-    clock_t end_clock = clock();
+    time_t       end_time  = time(NULL);
+    CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
     printf("create %d task, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, static_cast<int>(end_time - begin_time),
            CALC_MS_CLOCK(end_clock - begin_clock), CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number));
 
-    begin_time = end_time;
+    begin_time  = end_time;
     begin_clock = end_clock;
 
     // start a task
@@ -98,7 +108,7 @@ int main(int argc, char *argv[]) {
     }
 
     // yield & resume from runner
-    bool continue_flag = true;
+    bool      continue_flag     = true;
     long long real_switch_times = static_cast<long long>(0);
 
     while (continue_flag) {
@@ -112,19 +122,19 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    end_time = time(NULL);
-    end_clock = clock();
+    end_time  = time(NULL);
+    end_clock = CALC_CLOCK_NOW();
     printf("switch %d tasks %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, real_switch_times,
            static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
            CALC_NS_AVG_CLOCK(end_clock - begin_clock, real_switch_times));
 
-    begin_time = end_time;
+    begin_time  = end_time;
     begin_clock = end_clock;
 
     task_arr.clear();
 
-    end_time = time(NULL);
-    end_clock = clock();
+    end_time  = time(NULL);
+    end_clock = CALC_CLOCK_NOW();
     printf("remove %d tasks, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, static_cast<int>(end_time - begin_time),
            CALC_MS_CLOCK(end_clock - begin_clock), CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number));
 

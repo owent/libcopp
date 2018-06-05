@@ -6,7 +6,7 @@ Cross-platform coroutine library in C++ .
 Build & Run Unit Test in |  Linux+OSX(Clang+GCC) | Windows(VC+MinGW) |
 -------------------------|-----------------------|-------------|
 Status | [![Build Status](https://travis-ci.org/owt5008137/libcopp.svg?branch=v2)](https://travis-ci.org/owt5008137/libcopp) | [![Build Status](https://ci.appveyor.com/api/projects/status/7w6dfnpeahfmgaqj/branch/v2?svg=true)](https://ci.appveyor.com/project/owt5008137/libcopp) |
-Compilers | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-7 <br /> macos-apple-clang-6.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> MSVC 15(Visual Studio 2017) <br /> MinGW64-gcc |
+Compilers | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-8 <br /> macos-apple-clang-6.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> MSVC 15(Visual Studio 2017) <br /> MinGW64-gcc |
 
 [![Coverage Status](https://coveralls.io/repos/github/owt5008137/libcopp/badge.svg?branch=v2)](https://coveralls.io/github/owt5008137/libcopp?branch=v2)
 [![Gitter](https://badges.gitter.im/owt5008137/libcopp.svg)](https://gitter.im/owt5008137/libcopp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
