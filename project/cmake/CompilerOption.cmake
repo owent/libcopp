@@ -151,9 +151,12 @@ elseif( ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
 elseif(MSVC)
     add_definitions(/MP /W4 /wd"4100" /wd"4125" /EHsc)
     if (MSVC_VERSION GREATER_EQUAL 1910)
-        # 设置 __cplusplus 宏为标准值, @see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/
-        add_definitions(/std:c++17 /Zc:__cplusplus)
+        add_definitions(/std:c++17)
         message(STATUS "MSVC ${MSVC_VERSION} found. using /std:c++17")
+    endif()
+    # 设置 __cplusplus 宏为标准值, @see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/
+    if (MSVC_VERSION GREATER_EQUAL 1914)
+        add_definitions(/Zc:__cplusplus)
     endif()
 endif()
 
