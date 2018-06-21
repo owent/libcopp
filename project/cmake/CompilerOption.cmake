@@ -154,7 +154,7 @@ elseif(MSVC)
         add_definitions(/std:c++17)
         message(STATUS "MSVC ${MSVC_VERSION} found. using /std:c++17")
     endif()
-    # 设置 __cplusplus 宏为标准值, @see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/
+    # 设置 __cplusplus 宏为标准值, @see https://docs.microsoft.com/zh-cn/cpp/build/reference/zc-cplusplus
     if (MSVC_VERSION GREATER_EQUAL 1914)
         add_definitions(/Zc:__cplusplus)
     endif()
