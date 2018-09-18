@@ -86,7 +86,7 @@ add_dependencies(run_test_libcopp_unit_test libcopp_unit_test)
 
 if (_VALGRIND_EXECUTABLE)
     add_custom_target(run_memcheck_libcopp_unit_test
-        ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=libcopp_unit_test.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 "./libcopp_unit_test${CMAKE_EXECUTABLE_SUFFIX}"
+        ${_VALGRIND_EXECUTABLE} "--max-threads=4096" "--tool=memcheck" "--log-file=libcopp_unit_test.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 "./libcopp_unit_test${CMAKE_EXECUTABLE_SUFFIX}"
         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     )
     add_dependencies(memcheck run_memcheck_libcopp_unit_test)

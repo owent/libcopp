@@ -14,7 +14,7 @@ typedef copp::stack_pool<copp::allocator::default_statck_allocator> stack_pool_t
 
 // define how to create coroutine context
 struct sample_macro_coroutine {
-    typedef copp::allocator::stack_allocator_pool<stack_pool_t> stack_allocator_t;
+    typedef copp::allocator::stack_allocator_pool<stack_pool_t>  stack_allocator_t;
     typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
 };
 
@@ -24,7 +24,7 @@ static stack_pool_t::ptr_t global_stack_pool = stack_pool_t::create();
 typedef cotask::task<sample_macro_coroutine> sample_task_t;
 
 int main() {
-#if defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+#if defined(COTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
     global_stack_pool->set_min_stack_number(4);
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
@@ -34,7 +34,7 @@ int main() {
     // create two coroutine task
     {
         copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
-        sample_task_t::ptr_t co_task = sample_task_t::create(
+        sample_task_t::ptr_t                                co_task = sample_task_t::create(
             []() {
                 std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
                 cotask::this_task::get_task()->yield();
@@ -64,7 +64,7 @@ int main() {
 
     {
         copp::allocator::stack_allocator_pool<stack_pool_t> alloc(global_stack_pool);
-        sample_task_t::ptr_t co_another_task = sample_task_t::create(
+        sample_task_t::ptr_t                                co_another_task = sample_task_t::create(
             []() {
                 std::cout << "task " << cotask::this_task::get<sample_task_t>()->get_id() << " started" << std::endl;
                 cotask::this_task::get_task()->yield();

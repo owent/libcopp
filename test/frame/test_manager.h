@@ -46,7 +46,7 @@
  */
 class test_manager {
 public:
-    typedef test_case_base *case_ptr_type;
+    typedef test_case_base *                                    case_ptr_type;
     typedef std::vector<std::pair<std::string, case_ptr_type> > test_type;
     typedef UTILS_TEST_ENV_AUTO_MAP(std::string, test_type) test_data_type;
 
@@ -71,6 +71,19 @@ public:
     static boost::unit_test::test_suite *&test_suit();
 #endif
 
+    struct pick_param_str_t {
+        const char *str_;
+        pick_param_str_t(const char *in);
+        pick_param_str_t(const std::string &in);
+
+        bool operator==(const pick_param_str_t &other) const;
+        bool operator!=(const pick_param_str_t &other) const;
+        bool operator>=(const pick_param_str_t &other) const;
+        bool operator>(const pick_param_str_t &other) const;
+        bool operator<=(const pick_param_str_t &other) const;
+        bool operator<(const pick_param_str_t &other) const;
+    };
+
     template <typename TL, typename TR, bool has_pointer, bool has_integer, bool all_integer>
     struct pick_param;
 
@@ -78,14 +91,16 @@ public:
     template <typename TL, typename TR>
     struct pick_param<TL, TR, true, true, false> {
         template <typename T>
-        intptr_t operator()(const T &t) {
-            return (intptr_t)(t);
+        uintptr_t operator()(const T &t) {
+            return (uintptr_t)(t);
         }
     };
 
-    // compare integer with integer, all converted to int64_t
+    // compare integer with integer, all converted to int64_t or uint64_t
     template <typename TL, typename TR>
     struct pick_param<TL, TR, false, true, true> {
+        // uint64_t operator()(const uint64_t &t) { return static_cast<uint64_t>(t); }
+
         template <typename T>
         int64_t operator()(const T &t) {
             return static_cast<int64_t>(t);
@@ -94,6 +109,9 @@ public:
 
     template <typename TL, typename TR, bool has_pointer, bool has_integer, bool all_integer>
     struct pick_param {
+        pick_param_str_t operator()(const char *t) { return pick_param_str_t(t); }
+        pick_param_str_t operator()(const std::string &t) { return pick_param_str_t(t); }
+
         template <typename T>
         const T &operator()(const T &t) {
             return t;
@@ -260,8 +278,8 @@ public:
 
 private:
     test_data_type tests_;
-    int success_;
-    int failed_;
+    int            success_;
+    int            failed_;
     UTILS_TEST_ENV_AUTO_SET(std::string) run_cases_;
     UTILS_TEST_ENV_AUTO_SET(std::string) run_groups_;
 };

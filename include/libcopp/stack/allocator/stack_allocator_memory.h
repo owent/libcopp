@@ -22,8 +22,9 @@ namespace copp {
          */
         class stack_allocator_memory {
         private:
-            void *start_ptr_;
+            void *      start_ptr_;
             std::size_t memory_size_;
+            bool        is_used_;
 
         public:
             stack_allocator_memory() UTIL_CONFIG_NOEXCEPT;
@@ -67,8 +68,8 @@ namespace copp {
              */
             void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT;
         };
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

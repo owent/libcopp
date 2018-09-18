@@ -8,6 +8,7 @@
  */
 
 
+#include <assert.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -19,7 +20,7 @@
 // include manager header file
 #include <libcotask/task.h>
 
-#if defined(COTASK_MACRO_ENABLED) && defined(__cplusplus) && (__cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1600))
+#if defined(COTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
 typedef cotask::task<> my_task_t;
 
@@ -34,22 +35,25 @@ int main(int argc, char *argv[]) {
         printf("test code already reset => %d\n", ++test_code);
     });
 
-    // add many next task using lambda expression
+    // add many then task using lambda expression
     first_task
-        ->next([=]() {
+        ->then([=]() {
             puts("|second task running...");
             printf("test code should be inited 128 => %d\n", test_code);
         })
-        ->next([&]() {
+        ->then([&]() {
             puts("|haha ... this is the third task.");
             printf("test code is the same => %d\n", ++test_code);
             return "return value will be ignored";
         })
-        ->next([&]() {
-            puts("|it's boring");
-            printf("test code is %d\n", ++test_code);
-            return 0;
-        });
+        ->then(
+            [&](void *priv_data) {
+                puts("|it's boring");
+                printf("test code is %d\n", ++test_code);
+                assert(&test_code == priv_data);
+                return 0;
+            },
+            &test_code);
 
     test_code = 0;
     // start a task
@@ -57,10 +61,16 @@ int main(int argc, char *argv[]) {
     first_task->resume();
 
     // these code below will failed.
-    first_task->next([]() {
-        puts("this will never run.");
+    first_task->then([]() {
+        puts("this will run immediately.");
         return 0;
     });
+
+    my_task_t::ptr_t await_task = my_task_t::create([&]() {
+        puts("await for first_task.");
+        return 0;
+    });
+    await_task->await(first_task);
 
     printf("|task start twice will failed: %d\n", first_task->start());
     printf("|test_code end with %d\n", test_code);

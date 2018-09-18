@@ -7,6 +7,7 @@
  *  Released under the MIT license
  */
 
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -18,10 +19,21 @@
 
 #include "test_manager.h"
 
+
+test_manager::pick_param_str_t::pick_param_str_t(const char *in) : str_(in) {}
+test_manager::pick_param_str_t::pick_param_str_t(const std::string &in) : str_(in.c_str()) {}
+
+bool test_manager::pick_param_str_t::operator==(const pick_param_str_t &other) const { return strcmp(str_, other.str_) == 0; }
+bool test_manager::pick_param_str_t::operator!=(const pick_param_str_t &other) const { return strcmp(str_, other.str_) != 0; }
+bool test_manager::pick_param_str_t::operator>=(const pick_param_str_t &other) const { return strcmp(str_, other.str_) >= 0; }
+bool test_manager::pick_param_str_t::operator>(const pick_param_str_t &other) const { return strcmp(str_, other.str_) > 0; }
+bool test_manager::pick_param_str_t::operator<=(const pick_param_str_t &other) const { return strcmp(str_, other.str_) <= 0; }
+bool test_manager::pick_param_str_t::operator<(const pick_param_str_t &other) const { return strcmp(str_, other.str_) < 0; }
+
 test_manager::test_manager() {
     success_counter_ptr = failed_counter_ptr = NULL;
-    success_ = 0;
-    failed_ = 0;
+    success_                                 = 0;
+    failed_                                  = 0;
 }
 
 test_manager::~test_manager() {}
@@ -58,15 +70,15 @@ int test_manager::run() {
 
 int test_manager::run() {
     success_ = 0;
-    failed_ = 0;
+    failed_  = 0;
 
-    clock_t all_begin_time = clock();
+    clock_t                 all_begin_time = clock();
     util::cli::shell_stream ss(std::cout);
     ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << util::cli::shell_font_style::SHELL_FONT_SPEC_BOLD << "[==========] "
          << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << "Running " << tests_.size() << " test(s)" << std::endl;
 
     for (test_data_type::iterator iter = tests_.begin(); iter != tests_.end(); ++iter) {
-        bool check_test_group_passed = run_cases_.empty();
+        bool check_test_group_passed    = run_cases_.empty();
         bool check_test_group_has_cases = false;
 
         if (!check_test_group_passed) {
@@ -98,7 +110,7 @@ int test_manager::run() {
                 if (!check_test_case_passed) {
                     std::string full_name;
                     full_name.reserve(iter->first.size() + 1 + iter2->first.size());
-                    full_name = iter->first + "." + iter2->first;
+                    full_name              = iter->first + "." + iter2->first;
                     check_test_case_passed = run_cases_.end() != run_cases_.find(full_name);
                 }
             }
@@ -183,7 +195,7 @@ test_manager &test_manager::me() {
 
 std::string test_manager::get_expire_time(clock_t begin, clock_t end) {
     std::stringstream ss;
-    double ms = 1000.0 * (end - begin) / CLOCKS_PER_SEC;
+    double            ms = 1000.0 * (end - begin) / CLOCKS_PER_SEC;
 
     ss << ms << " ms";
 
@@ -192,9 +204,9 @@ std::string test_manager::get_expire_time(clock_t begin, clock_t end) {
 
 int run_tests(int argc, char *argv[]) {
     std::vector<std::string> run_cases;
-    const char *version = "1.0.0";
-    bool is_help = false;
-    bool is_show_version = false;
+    const char *             version         = "1.0.0";
+    bool                     is_help         = false;
+    bool                     is_show_version = false;
 
     util::cli::cmd_option::ptr_type cmd_opts = util::cli::cmd_option::create();
     cmd_opts->bind_cmd("-h, --help, help", util::cli::phoenix::set_const(is_help, true))

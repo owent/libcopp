@@ -211,6 +211,8 @@ CASE_TEST(coroutine_task_manager, protect_this_task) {
 
 static util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
 
+static const int test_context_task_manager_action_mt_run_times = 10000;
+enum { test_context_task_manager_action_mt_thread_num = 1000 };
 
 struct test_context_task_manager_action_mt_thread : public cotask::impl::task_action_impl {
 public:
@@ -218,7 +220,7 @@ public:
         assert(run_count_p);
         int *run_count = reinterpret_cast<int *>(run_count_p);
 
-        while (*run_count < 10000) {
+        while (*run_count < test_context_task_manager_action_mt_run_times) {
             ++(*run_count);
             ++g_test_coroutine_task_manager_atomic;
 
@@ -249,7 +251,7 @@ struct test_context_task_manager_mt_thread_runner {
             task_mgr->resume(task_id, &run_count);
         }
 
-        CASE_EXPECT_EQ(10000, run_count);
+        CASE_EXPECT_EQ(test_context_task_manager_action_mt_run_times, run_count);
         return 0;
     }
 };
@@ -260,16 +262,17 @@ CASE_TEST(coroutine_task_manager, create_and_run_mt) {
 
     g_test_coroutine_task_manager_atomic.store(0);
 
-    std::unique_ptr<std::thread> thds[1000];
-    for (int i = 0; i < 1000; ++i) {
+    std::unique_ptr<std::thread> thds[test_context_task_manager_action_mt_thread_num];
+    for (int i = 0; i < test_context_task_manager_action_mt_thread_num; ++i) {
         thds[i].reset(new std::thread(test_context_task_manager_mt_thread_runner(task_mgr)));
     }
 
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < test_context_task_manager_action_mt_thread_num; ++i) {
         thds[i]->join();
     }
 
-    CASE_EXPECT_EQ(10000000, g_test_coroutine_task_manager_atomic.load());
+    CASE_EXPECT_EQ(test_context_task_manager_action_mt_run_times * test_context_task_manager_action_mt_thread_num,
+                   g_test_coroutine_task_manager_atomic.load());
 }
 
 #endif

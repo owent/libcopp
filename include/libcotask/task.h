@@ -50,7 +50,7 @@ namespace cotask {
          * @brief constuctor
          * @note should not be called directly
          */
-        task() : action_destroy_fn_(UTIL_CONFIG_NULLPTR) {
+        task(size_t stack_size) : stack_size_(stack_size), action_destroy_fn_(UTIL_CONFIG_NULLPTR) {
             id_allocator_t id_alloc_;
             id_ = id_alloc_.allocate();
             ref_count_.store(0);
@@ -96,7 +96,7 @@ namespace cotask {
             void *task_addr   = sub_buffer_offset(action_addr, task_size);
 
             // placement new task
-            ptr_t ret(new (task_addr) self_t());
+            ptr_t ret(new (task_addr) self_t(stack_size));
             if (!ret) {
                 return ret;
             }
@@ -221,58 +221,6 @@ namespace cotask {
         }
 #endif
 
-
-        /**
-         * @brief await another cotask to finish
-         * @note please not to make tasks refer to each other. [it will lead to memory leak]
-         * @note [don't do that] ptr_t a = ..., b = ...; a.await(b); b.await(a);
-         * @param wait_task which stack to wait for
-         * @return 0 or error code
-         */
-        inline int await(ptr_t wait_task) {
-            if (!wait_task) {
-                return copp::COPP_EC_ARGS_ERROR;
-            }
-
-            if (this == wait_task.get()) {
-                return copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF;
-            }
-
-            // if target is exiting or completed, just return
-            if (wait_task->is_exiting() || wait_task->is_completed()) {
-                return copp::COPP_EC_TASK_IS_EXITING;
-            }
-
-            if (is_exiting()) {
-                return copp::COPP_EC_TASK_IS_EXITING;
-            }
-
-            if (this_task() != this) {
-                return copp::COPP_EC_TASK_NOT_IN_ACTION;
-            }
-
-            // add to next list failed
-            if (wait_task->next(ptr_t(this)).get() != this) {
-                return copp::COPP_EC_TASK_ADD_NEXT_FAILED;
-            }
-
-            int ret = 0;
-            while (!(wait_task->is_exiting() || wait_task->is_completed())) {
-                if (is_exiting()) {
-                    return copp::COPP_EC_TASK_IS_EXITING;
-                }
-
-                ret = yield();
-            }
-
-            return ret;
-        }
-
-        template <typename TTask>
-        inline int await(TTask *wait_task) {
-            return await(ptr_t(wait_task));
-        }
-
         /**
          * @brief add next task to run when task finished
          * @note please not to make tasks refer to each other. [it will lead to memory leak]
@@ -283,13 +231,20 @@ namespace cotask {
          */
         inline ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) {
             // can not refers to self
-            if (this == next_task.get()) {
+            if (this == next_task.get() || !next_task) {
                 return ptr_t(this);
             }
 
             // can not add next task when finished
-            if (is_exiting()) {
-                return ptr_t(this);
+            if (is_exiting() || is_completed()) {
+                // run next task immedialy
+                EN_TASK_STATUS next_task_status = next_task->get_status();
+                if (EN_TS_CREATED == next_task_status) {
+                    next_task->start(priv_data);
+                } else if (EN_TS_WAITING == next_task_status) {
+                    next_task->resume(priv_data);
+                }
+                return next_task;
             }
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
@@ -372,6 +327,107 @@ namespace cotask {
                           void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(func, instance, alloc, stack_size, private_buffer_size), priv_data);
         }
+
+        /**
+         * @brief await another cotask to finish
+         * @note please not to make tasks refer to each other. [it will lead to memory leak]
+         * @note [don't do that] ptr_t a = ..., b = ...; a.await(b); b.await(a);
+         * @param wait_task which stack to wait for
+         * @return 0 or error code
+         */
+        inline int await(ptr_t wait_task) {
+            if (!wait_task) {
+                return copp::COPP_EC_ARGS_ERROR;
+            }
+
+            if (this == wait_task.get()) {
+                return copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF;
+            }
+
+            // if target is exiting or completed, just return
+            if (wait_task->is_exiting() || wait_task->is_completed()) {
+                return copp::COPP_EC_TASK_IS_EXITING;
+            }
+
+            if (is_exiting()) {
+                return copp::COPP_EC_TASK_IS_EXITING;
+            }
+
+            if (this_task() != this) {
+                return copp::COPP_EC_TASK_NOT_IN_ACTION;
+            }
+
+            // add to next list failed
+            if (wait_task->next(ptr_t(this)).get() != this) {
+                return copp::COPP_EC_TASK_ADD_NEXT_FAILED;
+            }
+
+            int ret = 0;
+            while (!(wait_task->is_exiting() || wait_task->is_completed())) {
+                if (is_exiting()) {
+                    return copp::COPP_EC_TASK_IS_EXITING;
+                }
+
+                ret = yield();
+            }
+
+            return ret;
+        }
+
+        template <typename TTask>
+        inline int await(TTask *wait_task) {
+            return await(ptr_t(wait_task));
+        }
+
+        /**
+         * @brief add task to run when task finished
+         * @note please not to make tasks refer to each other. [it will lead to memory leak]
+         * @note [don't do that] ptr_t a = ..., b = ...; a.then(b); b.then(a);
+         * @param next_task then stack
+         * @param priv_data priv_data passed to resume or start the stack
+         * @return next_task if success , or self if failed
+         */
+        inline ptr_t then(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) { return next(next_task, priv_data); }
+
+        /**
+         * @brief create next task with functor using the same allocator and private buffer size as this task
+         * @see next
+         * @param functor
+         * @param priv_data priv_data passed to start functor
+         * @return the created task if success , or self if failed
+         */
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        template <typename Ty>
+        inline ptr_t then(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR) {
+            if (!coroutine_obj_) {
+                then(create(std::forward<Ty>(functor), stack_size_, get_private_buffer_size()), priv_data);
+            }
+
+            return then(create(std::forward<Ty>(functor), coroutine_obj_->get_allocator(), stack_size_, get_private_buffer_size()),
+                        priv_data);
+        }
+#else
+        template <typename Ty>
+        inline ptr_t then(const Ty &functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = 0, size_t private_buffer_size = 0) {
+            if (!coroutine_obj_) {
+                return then(create(std::forward<Ty>(functor), stack_size_, get_private_buffer_size()), priv_data);
+            }
+
+            return then(create(std::forward<Ty>(functor), coroutine_obj_->get_allocator(), stack_size_, get_private_buffer_size()),
+                        priv_data);
+        }
+#endif
+
+        template <typename Ty>
+        inline ptr_t then(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR) {
+            if (!coroutine_obj_) {
+                return then(create(func, stack_size_, get_private_buffer_size()), priv_data);
+            }
+
+            return then(create(func, coroutine_obj_->get_allocator(), stack_size_, get_private_buffer_size()), priv_data);
+        }
+
 
         /**
          * get current running task and convert to task object
@@ -628,6 +684,7 @@ namespace cotask {
 
     private:
         id_t                        id_;
+        size_t                      stack_size_;
         typename coroutine_t::ptr_t coroutine_obj_;
         task_group                  next_list_;
 

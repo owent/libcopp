@@ -6,8 +6,10 @@
 
 #include <libcopp/utils/std/smart_ptr.h>
 
-#include "frame/test_macros.h"
+#include <libcopp/stack/stack_pool.h>
 #include <libcotask/task.h>
+
+#include "frame/test_macros.h"
 
 static int g_test_coroutine_task_status      = 0;
 static int g_test_coroutine_task_on_finished = 0;
@@ -313,12 +315,15 @@ struct test_context_task_next_action : public cotask::impl::task_action_impl {
         g_test_coroutine_task_status = set_;
 
         CASE_EXPECT_EQ(copp::COPP_EC_IS_RUNNING, cotask::this_task::get_task()->start());
+
+        ++g_test_coroutine_task_on_finished;
         return 0;
     }
 };
 
 CASE_TEST(coroutine_task, next) {
     typedef cotask::task<>::ptr_t task_ptr_type;
+    g_test_coroutine_task_status = 0;
 
     task_ptr_type co_task = cotask::task<>::create(test_context_task_next_action(15, 0));
     co_task->next(test_context_task_next_action(7, 15))
@@ -326,8 +331,6 @@ CASE_TEST(coroutine_task, next) {
         ->next(test_context_task_next_action(1023, 99))
         ->next(test_context_task_next_action(5, 1023));
 
-
-    g_test_coroutine_task_status = 0;
     CASE_EXPECT_EQ(0, co_task->start());
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
 
@@ -521,6 +524,69 @@ CASE_TEST(coroutine_task, await) {
         CASE_EXPECT_TRUE(co_task_1->is_exiting());
         CASE_EXPECT_TRUE(co_task_2->is_exiting());
     }
+}
+
+static int test_context_task_then_action_func(void *priv_data) {
+    CASE_EXPECT_EQ(&g_test_coroutine_task_status, priv_data);
+    ++g_test_coroutine_task_on_finished;
+    return 0;
+}
+
+CASE_TEST(coroutine_task, then) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    g_test_coroutine_task_status      = 0;
+    g_test_coroutine_task_on_finished = 0;
+
+    task_ptr_type co_task = cotask::task<>::create(test_context_task_next_action(15, 0));
+    co_task->then(test_context_task_next_action(7, 15))
+        ->then(test_context_task_next_action(99, 7))
+        ->then(test_context_task_next_action(1023, 99))
+        ->then(test_context_task_next_action(5, 1023));
+
+
+    CASE_EXPECT_EQ(0, co_task->start());
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
+
+    CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
+
+    CASE_EXPECT_TRUE(co_task->is_exiting());
+    CASE_EXPECT_TRUE(co_task->is_completed());
+
+    co_task->then(test_context_task_next_action(127, 5))->then(test_context_task_then_action_func, &g_test_coroutine_task_status);
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 127);
+    CASE_EXPECT_EQ(g_test_coroutine_task_on_finished, 7);
+}
+
+
+typedef copp::stack_pool<copp::allocator::stack_allocator_malloc> test_context_task_stack_pool_t;
+struct test_context_task_stack_pool_test_macro_coroutine {
+    typedef copp::allocator::stack_allocator_pool<test_context_task_stack_pool_t> stack_allocator_t;
+
+    typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
+};
+
+typedef cotask::task<test_context_task_stack_pool_test_macro_coroutine> test_context_task_stack_pool_test_task_t;
+
+CASE_TEST(coroutine_task, then_with_stack_pool) {
+    typedef test_context_task_stack_pool_test_task_t::ptr_t task_ptr_type;
+    test_context_task_stack_pool_t::ptr_t                   stack_pool = test_context_task_stack_pool_t::create();
+
+    g_test_coroutine_task_on_finished = 0;
+    g_test_coroutine_task_status      = 0;
+
+    copp::allocator::stack_allocator_pool<test_context_task_stack_pool_t> base_alloc(stack_pool);
+    task_ptr_type tp = test_context_task_stack_pool_test_task_t::create(test_context_task_next_action(15, 0), base_alloc);
+    tp->then(test_context_task_next_action(127, 15))->then(test_context_task_then_action_func, &g_test_coroutine_task_status);
+
+    CASE_EXPECT_EQ(3, stack_pool->get_limit().used_stack_number);
+    tp->start();
+    CASE_EXPECT_EQ(1, stack_pool->get_limit().used_stack_number);
+
+    tp->then(test_context_task_next_action(255, 127))->then(test_context_task_then_action_func, &g_test_coroutine_task_status);
+
+    CASE_EXPECT_EQ(1, stack_pool->get_limit().used_stack_number);
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 255);
+    CASE_EXPECT_EQ(g_test_coroutine_task_on_finished, 5);
 }
 
 #endif
