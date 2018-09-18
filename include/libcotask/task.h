@@ -335,7 +335,7 @@ namespace cotask {
          * @param wait_task which stack to wait for
          * @return 0 or error code
          */
-        inline int await(ptr_t wait_task) {
+        inline int await(const ptr_t &wait_task) {
             if (!wait_task) {
                 return copp::COPP_EC_ARGS_ERROR;
             }
