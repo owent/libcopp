@@ -116,13 +116,13 @@ LIBCOPP_PREFIX=<WHERE TO INSTALL libcopp>
 # Example command for build sample with gcc 4.9 or upper on Linux
 for source in sample_readme_*.cpp; do
     g++ -std=c++14 -O2 -g -ggdb -Wall -Werror -fPIC -rdynamic -fdiagnostics-color=auto -Wno-unused-local-typedefs \
-        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib -lcopp -lcotask $source -o $source.exe;
+        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib64 -lcopp -lcotask $source -o $source.exe;
 done
 
 # Example command for build sample with clang 3.9 or upper and libc++ on Linux
 for source in sample_readme_*.cpp; do
     clang++ -std=c++17 -stdlib=libc++ -O2 -g -ggdb -Wall -Werror -fPIC -rdynamic        \
-        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib -lcopp -lcotask -lc++ -lc++abi  \
+        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib64 -lcopp -lcotask -lc++ -lc++abi  \
         $source -o $source.exe;
 done
 
