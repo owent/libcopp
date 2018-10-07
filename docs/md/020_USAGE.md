@@ -2,7 +2,36 @@
 USAGE
 =====
 
-> Just include headers and linking library file of your platform to use libcopp
+Just include headers and linking library file of your platform to use libcopp.
+
+```bash
+LIBCOPP_PREFIX=<WHERE TO INSTALL libcopp>
+
+# Example command for build sample with gcc 4.9 or upper on Linux
+for source in sample_readme_*.cpp; do
+    g++ -std=c++14 -O2 -g -ggdb -Wall -Werror -fPIC -rdynamic -fdiagnostics-color=auto -Wno-unused-local-typedefs \
+        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib -lcopp -lcotask $source -o $source.exe;
+done
+
+# Example command for build sample with clang 3.9 or upper and libc++ on Linux
+for source in sample_readme_*.cpp; do
+    clang++ -std=c++17 -stdlib=libc++ -O2 -g -ggdb -Wall -Werror -fPIC -rdynamic        \
+        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib -lcopp -lcotask -lc++ -lc++abi  \
+        $source -o $source.exe;
+done
+
+# AppleClang on macOS just like those scripts upper.
+# If you are using MinGW on Windows, it's better to add -static-libstdc++ -static-libgcc to 
+#     use static linking and other scripts are just like those on Linux.
+
+```
+
+```powershell
+# Example command for build sample with MSVC 1914 or upper on Windows & powershell(Debug Mode /MDd)
+foreach ($source in Get-ChildItem -File -Name .\sample_readme_*.cpp) {
+    cl /nologo /MP /W4 /wd"4100" /wd"4125" /EHsc /std:c++17 /Zc:__cplusplus /O2 /MDd /I$LIBCOPP_PREFIX/include $LIBCOPP_PREFIX/lib64/copp.lib $LIBCOPP_PREFIX/lib64/cotask.lib $source
+}
+```
 
 Get Start & Example
 -------
