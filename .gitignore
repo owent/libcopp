@@ -19,6 +19,7 @@
 # generated docs
 doc/doxygen/*
 docs/doxygen/*
+docs/libcopp.doxyfile
 
 # IDE & Editors
 /.vscode

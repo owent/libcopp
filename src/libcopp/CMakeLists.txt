@@ -7,7 +7,7 @@ EchoWithColor(COLOR GREEN "-- Configure libcopp")
 source_group_by_dir(COPP_SRC_LIST)
 
 if (LIBCOPP_FCONTEXT_USE_TSX)
-    add_compiler_define(COPP_FCONTEXT_USE_TSX=1)
+    add_compiler_define(LIBCOPP_FCONTEXT_USE_TSX=1)
 endif()
 
 add_library(${PROJECT_LIBCOPP_LIB_LINK} ${COPP_SRC_LIST})

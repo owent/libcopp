@@ -18,7 +18,7 @@
 // include manager header file
 #include <libcopp/coroutine/coroutine_context_container.h>
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 
 typedef copp::coroutine_context_container<copp::allocator::stack_allocator_split_segment> co_context_t;
 

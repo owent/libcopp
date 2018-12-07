@@ -24,7 +24,7 @@ static stack_pool_t::ptr_t global_stack_pool = stack_pool_t::create();
 typedef cotask::task<sample_macro_coroutine> sample_task_t;
 
 int main() {
-#if defined(COTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+#if defined(LIBCOTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
     global_stack_pool->set_min_stack_number(4);
     std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number

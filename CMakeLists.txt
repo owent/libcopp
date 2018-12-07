@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.7.0)
 
 enable_testing()
 
-project(libcopp)
+project(libcopp C CXX ASM)
+
+set(LIBCOPP_VERSION_MAJOR "1")
+set(LIBCOPP_VERSION_MINOR "1")
+set(LIBCOPP_VERSION_PATCH "0")
+set(LIBCOPP_VERSION "${LIBCOPP_VERSION_MAJOR}.${LIBCOPP_VERSION_MINOR}.${LIBCOPP_VERSION_PATCH}")
 
 ########################################################################
 # CMake 模块 (递归包含模块, 带颜色输出模块, 平台检测模块)
@@ -46,6 +51,10 @@ else()
     unset(PROJECT_DISABLE_MT)
 endif()
 
+if (LIBCOTASK_ENABLE)
+    set(LIBCOTASK_MACRO_ENABLED 1)
+endif ()
+
 configure_file(
     "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h.in"
     "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
@@ -71,3 +80,36 @@ if(PROJECT_ENABLE_UNITTEST)
     add_custom_target(run_test)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/test")
 endif()
+
+
+## 生成文档和导入配置
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile.in" "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile"
+    @ONLY
+    NEWLINE_STYLE CRLF
+)
+
+include(CMakePackageConfigHelpers)
+set(INCLUDE_INSTALL_DIR include)
+set(LIB_INSTALL_DIR "lib${PLATFORM_SUFFIX}")
+
+file(MAKE_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake")
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LibcoppConfig.cmake.in"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfig.cmake"
+    INSTALL_DESTINATION "lib${PLATFORM_SUFFIX}/cmake"
+    PATH_VARS LIBCOPP_VERSION INCLUDE_INSTALL_DIR LIB_INSTALL_DIR PROJECT_SOURCE_DIR
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+write_basic_package_version_file(
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfigVersion.cmake"
+    VERSION ${LIBCOPP_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfig.cmake" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfigVersion.cmake"
+    DESTINATION "lib${PLATFORM_SUFFIX}/cmake"
+)

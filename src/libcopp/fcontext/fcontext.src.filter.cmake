@@ -9,7 +9,7 @@ set (PROJECT_LIBCOPP_FCONTEXT_BIN_NAME_ONTOP "fcontext_ontop.o")
 
 if (LIBCOPP_FCONTEXT_USE_TSX)
 	EchoWithColor(COLOR GREEN "-- enable Intel Transactional Synchronisation Extensions (TSX).")
-	set(COPP_FCONTEXT_USE_TSX 1)
+	set(LIBCOPP_FCONTEXT_USE_TSX 1)
 endif()
 
 # ========== set platform, abi, binary format and as tool ==========

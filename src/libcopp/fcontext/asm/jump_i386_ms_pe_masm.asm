@@ -28,7 +28,7 @@ copp_jump_fcontext PROC EXPORT
     ; prepare stack
     lea  esp, [esp-02ch]
 
-IFNDEF COPP_FCONTEXT_USE_TSX
+IFNDEF LIBCOPP_FCONTEXT_USE_TSX
     ; save MMX control- and status-word
     stmxcsr  [esp]
     ; save x87 control-word
@@ -69,7 +69,7 @@ ENDIF
     ; restore ESP (pointing to context-data) from ECX
     mov  esp, ecx
 
-IFNDEF COPP_FCONTEXT_USE_TSX
+IFNDEF LIBCOPP_FCONTEXT_USE_TSX
     ; restore MMX control- and status-word
     ldmxcsr  [esp]
     ; restore x87 control-word

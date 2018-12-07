@@ -30,7 +30,7 @@
 _copp_ontop_fcontext:
     leal  -0x18(%esp), %esp  /* prepare stack */
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     stmxcsr  (%esp)     /* save MMX control- and status-word */
     fnstcw   0x4(%esp)  /* save x87 control-word */
 #endif
@@ -65,7 +65,7 @@ _copp_ontop_fcontext:
     movl  %ecx, %eax
     /* returned data is stored in EDX */
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     ldmxcsr  (%esp)     /* restore MMX control- and status-word */
     fldcw    0x4(%esp)  /* restore x87 control-word */
 #endif

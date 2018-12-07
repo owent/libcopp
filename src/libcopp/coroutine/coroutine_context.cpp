@@ -13,7 +13,7 @@
 
 #endif
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
 void __splitstack_getcontext(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
@@ -68,7 +68,7 @@ namespace copp {
                                                                   caller_(UTIL_CONFIG_NULLPTR),
                                                                   callee_(UTIL_CONFIG_NULLPTR),
                                                                   callee_stack_(),
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
                                                                   caller_stack_(),
 #endif
                                                                   status_(status_t::EN_CRS_INVALID) {
@@ -159,7 +159,7 @@ namespace copp {
         jump_data.to_co = this;
         jump_data.priv_data = priv_data;
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
         jump_to(callee_, caller_stack_, callee_stack_, jump_data);
 #else
         jump_to(callee_, callee_stack_, callee_stack_, jump_data);
@@ -212,7 +212,7 @@ namespace copp {
         jump_data.to_co = UTIL_CONFIG_NULLPTR;
 
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
         jump_to(caller_, callee_stack_, caller_stack_, jump_data);
 #else
         jump_to(caller_, callee_stack_, callee_stack_, jump_data);
@@ -279,7 +279,7 @@ namespace copp {
         // can not use any more stack now
         // can not initialize those vars here
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
         assert(&from_sctx != &to_sctx);
         // ROOT->A: jump_transfer.from_co == NULL, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup segments
         // A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments

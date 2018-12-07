@@ -6,7 +6,7 @@
 #include <libcopp/stack/allocator/stack_allocator_split_segment.h>
 
 #include "frame/test_macros.h"
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 
 typedef copp::coroutine_context_container<copp::allocator::stack_allocator_split_segment> test_split_segment_context;
 

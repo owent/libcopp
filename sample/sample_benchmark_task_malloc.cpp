@@ -19,7 +19,7 @@
 // include manager header file
 #include <libcotask/task.h>
 
-#ifdef COTASK_MACRO_ENABLED
+#ifdef LIBCOTASK_MACRO_ENABLED
 
 #if defined(PROJECT_LIBCOPP_SAMPLE_HAS_CHRONO) && PROJECT_LIBCOPP_SAMPLE_HAS_CHRONO
 #include <chrono>

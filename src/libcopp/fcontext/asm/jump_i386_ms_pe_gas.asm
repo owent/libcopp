@@ -32,7 +32,7 @@ _copp_jump_fcontext:
     /* prepare stack */
     leal  -0x2c(%esp), %esp
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     /* save MMX control- and status-word */
     stmxcsr  (%esp)
     /* save x87 control-word */
@@ -71,7 +71,7 @@ _copp_jump_fcontext:
     /* restore ESP (pointing to context-data) from ECX */
     movl  %ecx, %esp
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     /* restore MMX control- and status-word */
     ldmxcsr  (%esp)
     /* restore x87 control-word */

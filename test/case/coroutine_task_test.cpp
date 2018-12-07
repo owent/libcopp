@@ -1,4 +1,4 @@
-#ifdef COTASK_MACRO_ENABLED
+#ifdef LIBCOTASK_MACRO_ENABLED
 
 #include <cstdio>
 #include <cstring>

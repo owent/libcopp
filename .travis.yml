@@ -4,9 +4,9 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://cmake.org/files/v3.11/cmake-3.11.0-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://cmake.org/files/v3.13/cmake-3.13.1-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
-    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.1.3/pandoc-2.1.3-linux.tar.gz
+    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.5/pandoc-2.5-linux.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
     - DOXYGEN_LINUX_URL=http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.14.linux.bin.tar.gz
 matrix:
@@ -46,7 +46,6 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=gcc-7 USE_CXX=g++-7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       env: USE_CC=gcc-8 USE_CXX=g++-8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
@@ -60,7 +59,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc DOXYGEN_BIN=doxygen # DOXYGEN_BIN=$DOXYGEN_PREFIX/bin/doxygen
+      env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc DOXYGEN_BIN=doxygen CMAKE_BIN=$CMAKE_PREFIX/bin/cmake # DOXYGEN_BIN=$DOXYGEN_PREFIX/bin/doxygen
       addons:
         apt:
           sources:
@@ -70,8 +69,12 @@ matrix:
             - graphviz
             - doxygen
       script:
-        - sudo apt-get install -f
-        - cd "docs";
+        - sudo apt-get install -f ;
+        - REPO_DIR=$PWD ;
+        - mkdir -p $REPO_DIR/build_for_doxygen && cd $REPO_DIR/build_for_doxygen ;
+        - echo "$CMAKE_BIN .. -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON" ;
+        - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
+        - cd "$REPO_DIR/docs";
         - if [ "doxygen" != "$DOXYGEN_BIN" ] && [ ! -e "$DOXYGEN_BIN" ]; then
 
             mkdir -p "$DOXYGEN_PREFIX";
@@ -139,7 +142,7 @@ before_install:
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
 
 install:
-    - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$USE_CC" != "doxygen" ] ; then
+    - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
     
           if [ ! -e "$CMAKE_BIN" ]; then
 
@@ -160,13 +163,13 @@ script:
     - export CXX=$USE_CXX
     - REPO_DIR=$PWD ;
     - mkdir -p $REPO_DIR/build && cd $REPO_DIR/build ;
-    - echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
+    - echo "$CMAKE_BIN ..  -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX" ;
     - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
     - $CMAKE_BIN --build . ;
     - echo "============================== run in thread-safe mode ==============================" ;
     - make run_sample run_test benchmark ;
     - rm -rf * ;
-    - echo "$CMAKE_BIN .. -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON" ;
+    - echo "$CMAKE_BIN ..  -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON" ;
     - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON ;
     - echo "============================== run in thread-unsafe mode ==============================" ;
     - make benchmark ;

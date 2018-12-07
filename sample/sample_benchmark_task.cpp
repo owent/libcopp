@@ -19,7 +19,7 @@
 // include manager header file
 #include <libcotask/task.h>
 
-#ifdef COTASK_MACRO_ENABLED
+#ifdef LIBCOTASK_MACRO_ENABLED
 
 #if defined(PROJECT_LIBCOPP_SAMPLE_HAS_CHRONO) && PROJECT_LIBCOPP_SAMPLE_HAS_CHRONO
 #include <chrono>
@@ -52,9 +52,9 @@ static int my_task_action(void *) {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef COPP_MACRO_SYS_POSIX
+#ifdef LIBCOPP_MACRO_SYS_POSIX
     puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
-#elif defined(COPP_MACRO_SYS_WIN)
+#elif defined(LIBCOPP_MACRO_SYS_WIN)
     puts("###################### context coroutine (stack using default allocator[VirtualAlloc]) ###################");
 #else
     puts("###################### context coroutine (stack using default allocator ###################");

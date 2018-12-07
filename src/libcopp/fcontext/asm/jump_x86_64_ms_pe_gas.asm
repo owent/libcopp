@@ -97,7 +97,7 @@ copp_jump_fcontext:
 
     leaq  -0x118(%rsp), %rsp /* prepare stack */
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     /* save XMM storage */
     movaps  %xmm6, 0x0(%rsp)
     movaps  %xmm7, 0x10(%rsp)
@@ -145,7 +145,7 @@ copp_jump_fcontext:
     /* restore RSP (pointing to context-data) from RDX */
     movq  %rdx, %rsp
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     /* restore XMM storage */
     movaps  0x0(%rsp), %xmm6
     movaps  0x10(%rsp), %xmm7

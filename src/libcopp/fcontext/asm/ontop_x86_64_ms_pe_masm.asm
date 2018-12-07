@@ -90,7 +90,7 @@ copp_ontop_fcontext PROC EXPORT FRAME
     ; prepare stack
     lea rsp, [rsp-0118h]
 
-IFNDEF COPP_FCONTEXT_USE_TSX
+IFNDEF LIBCOPP_FCONTEXT_USE_TSX
     ; save XMM storage
     movaps  [rsp], xmm6
     movaps  [rsp+010h], xmm7
@@ -140,7 +140,7 @@ ENDIF
     ; restore RSP (pointing to context-data) from RDX
     mov  rsp, rdx
 
-IFNDEF COPP_FCONTEXT_USE_TSX
+IFNDEF LIBCOPP_FCONTEXT_USE_TSX
     ; restore XMM storage
     movaps  xmm6, [rsp]
     movaps  xmm7, [rsp+010h]

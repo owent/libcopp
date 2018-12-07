@@ -14,7 +14,7 @@ extern "C" {
 #include "libcopp/stack/stack_traits.h"
 
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
 void *__splitstack_makecontext(std::size_t, void * [COPP_MACRO_SEGMENTED_STACK_NUMBER], std::size_t *);
 

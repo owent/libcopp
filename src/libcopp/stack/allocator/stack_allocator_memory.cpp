@@ -8,7 +8,7 @@
 #include "libcopp/stack/stack_context.h"
 #include "libcopp/stack/stack_traits.h"
 
-#if defined(COPP_MACRO_USE_VALGRIND)
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
 #include <valgrind/valgrind.h>
 #endif
 
@@ -90,7 +90,7 @@ namespace copp {
             ctx.size = size_;
             ctx.sp   = static_cast<char *>(start_ptr_) + ctx.size; // stack down
 
-#if defined(COPP_MACRO_USE_VALGRIND)
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
             ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, start_ptr_);
 #endif
             is_used_ = true;
@@ -101,7 +101,7 @@ namespace copp {
             assert(stack_traits::minimum_size() <= ctx.size);
             assert(stack_traits::is_unbounded() || (stack_traits::maximum_size() >= ctx.size));
 
-#if defined(COPP_MACRO_USE_VALGRIND)
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
             VALGRIND_STACK_DEREGISTER(ctx.valgrind_stack_id);
 #endif
             is_used_ = false;

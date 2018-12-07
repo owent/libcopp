@@ -34,7 +34,7 @@ copp_ontop_fcontext:
 
     leaq  -0x38(%rsp), %rsp /* prepare stack */
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     stmxcsr  (%rsp)     /* save MMX control- and status-word */
     fnstcw   0x4(%rsp)  /* save x87 control-word */
 #endif
@@ -52,7 +52,7 @@ copp_ontop_fcontext:
     /* restore RSP (pointing to context-data) from RDI */
     movq  %rdi, %rsp
 
-#if !defined(COPP_FCONTEXT_USE_TSX)
+#if !defined(LIBCOPP_FCONTEXT_USE_TSX)
     ldmxcsr  (%rsp)     /* restore MMX control- and status-word */
     fldcw    0x4(%rsp)  /* restore x87 control-word */
 #endif

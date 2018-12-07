@@ -323,7 +323,7 @@ This is a simple example of using ```then``` and ```await``` for cotask:
 // include manager header file
 #include <libcotask/task.h>
 
-#if defined(COTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+#if defined(LIBCOTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
 typedef cotask::task<> my_task_t;
 

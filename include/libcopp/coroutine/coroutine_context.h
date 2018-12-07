@@ -13,7 +13,7 @@
 #include <libcopp/utils/std/functional.h>
 #include <libcopp/utils/std/smart_ptr.h>
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 #define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type) using base_type::caller_stack_;
 #else
 #define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
@@ -33,7 +33,7 @@ namespace copp {
     class coroutine_context : utils::non_copyable {
     public:
         typedef std::intrusive_ptr<coroutine_context> ptr_t;
-        typedef std::function<int(void *)> callback_t;
+        typedef std::function<int(void *)>            callback_t;
 
         /**
          * @brief status of safe coroutine context base
@@ -50,23 +50,23 @@ namespace copp {
 
         struct flag_t {
             enum type {
-                EN_CFT_UNKNOWN = 0,
+                EN_CFT_UNKNOWN  = 0,
                 EN_CFT_FINISHED = 0x01,
-                EN_CFT_MASK = 0xFF,
+                EN_CFT_MASK     = 0xFF,
             };
         };
 
     private:
-        int runner_ret_code_; /** coroutine return code **/
-        int flags_;           /** flags **/
-        callback_t runner_;   /** coroutine runner **/
-        void *priv_data_;
-        size_t private_buffer_size_;
+        int        runner_ret_code_; /** coroutine return code **/
+        int        flags_;           /** flags **/
+        callback_t runner_;          /** coroutine runner **/
+        void *     priv_data_;
+        size_t     private_buffer_size_;
 
         struct jump_src_data_t {
             coroutine_context *from_co;
             coroutine_context *to_co;
-            void *priv_data;
+            void *             priv_data;
         };
 
     protected:
@@ -74,7 +74,7 @@ namespace copp {
         fcontext::fcontext_t callee_; /** callee runtime context **/
 
         stack_context callee_stack_; /** callee stack context **/
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
         stack_context caller_stack_; /** caller stack context **/
 #endif
 
@@ -172,7 +172,7 @@ namespace copp {
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         int set_runner(callback_t &&runner);
 #else
-        int set_runner(const callback_t &runner);
+        int                              set_runner(const callback_t &runner);
 #endif
 
         /**

@@ -48,9 +48,9 @@ static int my_runner(void *) {
 int                                     max_coroutine_number = 100000; // 协程数量
 copp::coroutine_context_default::ptr_t *co_arr               = NULL;
 int                                     main(int argc, char *argv[]) {
-#ifdef COPP_MACRO_SYS_POSIX
+#ifdef LIBCOPP_MACRO_SYS_POSIX
     puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
-#elif defined(COPP_MACRO_SYS_WIN)
+#elif defined(LIBCOPP_MACRO_SYS_WIN)
     puts("###################### context coroutine (stack using default allocator[VirtualAlloc]) ###################");
 #else
     puts("###################### context coroutine (stack using default allocator ###################");

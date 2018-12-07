@@ -2,25 +2,24 @@
 #define COPP_STACKCONTEXT_STACKCONTEXT_H
 
 
-# pragma once
+#pragma once
 
 #include <cstddef>
 
 #include <libcopp/utils/features.h>
 
-namespace copp { 
-    struct stack_context
-    {
+namespace copp {
+    struct stack_context {
         size_t size; /** @brief stack size **/
-        void* sp; /** @brief stack end pointer **/
+        void * sp;   /** @brief stack end pointer **/
 
-#ifdef COPP_MACRO_USE_SEGMENTED_STACKS
-        typedef void* segments_context_t[COPP_MACRO_SEGMENTED_STACK_NUMBER];
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
+        typedef void *     segments_context_t[COPP_MACRO_SEGMENTED_STACK_NUMBER];
         segments_context_t segments_ctx; /** @brief gcc split segment stack data **/
 #endif
 
-#ifdef COPP_MACRO_USE_VALGRIND
-        unsigned                valgrind_stack_id;
+#ifdef LIBCOPP_MACRO_USE_VALGRIND
+        unsigned valgrind_stack_id;
 #endif
 
         stack_context();
@@ -28,6 +27,6 @@ namespace copp {
 
         void reset();
     };
-}
+} // namespace copp
 
 #endif

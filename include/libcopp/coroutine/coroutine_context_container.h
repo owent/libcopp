@@ -22,12 +22,12 @@ namespace copp {
     template <typename TALLOC>
     class coroutine_context_container : public coroutine_context {
     public:
-        typedef coroutine_context coroutine_context_type;
-        typedef coroutine_context base_type;
-        typedef TALLOC allocator_type;
+        typedef coroutine_context                           coroutine_context_type;
+        typedef coroutine_context                           base_type;
+        typedef TALLOC                                      allocator_type;
         typedef coroutine_context_container<allocator_type> this_type;
-        typedef std::intrusive_ptr<this_type> ptr_t;
-        typedef coroutine_context::callback_t callback_t;
+        typedef std::intrusive_ptr<this_type>               ptr_t;
+        typedef coroutine_context::callback_t               callback_t;
 
         COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
 
@@ -75,7 +75,7 @@ namespace copp {
             }
 
             // padding to sizeof size_t
-            coroutine_size = align_address_size(coroutine_size);
+            coroutine_size               = align_address_size(coroutine_size);
             const size_t this_align_size = align_address_size(sizeof(this_type));
             coroutine_size += this_align_size;
             private_buffer_size = coroutine_context::align_private_data_size(private_buffer_size);
@@ -99,7 +99,7 @@ namespace copp {
 
             // callee_stack and alloc unavailable any more.
             if (ret) {
-                ret->alloc_ = COPP_MACRO_STD_MOVE(alloc);
+                ret->alloc_        = COPP_MACRO_STD_MOVE(alloc);
                 ret->callee_stack_ = COPP_MACRO_STD_MOVE(callee_stack);
             } else {
                 alloc.deallocate(callee_stack);
@@ -182,7 +182,7 @@ namespace copp {
             size_t left = --p->ref_count_;
             if (0 == left) {
                 allocator_type copy_alloc(COPP_MACRO_STD_MOVE(p->alloc_));
-                stack_context copy_stack(COPP_MACRO_STD_MOVE(p->callee_stack_));
+                stack_context  copy_stack(COPP_MACRO_STD_MOVE(p->callee_stack_));
 
                 // then destruct object and reset data
                 p->~coroutine_context_container();
