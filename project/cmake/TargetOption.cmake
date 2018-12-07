@@ -1,5 +1,7 @@
 ﻿# 设置实际的默认编译输出目录，为防止呗外部模块设置，所以要先判定一下
 
+set(CMAKE_INSTALL_LIBDIR "lib${PLATFORM_SUFFIX}" CACHE STRING "install for library dir")
+
 if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib${PLATFORM_SUFFIX}")
 endif()

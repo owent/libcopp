@@ -44,7 +44,7 @@ set(Libcopp_VERSION "@LIBCOPP_VERSION@")
 set(Libcopp_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 
 set_and_check(Libcopp_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
-set_and_check(Libcopp_LIBRARY_DIRS "@PACKAGE_LIB_INSTALL_DIR@")
+set_and_check(Libcopp_LIBRARY_DIRS "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
 
 # Normal search.

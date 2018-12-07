@@ -83,6 +83,10 @@ endif()
 
 
 ## 生成文档和导入配置
+
+# Install configuration
+set(CMAKE_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake" CACHE STRING "Directory relative to CMAKE_INSTALL to install the cmake configuration files")
+
 configure_file(
     "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile.in" "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile"
     @ONLY
@@ -91,15 +95,14 @@ configure_file(
 
 include(CMakePackageConfigHelpers)
 set(INCLUDE_INSTALL_DIR include)
-set(LIB_INSTALL_DIR "lib${PLATFORM_SUFFIX}")
 
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/share")
+file(MAKE_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake")
 
 configure_package_config_file(
     "${CMAKE_CURRENT_LIST_DIR}/libcopp-config.cmake.in"
     "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config.cmake"
-    INSTALL_DESTINATION share
-    PATH_VARS LIBCOPP_VERSION INCLUDE_INSTALL_DIR LIB_INSTALL_DIR PROJECT_SOURCE_DIR
+    INSTALL_DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
+    PATH_VARS LIBCOPP_VERSION INCLUDE_INSTALL_DIR CMAKE_INSTALL_LIBDIR PROJECT_SOURCE_DIR
     NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
@@ -111,5 +114,5 @@ write_basic_package_version_file(
 
 install(
     FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config.cmake" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config-version.cmake"
-    DESTINATION share
+    DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
 )
