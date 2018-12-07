@@ -93,23 +93,23 @@ include(CMakePackageConfigHelpers)
 set(INCLUDE_INSTALL_DIR include)
 set(LIB_INSTALL_DIR "lib${PLATFORM_SUFFIX}")
 
-file(MAKE_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake")
+file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/share")
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_LIST_DIR}/LibcoppConfig.cmake.in"
-    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfig.cmake"
-    INSTALL_DESTINATION "lib${PLATFORM_SUFFIX}/cmake"
+    "${CMAKE_CURRENT_LIST_DIR}/libcopp-config.cmake.in"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config.cmake"
+    INSTALL_DESTINATION share
     PATH_VARS LIBCOPP_VERSION INCLUDE_INSTALL_DIR LIB_INSTALL_DIR PROJECT_SOURCE_DIR
     NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
 write_basic_package_version_file(
-    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfigVersion.cmake"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config-version.cmake"
     VERSION ${LIBCOPP_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
 install(
-    FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfig.cmake" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/LibcoppConfigVersion.cmake"
-    DESTINATION "lib${PLATFORM_SUFFIX}/cmake"
+    FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config.cmake" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config-version.cmake"
+    DESTINATION share
 )
