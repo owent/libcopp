@@ -35,11 +35,11 @@ namespace util {
         std::string shell_font::GetStyleCode(int iFlag) {
             std::string ret;
             ret.reserve(32);
-            ret = "\033[";
+            ret         = "\033[";
             bool bFirst = true;
 
             // 第一部分，特殊样式
-            if (iFlag & shell_font_style::SHELL_FONT_SPEC_BOLD) {
+            if (shell_font_style::SHELL_FONT_SPEC_BOLD) {
                 ret += std::string((!bFirst) ? ";" : "") + "1";
                 bFirst = false;
             }
@@ -59,8 +59,8 @@ namespace util {
             // 前景色
             iFlag >>= 8;
             if (iFlag & 0xff) {
-                std::string base = "30";
-                int iStart = 0;
+                std::string base   = "30";
+                int         iStart = 0;
                 for (; iStart < 8 && !(iFlag & (1 << iStart)); ++iStart)
                     ;
                 if (iStart < 8) base[1] += static_cast<char>(iStart);
@@ -71,8 +71,8 @@ namespace util {
             // 背景色
             iFlag >>= 8;
             if (iFlag & 0xff) {
-                std::string base = "40";
-                int iStart = 0;
+                std::string base   = "40";
+                int         iStart = 0;
                 for (; iStart < 8 && !(iFlag & (1 << iStart)); ++iStart)
                     ;
                 if (iStart < 8) base[1] += static_cast<char>(iStart);
@@ -144,7 +144,7 @@ namespace util {
             std::string my_term_name;
 
 #ifdef _MSC_VER
-            char *term_name = NULL;
+            char * term_name     = NULL;
             size_t term_name_len = 0;
             _dupenv_s(&term_name, &term_name_len, "TERM");
 #else
@@ -184,29 +184,29 @@ namespace util {
         static std::map<int, WORD> &_get_flag_mapping() {
             static std::map<int, WORD> ret;
             if (ret.empty()) {
-                ret[shell_font_style::SHELL_FONT_SPEC_NULL] = 0;
-                ret[shell_font_style::SHELL_FONT_SPEC_BOLD] = COMMON_LVB_LEADING_BYTE;
+                ret[shell_font_style::SHELL_FONT_SPEC_NULL]      = 0;
+                ret[shell_font_style::SHELL_FONT_SPEC_BOLD]      = COMMON_LVB_LEADING_BYTE;
                 ret[shell_font_style::SHELL_FONT_SPEC_UNDERLINE] = COMMON_LVB_UNDERSCORE;
-                ret[shell_font_style::SHELL_FONT_SPEC_FLASH] = 0; // 不支持
-                ret[shell_font_style::SHELL_FONT_SPEC_DARK] = 0;  // 不支持
+                ret[shell_font_style::SHELL_FONT_SPEC_FLASH]     = 0; // 不支持
+                ret[shell_font_style::SHELL_FONT_SPEC_DARK]      = 0; // 不支持
 
-                ret[shell_font_style::SHELL_FONT_COLOR_BLACK] = 0;
-                ret[shell_font_style::SHELL_FONT_COLOR_RED] = FOREGROUND_RED | FOREGROUND_INTENSITY;
-                ret[shell_font_style::SHELL_FONT_COLOR_GREEN] = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-                ret[shell_font_style::SHELL_FONT_COLOR_YELLOW] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-                ret[shell_font_style::SHELL_FONT_COLOR_BLUE] = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                ret[shell_font_style::SHELL_FONT_COLOR_BLACK]   = 0;
+                ret[shell_font_style::SHELL_FONT_COLOR_RED]     = FOREGROUND_RED | FOREGROUND_INTENSITY;
+                ret[shell_font_style::SHELL_FONT_COLOR_GREEN]   = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+                ret[shell_font_style::SHELL_FONT_COLOR_YELLOW]  = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+                ret[shell_font_style::SHELL_FONT_COLOR_BLUE]    = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 ret[shell_font_style::SHELL_FONT_COLOR_MAGENTA] = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-                ret[shell_font_style::SHELL_FONT_COLOR_CYAN] = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                ret[shell_font_style::SHELL_FONT_COLOR_CYAN]    = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 ret[shell_font_style::SHELL_FONT_COLOR_WHITE] = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
 
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_BLACK] = 0;
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_RED] = BACKGROUND_RED;
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_GREEN] = BACKGROUND_GREEN;
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_YELLOW] = BACKGROUND_RED | BACKGROUND_GREEN;
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_BLUE] = BACKGROUND_BLUE;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_BLACK]   = 0;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_RED]     = BACKGROUND_RED;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_GREEN]   = BACKGROUND_GREEN;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_YELLOW]  = BACKGROUND_RED | BACKGROUND_GREEN;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_BLUE]    = BACKGROUND_BLUE;
                 ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_MAGENTA] = BACKGROUND_RED | BACKGROUND_BLUE;
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_CYAN] = BACKGROUND_BLUE | BACKGROUND_GREEN;
-                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_WHITE] = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_CYAN]    = BACKGROUND_BLUE | BACKGROUND_GREEN;
+                ret[shell_font_style::SHELL_FONT_BACKGROUND_COLOR_WHITE]   = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
             }
 
             return ret;
@@ -276,11 +276,11 @@ namespace util {
             if (NULL != hOsHandle) {
 
                 std::map<int, WORD> &color_map = _get_flag_mapping();
-                WORD style = 0;
-                int left_flag = flag;
+                WORD                 style     = 0;
+                int                  left_flag = flag;
 
                 while (left_flag) {
-                    int f = left_flag & (left_flag ^ (left_flag - 1));
+                    int                           f    = left_flag & (left_flag ^ (left_flag - 1));
                     std::map<int, WORD>::iterator iter = color_map.find(f);
                     if (iter != color_map.end()) {
                         style |= iter->second;
