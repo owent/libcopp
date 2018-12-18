@@ -1,10 +1,24 @@
 
 USAGE
-=====
+----------------
+
+### Using with cmake
+
+1. Add <WHERE TO INSTALL libcopp>/lib(64)/cmake to any of **CMAKE_PREFIX_PATH** 、 **CMAKE_FRAMEWORK_PATH** 、 **CMAKE_SYSTEM_PREFIX_PATH** 、 **CMAKE_SYSTEM_FRAMEWORK_PATH**
+2. Just add [find_package(Libcopp)](https://cmake.org/cmake/help/latest/command/find_package.html) to use libcopp module.
+~~~~~~~~~~cmake
+find_package(Libcopp CONFIG REQUIRED)
+target_include_directories(main PRIVATE ${Libcopp_INCLUDE_DIRS})
+target_link_libraries(main PRIVATE ${Libcotask_LIBRARIES} ${Libcopp_LIBRARIES})
+~~~~~~~~~~
+
+See more detail on https://github.com/Microsoft/vcpkg/tree/master/ports/libcopp .
+
+### Directly use headers and libraries
 
 Just include headers and linking library file of your platform to use libcopp.
 
-```bash
+~~~~~~~~~~bash
 LIBCOPP_PREFIX=<WHERE TO INSTALL libcopp>
 
 # Example command for build sample with gcc 4.9 or upper on Linux
@@ -24,19 +38,18 @@ done
 # If you are using MinGW on Windows, it's better to add -static-libstdc++ -static-libgcc to 
 #     use static linking and other scripts are just like those on Linux.
 
-```
+~~~~~~~~~~
 
-```powershell
+~~~~~~~~~~powershell
 # Example command for build sample with MSVC 1914 or upper on Windows & powershell(Debug Mode /MDd)
 foreach ($source in Get-ChildItem -File -Name .\sample_readme_*.cpp) {
     cl /nologo /MP /W4 /wd"4100" /wd"4125" /EHsc /std:c++17 /Zc:__cplusplus /O2 /MDd /I$LIBCOPP_PREFIX/include $LIBCOPP_PREFIX/lib64/copp.lib $LIBCOPP_PREFIX/lib64/cotask.lib $source
 }
-```
+~~~~~~~~~~
 
-Get Start & Example
--------
+### Get Start & Example
 
-### coroutine_context example
+#### coroutine_context example
 This is a simple example of using basic coroutine context below:
 
 ~~~~~~~~~~cpp
@@ -84,7 +97,7 @@ int main() {
 
 Also, you can use copp::coroutine_context_container<ALLOCATOR> instead of copp::coroutine_context_default to use a different stack allocator.
 
-### coroutine task example
+#### coroutine task example
 This is a simple example of using coroutine task with lambda expression:
 
 ~~~~~~~~~~cpp
@@ -121,7 +134,7 @@ int main(int argc, char *argv[]) {
 ~~~~~~~~~~
 Also, you can your stack allocator or id allocator by setting different parameters in template class **cotask::task<TCO_MACRO, TTASK_MACRO>**
 
-### using coroutine task manager
+#### using coroutine task manager
 This is a simple example of using task manager:
 
 ~~~~~~~~~~cpp
@@ -208,7 +221,7 @@ int main() {
 }
 ~~~~~~~~~~
 
-### using stack pool
+#### using stack pool
 This is a simple example of using stack pool for cotask:
 
 ~~~~~~~~~~cpp
@@ -307,7 +320,7 @@ int main() {
 }
 ~~~~~~~~~~
 
-### using then or await
+#### using then or await
 This is a simple example of using ```then``` and ```await``` for cotask:
 
 ~~~~~~~~~~cpp

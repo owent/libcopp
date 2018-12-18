@@ -1,10 +1,9 @@
 INSTALL
-=======
+----------------
 
 > libcopp use cmake to generate makefile and switch build tools.
 
-Prerequisites
--------------
+### Prerequisites
 
 -   **[required]** GCC or Clang or VC support ISO C++ 03 and upper
 -   **[required]** [cmake](www.cmake.org) 3.7.0 and upper
@@ -21,12 +20,29 @@ Prerequisites
 -   **[required]** masm (in vc)
 -   **[optional]** if using [gtest](https://code.google.com/p/googletest/), pthread is required.
 
-Build
------
+### Install with vcpkg
+
+**1. clone and setup vcpkg**(See more detail on https://github.com/Microsoft/vcpkg)
+~~~~~~~~~~bash
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+
+PS> .\bootstrap-vcpkg.bat
+Linux:~/$ ./bootstrap-vcpkg.sh
+~~~~~~~~~~
+
+**2. install libcopp**
+~~~~~~~~~~bash
+PS> .\vcpkg install libcopp
+Linux:~/$ ./vcpkg install libcopp
+~~~~~~~~~~
+
+
+### Custom Build
 
 **1. clone and make a build directory**
 ~~~~~~~~~~bash
-git clone --single-branch --depth=1 -b v2 https://github.com/owt5008137/libcopp.git 
+git clone --single-branch --depth=1 -b master https://github.com/owt5008137/libcopp.git 
 mkdir libcopp/build && cd libcopp/build
 ~~~~~~~~~~
 
@@ -58,7 +74,7 @@ cmake --build . --config RelWithDebInfo --target install # or make install when 
 
 > Or you can just copy include directory and libcopp.a in lib or lib64 into your project to use it.
 
-### CMake Options
+#### CMake Options
 Options can be cmake options. such as set compile toolchains, source directory or options of libcopp that control build actions. libcopp options are listed below:
 
 | Option  | Description |
