@@ -27,6 +27,37 @@ protected:                                           \
     COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
 namespace copp {
+
+    namespace details {
+        template <size_t N, bool BIGGER_THAN_16>
+        struct align_helper_inner;
+
+        template <size_t N>
+        struct align_helper_inner<N, true> {
+            static const size_t value = N;
+        };
+
+        template <size_t N>
+        struct align_helper_inner<N, false> {
+            static const size_t value = 16;
+        };
+
+        template <size_t N>
+        struct align_helper {
+            static const size_t value = align_helper_inner<N, N >= 16>::value;
+        };
+
+        // We should align to at least 16 bytes, @see https://wiki.osdev.org/System_V_ABI for more details
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
+    (defined(_MSC_VER) && _MSC_VER >= 1900)
+#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<sizeof(max_align_t)>::value
+#else
+#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(long double)>::value
+#endif
+
+        UTIL_CONFIG_STATIC_ASSERT(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16);
+    } // namespace details
+
     /**
      * @brief base type of all coroutine context
      */
@@ -222,14 +253,9 @@ namespace copp {
 
     public:
         static inline size_t align_private_data_size(size_t sz) {
-// static size_t random_index = 0;
-// UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
-    (defined(_MSC_VER) && _MSC_VER >= 1900)
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(max_align_t) - 1;
-#else
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
-#endif
+            // static size_t random_index = 0;
+            // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
 
             // align
             sz += align_mask;
@@ -243,12 +269,7 @@ namespace copp {
         }
 
         static inline size_t align_address_size(size_t sz) {
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
-    (defined(_MSC_VER) && _MSC_VER >= 1900)
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = sizeof(max_align_t) - 1;
-#else
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = 2 * sizeof(long double) - 1;
-#endif
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
 
             sz += align_mask;
             sz &= ~align_mask;
