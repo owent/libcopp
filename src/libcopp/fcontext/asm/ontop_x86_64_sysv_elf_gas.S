@@ -24,6 +24,7 @@
  *                                                                                      *
  ****************************************************************************************/
 
+.file "ontop_x86_64_sysv_elf_gas.S"
 .text
 .globl copp_ontop_fcontext
 .type copp_ontop_fcontext,@function

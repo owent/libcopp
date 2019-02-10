@@ -38,6 +38,7 @@
  *                                                     *
  *******************************************************/
 
+.file "ontop_arm_aapcs_elf_gas.S"
 .text
 .globl copp_ontop_fcontext
 .align 2

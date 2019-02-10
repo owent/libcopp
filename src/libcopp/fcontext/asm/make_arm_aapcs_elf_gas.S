@@ -38,6 +38,7 @@
  *                                                     *
  *******************************************************/
 
+.file "make_arm_aapcs_elf_gas.S"
 .text
 .globl copp_make_fcontext
 .align 2

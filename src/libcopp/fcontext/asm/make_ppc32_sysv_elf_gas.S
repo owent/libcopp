@@ -73,6 +73,7 @@
  *                                                     *
  *******************************************************/
 
+.file "make_ppc32_sysv_elf_gas.S"
 .text
 .globl copp_make_fcontext
 .align 2

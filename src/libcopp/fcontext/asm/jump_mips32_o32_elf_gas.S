@@ -38,6 +38,7 @@
  *                                                     *
  * *****************************************************/
 
+.file "jump_mips32_o32_elf_gas.S"
 .text
 .globl copp_jump_fcontext
 .align 2

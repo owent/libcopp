@@ -66,6 +66,7 @@
  *                                                     *
  *******************************************************/
 
+.file "make_ppc64_sysv_elf_gas.S"
 .globl copp_make_fcontext
 #if _CALL_ELF == 2
 	.text

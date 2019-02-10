@@ -38,6 +38,7 @@
  *                                                     *
  * *****************************************************/
 
+.file "ontop_mips32_o32_elf_gas.S"
 .text
 .globl copp_ontop_fcontext
 .align 2

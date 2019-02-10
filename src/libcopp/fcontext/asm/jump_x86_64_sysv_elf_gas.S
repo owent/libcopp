@@ -24,6 +24,7 @@
  *                                                                                      *
  ****************************************************************************************/
 
+.file "jump_x86_64_sysv_elf_gas.S"
 .text
 .globl copp_jump_fcontext
 .type copp_jump_fcontext,@function
