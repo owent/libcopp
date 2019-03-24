@@ -4,6 +4,8 @@
 #include <limits>
 #include <numeric>
 
+#include <libcopp/utils/std/explicit_declare.h>
+
 #include "libcopp/stack/allocator/stack_allocator_memory.h"
 #include "libcopp/stack/stack_context.h"
 #include "libcopp/stack/stack_traits.h"
@@ -96,7 +98,7 @@ namespace copp {
             is_used_ = true;
         }
 
-        void stack_allocator_memory::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        void stack_allocator_memory::deallocate(EXPLICIT_UNUSED_ATTR stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
             assert(ctx.sp);
             assert(stack_traits::minimum_size() <= ctx.size);
             assert(stack_traits::is_unbounded() || (stack_traits::maximum_size() >= ctx.size));

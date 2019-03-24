@@ -19,6 +19,8 @@
 
 #include <cstring>
 
+#include "config/compiler_features.h"
+
 namespace util {
     namespace lock {
         namespace detail {
@@ -44,7 +46,33 @@ namespace util {
             struct default_try_unlock_action {
                 bool operator()(TLock &lock) const { return lock.try_unlock(); }
             };
-        }
+
+            template <typename TLock>
+            struct default_read_lock_action {
+                bool operator()(TLock &lock) const {
+                    lock.read_lock();
+                    return true;
+                }
+            };
+
+            template <typename TLock>
+            struct default_read_unlock_action {
+                void operator()(TLock &lock) const { lock.read_unlock(); }
+            };
+
+            template <typename TLock>
+            struct default_write_lock_action {
+                bool operator()(TLock &lock) const {
+                    lock.write_lock();
+                    return true;
+                }
+            };
+
+            template <typename TLock>
+            struct default_write_unlock_action {
+                void operator()(TLock &lock) const { lock.write_unlock(); }
+            };
+        } // namespace detail
 
         template <typename TLock, typename TLockAct = detail::default_lock_action<TLock>,
                   typename TUnlockAct = detail::default_unlock_action<TLock> >
@@ -67,13 +95,29 @@ namespace util {
             bool is_available() const { return NULL != lock_flag_; }
 
         private:
-            lock_holder(const lock_holder &);
-            lock_holder &operator=(const lock_holder &);
+            lock_holder(const lock_holder &) UTIL_CONFIG_DELETED_FUNCTION;
+            lock_holder &operator=(const lock_holder &) UTIL_CONFIG_DELETED_FUNCTION;
 
         private:
             value_type *lock_flag_;
         };
-    }
-}
+
+        template <typename TLock>
+        class read_lock_holder
+            : public lock_holder<TLock, detail::default_read_lock_action<TLock>, detail::default_read_unlock_action<TLock> > {
+        public:
+            read_lock_holder(TLock &lock)
+                : lock_holder<TLock, detail::default_read_lock_action<TLock>, detail::default_read_unlock_action<TLock> >(lock) {}
+        };
+
+        template <typename TLock>
+        class write_lock_holder
+            : public lock_holder<TLock, detail::default_write_lock_action<TLock>, detail::default_write_unlock_action<TLock> > {
+        public:
+            write_lock_holder(TLock &lock)
+                : lock_holder<TLock, detail::default_write_lock_action<TLock>, detail::default_write_unlock_action<TLock> >(lock) {}
+        };
+    } // namespace lock
+} // namespace util
 
 #endif /* _UTIL_LOCK_LOCK_HOLDER_H_ */

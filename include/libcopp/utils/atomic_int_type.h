@@ -20,6 +20,36 @@
 
 #pragma once
 
+#include "std/explicit_declare.h"
+
+#if __cplusplus >= 201103L
+#include <cstdint>
+#elif defined(_MSC_VER) && defined(_MSVC_LANG) && _MSVC_LANG >= 201402L
+#include <cstdint>
+#else
+
+// patch for old gcc
+#ifndef __STDC_LIMIT_MACROS
+#define _UNDEF__STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+#ifndef __STDC_CONSTANT_MACROS
+#define _UNDEF__STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+#include <limits.h>
+#include <stdint.h>
+#ifdef _UNDEF__STDC_LIMIT_MACROS
+#undef __STDC_LIMIT_MACROS
+#undef _UNDEF__STDC_LIMIT_MACROS
+#endif
+#ifdef _UNDEF__STDC_CONSTANT_MACROS
+#undef __STDC_CONSTANT_MACROS
+#undef _UNDEF__STDC_CONSTANT_MACROS
+#endif
+
+#endif
+
 #if defined(__cplusplus) && __cplusplus >= 201103L
 
 #include <atomic>
@@ -30,7 +60,7 @@
 #include <atomic>
 #define __UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
 
-#elif defined(_MSC_VER) && (_MSC_VER > 1700 || (defined(_HAS_CPP0X) && _HAS_CPP0X)) // VC 11,2012
+#elif defined(_MSC_VER) && (_MSC_VER >= 1900) // 1900 means VC 14.0,2015, there some problem with std::atomic implement in old MSVC
 
 #include <atomic>
 #define __UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
@@ -51,9 +81,8 @@
 
 #include <cstddef>
 
-#include <libcopp/utils/config/compiler_features.h>
-#include <libcopp/utils/features.h>
-
+#include "config/compile_optimize.h"
+#include "config/compiler_features.h"
 
 namespace util {
     namespace lock {
@@ -88,15 +117,16 @@ namespace util {
             atomic_int_type &operator=(const atomic_int_type &) volatile UTIL_CONFIG_DELETED_FUNCTION;
 #endif
 
+
         public:
             atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {}
             atomic_int_type(value_type desired) UTIL_CONFIG_NOEXCEPT : data_(desired) {}
 
-            inline void store(value_type desired,
+            inline void store(value_type                 desired,
                               ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 data_.store(desired, order);
             }
-            inline void store(value_type desired,
+            inline void store(value_type                 desired,
                               ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 data_.store(desired, order);
             }
@@ -112,24 +142,30 @@ namespace util {
             inline operator value_type() const UTIL_CONFIG_NOEXCEPT { return load(); }
             inline operator value_type() const volatile UTIL_CONFIG_NOEXCEPT { return load(); }
 
-            inline value_type operator=(value_type desired) UTIL_CONFIG_NOEXCEPT { store(desired); }
-            inline value_type operator=(value_type desired) volatile UTIL_CONFIG_NOEXCEPT { store(desired); }
+            inline value_type operator=(value_type desired) UTIL_CONFIG_NOEXCEPT {
+                store(desired);
+                return desired;
+            }
+            inline value_type operator=(value_type desired) volatile UTIL_CONFIG_NOEXCEPT {
+                store(desired);
+                return desired;
+            }
 
             inline value_type operator++() UTIL_CONFIG_NOEXCEPT { return ++data_; }
             inline value_type operator++() volatile UTIL_CONFIG_NOEXCEPT { return ++data_; }
-            inline value_type operator++(int)UTIL_CONFIG_NOEXCEPT { return data_++; }
-            inline value_type operator++(int)volatile UTIL_CONFIG_NOEXCEPT { return data_++; }
+            inline value_type operator++(int) UTIL_CONFIG_NOEXCEPT { return data_++; }
+            inline value_type operator++(int) volatile UTIL_CONFIG_NOEXCEPT { return data_++; }
             inline value_type operator--() UTIL_CONFIG_NOEXCEPT { return --data_; }
             inline value_type operator--() volatile UTIL_CONFIG_NOEXCEPT { return --data_; }
-            inline value_type operator--(int)UTIL_CONFIG_NOEXCEPT { return data_--; }
-            inline value_type operator--(int)volatile UTIL_CONFIG_NOEXCEPT { return data_--; }
+            inline value_type operator--(int) UTIL_CONFIG_NOEXCEPT { return data_--; }
+            inline value_type operator--(int) volatile UTIL_CONFIG_NOEXCEPT { return data_--; }
 
-            inline value_type exchange(value_type desired,
+            inline value_type exchange(value_type                 desired,
                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 return data_.exchange(desired, order);
             }
             inline value_type
-            exchange(value_type desired,
+            exchange(value_type                 desired,
                      ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 return data_.exchange(desired, order);
             }
@@ -173,7 +209,7 @@ namespace util {
                 return data_.compare_exchange_strong(expected, desired, order);
             }
 
-            inline value_type fetch_add(value_type arg,
+            inline value_type fetch_add(value_type                 arg,
                                         ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 return data_.fetch_add(arg, order);
             }
@@ -182,7 +218,7 @@ namespace util {
                 return data_.fetch_add(arg, order);
             }
 
-            inline value_type fetch_sub(value_type arg,
+            inline value_type fetch_sub(value_type                 arg,
                                         ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 return data_.fetch_sub(arg, order);
             }
@@ -191,7 +227,7 @@ namespace util {
                 return data_.fetch_sub(arg, order);
             }
 
-            inline value_type fetch_and(value_type arg,
+            inline value_type fetch_and(value_type                 arg,
                                         ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 return data_.fetch_and(arg, order);
             }
@@ -200,7 +236,7 @@ namespace util {
                 return data_.fetch_and(arg, order);
             }
 
-            inline value_type fetch_or(value_type arg,
+            inline value_type fetch_or(value_type                 arg,
                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 return data_.fetch_or(arg, order);
             }
@@ -209,7 +245,7 @@ namespace util {
                 return data_.fetch_or(arg, order);
             }
 
-            inline value_type fetch_xor(value_type arg,
+            inline value_type fetch_xor(value_type                 arg,
                                         ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 return data_.fetch_xor(arg, order);
             }
@@ -303,10 +339,7 @@ namespace util {
         private:
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
             // char has no cas api in msvc
-            union {
-                volatile value_type data_;
-                volatile short padding;
-            };
+            volatile typename detail::atomic_msvc_oprs<sizeof(value_type)>::opr_t data_;
 #else
             volatile value_type data_;
 #endif
@@ -317,15 +350,28 @@ namespace util {
 #endif
 
         public:
-            atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {}
+            atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {
+#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
+#if __cplusplus >= 201703L
+                if
+                    constexpr(sizeof(data_) != sizeof(value_type)) {
+#else
+                if (sizeof(data_) != sizeof(value_type)) {
+#endif
+                        data_ = static_cast<value_type>(data_);
+                    }
+#endif
+            }
+
             atomic_int_type(value_type desired) UTIL_CONFIG_NOEXCEPT : data_(desired) {}
 
-            inline void store(value_type desired,
-                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline void
+            store(value_type                                      desired,
+                  EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                int_opr_t::exchange(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(desired), order);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                int_opr_t::exchange(&data_, static_cast<opr_t>(desired), order);
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 __atomic_store_n(&data_, desired, order);
@@ -334,12 +380,12 @@ namespace util {
 #endif
             }
 
-            inline void store(value_type desired,
-                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline void store(value_type desired, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                      ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                int_opr_t::exchange(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired), order);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                int_opr_t::exchange(&data_, static_cast<opr_t>(desired), order);
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 __atomic_store_n(&data_, desired, order);
@@ -348,11 +394,12 @@ namespace util {
 #endif
             }
 
-            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            load(EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t:: or (const_cast<opr_t *>(reinterpret_cast<volatile const opr_t *>(&data_)), static_cast<opr_t>(0), order);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t:: or (const_cast<opr_t *>(&data_), static_cast<opr_t>(0), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_load_n(&data_, order);
@@ -362,12 +409,12 @@ namespace util {
 #endif
             }
 
-            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const
+            inline value_type load(EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const
                 volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t:: or (const_cast<opr_t *>(reinterpret_cast<volatile const opr_t *>(&data_)), static_cast<opr_t>(0), order);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t:: or (const_cast<opr_t *>(&data_), static_cast<opr_t>(0), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_load_n(&data_, order);
@@ -380,14 +427,20 @@ namespace util {
             inline operator value_type() const UTIL_CONFIG_NOEXCEPT { return load(); }
             inline operator value_type() const volatile UTIL_CONFIG_NOEXCEPT { return load(); }
 
-            inline value_type operator=(value_type desired) UTIL_CONFIG_NOEXCEPT { store(desired); }
-            inline value_type operator=(value_type desired) volatile UTIL_CONFIG_NOEXCEPT { store(desired); }
+            inline value_type operator=(value_type desired) UTIL_CONFIG_NOEXCEPT {
+                store(desired);
+                return desired;
+            }
+            inline value_type operator=(value_type desired) volatile UTIL_CONFIG_NOEXCEPT {
+                store(desired);
+                return desired;
+            }
 
             inline value_type operator++() UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::inc(&data_, ::util::lock::memory_order_seq_cst));
 #else
                 return fetch_add(1) + 1;
 #endif
@@ -395,26 +448,26 @@ namespace util {
             inline value_type operator++() volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::inc(&data_, ::util::lock::memory_order_seq_cst));
 #else
                 return fetch_add(1) + 1;
 #endif
             }
-            inline value_type operator++(int)UTIL_CONFIG_NOEXCEPT {
+            inline value_type operator++(int) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst) - 1;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::inc(&data_, ::util::lock::memory_order_seq_cst) - 1);
 #else
                 return fetch_add(1);
 #endif
             }
-            inline value_type operator++(int)volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type operator++(int) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::inc(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst) - 1;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::inc(&data_, ::util::lock::memory_order_seq_cst) - 1);
 #else
                 return fetch_add(1);
 #endif
@@ -422,8 +475,8 @@ namespace util {
             inline value_type operator--() UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::dec(&data_, ::util::lock::memory_order_seq_cst));
 #else
                 return fetch_sub(1) - 1;
 #endif
@@ -431,57 +484,38 @@ namespace util {
             inline value_type operator--() volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst);
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::dec(&data_, ::util::lock::memory_order_seq_cst));
 #else
                 return fetch_sub(1) - 1;
 #endif
             }
-            inline value_type operator--(int)UTIL_CONFIG_NOEXCEPT {
+            inline value_type operator--(int) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(reinterpret_cast<volatile opr_t *>(&data_), ::util::lock::memory_order_seq_cst) + 1;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::dec(&data_, ::util::lock::memory_order_seq_cst) + 1);
 #else
                 return fetch_sub(1);
 #endif
             }
-            inline value_type operator--(int)volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type operator--(int) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return int_opr_t::dec(static_cast<opr_t *>(&data_), ::util::lock::memory_order_seq_cst) + 1;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::dec(&data_, ::util::lock::memory_order_seq_cst) + 1);
 #else
                 return fetch_sub(1);
-#endif
-            }
-
-            inline value_type exchange(value_type desired,
-                                       ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
-#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
-                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(
-                    int_opr_t::exchange(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(desired), order));
-
-#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-                return __atomic_exchange_n(&data_, desired, order);
-#else
-                value_type old_value = data_;
-                while (!__sync_bool_compare_and_swap(&data_, old_value, desired)) {
-                    old_value = data_;
-                }
-                return old_value;
 #endif
             }
 
             inline value_type
-            exchange(value_type desired,
-                     ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            exchange(value_type                                      desired,
+                     EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::exchange(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired), order));
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(static_cast<value_type>(int_opr_t::exchange(&data_, static_cast<opr_t>(desired), order)));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_exchange_n(&data_, desired, order);
@@ -494,41 +528,35 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                              ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
+            inline value_type exchange(value_type desired, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                               ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
-                                                                       static_cast<opr_t>(expected), success))) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(static_cast<value_type>(int_opr_t::exchange(&data_, static_cast<opr_t>(desired), order)));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-                return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
+                return __atomic_exchange_n(&data_, desired, order);
 #else
-                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
+                value_type old_value = data_;
+                while (!__sync_bool_compare_and_swap(&data_, old_value, desired)) {
+                    old_value = data_;
                 }
+                return old_value;
 #endif
             }
 
-            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                              ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
-                                                                       static_cast<opr_t>(expected), success))) {
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
-                    expected = data_;
+                    expected = static_cast<value_type>(data_);
                     return false;
                 }
 
@@ -545,12 +573,65 @@ namespace util {
             }
 
             inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(reinterpret_cast<volatile opr_t *>(&data_),
-                                                                       static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
+                    return true;
+                } else {
+                    expected = static_cast<value_type>(data_);
+                    return false;
+                }
+
+#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+                return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
+#else
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+#endif
+            }
+
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst)
+                UTIL_CONFIG_NOEXCEPT {
+#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
+                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
+                    return true;
+                } else {
+                    expected = static_cast<value_type>(data_);
+                    return false;
+                }
+
+#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+                return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
+#else
+                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
+                    return true;
+                } else {
+                    expected = data_;
+                    return false;
+                }
+#endif
+            }
+
+            inline bool compare_exchange_weak(
+                value_type &expected, value_type desired,
+                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
+                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
                     return true;
                 } else {
                     expected = data_;
@@ -569,39 +650,14 @@ namespace util {
 #endif
             }
 
-            inline bool
-            compare_exchange_weak(value_type &expected, value_type desired,
-                                  ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
-                                                                       static_cast<opr_t>(expected), order))) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
-
-#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-                return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
-#else
-                if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
-                    return true;
-                } else {
-                    expected = data_;
-                    return false;
-                }
-#endif
-            }
-
-            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                                ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
-#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
-                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
-                                                                       static_cast<opr_t>(expected), success))) {
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
                     expected = data_;
@@ -620,13 +676,14 @@ namespace util {
 #endif
             }
 
-            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                                ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
-                                                                       static_cast<opr_t>(expected), success))) {
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), success))) {
                     return true;
                 } else {
                     expected = data_;
@@ -645,17 +702,17 @@ namespace util {
 #endif
             }
 
-            inline bool
-            compare_exchange_strong(value_type &expected, value_type desired,
-                                    ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst)
+                UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(reinterpret_cast<volatile opr_t *>(&data_),
-                                                                       static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
                     return true;
                 } else {
-                    expected = data_;
+                    expected = static_cast<value_type>(data_);
                     return false;
                 }
 
@@ -671,17 +728,17 @@ namespace util {
 #endif
             }
 
-            inline bool
-            compare_exchange_strong(value_type &expected, value_type desired,
-                                    ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(
+                value_type &expected, value_type desired,
+                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                if (expected == static_cast<value_type>(int_opr_t::cas(static_cast<opr_t *>(&data_), static_cast<opr_t>(desired),
-                                                                       static_cast<opr_t>(expected), order))) {
+                typedef typename int_opr_t::opr_t                    opr_t;
+                if (expected ==
+                    static_cast<value_type>(int_opr_t::cas(&data_, static_cast<opr_t>(desired), static_cast<opr_t>(expected), order))) {
                     return true;
                 } else {
-                    expected = data_;
+                    expected = static_cast<value_type>(data_);
                     return false;
                 }
 
@@ -697,13 +754,13 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_add(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_add(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::add(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order)) -
-                       arg;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::add(&data_, static_cast<opr_t>(arg), order)) - arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_add(&data_, arg, order);
@@ -711,12 +768,12 @@ namespace util {
                 return __sync_fetch_and_add(&data_, arg);
 #endif
             }
-            inline value_type
-            fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_add(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::add(static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order)) - arg;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::add(&data_, static_cast<opr_t>(arg), order)) - arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_add(&data_, arg, order);
@@ -725,13 +782,13 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_sub(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_sub(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::sub(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order)) +
-                       arg;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::sub(&data_, static_cast<opr_t>(arg), order)) + arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_sub(&data_, arg, order);
@@ -739,12 +796,12 @@ namespace util {
                 return __sync_fetch_and_sub(&data_, arg);
 #endif
             }
-            inline value_type
-            fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_sub(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::sub(static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order)) + arg;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::sub(&data_, static_cast<opr_t>(arg), order)) + arg;
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_sub(&data_, arg, order);
@@ -753,12 +810,13 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_and(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_and(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::and(reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order));
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::and(&data_, static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_and(&data_, arg, order);
@@ -766,12 +824,12 @@ namespace util {
                 return __sync_fetch_and_and(&data_, arg);
 #endif
             }
-            inline value_type
-            fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_and(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t::and(static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order));
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t::and(&data_, static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_and(&data_, arg, order);
@@ -780,25 +838,26 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_or(value_type arg,
-                                       ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
-#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
-                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t:: or (reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order));
-
-#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-                return __atomic_fetch_or(&data_, arg, order);
-#else
-                return __sync_fetch_and_or(&data_, arg);
-#endif
-            }
             inline value_type
-            fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            fetch_or(value_type                                      arg,
+                     EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t:: or (static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order));
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t:: or (&data_, static_cast<opr_t>(arg), order));
+
+#elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+                return __atomic_fetch_or(&data_, arg, order);
+#else
+                return __sync_fetch_and_or(&data_, arg);
+#endif
+            }
+            inline value_type fetch_or(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                           ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+#ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
+                typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t:: or (&data_, static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_or(&data_, arg, order);
@@ -807,13 +866,13 @@ namespace util {
 #endif
             }
 
-            inline value_type fetch_xor(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_xor(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t:: xor
-                                               (reinterpret_cast<volatile opr_t *>(&data_), static_cast<opr_t>(arg), order));
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t:: xor (&data_, static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_xor(&data_, arg, order);
@@ -821,12 +880,12 @@ namespace util {
                 return __sync_fetch_and_xor(&data_, arg);
 #endif
             }
-            inline value_type
-            fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_xor(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
 #ifdef __UTIL_LOCK_ATOMIC_INT_ATOMIC_MSVC
                 typedef detail::atomic_msvc_oprs<sizeof(value_type)> int_opr_t;
-                typedef typename int_opr_t::opr_t opr_t;
-                return static_cast<value_type>(int_opr_t:: xor (static_cast<opr_t *>(&data_), static_cast<opr_t>(arg), order));
+                typedef typename int_opr_t::opr_t                    opr_t;
+                return static_cast<value_type>(int_opr_t:: xor (&data_, static_cast<opr_t>(arg), order));
 
 #elif defined(__UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
                 return __atomic_fetch_xor(&data_, arg, order);
@@ -858,22 +917,24 @@ namespace util {
 #endif
 
         public:
-            atomic_int_type() UTIL_CONFIG_NOEXCEPT : data_() {}
-            atomic_int_type(value_type desired) UTIL_CONFIG_NOEXCEPT : data_(desired) {}
+            atomic_int_type() : data_() {}
+            atomic_int_type(value_type desired) : data_(desired) {}
 
-            inline void store(value_type desired,
-                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline void
+            store(value_type                                      desired,
+                  EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 data_ = desired;
             }
-            inline void store(value_type desired,
-                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline void store(value_type desired, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                      ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 data_ = desired;
             }
 
-            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            load(EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const UTIL_CONFIG_NOEXCEPT {
                 return data_;
             }
-            inline value_type load(::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const
+            inline value_type load(EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) const
                 volatile UTIL_CONFIG_NOEXCEPT {
                 return data_;
             }
@@ -881,29 +942,35 @@ namespace util {
             inline operator value_type() const UTIL_CONFIG_NOEXCEPT { return load(); }
             inline operator value_type() const volatile UTIL_CONFIG_NOEXCEPT { return load(); }
 
-            inline value_type operator=(value_type desired) UTIL_CONFIG_NOEXCEPT { store(desired); }
-            inline value_type operator=(value_type desired) volatile UTIL_CONFIG_NOEXCEPT { store(desired); }
+            inline value_type operator=(value_type desired) UTIL_CONFIG_NOEXCEPT {
+                store(desired);
+                return desired;
+            }
+            inline value_type operator=(value_type desired) volatile UTIL_CONFIG_NOEXCEPT {
+                store(desired);
+                return desired;
+            }
 
             inline value_type operator++() UTIL_CONFIG_NOEXCEPT { return ++data_; }
             inline value_type operator++() volatile UTIL_CONFIG_NOEXCEPT { return ++data_; }
-            inline value_type operator++(int)UTIL_CONFIG_NOEXCEPT { return data_++; }
-            inline value_type operator++(int)volatile UTIL_CONFIG_NOEXCEPT { return data_++; }
+            inline value_type operator++(int) UTIL_CONFIG_NOEXCEPT { return data_++; }
+            inline value_type operator++(int) volatile UTIL_CONFIG_NOEXCEPT { return data_++; }
             inline value_type operator--() UTIL_CONFIG_NOEXCEPT { return --data_; }
             inline value_type operator--() volatile UTIL_CONFIG_NOEXCEPT { return --data_; }
-            inline value_type operator--(int)UTIL_CONFIG_NOEXCEPT { return data_--; }
-            inline value_type operator--(int)volatile UTIL_CONFIG_NOEXCEPT { return data_--; }
+            inline value_type operator--(int) UTIL_CONFIG_NOEXCEPT { return data_--; }
+            inline value_type operator--(int) volatile UTIL_CONFIG_NOEXCEPT { return data_--; }
 
-            inline value_type exchange(value_type desired,
-                                       ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            exchange(value_type                                      desired,
+                     EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
-                data_ = desired;
+                data_          = desired;
                 return ret;
             }
-            inline value_type
-            exchange(value_type desired,
-                     ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type exchange(value_type desired, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                               ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
-                data_ = desired;
+                data_          = desired;
                 return ret;
             }
 
@@ -919,111 +986,121 @@ namespace util {
             }
 
         public:
-            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                              ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
                 return cas(expected, desired);
             }
-            inline bool compare_exchange_weak(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                              ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
                 return cas(expected, desired);
             }
 
             inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                              ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+                                              EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst)
+                UTIL_CONFIG_NOEXCEPT {
                 return cas(expected, desired);
             }
-            inline bool
-            compare_exchange_weak(value_type &expected, value_type desired,
-                                  ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
-                return cas(expected, desired);
-            }
-
-            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                                ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
-                return cas(expected, desired);
-            }
-            inline bool compare_exchange_strong(value_type &expected, value_type desired, ::util::lock::memory_order success,
-                                                ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_weak(
+                value_type &expected, value_type desired,
+                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 return cas(expected, desired);
             }
 
-            inline bool
-            compare_exchange_strong(value_type &expected, value_type desired,
-                                    ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) UTIL_CONFIG_NOEXCEPT {
                 return cas(expected, desired);
             }
-            inline bool
-            compare_exchange_strong(value_type &expected, value_type desired,
-                                    ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order success,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order failure) volatile UTIL_CONFIG_NOEXCEPT {
                 return cas(expected, desired);
             }
 
-            inline value_type fetch_add(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst)
+                UTIL_CONFIG_NOEXCEPT {
+                return cas(expected, desired);
+            }
+            inline bool compare_exchange_strong(
+                value_type &expected, value_type desired,
+                EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+                return cas(expected, desired);
+            }
+
+            inline value_type
+            fetch_add(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ += arg;
                 return ret;
             }
-            inline value_type
-            fetch_add(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_add(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ += arg;
                 return ret;
             }
 
-            inline value_type fetch_sub(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_sub(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ -= arg;
                 return ret;
             }
-            inline value_type
-            fetch_sub(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_sub(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ -= arg;
                 return ret;
             }
 
-            inline value_type fetch_and(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_and(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ &= arg;
                 return ret;
             }
-            inline value_type
-            fetch_and(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_and(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ &= arg;
                 return ret;
             }
 
-            inline value_type fetch_or(value_type arg,
-                                       ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_or(value_type                                      arg,
+                     EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ |= arg;
                 return ret;
             }
-            inline value_type
-            fetch_or(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_or(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                           ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ |= arg;
                 return ret;
             }
 
-            inline value_type fetch_xor(value_type arg,
-                                        ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
+            inline value_type
+            fetch_xor(value_type                                      arg,
+                      EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ ^= arg;
                 return ret;
             }
-            inline value_type
-            fetch_xor(value_type arg, ::util::lock::memory_order order = ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
+            inline value_type fetch_xor(value_type arg, EXPLICIT_UNUSED_ATTR ::util::lock::memory_order order =
+                                                            ::util::lock::memory_order_seq_cst) volatile UTIL_CONFIG_NOEXCEPT {
                 value_type ret = data_;
                 data_ ^= arg;
                 return ret;
             }
         };
-    }
+    } // namespace lock
 } // namespace util
 
 #endif /* _UTIL_LOCK_ATOMIC_INT_TYPE_H_ */
