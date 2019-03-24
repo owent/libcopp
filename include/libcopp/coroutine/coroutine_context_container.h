@@ -57,7 +57,7 @@ namespace copp {
         /**
          * @brief create and init coroutine with specify runner and specify stack size
          * @param runner runner
-         * @param stack_size stack size
+         * @param stack_sz stack size
          * @param private_buffer_size private buffer size
          * @param coroutine_size extend buffer before coroutine
          * @return COPP_EC_SUCCESS or error code
@@ -68,10 +68,10 @@ namespace copp {
 #else
             const callback_t &runner,
 #endif
-            allocator_type &alloc, size_t stack_size = 0, size_t private_buffer_size = 0, size_t coroutine_size = 0) UTIL_CONFIG_NOEXCEPT {
+            allocator_type &alloc, size_t stack_sz = 0, size_t private_buffer_size = 0, size_t coroutine_size = 0) UTIL_CONFIG_NOEXCEPT {
             ptr_t ret;
-            if (0 == stack_size) {
-                stack_size = stack_traits::default_size();
+            if (0 == stack_sz) {
+                stack_sz = stack_traits::default_size();
             }
 
             // padding to sizeof size_t
@@ -80,12 +80,12 @@ namespace copp {
             coroutine_size += this_align_size;
             private_buffer_size = coroutine_context::align_private_data_size(private_buffer_size);
 
-            if (stack_size <= coroutine_size + private_buffer_size) {
+            if (stack_sz <= coroutine_size + private_buffer_size) {
                 return ret;
             }
 
             stack_context callee_stack;
-            alloc.allocate(callee_stack, stack_size);
+            alloc.allocate(callee_stack, stack_sz);
 
             if (NULL == callee_stack.sp) {
                 return ret;

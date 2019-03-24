@@ -190,8 +190,8 @@ namespace cotask {
 
             // add timeout controller
             if (0 != timeout_sec || 0 != timeout_nsec) {
-                typedef typename std::multimap<detail::tickspec_t, id_t>::value_type pair_type;
-                task_timeout_checkpoints_.insert(pair_type(task_node.expired_time_, task_id));
+                typedef typename std::multimap<detail::tickspec_t, id_t>::value_type timer_pair_type;
+                task_timeout_checkpoints_.insert(timer_pair_type(task_node.expired_time_, task_id));
             }
 
             return copp::COPP_EC_SUCCESS;

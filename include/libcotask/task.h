@@ -50,7 +50,7 @@ namespace cotask {
          * @brief constuctor
          * @note should not be called directly
          */
-        task(size_t stack_size) : stack_size_(stack_size), action_destroy_fn_(UTIL_CONFIG_NULLPTR) {
+        task(size_t stack_sz) : stack_size_(stack_sz), action_destroy_fn_(UTIL_CONFIG_NULLPTR) {
             id_allocator_t id_alloc_;
             id_ = id_alloc_.allocate();
             ref_count_.store(0);

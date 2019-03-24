@@ -4,7 +4,7 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://cmake.org/files/v3.13/cmake-3.13.1-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://cmake.org/files/v3.14/cmake-3.14.0-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
     - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.5/pandoc-2.5-linux.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
