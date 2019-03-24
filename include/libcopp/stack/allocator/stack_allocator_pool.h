@@ -29,7 +29,7 @@ namespace copp {
 
         public:
             stack_allocator_pool() UTIL_CONFIG_NOEXCEPT {}
-            stack_allocator_pool(const std::shared_ptr<pool_t>& p) UTIL_CONFIG_NOEXCEPT : pool_(p){}
+            stack_allocator_pool(const std::shared_ptr<pool_t> &p) UTIL_CONFIG_NOEXCEPT : pool_(p) {}
             ~stack_allocator_pool() {}
 
             /**
@@ -46,7 +46,7 @@ namespace copp {
              * @param size ignored
              * @note size must less or equal than attached
              */
-            void allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
+            void allocate(stack_context &ctx, std::size_t) UTIL_CONFIG_NOEXCEPT {
                 assert(pool_);
                 if (pool_) {
                     pool_->allocate(ctx);
@@ -67,8 +67,8 @@ namespace copp {
         private:
             std::shared_ptr<pool_t> pool_;
         };
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

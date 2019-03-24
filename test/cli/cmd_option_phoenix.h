@@ -107,10 +107,10 @@ namespace util {
             template <typename T>
             struct set_const_t {
                 T &var;
-                T val;
+                T  val;
                 set_const_t(T &t, const T &v) : var(t), val(v) {}
 
-                void operator()(util::cli::callback_param params) { var = val; }
+                void operator()(util::cli::callback_param) { var = val; }
             };
 
             template <typename T>

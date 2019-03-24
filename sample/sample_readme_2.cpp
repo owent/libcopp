@@ -5,7 +5,7 @@
 
 typedef cotask::task<> my_task_t;
 
-int main(int argc, char *argv[]) {
+int main() {
 #if defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
     // create a task using factory function [with lambda expression]
     my_task_t::ptr_t task = my_task_t::create([]() {

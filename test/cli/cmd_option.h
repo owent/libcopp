@@ -362,9 +362,9 @@ namespace util {
             size_t children_empty() const { return callback_children_.empty(); }
             const funmap_type &get_all_children() const { return callback_children_; }
 
-            const int get_help_cmd_style() const { return help_cmd_style_; }
+            int get_help_cmd_style() const { return help_cmd_style_; }
             void set_help_cmd_style(int style) { help_cmd_style_ = style; }
-            const int get_help_description_style() const { return help_description_style_; }
+            int get_help_description_style() const { return help_description_style_; }
             void set_help_description_style(int style) { help_description_style_ = style; }
 
             /**
