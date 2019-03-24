@@ -109,7 +109,7 @@ namespace cotask {
 
 #endif
             template <typename Ty>
-            static void deallocate(std::shared_ptr<Ty> &pt) {}
+            static void deallocate(std::shared_ptr<Ty> &) {}
         };
     }
 }
