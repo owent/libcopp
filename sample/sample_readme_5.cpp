@@ -17,6 +17,8 @@
 #include <stdint.h>
 #include <vector>
 
+#include <libcopp/utils/std/explicit_declare.h>
+
 // include manager header file
 #include <libcotask/task.h>
 
@@ -47,7 +49,7 @@ int main() {
             return "return value will be ignored";
         })
         ->then(
-            [&](void *priv_data) {
+            [&](EXPLICIT_UNUSED_ATTR void *priv_data) {
                 puts("|it's boring");
                 printf("test code is %d\n", ++test_code);
                 assert(&test_code == priv_data);
