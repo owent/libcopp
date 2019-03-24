@@ -21,7 +21,7 @@ namespace copp {
     template <typename TAlloc>
     class stack_pool {
     public:
-        typedef TAlloc allocator_t;
+        typedef TAlloc                               allocator_t;
         typedef std::shared_ptr<stack_pool<TAlloc> > ptr_t;
 
         struct limit_t {
@@ -39,7 +39,7 @@ namespace copp {
             size_t max_stack_size;
             size_t min_stack_number;
             size_t min_stack_size;
-            bool auto_gc;
+            bool   auto_gc;
         };
 
     private:
@@ -51,18 +51,18 @@ namespace copp {
     public:
         static ptr_t create() { return std::make_shared<stack_pool>(constructor_delegator()); }
 
-        stack_pool(constructor_delegator d) {
+        stack_pool(constructor_delegator) {
             memset(&limits_, 0, sizeof(limits_));
             memset(&conf_, 0, sizeof(conf_));
             conf_.stack_size = copp::stack_traits::default_size();
-            conf_.auto_gc = true;
+            conf_.auto_gc    = true;
         }
         ~stack_pool() { clear(); }
 
         inline const limit_t &get_limit() const { return limits_; }
 
         // configure
-        inline allocator_t &get_origin_allocator() COPP_MACRO_NOEXCEPT { return alloc_; }
+        inline allocator_t &      get_origin_allocator() COPP_MACRO_NOEXCEPT { return alloc_; }
         inline const allocator_t &get_origin_allocator() const COPP_MACRO_NOEXCEPT { return alloc_; }
 
         size_t set_stack_size(size_t sz) {
@@ -81,20 +81,20 @@ namespace copp {
         size_t get_stack_size() const { return conf_.stack_size; }
         size_t get_stack_size_offset() const { return conf_.stack_offset; }
 
-        inline void set_max_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_size = sz; }
+        inline void   set_max_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_size = sz; }
         inline size_t get_max_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_size; }
-        inline void set_max_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_number = sz; }
+        inline void   set_max_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_number = sz; }
         inline size_t get_max_stack_number() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_number; }
 
-        inline void set_min_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_size = sz; }
+        inline void   set_min_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_size = sz; }
         inline size_t get_min_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.min_stack_size; }
-        inline void set_min_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_number = sz; }
+        inline void   set_min_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_number = sz; }
         inline size_t get_min_stack_number() const COPP_MACRO_NOEXCEPT { return conf_.min_stack_number; }
 
         inline void set_auto_gc(bool v) COPP_MACRO_NOEXCEPT { conf_.auto_gc = v; }
         inline bool is_auto_gc() const COPP_MACRO_NOEXCEPT { return conf_.auto_gc; }
 
-        inline void set_gc_once_number(size_t v) COPP_MACRO_NOEXCEPT { conf_.gc_number = v; }
+        inline void   set_gc_once_number(size_t v) COPP_MACRO_NOEXCEPT { conf_.gc_number = v; }
         inline size_t get_gc_once_number() const COPP_MACRO_NOEXCEPT { return conf_.gc_number; }
 
         // actions
@@ -111,13 +111,13 @@ namespace copp {
 #endif
             // check limit
             if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
-                ctx.sp = NULL;
+                ctx.sp   = NULL;
                 ctx.size = 0;
                 return;
             }
 
             if (0 != conf_.max_stack_size && limits_.used_stack_size + conf_.stack_size > conf_.max_stack_size) {
-                ctx.sp = NULL;
+                ctx.sp   = NULL;
                 ctx.size = 0;
                 return;
             }
@@ -234,12 +234,12 @@ namespace copp {
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-            size_t keep_size = limits_.free_stack_size >> 1;
+            size_t keep_size   = limits_.free_stack_size >> 1;
             size_t keep_number = limits_.free_stack_number >> 1;
-            size_t left_gc = conf_.gc_number;
+            size_t left_gc     = conf_.gc_number;
             while (limits_.free_stack_size > keep_size || limits_.free_stack_number > keep_number) {
                 if (free_list_.empty()) {
-                    limits_.free_stack_size = 0;
+                    limits_.free_stack_size   = 0;
                     limits_.free_stack_number = 0;
                     break;
                 }
@@ -282,7 +282,7 @@ namespace copp {
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-            limits_.free_stack_size = 0;
+            limits_.free_stack_size   = 0;
             limits_.free_stack_number = 0;
 
             for (typename std::list<stack_context>::iterator iter = free_list_.begin(); iter != free_list_.end(); ++iter) {
@@ -293,7 +293,7 @@ namespace copp {
         }
 
     private:
-        limit_t limits_;
+        limit_t     limits_;
         configure_t conf_;
         allocator_t alloc_;
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)

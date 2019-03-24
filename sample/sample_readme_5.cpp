@@ -24,7 +24,7 @@
 
 typedef cotask::task<> my_task_t;
 
-int main(int argc, char *argv[]) {
+int main() {
     int test_code = 128;
 
     // create a task using lambda expression

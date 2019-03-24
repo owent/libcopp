@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <libcopp/utils/errno.h>
+#include <libcopp/utils/std/explicit_declare.h>
 
 #include <libcopp/coroutine/coroutine_context.h>
 
@@ -31,7 +32,7 @@ namespace copp {
 #ifndef UTIL_CONFIG_THREAD_LOCAL
 
         static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
-        static pthread_key_t gt_coroutine_tls_key;
+        static pthread_key_t  gt_coroutine_tls_key;
         static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, UTIL_CONFIG_NULLPTR); }
 
 #else
@@ -58,7 +59,7 @@ namespace copp {
             return gt_current_coroutine;
 #endif
         }
-    }
+    } // namespace detail
 
     coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
                                                                   flags_(0),
@@ -118,7 +119,7 @@ namespace copp {
 
         // stack down, left enough private data
         p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->private_buffer_size_;
-        p->callee_ = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
+        p->callee_    = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
                                                   p->callee_stack_.size - stack_offset, &coroutine_context::coroutine_context_callback);
         if (NULL == p->callee_) {
             return COPP_EC_FCONTEXT_MAKE_FAILED;
@@ -155,8 +156,8 @@ namespace copp {
         } while (true);
 
         jump_src_data_t jump_data;
-        jump_data.from_co = detail::get_this_coroutine_context();
-        jump_data.to_co = this;
+        jump_data.from_co   = detail::get_this_coroutine_context();
+        jump_data.to_co     = this;
         jump_data.priv_data = priv_data;
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
@@ -209,7 +210,7 @@ namespace copp {
         // success or finished will continue
         jump_src_data_t jump_data;
         jump_data.from_co = this;
-        jump_data.to_co = UTIL_CONFIG_NULLPTR;
+        jump_data.to_co   = UTIL_CONFIG_NULLPTR;
 
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
@@ -269,11 +270,11 @@ namespace copp {
         return status_.load(util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
     }
 
-    void coroutine_context::jump_to(fcontext::fcontext_t &to_fctx, stack_context &from_sctx, stack_context &to_sctx,
-                                    jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT {
+    void coroutine_context::jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
+                                    EXPLICIT_UNUSED_ATTR stack_context &to_sctx, jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT {
 
         copp::fcontext::transfer_t res;
-        jump_src_data_t *jump_src;
+        jump_src_data_t *          jump_src;
         // int from_status;
         // bool swap_success;
         // can not use any more stack now

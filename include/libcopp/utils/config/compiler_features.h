@@ -22,6 +22,7 @@
 # define UTIL_CONFIG_COMPILER_IS_Cray 0
 # define UTIL_CONFIG_COMPILER_IS_TI 0
 # define UTIL_CONFIG_COMPILER_IS_Fujitsu 0
+# define UTIL_CONFIG_COMPILER_IS_GHS 0
 # define UTIL_CONFIG_COMPILER_IS_SCO 0
 # define UTIL_CONFIG_COMPILER_IS_AppleClang 0
 # define UTIL_CONFIG_COMPILER_IS_Clang 0
@@ -99,6 +100,10 @@
 #elif defined(__FUJITSU) || defined(__FCC_VERSION) || defined(__fcc_version)
 # undef UTIL_CONFIG_COMPILER_IS_Fujitsu
 # define UTIL_CONFIG_COMPILER_IS_Fujitsu 1
+
+#elif defined(__ghs__)
+# undef UTIL_CONFIG_COMPILER_IS_GHS
+# define UTIL_CONFIG_COMPILER_IS_GHS 1
 
 #elif defined(__SCO_VERSION__)
 # undef UTIL_CONFIG_COMPILER_IS_SCO

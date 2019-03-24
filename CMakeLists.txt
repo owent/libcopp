@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.7.0)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 enable_testing()
 
@@ -60,6 +63,14 @@ configure_file(
     "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
     @ONLY
 )
+
+if (COMPILER_STRICT_EXTRA_CFLAGS)
+    add_definitions(${COMPILER_STRICT_EXTRA_CFLAGS})
+endif ()
+
+if (COMPILER_STRICT_CFLAGS)
+    add_definitions(${COMPILER_STRICT_CFLAGS})
+endif ()
 
 ## 导入所有工程项目
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src")
