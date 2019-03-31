@@ -3,15 +3,16 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <libcopp/utils/config/build_feature.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
 #include <libcopp/coroutine/coroutine_context.h>
 
-#ifndef UTIL_CONFIG_THREAD_LOCAL
-
+#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+// using thread_local
+#else
 #include <pthread.h>
-
 #endif
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
@@ -29,34 +30,29 @@ void __splitstack_block_signals_context(void * [COPP_MACRO_SEGMENTED_STACK_NUMBE
 namespace copp {
     namespace detail {
 
-#ifndef UTIL_CONFIG_THREAD_LOCAL
-
+#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+        static UTIL_CONFIG_THREAD_LOCAL coroutine_context *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
+#else
         static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
         static pthread_key_t  gt_coroutine_tls_key;
         static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, UTIL_CONFIG_NULLPTR); }
-
-#else
-
-        static UTIL_CONFIG_THREAD_LOCAL coroutine_context *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
-
 #endif
 
         static void set_this_coroutine_context(coroutine_context *p) {
-#ifndef UTIL_CONFIG_THREAD_LOCAL
+#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+            gt_current_coroutine = p;
+#else
             (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
             pthread_setspecific(gt_coroutine_tls_key, p);
-#else
-            gt_current_coroutine = p;
 #endif
         }
 
         static coroutine_context *get_this_coroutine_context() {
-#ifndef UTIL_CONFIG_THREAD_LOCAL
+#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+            return gt_current_coroutine;
+#else
             (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
             return reinterpret_cast<coroutine_context *>(pthread_getspecific(gt_coroutine_tls_key));
-#else
-
-            return gt_current_coroutine;
 #endif
         }
     } // namespace detail
