@@ -30,6 +30,7 @@ EchoWithColor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")
 
 ########################################################################
 # 导入项目配置
+unset (PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 ## 导入所有 macro 定义
 include_macro_recurse(${CMAKE_CURRENT_LIST_DIR})
 
@@ -60,7 +61,11 @@ endif ()
 
 find_package(Threads)
 if (CMAKE_USE_PTHREADS_INIT)
+    list(APPEND PROJECT_LIBCOPP_SYSLIB_LINK_NAMES pthread)
     set(THREAD_TLS_USE_PTHREAD 1)
+    if (THREADS_PREFER_PTHREAD_FLAG)
+        add_definitions(${THREADS_PREFER_PTHREAD_FLAG})
+    endif ()
 endif ()
 
 configure_file(
