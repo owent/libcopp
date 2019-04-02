@@ -58,6 +58,11 @@ if (LIBCOTASK_ENABLE)
     set(LIBCOTASK_MACRO_ENABLED 1)
 endif ()
 
+find_package(Threads)
+if (CMAKE_USE_PTHREADS_INIT)
+    set(THREAD_TLS_USE_PTHREAD 1)
+endif ()
+
 configure_file(
     "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h.in"
     "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
