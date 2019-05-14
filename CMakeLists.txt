@@ -31,7 +31,8 @@ EchoWithColor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")
 ########################################################################
 # 导入项目配置
 ## 导入所有 macro 定义
-include_macro_recurse(${CMAKE_CURRENT_LIST_DIR})
+include("${CMAKE_CURRENT_LIST_DIR}/include/include.macro.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/src/libcopp.macro.cmake")
 
 # feature detect
 include(WriteCompilerDetectionHeader)
