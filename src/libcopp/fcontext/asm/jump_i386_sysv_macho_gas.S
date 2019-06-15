@@ -54,9 +54,8 @@ _copp_jump_fcontext:
 
     /* return parent fcontext_t */
     movl  %ecx, %eax
-    /* returned data is stored in EDX */
-    movl %edx, 0x4(%eax)
-
+    /* returned data is stored in EDX */ 
+ 
     movl  0x18(%esp), %ecx  /* restore EIP */
 
 #if !defined(LIBCOPP_FCONTEXT_USE_TSX)

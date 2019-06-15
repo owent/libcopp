@@ -43,6 +43,7 @@
 .globl copp_make_fcontext
 .align 2
 .type copp_make_fcontext,%function
+.syntax unified
 copp_make_fcontext:
     @ shift address in A1 to lower 16 byte boundary
     bic  a1, a1, #15
