@@ -5,6 +5,18 @@ SYS_NAME="$(basename $SYS_NAME)";
 CC=gcc;
 CXX=g++;
 CCACHE="$(which ccache)";
+DISTCC="";
+if [ ! -z "$DISTCC_HOSTS" ]; then
+    DISTCC="$(which distcc 2>/dev/null)";
+fi
+
+NINJA_BIN="$(which ninja 2>&1)";
+if [ $? -ne 0 ]; then
+    NINJA_BIN="$(which ninja-build 2>&1)";
+    if [ $? -ne 0 ]; then
+        NINJA_BIN="";
+    fi
+fi
 
 CMAKE_OPTIONS="-DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON";
 CMAKE_CLANG_TIDY="";
@@ -20,7 +32,7 @@ else
     CHECK_MSYS="";
 fi
 
-while getopts "ab:c:e:htusp:-" OPTION; do
+while getopts "ab:c:d:e:htusp:-" OPTION; do
     case $OPTION in
         a)
             echo "Ready to check ccc-analyzer and c++-analyzer, please do not use -c to change the compiler when using clang-analyzer.";
@@ -65,6 +77,9 @@ while getopts "ab:c:e:htusp:-" OPTION; do
             CXX="${CC/clang/clang++}";
             CXX="${CXX/gcc/g++}";
         ;;
+        d)
+            DISTCC="$OPTARG";
+        ;;
         e)
             CCACHE="$OPTARG";
         ;;
@@ -73,6 +88,7 @@ while getopts "ab:c:e:htusp:-" OPTION; do
             echo "options:";
             echo "-a                            using clang-analyzer.";
             echo "-c <compiler>                 compiler toolchains(gcc, clang or others).";
+            echo "-d <distcc path>              try to use specify distcc to speed up building.";
             echo "-e <ccache path>              try to use specify ccache to speed up building.";
             echo "-h                            help message.";
             echo "-t                            enable clang-tidy.";
@@ -128,14 +144,18 @@ if [ "${CC:0-8}" == "cppcheck" ]; then
     exit 0;
 fi
 
-if [ ! -z "$CCACHE" ] && [ "$CCACHE" != "disable" ] && [ "$CCACHE" != "disabled" ] && [ "$CCACHE" != "no" ] && [ "$CCACHE" != "false" ] && [ -e "$CCACHE" ]; then
+if [ ! -z "$DISTCC" ] && [ "$DISTCC" != "disable" ] && [ "$DISTCC" != "disabled" ] && [ "$DISTCC" != "no" ] && [ "$DISTCC" != "false" ] && [ -e "$DISTCC" ]; then
+    CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER_LAUNCHER=$DISTCC -DCMAKE_CXX_COMPILER_LAUNCHER=$DISTCC -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX";
+elif [ ! -z "$CCACHE" ] && [ "$CCACHE" != "disable" ] && [ "$CCACHE" != "disabled" ] && [ "$CCACHE" != "no" ] && [ "$CCACHE" != "false" ] && [ -e "$CCACHE" ]; then
     #CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER=$CCACHE -DCMAKE_CXX_COMPILER=$CCACHE -DCMAKE_C_COMPILER_ARG1=$CC -DCMAKE_CXX_COMPILER_ARG1=$CXX";
     CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER_LAUNCHER=$CCACHE -DCMAKE_CXX_COMPILER_LAUNCHER=$CCACHE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX";
 elif [ ! -z "$CC" ]; then
     CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX";
 fi
 
-if [ "$CHECK_MSYS" == "mingw" ] && [ ! -z "$CC" ] ; then
+if [ "x$NINJA_BIN" != "x" ]; then
+    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE $CMAKE_OPTIONS "$@";
+elif [ "$CHECK_MSYS" == "mingw" ] && [ ! -z "$CC" ] ; then
     cmake .. -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE $CMAKE_OPTIONS "$@";
 else
     cmake .. -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE $CMAKE_OPTIONS "$@";

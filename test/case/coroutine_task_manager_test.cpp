@@ -145,6 +145,38 @@ CASE_TEST(coroutine_task_manager, multi_checkpoints) {
     CASE_EXPECT_EQ(2, g_test_coroutine_task_manager_status);
 }
 
+CASE_TEST(coroutine_task_manager, update_timeout) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    task_ptr_type                 co_task = cotask::task<>::create(test_context_task_manager_action());
+
+    typedef cotask::task_manager<cotask::task<> > mgr_t;
+    mgr_t::ptr_t                                  task_mgr = mgr_t::create();
+
+    CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
+    g_test_coroutine_task_manager_status = 0;
+
+    task_mgr->add_task(co_task, 10, 0);
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
+
+    task_mgr->tick(5);
+    CASE_EXPECT_EQ(copp::COPP_EC_SUCCESS, task_mgr->set_timeout(co_task->get_id(), 20, 0));
+
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
+
+    task_mgr->tick(15, 1);
+
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
+
+    task_mgr->tick(20, 1);
+
+    CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
+    CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
+
+    CASE_EXPECT_EQ(2, g_test_coroutine_task_manager_status);
+}
 
 class test_context_task_manager_action_protect_this_task : public cotask::impl::task_action_impl {
 public:

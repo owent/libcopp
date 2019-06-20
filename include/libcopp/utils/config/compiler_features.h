@@ -22,6 +22,7 @@
 # define UTIL_CONFIG_COMPILER_IS_Cray 0
 # define UTIL_CONFIG_COMPILER_IS_TI 0
 # define UTIL_CONFIG_COMPILER_IS_Fujitsu 0
+# define UTIL_CONFIG_COMPILER_IS_GHS 0
 # define UTIL_CONFIG_COMPILER_IS_SCO 0
 # define UTIL_CONFIG_COMPILER_IS_ARMCC 0
 # define UTIL_CONFIG_COMPILER_IS_AppleClang 0
@@ -76,7 +77,7 @@
 # undef UTIL_CONFIG_COMPILER_IS_zOS
 # define UTIL_CONFIG_COMPILER_IS_zOS 1
 
-#elif defined(__IBMCPP__) && !defined(__COMPILER_VER__) && __IBMCPP__ >= 800
+#elif defined(__ibmxl__) || (defined(__IBMCPP__) && !defined(__COMPILER_VER__) && __IBMCPP__ >= 800)
 # undef UTIL_CONFIG_COMPILER_IS_XL
 # define UTIL_CONFIG_COMPILER_IS_XL 1
 
@@ -99,6 +100,10 @@
 #elif defined(__FUJITSU) || defined(__FCC_VERSION) || defined(__fcc_version)
 # undef UTIL_CONFIG_COMPILER_IS_Fujitsu
 # define UTIL_CONFIG_COMPILER_IS_Fujitsu 1
+
+#elif defined(__ghs__)
+# undef UTIL_CONFIG_COMPILER_IS_GHS
+# define UTIL_CONFIG_COMPILER_IS_GHS 1
 
 #elif defined(__SCO_VERSION__)
 # undef UTIL_CONFIG_COMPILER_IS_SCO
@@ -637,6 +642,8 @@
 
 #  if defined(UTIL_CONFIG_COMPILER_CXX_NULLPTR) && UTIL_CONFIG_COMPILER_CXX_NULLPTR
 #    define UTIL_CONFIG_NULLPTR nullptr
+#  elif UTIL_CONFIG_COMPILER_IS_GNU
+#    define UTIL_CONFIG_NULLPTR __null
 #  else
 #    define UTIL_CONFIG_NULLPTR 0
 #  endif

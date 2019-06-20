@@ -15,9 +15,16 @@
 #include <algorithm>
 #include <assert.h>
 #include <ctime>
-#include <map>
+#include <set>
 #include <stdint.h>
 #include <vector>
+
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+#include <unordered_map>
+#define COTASK_MACRO_MANAGER_USING_UNORDERED_MAP 1
+#else
+#include <map>
+#endif
 
 #include <libcotask/task_macros.h>
 
@@ -29,30 +36,69 @@ namespace cotask {
             time_t tv_sec;  /* Seconds.  */
             int    tv_nsec; /* Nanoseconds.  */
 
+            friend bool operator==(const tickspec_t &l, const tickspec_t &r) { return l.tv_sec == r.tv_sec && l.tv_nsec == r.tv_nsec; }
+
+            friend bool operator!=(const tickspec_t &l, const tickspec_t &r) { return l.tv_sec != r.tv_sec || l.tv_nsec != r.tv_nsec; }
+
             friend bool operator<(const tickspec_t &l, const tickspec_t &r) {
                 return (l.tv_sec != r.tv_sec) ? l.tv_sec < r.tv_sec : l.tv_nsec < r.tv_nsec;
             }
-
-            friend bool operator==(const tickspec_t &l, const tickspec_t &r) { return l.tv_sec == r.tv_sec && l.tv_nsec == r.tv_nsec; }
 
             friend bool operator<=(const tickspec_t &l, const tickspec_t &r) {
                 return (l.tv_sec != r.tv_sec) ? l.tv_sec <= r.tv_sec : l.tv_nsec <= r.tv_nsec;
             }
         };
+
+        template <typename TTask>
+        struct task_timer_node {
+            tickspec_t           expired_time;
+            typename TTask::id_t task_id;
+
+            friend bool operator==(const task_timer_node &l, const task_timer_node &r) {
+                return l.expired_time == r.expired_time && l.task_id == r.task_id;
+            }
+
+            friend bool operator!=(const task_timer_node &l, const task_timer_node &r) {
+                return l.expired_time != r.expired_time || l.task_id != r.task_id;
+            }
+
+            friend bool operator<(const task_timer_node &l, const task_timer_node &r) {
+                if (l.expired_time != r.expired_time) {
+                    return l.expired_time < r.expired_time;
+                }
+
+                return l.task_id < r.task_id;
+            }
+
+            friend bool operator<=(const task_timer_node &l, const task_timer_node &r) {
+                if (l.expired_time != r.expired_time) {
+                    return l.expired_time <= r.expired_time;
+                }
+
+                return l.task_id <= r.task_id;
+            }
+        };
+
+        template <typename TTask>
+        struct task_manager_node {
+            typedef typename TTask::ptr_t task_ptr_t;
+
+            task_ptr_t                                           task_;
+            typename std::set<task_timer_node<TTask> >::iterator timer_node;
+        };
+
     } // namespace detail
-
-    template <typename TTask>
-    struct task_mgr_node {
-        typedef typename TTask::ptr_t task_ptr_t;
-
-        detail::tickspec_t expired_time_;
-        task_ptr_t         task_;
-    };
 
     /**
      * @brief task manager
      */
-    template <typename TTask, typename TTaskContainer = std::map<typename TTask::id_t, task_mgr_node<TTask> > >
+    template <typename TTask,
+#if defined(COTASK_MACRO_MANAGER_USING_UNORDERED_MAP)
+              typename TTaskContainer = std::unordered_map<typename TTask::id_t, detail::task_manager_node<TTask> >
+#else
+              typename TTaskContainer = std::map<typename TTask::id_t, detail::task_manager_node<TTask> >
+#endif
+              >
     class task_manager {
     public:
         typedef TTask                             task_t;
@@ -117,10 +163,11 @@ namespace cotask {
 
                 for (typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
                     all_tasks.push_back(iter->second.task_);
+                    remove_timeout_timer(iter->second);
                 }
 
                 tasks_.clear();
-                task_timeout_checkpoints_.clear();
+                task_timeout_timer_.clear();
                 flags_                  = 0;
                 last_tick_time_.tv_sec  = 0;
                 last_tick_time_.tv_nsec = 0;
@@ -128,7 +175,9 @@ namespace cotask {
 
             // then, kill all tasks
             for (typename std::vector<task_ptr_t>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
-                (*iter)->kill(EN_TS_KILLED);
+                if (!(*iter)->is_exiting()) {
+                    (*iter)->kill(EN_TS_KILLED);
+                }
             }
         }
 
@@ -163,17 +212,16 @@ namespace cotask {
 
             // try to cast type
             typedef typename container_t::value_type pair_type;
-            task_mgr_node<task_t>                    task_node;
-            task_node.task_                 = task;
-            task_node.expired_time_.tv_sec  = last_tick_time_.tv_sec + timeout_sec;
-            task_node.expired_time_.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
+            detail::task_manager_node<task_t>        task_node;
+            task_node.task_      = task;
+            task_node.timer_node = task_timeout_timer_.end();
 
             if (!task_node.task_) {
                 assert(task_node.task_);
                 return copp::COPP_EC_CAST_FAILED;
             }
 
-                // lock before we will operator tasks_
+            // lock before we will operator tasks_
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
@@ -184,16 +232,13 @@ namespace cotask {
             }
 
             // try to insert to container
-            if (false == tasks_.insert(pair_type(task_id, task_node)).second) {
+            std::pair<typename container_t::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
+            if (false == res.second) {
                 return copp::COPP_EC_EXTERNAL_INSERT_FAILED;
             }
 
             // add timeout controller
-            if (0 != timeout_sec || 0 != timeout_nsec) {
-                typedef typename std::multimap<detail::tickspec_t, id_t>::value_type timer_pair_type;
-                task_timeout_checkpoints_.insert(timer_pair_type(task_node.expired_time_, task_id));
-            }
-
+            set_timeout_timer(res.first->second, timeout_sec, timeout_nsec);
             return copp::COPP_EC_SUCCESS;
         }
 
@@ -206,6 +251,40 @@ namespace cotask {
          *
          */
         int add_task(const task_ptr_t &task) { return add_task(task, 0, 0); }
+
+        /**
+         * @brief set or update task timeout
+         *
+         * @param id task id of which should be already added into this manager
+         * @param timeout_sec timeout in second ( unix time stamp recommanded )
+         * @param timeout_nsec timeout in nanosecond ( must be in the range 0-999999999 )
+         * @return 0 or error code
+         *
+         * @note if a task added before the first calling of tick method,
+         *       the timeout will be set releative to the first calling time of tick method
+         * @note this function can be call multiply times, we will use the last timeout.
+         *       set_timeout(TASK_ID, 0, 0) means the task with TASK_ID will never expire.
+         * @see tick
+         */
+        int set_timeout(id_t id, time_t timeout_sec, int timeout_nsec) {
+            if (flags_ & flag_t::EN_TM_IN_RESET) {
+                return copp::COPP_EC_IN_RESET;
+            }
+
+            {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+#endif
+
+                typedef typename container_t::iterator iter_type;
+                iter_type                              iter = tasks_.find(id);
+                if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
+
+                set_timeout_timer(iter->second, timeout_sec, timeout_nsec);
+            }
+
+            return copp::COPP_EC_SUCCESS;
+        }
 
         /**
          * @brief remove task in this manager
@@ -229,6 +308,8 @@ namespace cotask {
 
                 // make sure running task be killed first
                 task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+
+                remove_timeout_timer(iter->second);
                 tasks_.erase(iter);
             }
 
@@ -291,11 +372,7 @@ namespace cotask {
 
                 // if task is finished, remove it
                 if (task_inst->get_status() >= EN_TS_DONE) {
-                // lock again and prepare to remove from tasks_
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
-                    util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
-#endif
-                    tasks_.erase(id);
+                    remove_task(id);
                 }
 
                 return ret;
@@ -328,11 +405,7 @@ namespace cotask {
 
                 // if task is finished, remove it
                 if (task_inst->get_status() >= EN_TS_DONE) {
-                // lock again and prepare to remove from tasks_
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
-                    util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
-#endif
-                    tasks_.erase(id);
+                    remove_task(id);
                 }
 
                 return ret;
@@ -359,6 +432,8 @@ namespace cotask {
                 }
 
                 task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+
+                remove_timeout_timer(iter->second);
                 tasks_.erase(iter); // remove from container
             }
 
@@ -388,6 +463,8 @@ namespace cotask {
                 }
 
                 task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+
+                remove_timeout_timer(iter->second);
                 tasks_.erase(iter); // remove from container
             }
 
@@ -411,6 +488,11 @@ namespace cotask {
          */
         int tick(time_t sec, int nsec = 0) {
             detail::tickspec_t now_tick_time;
+            // time can not be back
+            if (sec < last_tick_time_.tv_sec || (sec == last_tick_time_.tv_sec && nsec <= last_tick_time_.tv_nsec)) {
+                return 0;
+            }
+
             now_tick_time.tv_sec  = sec;
             now_tick_time.tv_nsec = nsec;
 
@@ -426,57 +508,57 @@ namespace cotask {
 
             // first tick, init and reset task timeout
             if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
-            // hold lock
+                // hold lock
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-                std::multimap<detail::tickspec_t, id_t> real_checkpoints;
-                for (typename std::multimap<detail::tickspec_t, id_t>::iterator iter = task_timeout_checkpoints_.begin();
-                     task_timeout_checkpoints_.end() != iter; ++iter) {
-                    detail::tickspec_t new_checkpoint;
-                    new_checkpoint.tv_sec  = iter->first.tv_sec + sec;
-                    new_checkpoint.tv_nsec = iter->first.tv_nsec + nsec;
-                    typedef typename std::multimap<detail::tickspec_t, id_t>::value_type pair_type;
-                    real_checkpoints.insert(pair_type(new_checkpoint, iter->second));
+                std::set<detail::task_timer_node<task_t> > real_checkpoints;
+                for (typename std::set<detail::task_timer_node<task_t> >::iterator iter = task_timeout_timer_.begin();
+                     task_timeout_timer_.end() != iter; ++iter) {
+                    detail::task_timer_node<task_t> new_checkpoint = (*iter);
+                    new_checkpoint.expired_time.tv_sec += sec;
+                    new_checkpoint.expired_time.tv_nsec += nsec;
+                    real_checkpoints.insert(new_checkpoint);
                 }
 
-                real_checkpoints.swap(task_timeout_checkpoints_);
+                task_timeout_timer_.swap(task_timeout_timer_);
                 last_tick_time_ = now_tick_time;
                 return copp::COPP_EC_SUCCESS;
             }
 
             // remove timeout tasks
-            while (false == task_timeout_checkpoints_.empty()) {
+            while (false == task_timeout_timer_.empty()) {
                 task_ptr_t task_inst;
 
                 {
-                // hold lock
+                    // hold lock
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
                     util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-                    typename std::multimap<detail::tickspec_t, id_t>::value_type &task_node = *task_timeout_checkpoints_.begin();
+                    const typename std::set<detail::task_timer_node<task_t> >::value_type &timer_node = *task_timeout_timer_.begin();
                     // all tasks those expired time less than now are timeout
-                    if (now_tick_time <= task_node.first) {
+                    if (now_tick_time <= timer_node.expired_time) {
                         break;
                     }
 
                     // check expire time(may be changed)
                     typedef typename container_t::iterator iter_type;
-                    iter_type                              iter = tasks_.find(task_node.second);
-                    if (tasks_.end() != iter && iter->second.expired_time_ < now_tick_time) {
+
+                    iter_type iter = tasks_.find(timer_node.task_id);
+
+                    if (tasks_.end() != iter) {
                         // task may be removed before
                         task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+
+                        remove_timeout_timer(iter->second);
                         tasks_.erase(iter); // remove from container
                     }
-
-                    // remove timeout checkpoint
-                    task_timeout_checkpoints_.erase(task_timeout_checkpoints_.begin());
                 }
 
                 // task call can not be used when lock is on
-                if (task_inst) {
+                if (task_inst && !task_inst->is_exiting()) {
                     task_inst->kill(EN_TS_TIMEOUT);
                 }
             }
@@ -489,7 +571,7 @@ namespace cotask {
          * @brief get timeout checkpoint number in this manager
          * @return checkpoint number
          */
-        size_t get_tick_checkpoint_size() const UTIL_CONFIG_NOEXCEPT { return task_timeout_checkpoints_.size(); }
+        size_t get_tick_checkpoint_size() const UTIL_CONFIG_NOEXCEPT { return task_timeout_timer_.size(); }
 
         /**
          * @brief get task number in this manager
@@ -513,14 +595,44 @@ namespace cotask {
          * @brief get all task checkpoints, this api is just used for provide information to users
          * @return task checkpoints
          */
-        inline const std::multimap<detail::tickspec_t, id_t> &get_checkpoints() const UTIL_CONFIG_NOEXCEPT {
-            return task_timeout_checkpoints_;
+        inline const std::set<detail::task_timer_node<task_t> > &get_checkpoints() const UTIL_CONFIG_NOEXCEPT {
+            return task_timeout_timer_;
         }
 
     private:
-        container_t                             tasks_;
-        detail::tickspec_t                      last_tick_time_;
-        std::multimap<detail::tickspec_t, id_t> task_timeout_checkpoints_;
+        void set_timeout_timer(detail::task_manager_node<task_t> &node, time_t timeout_sec, int timeout_nsec) {
+            remove_timeout_timer(node);
+
+            if (timeout_sec <= 0 && timeout_nsec <= 0) {
+                return;
+            }
+
+            if (!node.task_) {
+                return;
+            }
+
+            detail::task_timer_node<task_t> timer_node;
+            timer_node.task_id              = node.task_->get_id();
+            timer_node.expired_time.tv_sec  = last_tick_time_.tv_sec + timeout_sec;
+            timer_node.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
+
+            std::pair<typename std::set<detail::task_timer_node<task_t> >::iterator, bool> res = task_timeout_timer_.insert(timer_node);
+            if (res.second) {
+                node.timer_node = res.first;
+            }
+        }
+
+        void remove_timeout_timer(detail::task_manager_node<task_t> &node) {
+            if (node.timer_node != task_timeout_timer_.end()) {
+                task_timeout_timer_.erase(node.timer_node);
+                node.timer_node = task_timeout_timer_.end();
+            }
+        }
+
+    private:
+        container_t                                tasks_;
+        detail::tickspec_t                         last_tick_time_;
+        std::set<detail::task_timer_node<task_t> > task_timeout_timer_;
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
         util::lock::spin_lock action_lock_;

@@ -4,11 +4,11 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://cmake.org/files/v3.14/cmake-3.14.0-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
-    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.5/pandoc-2.5-linux.tar.gz
+    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-linux.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
-    - DOXYGEN_LINUX_URL=http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.14.linux.bin.tar.gz
+    - DOXYGEN_LINUX_URL=http://doxygen.nl/files/doxygen-1.8.15.linux.bin.tar.gz
 matrix:
   include:
     - os: osx
@@ -46,16 +46,16 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
-      env: USE_CC=gcc-8 USE_CXX=g++-8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-9 USE_CXX=g++-9 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-8
-            - gcc-8-multilib
-            - g++-8
-            - g++-8-multilib
+            - gcc-9
+            - gcc-9-multilib
+            - g++-9
+            - g++-9-multilib
     - os: linux
       dist: xenial
       sudo: required
@@ -167,12 +167,12 @@ script:
     - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ;
     - $CMAKE_BIN --build . ;
     - echo "============================== run in thread-safe mode ==============================" ;
-    - make run_sample run_test benchmark ;
+    - cmake --build . -- run_sample run_test benchmark ;
     - rm -rf * ;
     - echo "$CMAKE_BIN ..  -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON" ;
     - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX -DPROJECT_DISABLE_MT=ON ;
     - echo "============================== run in thread-unsafe mode ==============================" ;
-    - make benchmark ;
+    - cmake --build . -- benchmark ;
 
 cache: 
   apt: true
