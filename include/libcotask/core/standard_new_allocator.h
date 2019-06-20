@@ -27,7 +27,7 @@ namespace cotask {
              */
             template <typename Ty, typename... TARGS>
             static std::shared_ptr<Ty> allocate(Ty *, TARGS COPP_MACRO_RV_REF... args) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARGS, args)...));
+                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARGS, args)...);
             }
 
 #else
@@ -37,7 +37,7 @@ namespace cotask {
              */
             template <typename Ty>
             static std::shared_ptr<Ty> allocate(Ty *) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>());
+                return std::make_shared<Ty>();
             }
 
             /**
@@ -47,7 +47,7 @@ namespace cotask {
              */
             template <typename Ty, typename TARG0>
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0)));
+                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0));
             }
 
             /**
@@ -58,7 +58,7 @@ namespace cotask {
              */
             template <typename Ty, typename TARG0, typename TARG1>
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1)));
+                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1));
             }
 
             /**
@@ -71,8 +71,8 @@ namespace cotask {
             template <typename Ty, typename TARG0, typename TARG1, typename TARG2>
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
                                                 TARG2 COPP_MACRO_RV_REF arg2) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2)));
+                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
+                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2));
             }
 
             /**
@@ -86,8 +86,8 @@ namespace cotask {
             template <typename Ty, typename TARG0, typename TARG1, typename TARG2, typename TARG3>
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
                                                 TARG2 COPP_MACRO_RV_REF arg2, TARG3 COPP_MACRO_RV_REF arg3) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3)));
+                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
+                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3));
             }
 
             /**
@@ -102,9 +102,9 @@ namespace cotask {
             template <typename Ty, typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4>
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
                                                 TARG2 COPP_MACRO_RV_REF arg2, TARG3 COPP_MACRO_RV_REF arg3, TARG4 COPP_MACRO_RV_REF arg4) {
-                return COPP_MACRO_STD_MOVE(std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
+                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
                                                                 COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3),
-                                                                COPP_MACRO_STD_FORWARD(TARG4, arg4)));
+                                                                COPP_MACRO_STD_FORWARD(TARG4, arg4));
             }
 
 #endif

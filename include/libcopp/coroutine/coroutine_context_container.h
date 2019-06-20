@@ -103,7 +103,7 @@ namespace copp {
                 ret->callee_stack_ = COPP_MACRO_STD_MOVE(callee_stack);
             } else {
                 alloc.deallocate(callee_stack);
-                return COPP_MACRO_STD_MOVE(ret);
+                return ret;
             }
 
             // after this call runner will be unavailable
@@ -112,7 +112,7 @@ namespace copp {
                 ret.reset();
             }
 
-            return COPP_MACRO_STD_MOVE(ret);
+            return ret;
         }
 
         template <class TRunner>
