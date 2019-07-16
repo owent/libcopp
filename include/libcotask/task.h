@@ -333,6 +333,7 @@ namespace cotask {
          * @note please not to make tasks refer to each other. [it will lead to memory leak]
          * @note [don't do that] ptr_t a = ..., b = ...; a.await(b); b.await(a);
          * @param wait_task which stack to wait for
+         * @note this task will loop wait for wait_task and ignore any remuse() call unless wait_task is changed.
          * @return 0 or error code
          */
         inline int await(const ptr_t &wait_task) {
@@ -363,7 +364,10 @@ namespace cotask {
             }
 
             int ret = 0;
-            while (!(wait_task->is_exiting() || wait_task->is_completed())) {
+            self_t* origin_wait_task = wait_task.get();
+            // the reference maybe reset or changed here
+            // if wait_task changed it shouldn't loop wait that any more
+            while (wait_task && origin_wait_task == wait_task.get() && !(wait_task->is_exiting() || wait_task->is_completed())) {
                 if (is_exiting()) {
                     return copp::COPP_EC_TASK_IS_EXITING;
                 }
