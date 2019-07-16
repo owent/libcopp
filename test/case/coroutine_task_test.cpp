@@ -198,6 +198,22 @@ CASE_TEST(coroutine_task, function_action) {
     }
 }
 
+CASE_TEST(coroutine_task, cancel) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    task_ptr_type                 co_task = cotask::task<>::create(test_context_task_function_1);
+    g_test_coroutine_task_status          = 0;
+
+    CASE_EXPECT_EQ(0, co_task->start());
+
+    ++g_test_coroutine_task_status;
+    CASE_EXPECT_EQ(g_test_coroutine_task_status, 2);
+
+    CASE_EXPECT_FALSE(co_task->is_completed());
+    CASE_EXPECT_EQ(0, co_task->cancel(UTIL_CONFIG_NULLPTR));
+
+    CASE_EXPECT_TRUE(co_task->is_completed());
+}
+
 // task start and coroutine context yield
 static void test_context_task_function_3(void *) {
     ++g_test_coroutine_task_status;
@@ -323,18 +339,32 @@ struct test_context_task_next_action : public cotask::impl::task_action_impl {
 
 CASE_TEST(coroutine_task, next) {
     typedef cotask::task<>::ptr_t task_ptr_type;
-    g_test_coroutine_task_status = 0;
 
-    task_ptr_type co_task = cotask::task<>::create(test_context_task_next_action(15, 0));
-    co_task->next(test_context_task_next_action(7, 15))
-        ->next(test_context_task_next_action(99, 7))
-        ->next(test_context_task_next_action(1023, 99))
-        ->next(test_context_task_next_action(5, 1023));
+    {
+        g_test_coroutine_task_status = 0;
 
-    CASE_EXPECT_EQ(0, co_task->start());
-    CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
+        task_ptr_type co_task = cotask::task<>::create(test_context_task_next_action(15, 0));
+        co_task->next(test_context_task_next_action(7, 15))
+            ->next(test_context_task_next_action(99, 7))
+            ->next(test_context_task_next_action(1023, 99))
+            ->next(test_context_task_next_action(5, 1023));
 
-    CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
+        CASE_EXPECT_EQ(co_task->next(co_task), co_task);
+        CASE_EXPECT_EQ(0, co_task->start());
+        CASE_EXPECT_EQ(g_test_coroutine_task_status, 5);
+
+        CASE_EXPECT_EQ(copp::COPP_EC_ALREADY_FINISHED, co_task->start());
+    }
+
+    {
+        g_test_coroutine_task_status = 0;
+        task_ptr_type co_task_a      = cotask::task<>::create(test_context_task_next_action(1, 1));
+        task_ptr_type co_task_b      = cotask::task<>::create(test_context_task_function_1);
+
+        CASE_EXPECT_EQ(0, co_task_b->start());
+        co_task_a->next(co_task_b);
+        CASE_EXPECT_EQ(0, co_task_a->start());
+    }
 }
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
@@ -485,6 +515,9 @@ CASE_TEST(coroutine_task, await) {
         task_ptr_type co_task_2 = cotask::task<>::create(test_context_task_await_2, 16384);
 
         void *priv_data = co_task_1->get_private_buffer();
+
+        CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, co_task_1->await(UTIL_CONFIG_NULLPTR));
+        CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, co_task_1->await(co_task_1));
 
         *reinterpret_cast<cotask::task<>::self_t **>(priv_data) = co_task_2.get();
         CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await(co_task_2));

@@ -26,6 +26,86 @@ public:
     }
 };
 
+CASE_TEST(coroutine_task_manager, tickspec_t) {
+    cotask::detail::tickspec_t l;
+    cotask::detail::tickspec_t r;
+
+    l.tv_sec  = 123;
+    l.tv_nsec = 456;
+
+    r.tv_sec  = 123;
+    r.tv_nsec = 456;
+
+    CASE_EXPECT_TRUE(l == r);
+    CASE_EXPECT_FALSE(l != r);
+    CASE_EXPECT_FALSE(l < r);
+    CASE_EXPECT_TRUE(l <= r);
+
+    r.tv_sec  = 456;
+    r.tv_nsec = 123;
+
+    CASE_EXPECT_FALSE(l == r);
+    CASE_EXPECT_TRUE(l != r);
+    CASE_EXPECT_TRUE(l < r);
+    CASE_EXPECT_TRUE(l <= r);
+
+    r.tv_sec  = 45;
+    r.tv_nsec = 999;
+
+    CASE_EXPECT_FALSE(l == r);
+    CASE_EXPECT_TRUE(l != r);
+    CASE_EXPECT_FALSE(l < r);
+    CASE_EXPECT_FALSE(l <= r);
+}
+
+CASE_TEST(coroutine_task_manager, task_timer_node) {
+    cotask::detail::task_timer_node<cotask::task<> > l;
+    cotask::detail::task_timer_node<cotask::task<> > r;
+
+    l.expired_time.tv_sec  = 123;
+    l.expired_time.tv_nsec = 456;
+    l.task_id              = 10;
+
+    r.expired_time.tv_sec  = 123;
+    r.expired_time.tv_nsec = 456;
+    r.task_id              = 10;
+
+    CASE_EXPECT_TRUE(l == r);
+    CASE_EXPECT_FALSE(l != r);
+    CASE_EXPECT_FALSE(l < r);
+    CASE_EXPECT_TRUE(l <= r);
+
+    r.task_id = 5;
+
+    CASE_EXPECT_FALSE(l == r);
+    CASE_EXPECT_TRUE(l != r);
+    CASE_EXPECT_FALSE(l < r);
+    CASE_EXPECT_FALSE(l <= r);
+
+    r.expired_time.tv_nsec = 45;
+    r.task_id              = 10;
+
+    CASE_EXPECT_FALSE(l == r);
+    CASE_EXPECT_TRUE(l != r);
+    CASE_EXPECT_FALSE(l < r);
+    CASE_EXPECT_FALSE(l <= r);
+
+    r.expired_time.tv_nsec = 456;
+    r.task_id              = 15;
+
+    CASE_EXPECT_FALSE(l == r);
+    CASE_EXPECT_TRUE(l != r);
+    CASE_EXPECT_TRUE(l < r);
+    CASE_EXPECT_TRUE(l <= r);
+
+    r.expired_time.tv_nsec = 4567;
+    r.task_id              = 10;
+
+    CASE_EXPECT_FALSE(l == r);
+    CASE_EXPECT_TRUE(l != r);
+    CASE_EXPECT_TRUE(l < r);
+    CASE_EXPECT_TRUE(l <= r);
+}
 
 CASE_TEST(coroutine_task_manager, add_and_timeout) {
     typedef cotask::task<>::ptr_t task_ptr_type;
@@ -82,6 +162,8 @@ CASE_TEST(coroutine_task_manager, add_and_timeout) {
 
     CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
+
+    task_mgr.reset();
 }
 
 
