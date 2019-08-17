@@ -50,20 +50,6 @@
 #endif
 // ---------------- select platform ----------------
 
-// ================ c extern ================
-#if !defined(__BEGIN_DECLS) && !defined(__END_DECLS)
-#if defined(__cplusplus)
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS
-#define __END_DECLS
-#endif
-#endif
-
-#if !defined(__THROW)
-#define __THROW
-#endif
 // ---------------- c extern ----------------
 #if defined(UTIL_CONFIG_NOEXCEPT)
 #define COPP_MACRO_NOEXCEPT UTIL_CONFIG_NOEXCEPT

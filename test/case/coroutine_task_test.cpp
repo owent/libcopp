@@ -1,5 +1,3 @@
-#ifdef LIBCOTASK_MACRO_ENABLED
-
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -11,6 +9,7 @@
 
 #include "frame/test_macros.h"
 
+#ifdef LIBCOTASK_MACRO_ENABLED
 static int g_test_coroutine_task_status      = 0;
 static int g_test_coroutine_task_on_finished = 0;
 class test_context_task_action_base : public cotask::impl::task_action_impl {
@@ -34,7 +33,7 @@ public:
         return 0;
     }
 
-    virtual int on_finished(cotask::impl::task_impl &t) {
+    virtual int on_finished(cotask::impl::task_impl &) {
         ++g_test_coroutine_task_on_finished;
         return 0;
     }
@@ -358,12 +357,14 @@ CASE_TEST(coroutine_task, next) {
 
     {
         g_test_coroutine_task_status = 0;
-        task_ptr_type co_task_a      = cotask::task<>::create(test_context_task_next_action(1, 1));
+        task_ptr_type co_task_a      = cotask::task<>::create(test_context_task_next_action(2, 1));
         task_ptr_type co_task_b      = cotask::task<>::create(test_context_task_function_1);
 
         CASE_EXPECT_EQ(0, co_task_b->start());
         co_task_a->next(co_task_b);
         CASE_EXPECT_EQ(0, co_task_a->start());
+        CASE_EXPECT_TRUE(co_task_a->is_completed());
+        CASE_EXPECT_TRUE(co_task_b->is_completed());
     }
 }
 

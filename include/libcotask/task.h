@@ -13,6 +13,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 #include <stdint.h>
 
 #include <libcopp/stack/stack_traits.h>
@@ -50,7 +51,13 @@ namespace cotask {
          * @brief constuctor
          * @note should not be called directly
          */
-        task(size_t stack_sz) : stack_size_(stack_sz), action_destroy_fn_(UTIL_CONFIG_NULLPTR) {
+        task(size_t stack_sz)
+            : id_(0), stack_size_(stack_sz), action_destroy_fn_(UTIL_CONFIG_NULLPTR)
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+              ,
+              binding_manager_ptr_(UTIL_CONFIG_NULLPTR), binding_manager_fn_(UTIL_CONFIG_NULLPTR)
+#endif
+        {
             id_allocator_t id_alloc_;
             id_ = id_alloc_.allocate();
             ref_count_.store(0);
@@ -248,7 +255,7 @@ namespace cotask {
             }
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
-            util::lock::lock_holder<util::lock::spin_lock> lock_guard(next_list_lock_);
+            util::lock::lock_holder<util::lock::spin_lock> lock_guard(inner_action_lock_);
 #endif
 
             next_list_.member_list_.push_back(std::make_pair(next_task, priv_data));
@@ -611,13 +618,22 @@ namespace cotask {
 
         void active_next_tasks() {
             std::list<std::pair<ptr_t, void *> > next_list;
-
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+            void *manager_ptr;
+            void (*manager_fn)(void *, self_t &);
+#endif
             // first, lock and swap container
             {
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(next_list_lock_);
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(inner_action_lock_);
 #endif
                 next_list.swap(next_list_.member_list_);
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+                manager_ptr          = binding_manager_ptr_;
+                manager_fn           = binding_manager_fn_;
+                binding_manager_ptr_ = UTIL_CONFIG_NULLPTR;
+                binding_manager_fn_  = UTIL_CONFIG_NULLPTR;
+#endif
             }
 
             // then, do all the pending tasks
@@ -632,6 +648,13 @@ namespace cotask {
                     iter->first->resume(iter->second);
                 }
             }
+
+            // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+            if (UTIL_CONFIG_NULLPTR != manager_ptr && UTIL_CONFIG_NULLPTR != manager_fn) {
+                (*manager_fn)(manager_ptr, *this);
+            }
+#endif
         }
 
         int _notify_finished(void *priv_data) {
@@ -683,6 +706,40 @@ namespace cotask {
             }
         }
 
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+    public:
+        class task_manager_helper {
+        private:
+            template <typename, typename>
+            friend class task_manager;
+            static bool setup_task_manager(self_t &task_inst, void *manager_ptr, void (*fn)(void *, self_t &)) {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
+#endif
+                if (task_inst.binding_manager_ptr_ != UTIL_CONFIG_NULLPTR) {
+                    return false;
+                }
+
+                task_inst.binding_manager_ptr_ = manager_ptr;
+                task_inst.binding_manager_fn_  = fn;
+                return true;
+            }
+
+            static bool cleanup_task_manager(self_t &task_inst, void *manager_ptr) {
+#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+                util::lock::lock_holder<util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
+#endif
+                if (task_inst.binding_manager_ptr_ != manager_ptr) {
+                    return false;
+                }
+
+                task_inst.binding_manager_ptr_ = UTIL_CONFIG_NULLPTR;
+                task_inst.binding_manager_fn_  = UTIL_CONFIG_NULLPTR;
+                return true;
+            }
+        };
+#endif
+
     private:
         id_t                        id_;
         size_t                      stack_size_;
@@ -694,9 +751,15 @@ namespace cotask {
 
 #if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
         util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
-        util::lock::spin_lock               next_list_lock_;
+        util::lock::spin_lock               inner_action_lock_;
 #else
         util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> > ref_count_; /** ref_count **/
+#endif
+
+        // ============== binding to task manager ==============
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        void *binding_manager_ptr_;
+        void (*binding_manager_fn_)(void *, self_t &);
 #endif
     };
 } // namespace cotask

@@ -60,6 +60,10 @@ if (LIBCOTASK_ENABLE)
     set(LIBCOTASK_MACRO_ENABLED 1)
 endif ()
 
+if (LIBCOTASK_AUTO_CLEANUP_MANAGER)
+    set(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER 1)
+endif ()
+
 find_package(Threads)
 if (CMAKE_USE_PTHREADS_INIT)
     list(APPEND PROJECT_LIBCOPP_SYSLIB_LINK_NAMES pthread)
@@ -75,12 +79,25 @@ configure_file(
     @ONLY
 )
 
-if (COMPILER_STRICT_EXTRA_CFLAGS)
-    add_definitions(${COMPILER_STRICT_EXTRA_CFLAGS})
-endif ()
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    get_filename_component(CMAKE_CXX_COMPILER_WE ${CMAKE_CXX_COMPILER} NAME_WE CACHE)
+    if (NOT ${CMAKE_CXX_COMPILER_WE} STREQUAL "clang-cl")
+        if (COMPILER_STRICT_EXTRA_CFLAGS)
+            add_definitions(${COMPILER_STRICT_EXTRA_CFLAGS})
+        endif ()
 
-if (COMPILER_STRICT_CFLAGS)
-    add_definitions(${COMPILER_STRICT_CFLAGS})
+        if (COMPILER_STRICT_CFLAGS)
+            add_definitions(${COMPILER_STRICT_CFLAGS})
+        endif ()
+    endif ()
+else ()
+    if (COMPILER_STRICT_EXTRA_CFLAGS)
+        add_definitions(${COMPILER_STRICT_EXTRA_CFLAGS})
+    endif ()
+
+    if (COMPILER_STRICT_CFLAGS)
+        add_definitions(${COMPILER_STRICT_CFLAGS})
+    endif ()
 endif ()
 
 ## 导入所有工程项目

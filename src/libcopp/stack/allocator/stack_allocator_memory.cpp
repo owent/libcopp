@@ -4,11 +4,12 @@
 #include <limits>
 #include <numeric>
 
+#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
-#include "libcopp/stack/allocator/stack_allocator_memory.h"
-#include "libcopp/stack/stack_context.h"
-#include "libcopp/stack/stack_traits.h"
+#include <libcopp/stack/allocator/stack_allocator_memory.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
 #include <valgrind/valgrind.h>
@@ -22,24 +23,28 @@
 namespace copp {
     namespace allocator {
 
-        stack_allocator_memory::stack_allocator_memory() UTIL_CONFIG_NOEXCEPT : start_ptr_(NULL), memory_size_(0), is_used_(false) {}
+        stack_allocator_memory::stack_allocator_memory() UTIL_CONFIG_NOEXCEPT : start_ptr_(UTIL_CONFIG_NULLPTR),
+                                                                                memory_size_(0),
+                                                                                is_used_(false) {}
 
         stack_allocator_memory::stack_allocator_memory(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT : start_ptr_(start_ptr),
                                                                                                                      memory_size_(max_size),
                                                                                                                      is_used_(false) {}
 
-        stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT : start_ptr_(NULL),
-                                                                                                             memory_size_(0),
-                                                                                                             is_used_(false) {
+        stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT
+            : start_ptr_(UTIL_CONFIG_NULLPTR),
+              memory_size_(0),
+              is_used_(false) {
             if (!other.is_used_) {
                 swap(other);
             }
         }
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT : start_ptr_(NULL),
-                                                                                                              memory_size_(0),
-                                                                                                              is_used_(false) {
+        stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT
+            : start_ptr_(UTIL_CONFIG_NULLPTR),
+              memory_size_(0),
+              is_used_(false) {
             if (!other.is_used_) {
                 swap(other);
             }
@@ -77,8 +82,8 @@ namespace copp {
         }
 
         void stack_allocator_memory::allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
-            if (NULL == start_ptr_ || is_used_) {
-                ctx.sp = NULL;
+            if (UTIL_CONFIG_NULLPTR == start_ptr_ || is_used_) {
+                ctx.sp = UTIL_CONFIG_NULLPTR;
                 return;
             }
 

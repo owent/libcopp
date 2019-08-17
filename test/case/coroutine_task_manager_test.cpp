@@ -1,5 +1,3 @@
-#ifdef LIBCOTASK_MACRO_ENABLED
-
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -9,6 +7,8 @@
 #include "frame/test_macros.h"
 #include <libcotask/task.h>
 #include <libcotask/task_manager.h>
+
+#ifdef LIBCOTASK_MACRO_ENABLED
 
 static int g_test_coroutine_task_manager_status = 0;
 class test_context_task_manager_action : public cotask::impl::task_action_impl {
@@ -134,9 +134,9 @@ CASE_TEST(coroutine_task_manager, add_and_timeout) {
 
     task_mgr->tick(8);
     CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
-    CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
-    CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
-    CASE_EXPECT_EQ(1, (int)task_mgr->get_checkpoints().size());
+    CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
+    CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
+    CASE_EXPECT_EQ(0, (int)task_mgr->get_checkpoints().size());
 
     task_mgr->tick(9);
     CASE_EXPECT_EQ(9, (int)task_mgr->get_last_tick_time().tv_sec);
@@ -194,7 +194,7 @@ CASE_TEST(coroutine_task_manager, kill) {
 
 
     CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
-    CASE_EXPECT_EQ(2, (int)task_mgr->get_tick_checkpoint_size());
+    CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
 
     CASE_EXPECT_EQ(cotask::EN_TS_KILLED, co_task->get_status());
     CASE_EXPECT_EQ(cotask::EN_TS_CANCELED, co_another_task->get_status());
@@ -247,12 +247,12 @@ CASE_TEST(coroutine_task_manager, update_timeout) {
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
 
-    task_mgr->tick(15, 1);
+    task_mgr->tick(24, 1);
 
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
 
-    task_mgr->tick(20, 1);
+    task_mgr->tick(25, 1);
 
     CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
@@ -389,6 +389,30 @@ CASE_TEST(coroutine_task_manager, create_and_run_mt) {
                    g_test_coroutine_task_manager_atomic.load());
 }
 
+#endif
+
+
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+CASE_TEST(coroutine_task_manager, auto_cleanup_for_manager) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    task_ptr_type                 co_task = cotask::task<>::create(test_context_task_manager_action());
+
+    typedef cotask::task_manager<cotask::task<> > mgr_t;
+    mgr_t::ptr_t                                  task_mgr1 = mgr_t::create();
+    mgr_t::ptr_t                                  task_mgr2 = mgr_t::create();
+
+    CASE_EXPECT_EQ(0, task_mgr1->add_task(co_task, 5, 0));
+    CASE_EXPECT_EQ(copp::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER, task_mgr2->add_task(co_task, 5, 0));
+
+    CASE_EXPECT_EQ(1, task_mgr1->get_task_size());
+    CASE_EXPECT_EQ(1, task_mgr1->get_tick_checkpoint_size());
+
+    co_task->start();
+    co_task->resume();
+
+    CASE_EXPECT_EQ(0, task_mgr1->get_task_size());
+    CASE_EXPECT_EQ(0, task_mgr1->get_tick_checkpoint_size());
+}
 #endif
 
 #endif

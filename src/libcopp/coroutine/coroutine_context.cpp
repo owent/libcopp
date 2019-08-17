@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <libcopp/utils/config/build_feature.h>
+#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
@@ -89,7 +90,7 @@ namespace copp {
         }
 
         size_t stack_offset = private_buffer_size + coroutine_size;
-        if (NULL == callee_stack.sp || callee_stack.size <= stack_offset) {
+        if (UTIL_CONFIG_NULLPTR == callee_stack.sp || callee_stack.size <= stack_offset) {
             return COPP_EC_ARGS_ERROR;
         }
 
@@ -117,7 +118,7 @@ namespace copp {
         p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->private_buffer_size_;
         p->callee_    = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
                                                   p->callee_stack_.size - stack_offset, &coroutine_context::coroutine_context_callback);
-        if (NULL == p->callee_) {
+        if (UTIL_CONFIG_NULLPTR == p->callee_) {
             return COPP_EC_FCONTEXT_MAKE_FAILED;
         }
 
@@ -125,7 +126,7 @@ namespace copp {
     }
 
     int coroutine_context::start(void *priv_data) {
-        if (NULL == callee_) {
+        if (UTIL_CONFIG_NULLPTR == callee_) {
             return COPP_EC_NOT_INITED;
         }
 
@@ -278,9 +279,10 @@ namespace copp {
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
         assert(&from_sctx != &to_sctx);
-        // ROOT->A: jump_transfer.from_co == NULL, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup segments
-        // A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
-        // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == NULL, from_sctx == B.callee_stack_, skip backup segments
+        // ROOT->A: jump_transfer.from_co == UTIL_CONFIG_NULLPTR, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup
+        // segments A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
+        // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == UTIL_CONFIG_NULLPTR, from_sctx == B.callee_stack_, skip backup
+        // segments
         if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
             __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
             if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
@@ -292,7 +294,7 @@ namespace copp {
         __splitstack_setcontext(to_sctx.segments_ctx);
 #endif
         res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
-        if (NULL == res.data) {
+        if (UTIL_CONFIG_NULLPTR == res.data) {
             abort();
             return;
         }
@@ -308,7 +310,7 @@ namespace copp {
          * and now we should save the callee of C and set the caller of A = C
          *
          * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
-         * jump_src->from_co = B, jump_src->to_co = NULL, jump_transfer.from_co = A, jump_transfer.to_co = B
+         * jump_src->from_co = B, jump_src->to_co = UTIL_CONFIG_NULLPTR, jump_transfer.from_co = A, jump_transfer.to_co = B
          * and now we should save the callee of B and should change the caller of A
          *
          */
@@ -339,7 +341,7 @@ namespace copp {
 
         // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
         // // resume running status of from_co
-        // if (NULL != jump_transfer.from_co) {
+        // if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
         //     from_status = jump_transfer.from_co->status_.load();
         //     swap_success = false;
         //     while (!swap_success && status_t::EN_CRS_READY == from_status) {
@@ -351,7 +353,7 @@ namespace copp {
 
     void coroutine_context::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
         assert(src_ctx.data);
-        if (NULL == src_ctx.data) {
+        if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
             abort();
             // return; // clang-analyzer will report "Unreachable code"
         }
@@ -362,7 +364,7 @@ namespace copp {
         // this must in a coroutine
         coroutine_context *ins_ptr = jump_src.to_co;
         assert(ins_ptr);
-        if (NULL == ins_ptr) {
+        if (UTIL_CONFIG_NULLPTR == ins_ptr) {
             abort();
             // return; // clang-analyzer will report "Unreachable code"
         }

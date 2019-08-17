@@ -45,13 +45,13 @@ namespace cotask {
             struct ext_coroutine_flag_t {
                 enum type {
                     EN_ECFT_UNKNOWN = 0,
-                    EN_ECFT_COTASK = 0x0100,
-                    EN_ECFT_MASK = 0xFF00,
+                    EN_ECFT_COTASK  = 0x0100,
+                    EN_ECFT_MASK    = 0xFF00,
                 };
             };
 
         private:
-            task_impl(const task_impl &);
+            task_impl(const task_impl &) UTIL_CONFIG_DELETED_FUNCTION;
 
         public:
             task_impl();
@@ -81,12 +81,12 @@ namespace cotask {
         public:
             virtual int get_ret_code() const = 0;
 
-            virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) = 0;
+            virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED)  = 0;
             virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) = 0;
-            virtual int yield(void **priv_data) = 0;
-            virtual int cancel(void *priv_data) = 0;
-            virtual int kill(enum EN_TASK_STATUS status, void *priv_data) = 0;
-            inline int kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
+            virtual int yield(void **priv_data)                                                 = 0;
+            virtual int cancel(void *priv_data)                                                 = 0;
+            virtual int kill(enum EN_TASK_STATUS status, void *priv_data)                       = 0;
+            inline int  kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
 
             inline int start() { return start(UTIL_CONFIG_NULLPTR); };
             inline int resume() { return resume(UTIL_CONFIG_NULLPTR); };
@@ -111,7 +111,7 @@ namespace cotask {
             inline action_ptr_t get_raw_action() const UTIL_CONFIG_NOEXCEPT { return action_; }
 
         protected:
-            void _set_action(action_ptr_t action);
+            void         _set_action(action_ptr_t action);
             action_ptr_t _get_action();
 
             bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);

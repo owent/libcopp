@@ -13,7 +13,7 @@ list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocato
 include(CheckIncludeFileCXX)
 include(CheckIncludeFiles)
 
-CHECK_INCLUDE_FILE_CXX(windows.h PROJECT_LIBCOPP_STACK_ALLOC_WINDOWS)
+CHECK_INCLUDE_FILE_CXX(Windows.h PROJECT_LIBCOPP_STACK_ALLOC_WINDOWS)
 if(PROJECT_LIBCOPP_STACK_ALLOC_WINDOWS)
 	EchoWithColor(COLOR GREEN "-- stack allocator: enable windows allocator")
 	list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_windows.cpp")

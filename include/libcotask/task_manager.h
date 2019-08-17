@@ -231,9 +231,18 @@ namespace cotask {
                 return copp::COPP_EC_ALREADY_EXIST;
             }
 
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+            if (!task_t::task_manager_helper::setup_task_manager(*task, reinterpret_cast<void *>(this), &task_cleanup_callback)) {
+                return copp::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER;
+            }
+#endif
+
             // try to insert to container
             std::pair<typename container_t::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
             if (false == res.second) {
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+                task_t::task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
+#endif
                 return copp::COPP_EC_EXTERNAL_INSERT_FAILED;
             }
 
@@ -289,9 +298,25 @@ namespace cotask {
         /**
          * @brief remove task in this manager
          * @param id task id
+         * @param confirm_ptr check task ptr before just remove by id
          * @return 0 or error code
          */
-        int remove_task(id_t id) {
+        inline int remove_task(id_t id, const task_ptr_t &confirm_ptr) { return remove_task(id, confirm_ptr.get()); }
+
+        /**
+         * @brief remove task in this manager
+         * @param id task id
+         * @return 0 or error code
+         */
+        inline int remove_task(id_t id) { return remove_task(id, UTIL_CONFIG_NULLPTR); }
+
+        /**
+         * @brief remove task in this manager
+         * @param id task id
+         * @param confirm_ptr check task ptr before just remove by id
+         * @return 0 or error code
+         */
+        int remove_task(id_t id, const task_t *confirm_ptr) {
             if (flags_ & flag_t::EN_TM_IN_RESET) {
                 return copp::COPP_EC_IN_RESET;
             }
@@ -304,7 +329,12 @@ namespace cotask {
 
                 typedef typename container_t::iterator iter_type;
                 iter_type                              iter = tasks_.find(id);
-                if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
+                if (tasks_.end() == iter) {
+                    return copp::COPP_EC_NOT_FOUND;
+                }
+                if (UTIL_CONFIG_NULLPTR != confirm_ptr && iter->second.task_.get() != confirm_ptr) {
+                    return copp::COPP_EC_NOT_FOUND;
+                }
 
                 // make sure running task be killed first
                 task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
@@ -314,6 +344,11 @@ namespace cotask {
             }
 
             if (task_inst) {
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+                // already cleanup, there is no need to cleanup again
+                task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+#endif
+
                 EN_TASK_STATUS task_status = task_inst->get_status();
                 if (task_status > EN_TS_CREATED && task_status < EN_TS_DONE) {
                     return task_inst->kill(EN_TS_KILLED, NULL);
@@ -439,6 +474,10 @@ namespace cotask {
 
             // unlock and then run cancel
             if (task_inst) {
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+                // already cleanup, there is no need to cleanup again
+                task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+#endif
                 return task_inst->cancel(priv_data);
             } else {
                 return copp::COPP_EC_NOT_FOUND;
@@ -470,6 +509,10 @@ namespace cotask {
 
             // unlock and then run kill
             if (task_inst) {
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+                // already cleanup, there is no need to cleanup again
+                task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+#endif
                 return task_inst->kill(status, priv_data);
             } else {
                 return copp::COPP_EC_NOT_FOUND;
@@ -559,6 +602,10 @@ namespace cotask {
 
                 // task call can not be used when lock is on
                 if (task_inst && !task_inst->is_exiting()) {
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+                    // already cleanup, there is no need to cleanup again
+                    task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+#endif
                     task_inst->kill(EN_TS_TIMEOUT);
                 }
             }
@@ -628,6 +675,16 @@ namespace cotask {
                 node.timer_node = task_timeout_timer_.end();
             }
         }
+
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        static void task_cleanup_callback(void *self_ptr, task_t &task_inst) {
+            if (UTIL_CONFIG_NULLPTR == self_ptr) {
+                return;
+            }
+
+            reinterpret_cast<self_t *>(self_ptr)->remove_task(task_inst.get_id(), &task_inst);
+        }
+#endif
 
     private:
         container_t                                tasks_;

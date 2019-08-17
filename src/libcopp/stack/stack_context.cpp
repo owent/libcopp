@@ -1,6 +1,7 @@
 #include <cstring>
 
-#include "libcopp/stack/stack_context.h"
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/utils/config/compiler_features.h>
 
 namespace copp {
 
@@ -22,7 +23,7 @@ namespace copp {
 
     void stack_context::reset() {
         size = 0;
-        sp   = NULL;
+        sp   = UTIL_CONFIG_NULLPTR;
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
         memset(segments_ctx, 0, sizeof(segments_ctx));
 #endif

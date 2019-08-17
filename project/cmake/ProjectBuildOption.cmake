@@ -50,6 +50,8 @@ option(LIBCOPP_FCONTEXT_USE_TSX "Enable Intel Transactional Synchronisation Exte
 
 # libcotask configure
 option(LIBCOTASK_ENABLE "Enable libcotask." ON)
+# libcotask configure
+option(LIBCOTASK_AUTO_CLEANUP_MANAGER "Auto cleanup task manager after cotask finished(No need to call task_manager.start/resume())." ON)
 
 # unit test framework
 set(GTEST_ROOT "" CACHE STRING "GTest root directory")

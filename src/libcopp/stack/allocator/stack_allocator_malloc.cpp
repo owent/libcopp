@@ -6,10 +6,11 @@
 #include <memory>
 #include <numeric>
 
+#include <libcopp/utils/config/compiler_features.h>
 
-#include "libcopp/stack/allocator/stack_allocator_malloc.h"
-#include "libcopp/stack/stack_context.h"
-#include "libcopp/stack/stack_traits.h"
+#include <libcopp/stack/allocator/stack_allocator_malloc.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
 
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
@@ -34,12 +35,12 @@ namespace copp {
             void *start_ptr = malloc(size_);
 
             if (!start_ptr) {
-                ctx.sp = NULL;
+                ctx.sp = UTIL_CONFIG_NULLPTR;
                 return;
             }
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
+            ctx.sp   = static_cast<char *>(start_ptr) + ctx.size; // stack down
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
             ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, start_ptr);
@@ -57,8 +58,8 @@ namespace copp {
             void *start_ptr = static_cast<char *>(ctx.sp) - ctx.size;
             free(start_ptr);
         }
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

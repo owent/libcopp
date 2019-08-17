@@ -5,12 +5,13 @@
 #include <numeric>
 
 extern "C" {
-#include <windows.h>
+#include <Windows.h>
 }
 
-#include "libcopp/stack/allocator/stack_allocator_windows.h"
-#include "libcopp/stack/stack_context.h"
-#include "libcopp/stack/stack_traits.h"
+#include <libcopp/stack/allocator/stack_allocator_windows.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/utils/config/compiler_features.h>
 
 #if defined(COPP_MACRO_COMPILER_MSVC)
 #pragma warning(push)
@@ -37,7 +38,7 @@ namespace copp {
 
             void *start_ptr = ::VirtualAlloc(0, size_, MEM_COMMIT, PAGE_READWRITE);
             if (!start_ptr) {
-                ctx.sp = NULL;
+                ctx.sp = UTIL_CONFIG_NULLPTR;
                 return;
             }
 
@@ -46,7 +47,7 @@ namespace copp {
             ::VirtualProtect(start_ptr, stack_traits::page_size(), PAGE_READWRITE | PAGE_GUARD, &old_options);
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
+            ctx.sp   = static_cast<char *>(start_ptr) + ctx.size; // stack down
         }
 
         void stack_allocator_windows::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
@@ -57,8 +58,8 @@ namespace copp {
             void *start_ptr = static_cast<char *>(ctx.sp) - ctx.size;
             ::VirtualFree(start_ptr, 0, MEM_RELEASE);
         }
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

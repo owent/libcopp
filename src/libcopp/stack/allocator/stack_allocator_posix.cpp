@@ -17,11 +17,11 @@ extern "C" {
 #include <limits>
 #include <numeric>
 
-
-#include "libcopp/fcontext/fcontext.hpp"
-#include "libcopp/stack/allocator/stack_allocator_posix.h"
-#include "libcopp/stack/stack_context.h"
-#include "libcopp/stack/stack_traits.h"
+#include <libcopp/fcontext/fcontext.hpp>
+#include <libcopp/stack/allocator/stack_allocator_posix.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/utils/config/compiler_features.h>
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
 #include <valgrind/valgrind.h>
@@ -53,7 +53,7 @@ namespace copp {
 #endif
 
             if (!start_ptr || MAP_FAILED == start_ptr) {
-                ctx.sp = NULL;
+                ctx.sp = UTIL_CONFIG_NULLPTR;
                 return;
             }
 
@@ -61,7 +61,7 @@ namespace copp {
             ::mprotect(start_ptr, stack_traits::page_size(), PROT_NONE);
 
             ctx.size = size_;
-            ctx.sp = static_cast<char *>(start_ptr) + ctx.size; // stack down
+            ctx.sp   = static_cast<char *>(start_ptr) + ctx.size; // stack down
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
             ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, start_ptr);
@@ -80,8 +80,8 @@ namespace copp {
             void *start_ptr = static_cast<char *>(ctx.sp) - ctx.size;
             ::munmap(start_ptr, ctx.size);
         }
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

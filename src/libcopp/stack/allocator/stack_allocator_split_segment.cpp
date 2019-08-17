@@ -7,11 +7,11 @@ extern "C" {
 #include <cstring>
 #include <limits>
 
-
-#include "libcopp/fcontext/fcontext.hpp"
-#include "libcopp/stack/allocator/stack_allocator_split_segment.h"
-#include "libcopp/stack/stack_context.h"
-#include "libcopp/stack/stack_traits.h"
+#include <libcopp/fcontext/fcontext.hpp>
+#include <libcopp/stack/allocator/stack_allocator_split_segment.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/utils/config/compiler_features.h>
 
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
@@ -41,7 +41,7 @@ namespace copp {
             void *start_ptr = __splitstack_makecontext(size, ctx.segments_ctx, &ctx.size);
             assert(start_ptr);
             if (!start_ptr) {
-                ctx.sp = NULL;
+                ctx.sp = UTIL_CONFIG_NULLPTR;
                 return;
             }
 
@@ -54,8 +54,8 @@ namespace copp {
         void stack_allocator_split_segment::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
             __splitstack_releasecontext(ctx.segments_ctx);
         }
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX
