@@ -12,6 +12,7 @@ static int g_test_coroutine_base_status = 0;
 
 class test_context_base_foo_runner {
 public:
+    test_context_base_foo_runner() : call_times(0) {}
     int call_times;
     int operator()(void *) {
         ++call_times;
