@@ -2,7 +2,7 @@
 set (PROJECT_LIBCOPP_FCONTEXT_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set (PROJECT_LIBCOPP_FCONTEXT_ASM_DIR "${PROJECT_LIBCOPP_FCONTEXT_SRC_DIR}/asm")
 
-set (PROJECT_LIBCOPP_FCONTEXT_BIN_DIR "${PROJECT_BINARY_DIR}/src/libcopp/fcontext")
+set (PROJECT_LIBCOPP_FCONTEXT_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/src/libcopp/fcontext")
 
 if (LIBCOPP_FCONTEXT_USE_TSX)
 	EchoWithColor(COLOR GREEN "-- enable Intel Transactional Synchronisation Extensions (TSX).")
@@ -27,7 +27,6 @@ EchoWithColor(COLOR GREEN "-- fcontext.os_platform => ${LIBCOPP_FCONTEXT_OS_PLAT
 EchoWithColor(COLOR GREEN "-- fcontext.abi => ${LIBCOPP_FCONTEXT_ABI}")
 EchoWithColor(COLOR GREEN "-- fcontext.bin_formation => ${LIBCOPP_FCONTEXT_BIN_FORMAT}")
 EchoWithColor(COLOR GREEN "-- fcontext.as_tool => ${LIBCOPP_FCONTEXT_AS_TOOL}")
-EchoWithColor(COLOR GREEN "-- fcontext.as_action => ${LIBCOPP_FCONTEXT_AS_ACTION}")
 EchoWithColor(COLOR GREEN "-- fcontext.use_tsx => ${LIBCOPP_FCONTEXT_USE_TSX}")
 
 # ========== msvc x86 disable safeseh ==========

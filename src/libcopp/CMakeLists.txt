@@ -5,12 +5,13 @@ EchoWithColor(COLOR GREEN "-- Configure libcopp")
 
 # ========== build library ==========
 source_group_by_dir(COPP_SRC_LIST)
+# source_group_by_dir(COPP_OBJ_LIST)
 
 if (LIBCOPP_FCONTEXT_USE_TSX)
     add_compiler_define(LIBCOPP_FCONTEXT_USE_TSX=1)
 endif()
 
-add_library(${PROJECT_LIBCOPP_LIB_LINK} ${COPP_SRC_LIST})
+add_library(${PROJECT_LIBCOPP_LIB_LINK} ${COPP_SRC_LIST} ${COPP_OBJ_LIST})
 
 install(TARGETS ${PROJECT_LIBCOPP_LIB_LINK}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

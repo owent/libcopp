@@ -365,6 +365,7 @@ CASE_TEST(coroutine_task, next) {
         CASE_EXPECT_EQ(0, co_task_a->start());
         CASE_EXPECT_TRUE(co_task_a->is_completed());
         CASE_EXPECT_TRUE(co_task_b->is_completed());
+        CASE_EXPECT_TRUE(co_task_b->::cotask::impl::task_impl::is_completed());
     }
 }
 

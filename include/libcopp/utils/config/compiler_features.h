@@ -16,20 +16,23 @@
 # define UTIL_CONFIG_COMPILER_IS_HP 0
 # define UTIL_CONFIG_COMPILER_IS_Compaq 0
 # define UTIL_CONFIG_COMPILER_IS_zOS 0
+# define UTIL_CONFIG_COMPILER_IS_XLClang 0
 # define UTIL_CONFIG_COMPILER_IS_XL 0
 # define UTIL_CONFIG_COMPILER_IS_VisualAge 0
 # define UTIL_CONFIG_COMPILER_IS_PGI 0
 # define UTIL_CONFIG_COMPILER_IS_Cray 0
 # define UTIL_CONFIG_COMPILER_IS_TI 0
 # define UTIL_CONFIG_COMPILER_IS_Fujitsu 0
+# define UTIL_CONFIG_COMPILER_IS_GHS 0
 # define UTIL_CONFIG_COMPILER_IS_SCO 0
+# define UTIL_CONFIG_COMPILER_IS_ARMCC 0
 # define UTIL_CONFIG_COMPILER_IS_AppleClang 0
+# define UTIL_CONFIG_COMPILER_IS_ARMClang 0
 # define UTIL_CONFIG_COMPILER_IS_Clang 0
 # define UTIL_CONFIG_COMPILER_IS_GNU 0
 # define UTIL_CONFIG_COMPILER_IS_MSVC 0
 # define UTIL_CONFIG_COMPILER_IS_ADSP 0
 # define UTIL_CONFIG_COMPILER_IS_IAR 0
-# define UTIL_CONFIG_COMPILER_IS_ARMCC 0
 # define UTIL_CONFIG_COMPILER_IS_MIPSpro 0
 
 #if defined(__COMO__)
@@ -76,6 +79,10 @@
 # undef UTIL_CONFIG_COMPILER_IS_zOS
 # define UTIL_CONFIG_COMPILER_IS_zOS 1
 
+#elif defined(__ibmxl__) && defined(__clang__)
+# undef UTIL_CONFIG_COMPILER_IS_XLClang
+# define UTIL_CONFIG_COMPILER_IS_XLClang 1
+
 #elif defined(__IBMCPP__) && !defined(__COMPILER_VER__) && __IBMCPP__ >= 800
 # undef UTIL_CONFIG_COMPILER_IS_XL
 # define UTIL_CONFIG_COMPILER_IS_XL 1
@@ -100,13 +107,25 @@
 # undef UTIL_CONFIG_COMPILER_IS_Fujitsu
 # define UTIL_CONFIG_COMPILER_IS_Fujitsu 1
 
+#elif defined(__ghs__)
+# undef UTIL_CONFIG_COMPILER_IS_GHS
+# define UTIL_CONFIG_COMPILER_IS_GHS 1
+
 #elif defined(__SCO_VERSION__)
 # undef UTIL_CONFIG_COMPILER_IS_SCO
 # define UTIL_CONFIG_COMPILER_IS_SCO 1
 
+#elif defined(__ARMCC_VERSION) && !defined(__clang__)
+# undef UTIL_CONFIG_COMPILER_IS_ARMCC
+# define UTIL_CONFIG_COMPILER_IS_ARMCC 1
+
 #elif defined(__clang__) && defined(__apple_build_version__)
 # undef UTIL_CONFIG_COMPILER_IS_AppleClang
 # define UTIL_CONFIG_COMPILER_IS_AppleClang 1
+
+#elif defined(__clang__) && defined(__ARMCOMPILER_VERSION)
+# undef UTIL_CONFIG_COMPILER_IS_ARMClang
+# define UTIL_CONFIG_COMPILER_IS_ARMClang 1
 
 #elif defined(__clang__)
 # undef UTIL_CONFIG_COMPILER_IS_Clang
@@ -127,14 +146,6 @@
 #elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
 # undef UTIL_CONFIG_COMPILER_IS_IAR
 # define UTIL_CONFIG_COMPILER_IS_IAR 1
-
-#elif defined(__ARMCC_VERSION)
-# undef UTIL_CONFIG_COMPILER_IS_ARMCC
-# define UTIL_CONFIG_COMPILER_IS_ARMCC 1
-
-#elif defined(_SGI_COMPILER_VERSION) || defined(_COMPILER_VERSION)
-# undef UTIL_CONFIG_COMPILER_IS_MIPSpro
-# define UTIL_CONFIG_COMPILER_IS_MIPSpro 1
 
 
 #endif
@@ -637,6 +648,8 @@
 
 #  if defined(UTIL_CONFIG_COMPILER_CXX_NULLPTR) && UTIL_CONFIG_COMPILER_CXX_NULLPTR
 #    define UTIL_CONFIG_NULLPTR nullptr
+#  elif UTIL_CONFIG_COMPILER_IS_GNU
+#    define UTIL_CONFIG_NULLPTR __null
 #  else
 #    define UTIL_CONFIG_NULLPTR 0
 #  endif

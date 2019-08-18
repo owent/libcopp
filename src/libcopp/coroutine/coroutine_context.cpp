@@ -95,7 +95,7 @@ namespace copp {
         }
 
         // stack down
-        // |STARCK BUFFER........COROUTINE..this..padding..PRIVATE DATA.....callee_stack.sp|
+        // |STACK BUFFER........COROUTINE..this..padding..PRIVATE DATA.....callee_stack.sp|
         // |------------------------------callee_stack.size -------------------------------|
         if (callee_stack.sp <= p || coroutine_size < sizeof(coroutine_context)) {
             return COPP_EC_ARGS_ERROR;

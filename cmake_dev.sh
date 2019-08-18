@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Example: ./cmake_dev.sh -us -c clang-8 -- "-DCMAKE_CXX_FLAGS=-fsanitize=address -fno-omit-frame-pointer" "-DCMAKE_C_FLAGS=-fsanitize=address -fno-omit-frame-pointer" "-DCMAKE_EXE_LINKER_FLAGS=-static-libsan"
+
 SYS_NAME="$(uname -s)";
 SYS_NAME="$(basename $SYS_NAME)";
 CC=gcc;

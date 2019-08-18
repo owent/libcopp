@@ -4,11 +4,11 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5-Linux-x86_64.sh ;
+    - CMAKE_LINUX_URL=https://github.com/Kitware/CMake/releases/download/v3.15.2/cmake-3.15.2-Linux-x86_64.sh ;
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
     - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-linux.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
-    - DOXYGEN_LINUX_URL=http://doxygen.nl/files/doxygen-1.8.15.linux.bin.tar.gz
+    - DOXYGEN_LINUX_URL=http://doxygen.nl/files/doxygen-1.8.16.linux.bin.tar.gz
 matrix:
   include:
     - os: osx

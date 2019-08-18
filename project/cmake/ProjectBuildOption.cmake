@@ -29,7 +29,6 @@ set(LIBCOPP_FCONTEXT_OS_PLATFORM "" CACHE STRING "set system platform. arm/arm64
 set(LIBCOPP_FCONTEXT_ABI "" CACHE STRING "set abi. sysv/aapcs/mips/o32/ms and etc.")
 set(LIBCOPP_FCONTEXT_BIN_FORMAT "" CACHE STRING "set binary format. elf/pe/macho/xcoff and etc.")
 set(LIBCOPP_FCONTEXT_AS_TOOL "" CACHE STRING "set as toolset. gas/armasm/masm and etc.")
-set(LIBCOPP_FCONTEXT_AS_ACTION "" CACHE STRING "set as action. x32/32/64 and etc.")
 
 # [heading Intel Transactional Synchronisation Extensions (TSX)]
 # 

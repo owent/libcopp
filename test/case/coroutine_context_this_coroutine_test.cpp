@@ -23,22 +23,27 @@
 #include <vector>
 
 #include "frame/test_macros.h"
+
 #include <libcopp/coroutine/coroutine_context_container.h>
+#include <libcotask/task.h>
 
 class test_this_context_get_cotoutine_runner {
 public:
     typedef copp::coroutine_context_default value_type;
-    typedef value_type *value_ptr_type;
+    typedef value_type *                    value_ptr_type;
 
 public:
     test_this_context_get_cotoutine_runner() : addr_(NULL), run_(false) {}
-    int operator()(void* passed) {
+    int operator()(void *passed) {
         CASE_EXPECT_EQ(this, passed);
 
         ++cur_thd_count;
 
         value_ptr_type this_co = static_cast<value_ptr_type>(copp::this_coroutine::get_coroutine());
         CASE_EXPECT_EQ(addr_, this_co);
+#ifdef LIBCOTASK_MACRO_ENABLED
+        CASE_EXPECT_EQ(NULL, cotask::this_task::get_task());
+#endif
         run_ = true;
 
         std::chrono::milliseconds dura(4);
@@ -57,16 +62,16 @@ public:
     static int get_max_thd_count() { return max_thd_count; }
 
 private:
-    value_ptr_type addr_;
-    bool run_;
+    value_ptr_type         addr_;
+    bool                   run_;
     static std::atomic_int cur_thd_count;
-    static int max_thd_count;
+    static int             max_thd_count;
 };
 
 std::atomic_int test_this_context_get_cotoutine_runner::cur_thd_count;
-int test_this_context_get_cotoutine_runner::max_thd_count = 0;
+int             test_this_context_get_cotoutine_runner::max_thd_count = 0;
 
-static void test_this_context_thread_func(copp::coroutine_context_default::ptr_t co, test_this_context_get_cotoutine_runner* runner) {
+static void test_this_context_thread_func(copp::coroutine_context_default::ptr_t co, test_this_context_get_cotoutine_runner *runner) {
 
     runner->set_co_obj(co.get());
 
@@ -85,8 +90,8 @@ CASE_TEST(this_context, get_coroutine) {
     test_this_context_get_cotoutine_runner runners[5];
     {
         std::vector<std::thread> th_pool;
-        co_type::ptr_t co_arr[5];
-        for (int i = 0; i < 5 ; ++ i) {
+        co_type::ptr_t           co_arr[5];
+        for (int i = 0; i < 5; ++i) {
             co_arr[i] = co_type::create(&runners[i], 128 * 1024);
 
             th_pool.push_back(std::thread(std::bind(test_this_context_thread_func, co_arr[i], &runners[i])));
@@ -104,11 +109,11 @@ CASE_TEST(this_context, get_coroutine) {
 class test_this_context_yield_runner {
 public:
     typedef copp::coroutine_context_default value_type;
-    typedef value_type *value_ptr_type;
+    typedef value_type *                    value_ptr_type;
 
 public:
     test_this_context_yield_runner() : run_(false), finished_(false) {}
-    int operator()(void*) {
+    int operator()(void *) {
         run_ = true;
         copp::this_coroutine::yield();
         finished_ = true;
@@ -137,17 +142,16 @@ CASE_TEST(this_context, yield_) {
 
         CASE_EXPECT_TRUE(runner.is_run());
         CASE_EXPECT_FALSE(runner.is_finished());
-
     }
 }
 
 
 struct test_this_context_rec_runner {
     typedef copp::coroutine_context_default value_type;
-    typedef value_type *value_ptr_type;
+    typedef value_type *                    value_ptr_type;
 
     test_this_context_rec_runner() : jump_to(NULL), owner(NULL), has_yield(false), has_resume(false) {}
-    int operator()(void* co_startup_raw) {
+    int operator()(void *co_startup_raw) {
         copp::coroutine_context *ptr = copp::this_coroutine::get_coroutine();
 
         value_ptr_type *co_startup = reinterpret_cast<value_ptr_type *>(co_startup_raw);
@@ -186,22 +190,22 @@ struct test_this_context_rec_runner {
     }
 
     test_this_context_rec_runner *jump_to;
-    value_ptr_type owner;
-    bool has_yield;
-    bool has_resume;
+    value_ptr_type                owner;
+    bool                          has_yield;
+    bool                          has_resume;
 };
 
 CASE_TEST(this_context, start_in_co) {
     typedef test_this_context_rec_runner::value_type co_type;
 
     co_type *co_startup[2] = {NULL};
-    
+
     test_this_context_rec_runner cor1, cor2;
 
     {
         co_type::ptr_t co1, co2;
-        co1 = co_type::create(&cor1, 128 * 1024);
-        co2 = co_type::create(&cor2, 128 * 1024);
+        co1        = co_type::create(&cor1, 128 * 1024);
+        co2        = co_type::create(&cor2, 128 * 1024);
         cor1.owner = co1.get();
         cor2.owner = co2.get();
 
@@ -227,11 +231,11 @@ CASE_TEST(this_context, start_in_co) {
 struct test_this_context_start_failed_when_running {
     typedef copp::coroutine_context_default value_type;
 
-    test_this_context_start_failed_when_running(): is_start(false) {}
-    int operator()(void* pco2) {
+    test_this_context_start_failed_when_running() : is_start(false) {}
+    int operator()(void *pco2) {
         value_type *ptr = copp::this_coroutine::get<value_type>();
 
-        value_type *co_jump = reinterpret_cast<value_type*>(pco2);
+        value_type *co_jump = reinterpret_cast<value_type *>(pco2);
 
         if (is_start) {
             CASE_EXPECT_NE(NULL, co_jump);
