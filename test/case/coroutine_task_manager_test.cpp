@@ -163,6 +163,8 @@ CASE_TEST(coroutine_task_manager, add_and_timeout) {
     CASE_EXPECT_EQ(0, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
 
+    CASE_EXPECT_EQ(copp::COPP_EC_TASK_IS_EXITING, task_mgr->add_task(co_another_task));
+    
     task_mgr.reset();
 }
 

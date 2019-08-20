@@ -210,6 +210,10 @@ namespace cotask {
                 return copp::COPP_EC_IN_RESET;
             }
 
+            if (task->is_exiting()) {
+                return copp::COPP_EC_TASK_IS_EXITING;
+            }
+
             // try to cast type
             typedef typename container_t::value_type pair_type;
             detail::task_manager_node<task_t>        task_node;

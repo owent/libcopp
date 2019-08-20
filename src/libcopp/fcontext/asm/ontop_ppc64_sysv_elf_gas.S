@@ -174,6 +174,9 @@ copp_ontop_fcontext:
     # restore CTR
     mtctr  %r5
 
+    # store cb entrypoint in %r12, used for TOC calculation
+    mr %r12, %r5
+
     # copy transfer_t into ontop_fn arg registers
     mr  %r3, %r7
     # arg pointer already in %r4
