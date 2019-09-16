@@ -8,7 +8,14 @@ Cross-platform coroutine library in C++ .
 | Build & Unit Test |                                                 ![linux-badge]                                                 |                                                   ![windows-badge]                                                   |     ![coverage-badge]      |
 |     Compilers     | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-9 <br /> macos-apple-clang-9.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> MSVC 15(Visual Studio 2017) <br /> MinGW64-gcc |                            |
 
-[Gitter][gitter-link]: ![gitter-badge]
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/owt5008137/libcopp)](https://github.com/owt5008137/libcopp/releases)
+
+
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/owt5008137/libcopp)
+![GitHub repo size](https://img.shields.io/github/repo-size/owt5008137/libcopp)
+![GitHub forks](https://img.shields.io/github/forks/owt5008137/libcopp?style=social)
+![GitHub stars](https://img.shields.io/github/stars/owt5008137/libcopp?style=social)
+
 
 [linux-badge]: https://travis-ci.org/owt5008137/libcopp.svg?branch=v2 "Travis build status"
 [linux-link]:  https://travis-ci.org/owt5008137/libcopp "Travis build status"
