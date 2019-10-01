@@ -163,22 +163,14 @@ namespace copp {
         jump_to(callee_, callee_stack_, callee_stack_, jump_data);
 #endif
 
-        // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
-        // Move changing status to the end of start(private data)
-        {
-            // assume it's running, or set into EN_CRS_EXITED if in EN_CRS_FINISHED
-            from_status = status_t::EN_CRS_RUNNING;
-            if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                                         util::lock::memory_order_acquire)) {
-                if (status_t::EN_CRS_FINISHED == from_status) {
-                    // if in finished status, change it to exited
-                    status_.store(status_t::EN_CRS_EXITED, util::lock::memory_order_release);
-                }
-            }
+        // Move changing status to EN_CRS_EXITED is finished
+        if (check_flags(flag_t::EN_CFT_FINISHED)) {
+            // if in finished status, change it to exited
+            status_.store(status_t::EN_CRS_EXITED, util::lock::memory_order_release);
         }
 
         return COPP_EC_SUCCESS;
-    }
+    } // namespace copp
 
     int coroutine_context::resume(void *priv_data) { return start(priv_data); }
 
@@ -188,15 +180,18 @@ namespace copp {
         }
 
         int from_status = status_t::EN_CRS_RUNNING;
-        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                                     util::lock::memory_order_acquire)) {
+        int to_status   = status_t::EN_CRS_READY;
+        if (check_flags(flag_t::EN_CFT_FINISHED)) {
+            to_status = status_t::EN_CRS_FINISHED;
+        }
+        if (false ==
+            status_.compare_exchange_strong(from_status, to_status, util::lock::memory_order_acq_rel, util::lock::memory_order_acquire)) {
             switch (from_status) {
             case status_t::EN_CRS_INVALID:
                 return COPP_EC_NOT_INITED;
             case status_t::EN_CRS_READY:
                 return COPP_EC_NOT_RUNNING;
             case status_t::EN_CRS_FINISHED:
-                break;
             case status_t::EN_CRS_EXITED:
                 return COPP_EC_ALREADY_EXIST;
             default:
@@ -322,15 +317,6 @@ namespace copp {
 
         if (UTIL_CONFIG_NULLPTR != jump_src->from_co) {
             jump_src->from_co->callee_ = res.fctx;
-            // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
-            // from_status = jump_src->from_co->status_.load();
-            // if (status_t::EN_CRS_RUNNING == from_status) {
-            //     jump_src->from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-            //     util::lock::memory_order_acquire);
-            // } else if (status_t::EN_CRS_FINISHED == from_status) {
-            //     // if in finished status, change it to exited
-            //     jump_src->from_co->status_.store(status_t::EN_CRS_EXITED);
-            // }
         }
 
         // private data
@@ -338,17 +324,6 @@ namespace copp {
 
         // this_coroutine
         detail::set_this_coroutine_context(jump_transfer.from_co);
-
-        // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
-        // // resume running status of from_co
-        // if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
-        //     from_status = jump_transfer.from_co->status_.load();
-        //     swap_success = false;
-        //     while (!swap_success && status_t::EN_CRS_READY == from_status) {
-        //         swap_success = jump_transfer.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING,
-        //         util::lock::memory_order_acq_rel, util::lock::memory_order_acquire);
-        //     }
-        // }
     }
 
     void coroutine_context::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
@@ -388,7 +363,6 @@ namespace copp {
         ins_ptr->run_and_recv_retcode(jump_src.priv_data);
 
         ins_ptr->flags_ |= flag_t::EN_CFT_FINISHED;
-        ins_ptr->status_.store(status_t::EN_CRS_FINISHED, util::lock::memory_order_release);
         // add memory fence to flush flags_(used in is_finished())
         // UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
 
