@@ -10,7 +10,7 @@
 
 #include <libcopp/coroutine/coroutine_context.h>
 
-#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+#if defined(UTIL_CONFIG_THREAD_LOCAL)
 // using thread_local
 #else
 #include <pthread.h>
@@ -31,7 +31,7 @@ void __splitstack_block_signals_context(void * [COPP_MACRO_SEGMENTED_STACK_NUMBE
 namespace copp {
     namespace detail {
 
-#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+#if defined(UTIL_CONFIG_THREAD_LOCAL)
         static UTIL_CONFIG_THREAD_LOCAL coroutine_context *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
 #else
         static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
@@ -40,7 +40,7 @@ namespace copp {
 #endif
 
         static void set_this_coroutine_context(coroutine_context *p) {
-#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+#if defined(UTIL_CONFIG_THREAD_LOCAL)
             gt_current_coroutine = p;
 #else
             (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -49,7 +49,7 @@ namespace copp {
         }
 
         static coroutine_context *get_this_coroutine_context() {
-#if !(defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD) && defined(UTIL_CONFIG_THREAD_LOCAL)
+#if defined(UTIL_CONFIG_THREAD_LOCAL)
             return gt_current_coroutine;
 #else
             (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
