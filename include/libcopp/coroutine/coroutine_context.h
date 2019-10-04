@@ -236,13 +236,6 @@ namespace copp {
          */
         inline size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
 
-    protected:
-        /**
-         * @brief fcontext entrance function
-         * @param src_ctx where jump from
-         */
-        static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx);
-
     public:
         static inline size_t align_private_data_size(size_t sz) {
             // static size_t random_index = 0;

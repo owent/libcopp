@@ -1,6 +1,12 @@
 HISTORY
 ----------------
 
+### 1.2.1 (2019-10-04)
+
+1. [OPTIMIZE] Add options to disable TLS usage for *this_task* and *this_coroutine* to reduce cache miss on single thread situation.
+2. [OPTIMIZE] Implement **jump_to(...)** as static inline to reduce code cache miss.
+3. [OPTIMIZE] Implement **coroutine_context_callback(...)** as static local symbol to reduce code cache miss.
+
 ### 1.2.0 (2019-08-20)
 
 1. [OPTIMIZE] Add more unit test.Increase coverage to 90%+.

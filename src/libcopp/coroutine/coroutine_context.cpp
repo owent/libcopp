@@ -16,6 +16,45 @@
 #include <pthread.h>
 #endif
 
+// ================ import/export: for compilers ================
+#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+//  Intel
+//
+// Dynamic shared object (DSO) and dynamic-link library (DLL) support
+//
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#define LIBCOPP_SYMBOL_LOCAL __attribute__((visibility("hidden")))
+#endif
+
+#elif defined __clang__ && !defined(__CUDACC__) && !defined(__ibmxl__)
+// when using clang and cuda at same time, you want to appear as gcc
+//  Clang C++ emulates GCC, so it has to appear early.
+//
+
+// Dynamic shared object (DSO) and dynamic-link library (DLL) support
+//
+#if !defined(_WIN32) && !defined(__WIN32__) && !defined(WIN32)
+#define LIBCOPP_SYMBOL_LOCAL __attribute__((__visibility__("hidden")))
+#endif
+
+#elif defined(__GNUC__) && !defined(__ibmxl__)
+//  GNU C++:
+//
+// Dynamic shared object (DSO) and dynamic-link library (DLL) support
+//
+#if __GNUC__ >= 4
+#if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32)) && !defined(__CYGWIN__)
+// NONE
+#else
+#define LIBCOPP_SYMBOL_LOCAL __attribute__((__visibility__("hidden")))
+#endif
+#endif
+#endif
+
+#ifndef LIBCOPP_SYMBOL_LOCAL
+#define LIBCOPP_SYMBOL_LOCAL
+#endif
+
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
 void __splitstack_getcontext(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER]);
@@ -90,6 +129,46 @@ namespace copp {
             __splitstack_setcontext(to_sctx.segments_ctx);
         }
 #endif
+
+        LIBCOPP_SYMBOL_LOCAL static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
+            assert(src_ctx.data);
+            if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
+                abort();
+                // return; // clang-analyzer will report "Unreachable code"
+            }
+
+            // copy jump_src_data_t in case it's destroyed later
+            jump_src_data_t jump_src = *reinterpret_cast<jump_src_data_t *>(src_ctx.data);
+
+            // this must in a coroutine
+            coroutine_context *ins_ptr = jump_src.to_co;
+            assert(ins_ptr);
+            if (UTIL_CONFIG_NULLPTR == ins_ptr) {
+                abort();
+                // return; // clang-analyzer will report "Unreachable code"
+            }
+
+            // update caller of to_co
+            ins_ptr->caller_ = src_ctx.fctx;
+
+            // save from_co's fcontext and switch status
+            if (UTIL_CONFIG_NULLPTR != jump_src.from_co) {
+                jump_src.from_co->callee_ = src_ctx.fctx;
+            }
+
+            // this_coroutine
+            detail::set_this_coroutine_context(ins_ptr);
+
+            // run logic code
+            ins_ptr->run_and_recv_retcode(jump_src.priv_data);
+
+            ins_ptr->flags_ |= coroutine_context::flag_t::EN_CFT_FINISHED;
+            // add memory fence to flush flags_(used in is_finished())
+            // UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+
+            // jump back to caller
+            ins_ptr->yield();
+        }
     };
     /**
      * @brief call platform jump to asm instruction
@@ -210,7 +289,7 @@ namespace copp {
         // stack down, left enough private data
         p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->private_buffer_size_;
         p->callee_    = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
-                                                  p->callee_stack_.size - stack_offset, &coroutine_context::coroutine_context_callback);
+                                                  p->callee_stack_.size - stack_offset, &libcopp_inner_api_helper::coroutine_context_callback);
         if (UTIL_CONFIG_NULLPTR == p->callee_) {
             return COPP_EC_FCONTEXT_MAKE_FAILED;
         }
@@ -353,46 +432,6 @@ namespace copp {
     bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
         // return !!(flags_ & flag_t::EN_CFT_FINISHED);
         return status_.load(util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
-    }
-
-    void coroutine_context::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
-        assert(src_ctx.data);
-        if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
-            abort();
-            // return; // clang-analyzer will report "Unreachable code"
-        }
-
-        // copy jump_src_data_t in case it's destroyed later
-        jump_src_data_t jump_src = *reinterpret_cast<jump_src_data_t *>(src_ctx.data);
-
-        // this must in a coroutine
-        coroutine_context *ins_ptr = jump_src.to_co;
-        assert(ins_ptr);
-        if (UTIL_CONFIG_NULLPTR == ins_ptr) {
-            abort();
-            // return; // clang-analyzer will report "Unreachable code"
-        }
-
-        // update caller of to_co
-        ins_ptr->caller_ = src_ctx.fctx;
-
-        // save from_co's fcontext and switch status
-        if (UTIL_CONFIG_NULLPTR != jump_src.from_co) {
-            jump_src.from_co->callee_ = src_ctx.fctx;
-        }
-
-        // this_coroutine
-        detail::set_this_coroutine_context(ins_ptr);
-
-        // run logic code
-        ins_ptr->run_and_recv_retcode(jump_src.priv_data);
-
-        ins_ptr->flags_ |= flag_t::EN_CFT_FINISHED;
-        // add memory fence to flush flags_(used in is_finished())
-        // UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
-
-        // jump back to caller
-        ins_ptr->yield();
     }
 
     namespace this_coroutine {
