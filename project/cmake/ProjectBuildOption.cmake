@@ -19,11 +19,18 @@ endif()
 
 option(PROJECT_ENABLE_UNITTEST "Build unit test." OFF)
 option(PROJECT_ENABLE_SAMPLE "Build samples." OFF)
-option(PROJECT_DISABLE_MT "Disable multi-thread support for libcopp." OFF)
-option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." OFF)
-if (PROJECT_DISABLE_MT)
-    set(LOCK_DISABLE_MT ON)
+
+# If you do not call libcopp's API on multi-thread at the same time
+# You can set LIBCOPP_DISABLE_ATOMIC_LOCK=ON to reduce cache miss slightly
+option(LIBCOPP_DISABLE_ATOMIC_LOCK "Do not use atomic API and lock to keep thread-safe for libcopp." OFF)
+if (LIBCOPP_DISABLE_ATOMIC_LOCK)
+    option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." ON)
+else ()
+    option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." OFF)
 endif()
+
+# This option can be set to ON only if the user do not use multi-thread at all. it can reduce the cache miss slightly. 
+option(LIBCOPP_DISABLE_THIS_MT "Do not use multi-thread for this_coroutine/this_task, this options can only be set to ON on single thread process." OFF)
 
 set(LIBCOPP_FCONTEXT_OS_PLATFORM "" CACHE STRING "set system platform. arm/arm64/i386/x86_64/combined/mips/ppc32/ppc64 and etc.")
 set(LIBCOPP_FCONTEXT_ABI "" CACHE STRING "set abi. sysv/aapcs/mips/o32/ms and etc.")

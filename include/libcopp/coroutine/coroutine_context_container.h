@@ -194,7 +194,7 @@ namespace copp {
 
     private:
         allocator_type alloc_; /** stack allocator **/
-#if defined(PROJECT_DISABLE_MT) && PROJECT_DISABLE_MT
+#if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
         util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> > ref_count_; /** status **/
 #else
         util::lock::atomic_int_type<size_t> ref_count_; /** status **/

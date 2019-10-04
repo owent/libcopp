@@ -254,7 +254,7 @@ namespace cotask {
                 return next_task;
             }
 
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(inner_action_lock_);
 #endif
 
@@ -624,7 +624,7 @@ namespace cotask {
 #endif
             // first, lock and swap container
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(inner_action_lock_);
 #endif
                 next_list.swap(next_list_.member_list_);
@@ -713,7 +713,7 @@ namespace cotask {
             template <typename, typename>
             friend class task_manager;
             static bool setup_task_manager(self_t &task_inst, void *manager_ptr, void (*fn)(void *, self_t &)) {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
 #endif
                 if (task_inst.binding_manager_ptr_ != UTIL_CONFIG_NULLPTR) {
@@ -726,7 +726,7 @@ namespace cotask {
             }
 
             static bool cleanup_task_manager(self_t &task_inst, void *manager_ptr) {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
 #endif
                 if (task_inst.binding_manager_ptr_ != manager_ptr) {
@@ -749,7 +749,7 @@ namespace cotask {
         // ============== action information ==============
         void (*action_destroy_fn_)(void *);
 
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
         util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
         util::lock::spin_lock               inner_action_lock_;
 #else

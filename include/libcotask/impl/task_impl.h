@@ -125,7 +125,7 @@ namespace cotask {
             void *finish_priv_data_;
 
         private:
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             ::util::lock::atomic_int_type<uint32_t> status_;
 #else
             ::util::lock::atomic_int_type< ::util::lock::unsafe_int_type<uint32_t> > status_;

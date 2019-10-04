@@ -106,7 +106,7 @@ namespace copp {
          * @note size must less or equal than attached
          */
         void allocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
             // check limit
@@ -173,7 +173,7 @@ namespace copp {
         void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
             assert(ctx.sp && ctx.size > 0);
             do {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
                 // check ctx
@@ -230,7 +230,7 @@ namespace copp {
                 }
             }
 
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -278,7 +278,7 @@ namespace copp {
         }
 
         void clear() {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -296,7 +296,7 @@ namespace copp {
         limit_t     limits_;
         configure_t conf_;
         allocator_t alloc_;
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
         util::lock::spin_lock action_lock_;
 #endif
         std::list<stack_context> free_list_;

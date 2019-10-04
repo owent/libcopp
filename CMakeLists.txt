@@ -50,12 +50,6 @@ write_compiler_detection_header(
     FEATURES cxx_auto_type cxx_constexpr cxx_decltype cxx_decltype_auto cxx_defaulted_functions cxx_deleted_functions cxx_final cxx_override cxx_range_for cxx_noexcept cxx_nullptr cxx_rvalue_references cxx_static_assert cxx_thread_local cxx_variadic_templates cxx_lambdas
 )
 
-if (PROJECT_DISABLE_MT)
-    set(PROJECT_DISABLE_MT 1)
-else()
-    unset(PROJECT_DISABLE_MT)
-endif()
-
 if (LIBCOTASK_ENABLE)
     set(LIBCOTASK_MACRO_ENABLED 1)
 endif ()

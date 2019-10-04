@@ -31,7 +31,9 @@ void __splitstack_block_signals_context(void * [COPP_MACRO_SEGMENTED_STACK_NUMBE
 namespace copp {
     namespace detail {
 
-#if defined(UTIL_CONFIG_THREAD_LOCAL)
+#if defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT
+        static coroutine_context *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
+#elif defined(UTIL_CONFIG_THREAD_LOCAL)
         static UTIL_CONFIG_THREAD_LOCAL coroutine_context *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
 #else
         static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
@@ -39,8 +41,8 @@ namespace copp {
         static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, UTIL_CONFIG_NULLPTR); }
 #endif
 
-        static void set_this_coroutine_context(coroutine_context *p) {
-#if defined(UTIL_CONFIG_THREAD_LOCAL)
+        static inline void set_this_coroutine_context(coroutine_context *p) {
+#if (defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT) || defined(UTIL_CONFIG_THREAD_LOCAL)
             gt_current_coroutine = p;
 #else
             (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -48,8 +50,8 @@ namespace copp {
 #endif
         }
 
-        static coroutine_context *get_this_coroutine_context() {
-#if defined(UTIL_CONFIG_THREAD_LOCAL)
+        static inline coroutine_context *get_this_coroutine_context() {
+#if (defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT) || defined(UTIL_CONFIG_THREAD_LOCAL)
             return gt_current_coroutine;
 #else
             (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -57,6 +59,97 @@ namespace copp {
 #endif
         }
     } // namespace detail
+
+    struct libcopp_inner_api_helper {
+        typedef coroutine_context::jump_src_data_t jump_src_data_t;
+
+        static inline void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+            if (UTIL_CONFIG_NULLPTR != src) {
+                src->caller_ = fctx;
+            }
+        }
+
+        static inline void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+            if (UTIL_CONFIG_NULLPTR != src) {
+                src->callee_ = fctx;
+            }
+        }
+
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
+        static inline void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
+                                                  EXPLICIT_UNUSED_ATTR stack_context &       to_sctx,
+                                                  libcopp_inner_api_helper::jump_src_data_t &jump_transfer) {
+            if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
+                __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
+                if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
+                    memcpy(&from_sctx.segments_ctx, &jump_transfer.from_co->callee_stack_.segments_ctx, sizeof(from_sctx.segments_ctx));
+                }
+            } else {
+                __splitstack_getcontext(from_sctx.segments_ctx);
+            }
+            __splitstack_setcontext(to_sctx.segments_ctx);
+        }
+#endif
+    };
+    /**
+     * @brief call platform jump to asm instruction
+     * @param to_fctx jump to function context
+     * @param from_sctx jump from stack context(only used for save segment stack)
+     * @param to_sctx jump to stack context(only used for set segment stack)
+     * @param jump_transfer jump data
+     */
+    static inline void jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
+                               EXPLICIT_UNUSED_ATTR stack_context &       to_sctx,
+                               libcopp_inner_api_helper::jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT {
+
+        copp::fcontext::transfer_t                 res;
+        libcopp_inner_api_helper::jump_src_data_t *jump_src;
+        // int from_status;
+        // bool swap_success;
+        // can not use any more stack now
+        // can not initialize those vars here
+
+#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
+        assert(&from_sctx != &to_sctx);
+        // ROOT->A: jump_transfer.from_co == UTIL_CONFIG_NULLPTR, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup
+        // segments A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
+        // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == UTIL_CONFIG_NULLPTR, from_sctx == B.callee_stack_, skip backup
+        // segments
+        libcopp_inner_api_helper::splitstack_swapcontext(from_sctx, to_sctx, jump_transfer);
+#endif
+        res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
+        if (UTIL_CONFIG_NULLPTR == res.data) {
+            abort();
+            return;
+        }
+        jump_src = reinterpret_cast<libcopp_inner_api_helper::jump_src_data_t *>(res.data);
+        assert(jump_src);
+
+        /**
+         * save from_co's fcontext and switch status
+         * we should use from_co in transfer_t, because it may not jump from jump_transfer.to_co
+         *
+         * if we jump sequence is A->B->C->A.resume(), and if this call is A->B, then
+         * jump_src->from_co = C, jump_src->to_co = A, jump_transfer.from_co = A, jump_transfer.to_co = B
+         * and now we should save the callee of C and set the caller of A = C
+         *
+         * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
+         * jump_src->from_co = B, jump_src->to_co = UTIL_CONFIG_NULLPTR, jump_transfer.from_co = A, jump_transfer.to_co = B
+         * and now we should save the callee of B and should change the caller of A
+         *
+         */
+
+        // update caller of to_co if not jump from yield mode
+        libcopp_inner_api_helper::set_caller(jump_src->to_co, res.fctx);
+
+        libcopp_inner_api_helper::set_callee(jump_src->from_co, res.fctx);
+
+        // private data
+        jump_transfer.priv_data = jump_src->priv_data;
+
+        // this_coroutine
+        detail::set_this_coroutine_context(jump_transfer.from_co);
+    }
 
     coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
                                                                   flags_(0),
@@ -262,70 +355,6 @@ namespace copp {
         return status_.load(util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
     }
 
-    void coroutine_context::jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
-                                    EXPLICIT_UNUSED_ATTR stack_context &to_sctx, jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT {
-
-        copp::fcontext::transfer_t res;
-        jump_src_data_t *          jump_src;
-        // int from_status;
-        // bool swap_success;
-        // can not use any more stack now
-        // can not initialize those vars here
-
-#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-        assert(&from_sctx != &to_sctx);
-        // ROOT->A: jump_transfer.from_co == UTIL_CONFIG_NULLPTR, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip backup
-        // segments A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_, backup segments
-        // B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == UTIL_CONFIG_NULLPTR, from_sctx == B.callee_stack_, skip backup
-        // segments
-        if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
-            __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
-            if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
-                memcpy(&from_sctx.segments_ctx, &jump_transfer.from_co->callee_stack_.segments_ctx, sizeof(from_sctx.segments_ctx));
-            }
-        } else {
-            __splitstack_getcontext(from_sctx.segments_ctx);
-        }
-        __splitstack_setcontext(to_sctx.segments_ctx);
-#endif
-        res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
-        if (UTIL_CONFIG_NULLPTR == res.data) {
-            abort();
-            return;
-        }
-        jump_src = reinterpret_cast<jump_src_data_t *>(res.data);
-        assert(jump_src);
-
-        /**
-         * save from_co's fcontext and switch status
-         * we should use from_co in transfer_t, because it may not jump from jump_transfer.to_co
-         *
-         * if we jump sequence is A->B->C->A.resume(), and if this call is A->B, then
-         * jump_src->from_co = C, jump_src->to_co = A, jump_transfer.from_co = A, jump_transfer.to_co = B
-         * and now we should save the callee of C and set the caller of A = C
-         *
-         * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
-         * jump_src->from_co = B, jump_src->to_co = UTIL_CONFIG_NULLPTR, jump_transfer.from_co = A, jump_transfer.to_co = B
-         * and now we should save the callee of B and should change the caller of A
-         *
-         */
-
-        // update caller of to_co if not jump from yield mode
-        if (UTIL_CONFIG_NULLPTR != jump_src->to_co) {
-            jump_src->to_co->caller_ = res.fctx;
-        }
-
-        if (UTIL_CONFIG_NULLPTR != jump_src->from_co) {
-            jump_src->from_co->callee_ = res.fctx;
-        }
-
-        // private data
-        jump_transfer.priv_data = jump_src->priv_data;
-
-        // this_coroutine
-        detail::set_this_coroutine_context(jump_transfer.from_co);
-    }
-
     void coroutine_context::coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
         assert(src_ctx.data);
         if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
@@ -350,10 +379,6 @@ namespace copp {
         // save from_co's fcontext and switch status
         if (UTIL_CONFIG_NULLPTR != jump_src.from_co) {
             jump_src.from_co->callee_ = src_ctx.fctx;
-            // [BUG #4](https://github.com/owt5008137/libcopp/issues/4)
-            // int from_status = status_t::EN_CRS_RUNNING; // from coroutine change status from running to ready
-            // jump_src.from_co->status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-            // util::lock::memory_order_acquire);
         }
 
         // this_coroutine

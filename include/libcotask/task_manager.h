@@ -157,7 +157,7 @@ namespace cotask {
             std::vector<task_ptr_t> all_tasks;
             // first, lock and reset all data
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -226,7 +226,7 @@ namespace cotask {
             }
 
             // lock before we will operator tasks_
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -285,7 +285,7 @@ namespace cotask {
             }
 
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -327,7 +327,7 @@ namespace cotask {
 
             task_ptr_t task_inst;
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -372,7 +372,7 @@ namespace cotask {
                 return task_ptr_t();
             }
 
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -394,7 +394,7 @@ namespace cotask {
 
             task_ptr_t task_inst;
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -427,7 +427,7 @@ namespace cotask {
 
             task_ptr_t task_inst;
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -460,7 +460,7 @@ namespace cotask {
 
             task_ptr_t task_inst;
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -495,7 +495,7 @@ namespace cotask {
 
             task_ptr_t task_inst;
             {
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -556,7 +556,7 @@ namespace cotask {
             // first tick, init and reset task timeout
             if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
                 // hold lock
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -580,7 +580,7 @@ namespace cotask {
 
                 {
                     // hold lock
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                     util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
@@ -695,7 +695,7 @@ namespace cotask {
         detail::tickspec_t                         last_tick_time_;
         std::set<detail::task_timer_node<task_t> > task_timeout_timer_;
 
-#if !defined(PROJECT_DISABLE_MT) || !(PROJECT_DISABLE_MT)
+#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
         util::lock::spin_lock action_lock_;
 #endif
         int flags_;

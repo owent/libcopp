@@ -100,6 +100,8 @@ namespace copp {
             void *             priv_data;
         };
 
+        friend struct libcopp_inner_api_helper;
+
     protected:
         fcontext::fcontext_t caller_; /** caller runtime context **/
         fcontext::fcontext_t callee_; /** callee runtime context **/
@@ -110,7 +112,7 @@ namespace copp {
 #endif
 
     private:
-#if defined(PROJECT_DISABLE_MT) && PROJECT_DISABLE_MT
+#if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
         util::lock::atomic_int_type<util::lock::unsafe_int_type<int> > status_; /** status **/
 #else
         util::lock::atomic_int_type<int> status_; /** status **/
@@ -235,16 +237,6 @@ namespace copp {
         inline size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
 
     protected:
-        /**
-         * @brief call platform jump to asm instruction
-         * @param to_fctx jump to function context
-         * @param from_sctx jump from stack context(only used for save segment stack)
-         * @param to_sctx jump to stack context(only used for set segment stack)
-         * @param jump_transfer jump data
-         */
-        static void jump_to(fcontext::fcontext_t &to_fctx, stack_context &from_sctx, stack_context &to_sctx,
-                            jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT;
-
         /**
          * @brief fcontext entrance function
          * @param src_ctx where jump from
