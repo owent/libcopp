@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <set>
+#include <vector>
 
 #include <libcopp/utils/std/smart_ptr.h>
 
@@ -623,5 +625,93 @@ CASE_TEST(coroutine_task, then_with_stack_pool) {
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 255);
     CASE_EXPECT_EQ(g_test_coroutine_task_on_finished, 5);
 }
+
+
+#if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
+    defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+
+static util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
+static const int                        g_test_context_task_test_mt_run_times             = 10000;
+static size_t                           g_test_context_task_test_mt_max_run_thread_number = 0;
+enum {
+    test_context_task_test_mt_thread_num = 100,
+    test_context_task_test_mt_task_num   = 1000,
+};
+
+struct test_context_task_test_action_mt_thread : public cotask::impl::task_action_impl {
+    int run_count;
+
+public:
+    test_context_task_test_action_mt_thread() : run_count(0) {}
+
+    int operator()(void *thread_func_address) {
+        std::set<void *> thread_counter;
+
+        while (run_count < g_test_context_task_test_mt_run_times) {
+            ++run_count;
+            ++g_test_context_task_test_atomic;
+
+            thread_counter.insert(thread_func_address);
+
+            cotask::this_task::get_task()->yield(&thread_func_address);
+        }
+
+        if (g_test_context_task_test_mt_max_run_thread_number < thread_counter.size()) {
+            g_test_context_task_test_mt_max_run_thread_number = thread_counter.size();
+        }
+        return 0;
+    }
+};
+
+struct test_context_task_test_mt_thread_runner {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+
+    std::vector<task_ptr_type> *task_pool;
+    test_context_task_test_mt_thread_runner(std::vector<task_ptr_type> *pool) : task_pool(pool) {}
+
+    int operator()() {
+
+        bool need_continue = true;
+        while (need_continue) {
+            need_continue = false;
+
+            for (size_t i = 0; i < task_pool->size(); ++i) {
+                if (false == (*task_pool)[i]->is_completed()) {
+                    need_continue = true;
+                    (*task_pool)[i]->resume(this);
+                }
+            }
+        }
+        return 0;
+    }
+};
+
+CASE_TEST(coroutine_task, mt_run_competition) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    std::vector<task_ptr_type>    task_pool;
+    task_pool.reserve(test_context_task_test_mt_task_num);
+    for (int i = 0; i < test_context_task_test_mt_task_num; ++i) {
+        task_pool.push_back(cotask::task<>::create(test_context_task_test_action_mt_thread(), 16 * 1024)); // use 16KB for stack
+    }
+
+    g_test_context_task_test_atomic.store(0);
+    g_test_context_task_test_mt_max_run_thread_number = 0;
+
+    std::unique_ptr<std::thread> thds[test_context_task_test_mt_thread_num];
+    for (int i = 0; i < test_context_task_test_mt_thread_num; ++i) {
+        thds[i].reset(new std::thread(test_context_task_test_mt_thread_runner(&task_pool)));
+    }
+
+    for (int i = 0; i < test_context_task_test_mt_thread_num; ++i) {
+        thds[i]->join();
+    }
+
+    CASE_EXPECT_EQ(g_test_context_task_test_mt_run_times * test_context_task_test_mt_task_num, g_test_context_task_test_atomic.load());
+    CASE_MSG_INFO() << "Coroutine tasks are run on " << g_test_context_task_test_mt_max_run_thread_number << " threads at most."
+                    << std::endl;
+}
+
+#endif
+
 
 #endif
