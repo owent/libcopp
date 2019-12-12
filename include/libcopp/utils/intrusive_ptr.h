@@ -248,28 +248,28 @@ namespace libcopp {
 
 
 #if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
-#define UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<size_t> >
+#define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<size_t> >
 #else
-#define UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::libcopp::util::lock::atomic_int_type<size_t>
+#define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::libcopp::util::lock::atomic_int_type<size_t>
 #endif
 
-#define UTIL_INTRUSIVE_PTR_REF_MEMBER_DECL(T)                   \
-                                                                \
-private:                                                        \
-    UTIL_INTRUSIVE_PTR_ATOMIC_TYPE intrusive_ref_counter_;      \
-    friend void                    intrusive_ptr_add_ref(T *p); \
-    friend void                    intrusive_ptr_release(T *p); \
-                                                                \
-public:                                                         \
+#define LIBCOPP_UTIL_INTRUSIVE_PTR_REF_MEMBER_DECL(T)                   \
+                                                                        \
+private:                                                                \
+    LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE intrusive_ref_counter_;      \
+    friend void                            intrusive_ptr_add_ref(T *p); \
+    friend void                            intrusive_ptr_release(T *p); \
+                                                                        \
+public:                                                                 \
     const size_t use_count() const { return intrusive_ref_counter_.load(); }
 
-#define UTIL_INTRUSIVE_PTR_REF_FN_DECL(T) \
-    void intrusive_ptr_add_ref(T *p);     \
+#define LIBCOPP_UTIL_INTRUSIVE_PTR_REF_FN_DECL(T) \
+    void intrusive_ptr_add_ref(T *p);             \
     void intrusive_ptr_release(T *p);
 
-#define UTIL_INTRUSIVE_PTR_REF_MEMBER_INIT() this->intrusive_ref_counter_.store(0)
+#define LIBCOPP_UTIL_INTRUSIVE_PTR_REF_MEMBER_INIT() this->intrusive_ref_counter_.store(0)
 
-#define UTIL_INTRUSIVE_PTR_REF_FN_DEFI(T)             \
+#define LIBCOPP_UTIL_INTRUSIVE_PTR_REF_FN_DEFI(T)     \
     void intrusive_ptr_add_ref(T *p) {                \
         if (nullptr != p) {                           \
             ++p->intrusive_ref_counter_;              \
