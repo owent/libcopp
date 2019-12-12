@@ -1,6 +1,10 @@
 HISTORY
 ----------------
 
+### 1.2.2 (2019-12-12)
+
+1. [OPTIMIZE] Using cmake export to generate module files
+
 ### 1.2.1 (2019-10-04)
 
 1. [OPTIMIZE] Add options to disable TLS usage for *this_task* and *this_coroutine* to reduce cache miss on single thread situation.

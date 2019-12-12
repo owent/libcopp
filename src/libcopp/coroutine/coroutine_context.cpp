@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <libcopp/utils/config/build_feature.h>
 #include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
@@ -77,7 +77,7 @@ namespace copp {
 #else
         static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
         static pthread_key_t  gt_coroutine_tls_key;
-        static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, UTIL_CONFIG_NULLPTR); }
+        static void           init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, UTIL_CONFIG_NULLPTR); }
 #endif
 
         static inline void set_this_coroutine_context(coroutine_context *p) {
@@ -288,8 +288,9 @@ namespace copp {
 
         // stack down, left enough private data
         p->priv_data_ = reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - p->private_buffer_size_;
-        p->callee_    = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
-                                                  p->callee_stack_.size - stack_offset, &libcopp_inner_api_helper::coroutine_context_callback);
+        p->callee_ =
+            fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
+                                         p->callee_stack_.size - stack_offset, &libcopp_inner_api_helper::coroutine_context_callback);
         if (UTIL_CONFIG_NULLPTR == p->callee_) {
             return COPP_EC_FCONTEXT_MAKE_FAILED;
         }
@@ -427,7 +428,7 @@ namespace copp {
 
         runner_ = COPP_MACRO_STD_MOVE(runner);
         return COPP_EC_SUCCESS;
-    }
+    } // namespace copp
 
     bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
         // return !!(flags_ & flag_t::EN_CFT_FINISHED);

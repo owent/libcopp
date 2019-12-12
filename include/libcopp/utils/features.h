@@ -9,7 +9,7 @@
 #include <libcopp/utils/config/compiler_features.h>
 
 // ================ build options ================
-#include <libcopp/utils/config/build_feature.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 // ---------------- build options ----------------
 
 // ================ select compiler ================

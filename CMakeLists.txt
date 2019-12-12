@@ -9,7 +9,7 @@ project(libcopp C CXX ASM)
 
 set(LIBCOPP_VERSION_MAJOR "1")
 set(LIBCOPP_VERSION_MINOR "2")
-set(LIBCOPP_VERSION_PATCH "1")
+set(LIBCOPP_VERSION_PATCH "2")
 set(LIBCOPP_VERSION "${LIBCOPP_VERSION_MAJOR}.${LIBCOPP_VERSION_MINOR}.${LIBCOPP_VERSION_PATCH}")
 
 ########################################################################
@@ -68,8 +68,8 @@ if (CMAKE_USE_PTHREADS_INIT)
 endif ()
 
 configure_file(
-    "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h.in"
-    "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/build_feature.h"
+    "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/libcopp_build_features.h.in"
+    "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/libcopp_build_features.h"
     @ONLY
 )
 

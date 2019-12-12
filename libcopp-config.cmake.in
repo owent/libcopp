@@ -12,7 +12,7 @@
 #
 # ::
 #
-#   Libcopp_INCLUDE_DIRS   - where to find libcopp/utils/config/build_feature.h , etc.
+#   Libcopp_INCLUDE_DIRS   - where to find libcopp/utils/config/libcopp_build_features.h , etc.
 #   Libcopp_LIBRARY_DIRS   - where to find (lib)copp/cotask.(a/so/lib/dll/dylib), etc.
 #   Libcopp_LIBRARIES      - List of libraries when using libcopp.
 #   Libcotask_LIBRARIES    - List of libraries when using libcotask.

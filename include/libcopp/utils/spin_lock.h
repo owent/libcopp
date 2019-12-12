@@ -38,7 +38,7 @@
 
 #endif
 
-#include <libcopp/utils/config/build_feature.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include "atomic_int_type.h"
 
