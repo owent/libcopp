@@ -1,9 +1,10 @@
 HISTORY
 ----------------
 
-### 1.2.2 (2019-12-12)
+### 1.3.0 (2019-12-12)
 
 1. [OPTIMIZE] Using cmake export to generate module files
+2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
 
 ### 1.2.1 (2019-10-04)
 

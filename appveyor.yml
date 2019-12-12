@@ -8,29 +8,34 @@
 # Custom environment variables
 #
 environment:
-    global:
-        PREBUILT_ROOT: C:/Users/appveyor/prebuilt
-        SETUP_ROOT: C:/Users/appveyor/setup
-        PKG_SRC_ROOT: C:/Users/appveyor/pkg_src
-        MSYS2_PREFIX: C:/tools/msys64
-        MSYS2_LOG_FILE: C:/Users/appveyor/pkg_src/output.log
-    matrix:
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-          platform: x64
-          CMAKE_GEN: Visual Studio 16 2019
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-          platform: x64
-          CMAKE_GEN: Visual Studio 15 2017 Win64
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-          platform: x64
-          CMAKE_GEN: Visual Studio 14 2015 Win64
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-          platform: x64
-          CMAKE_GEN: Visual Studio 12 2013 Win64
-        #- os: MinGW
-        #  CMAKE_GEN: MinGW32
-        - os: MinGW
-          CMAKE_GEN: MinGW64
+  global:
+    PREBUILT_ROOT: C:/Users/appveyor/prebuilt
+    SETUP_ROOT: C:/Users/appveyor/setup
+    PKG_SRC_ROOT: C:/Users/appveyor/pkg_src
+    MSYS2_PREFIX: C:/tools/msys64
+    MSYS2_LOG_FILE: C:/Users/appveyor/pkg_src/output.log
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      platform: x64
+      CMAKE_GEN: Visual Studio 16 2019
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      platform: x64
+      CMAKE_GEN: Visual Studio 16 2019
+      BUILD_SHARED_LIBS: ON
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      platform: x64
+      CMAKE_GEN: Visual Studio 15 2017 Win64
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      platform: x64
+      CMAKE_GEN: Visual Studio 14 2015 Win64
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+      platform: x64
+      CMAKE_GEN: Visual Studio 12 2013 Win64
+    - os: MinGW
+      CMAKE_GEN: MinGW64
+      BUILD_SHARED_LIBS: ON
+    - os: MinGW
+      CMAKE_GEN: MinGW64
 
 configuration: RelWithDebInfo
 
@@ -38,7 +43,7 @@ configuration: RelWithDebInfo
 # Cache Cygwin files to speed up build
 #
 cache:
-    - C:\Users\appveyor\prebuilt
+  - C:\Users\appveyor\prebuilt
 
 #
 # Do a shallow clone of the repo to speed up build
@@ -50,68 +55,68 @@ clone_depth: 1
 # Attempt to ensure we don't try to convert line endings to Win32 CRLF as this will cause build to fail
 #
 init:
-    - ps: >-
-          if ( -not ( Test-Path "$Env:PKG_SRC_ROOT" ) ) {
+  - ps: >-
+      if ( -not ( Test-Path "$Env:PKG_SRC_ROOT" ) ) {
 
-              mkdir "$Env:PKG_SRC_ROOT"
+          mkdir "$Env:PKG_SRC_ROOT"
 
-          }
+      }
 
-          if ( -not ( Test-Path "$Env:MSYS2_PREFIX" ) ) {
+      if ( -not ( Test-Path "$Env:MSYS2_PREFIX" ) ) {
 
-              mkdir "$Env:MSYS2_PREFIX"
+          mkdir "$Env:MSYS2_PREFIX"
 
-          }
+      }
 
-    - ps: >-
-          & git config --global core.autocrlf input
+  - ps: >-
+      & git config --global core.autocrlf input
 
-          if ( "$Env:OS" -ieq "MinGW" ) {
+      if ( "$Env:OS" -ieq "MinGW" ) {
 
-              if ( Test-Path "C:/msys64" ) {
+          if ( Test-Path "C:/msys64" ) {
 
-                  $Env:MSYS2_PREFIX="C:/msys64"
+              $Env:MSYS2_PREFIX="C:/msys64"
 
-                  $Env:PATH="$Env:MSYS2_PREFIX;$Env:PATH"
+              $Env:PATH="$Env:MSYS2_PREFIX;$Env:PATH"
 
-              } else {
+          } else {
 
-                  & cinst -y msys2 | Out-Host
-
-              }
-
-              echo "" > "$Env:MSYS2_LOG_FILE"
-
-              Get-ChildItem "$Env:MSYS2_PREFIX"
+              & cinst -y msys2 | Out-Host
 
           }
 
-    - ps: >-
-          if ( "$Env:OS" -ieq "MinGW" ) {
+          echo "" > "$Env:MSYS2_LOG_FILE"
 
-              echo "$Env:MSYS2_PREFIX/msys2_shell -lc 'pacman -Su --noconfirm --force > '$Env:MSYS2_LOG_FILE' 2>&1'"
+          Get-ChildItem "$Env:MSYS2_PREFIX"
 
-              & "$Env:MSYS2_PREFIX/msys2_shell" -lc "pacman -Su --noconfirm --force > '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+      }
 
-              Get-Content "$Env:MSYS2_LOG_FILE"
-          }
+  - ps: >-
+      if ( "$Env:OS" -ieq "MinGW" ) {
+
+          echo "$Env:MSYS2_PREFIX/msys2_shell -lc 'pacman -Su --noconfirm --force > '$Env:MSYS2_LOG_FILE' 2>&1'"
+
+          & "$Env:MSYS2_PREFIX/msys2_shell" -lc "pacman -Su --noconfirm --force > '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+
+          Get-Content "$Env:MSYS2_LOG_FILE"
+      }
 
 #
 # Install needed build dependencies
 #
 install:
-    - ps: >-
-          if ( "$Env:OS" -ieq "MinGW" ) {
+  - ps: >-
+      if ( "$Env:OS" -ieq "MinGW" ) {
 
-              & "$Env:MSYS2_PREFIX/msys2_shell" -lc 'for pkg_name in cmake m4 curl wget tar autoconf automake mingw-w64-x86_64-toolchain mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain mingw-w64-x86_64-libtool mingw-w64-i686-libtool python; do pacman -S --noconfirm --force $pkg_name >> '$Env:MSYS2_LOG_FILE' 2>&1; done' | Out-Host
+          & "$Env:MSYS2_PREFIX/msys2_shell" -lc 'for pkg_name in cmake m4 curl wget tar autoconf automake mingw-w64-x86_64-toolchain mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain mingw-w64-x86_64-libtool mingw-w64-i686-libtool python; do pacman -S --noconfirm --force $pkg_name >> '$Env:MSYS2_LOG_FILE' 2>&1; done' | Out-Host
 
-              Get-Content "$Env:MSYS2_LOG_FILE"
+          Get-Content "$Env:MSYS2_LOG_FILE"
 
-          } else {
+      } else {
 
-              echo "No need install."
+          echo "No need install."
 
-          }
+      }
 
 # Build script
 #
@@ -122,109 +127,123 @@ install:
 # default file handles. Ensure a dummy file descriptor is opened with 'exec'.
 #
 build_script:
-    - ps: >-
+  - ps: >-
 
-          cd "$Env:APPVEYOR_BUILD_FOLDER"
+      cd "$Env:APPVEYOR_BUILD_FOLDER"
 
-          New-Item -Path build -ItemType directory
+      New-Item -Path build -ItemType directory
 
-          cd build
+      cd build
 
-          Remove-Item -r *
+      Remove-Item -r *
 
-          if ( "$Env:OS" -ieq "MinGW" ) {
+      if ( "$Env:OS" -ieq "MinGW" ) {
 
-            if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
+        $CMAKE_CONFIGURE_EXT_ARGS = ""
 
-              echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; mkdir build cmake .. -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=$Env:CONFIGURATION ; cmake --build . -- -j4"
+        if ( Test-Path Env:BUILD_SHARED_LIBS ) {
 
-              & "$Env:MSYS2_PREFIX/msys2_shell" -mingw32 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake .. -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON > '$Env:MSYS2_LOG_FILE' 2>&1; cmake --build . -- -j4 >> '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+          $CMAKE_CONFIGURE_EXT_ARGS = "-DBUILD_SHARED_LIBS=ON"
 
-              Get-Content "$Env:MSYS2_LOG_FILE"
+        }
 
-            } else {
+        if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
 
-              echo "$Env:MSYS2_PREFIX/msys2_shell -mingw64 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake .. -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=$Env:CONFIGURATION ; cmake --build . -- -j4"
+          echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; mkdir build cmake .. -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=$Env:CONFIGURATION $CMAKE_CONFIGURE_EXT_ARGS ; cmake --build . -- -j4"
 
-              & "$Env:MSYS2_PREFIX/msys2_shell" -mingw64 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake ..  -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON > '$Env:MSYS2_LOG_FILE' 2>&1; cmake --build . -- -j4 >> '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
+          & "$Env:MSYS2_PREFIX/msys2_shell" -mingw32 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake .. -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON $CMAKE_CONFIGURE_EXT_ARGS > '$Env:MSYS2_LOG_FILE' 2>&1; cmake --build . -- -j4 >> '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
 
-              Get-Content "$Env:MSYS2_LOG_FILE"
+          Get-Content "$Env:MSYS2_LOG_FILE"
 
-            }
+        } else {
 
-          } else {
+          echo "$Env:MSYS2_PREFIX/msys2_shell -mingw64 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake .. -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=$Env:CONFIGURATION $CMAKE_CONFIGURE_EXT_ARGS ; cmake --build . -- -j4"
 
-            $CMAKE_CONFIGURE_ARGS = @("..", "-G", $Env:CMAKE_GEN)
+          & "$Env:MSYS2_PREFIX/msys2_shell" -mingw64 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake ..  -G 'MSYS Makefiles' -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON $CMAKE_CONFIGURE_EXT_ARGS > '$Env:MSYS2_LOG_FILE' 2>&1; cmake --build . -- -j4 >> '$Env:MSYS2_LOG_FILE' 2>&1" | Out-Host
 
-            if ( "$Env:CMAKE_GEN" -ieq "Visual Studio 16 2019" ) {
+          Get-Content "$Env:MSYS2_LOG_FILE"
 
-              $CMAKE_CONFIGURE_ARGS += "-A", $Env:PLATFORM
+        }
 
-            }
+      } else {
 
-            $CMAKE_CONFIGURE_ARGS += "-DLIBCOPP_FCONTEXT_USE_TSX=ON", "-DPROJECT_ENABLE_UNITTEST=ON", "-DPROJECT_ENABLE_SAMPLE=ON", "-DCMAKE_BUILD_TYPE=$Env:CONFIGURATION"
+        $CMAKE_CONFIGURE_ARGS = @("..", "-G", $Env:CMAKE_GEN)
 
-            echo "cmake $($CMAKE_CONFIGURE_ARGS -join ' ')"
+        if ( "$Env:CMAKE_GEN" -ieq "Visual Studio 16 2019" ) {
 
-            & cmake $CMAKE_CONFIGURE_ARGS
+          $CMAKE_CONFIGURE_ARGS += "-A", $Env:PLATFORM
 
-            echo "cmake --build . --config $Env:CONFIGURATION"
+        }
 
-            & cmake --build . --config $Env:CONFIGURATION
+        if ( Test-Path Env:BUILD_SHARED_LIBS ) {
 
-          }
+          $CMAKE_CONFIGURE_ARGS += "-DBUILD_SHARED_LIBS=ON"
+
+        }
+
+        $CMAKE_CONFIGURE_ARGS += "-DLIBCOPP_FCONTEXT_USE_TSX=ON", "-DPROJECT_ENABLE_UNITTEST=ON", "-DPROJECT_ENABLE_SAMPLE=ON", "-DCMAKE_BUILD_TYPE=$Env:CONFIGURATION"
+
+        echo "cmake $($CMAKE_CONFIGURE_ARGS -join ' ')"
+
+        & cmake $CMAKE_CONFIGURE_ARGS
+
+        echo "cmake --build . --config $Env:CONFIGURATION"
+
+        & cmake --build . --config $Env:CONFIGURATION
+
+      }
 #
 # Run unit test
 # Can not get failed log in mingw, so just check if build success in mingw(custom test myself)
 #
 test_script:
-    - ps: >-
+  - ps: >-
 
-          if ( "$Env:OS" -ieq "MinGW" ) {
+      if ( "$Env:OS" -ieq "MinGW" ) {
 
-              if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
+          if ( "$Env:CMAKE_GEN" -ieq "MinGW32" ) {
 
-                  echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark;"
+              echo "$Env:MSYS2_PREFIX/msys2_shell -mingw32 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark;"
 
-                  & "$Env:MSYS2_PREFIX/msys2_shell" -mingw32 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark > '$Env:MSYS2_LOG_FILE';" | Out-Host
+              & "$Env:MSYS2_PREFIX/msys2_shell" -mingw32 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark > '$Env:MSYS2_LOG_FILE';" | Out-Host
 
-                  Get-Content "$Env:MSYS2_LOG_FILE"
-
-              } else {
-
-                  echo "$Env:MSYS2_PREFIX/msys2_shell -mingw64 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark;"
-
-                  & "$Env:MSYS2_PREFIX/msys2_shell" -mingw64 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark > '$Env:MSYS2_LOG_FILE';" | Out-Host
-
-                  Get-Content "$Env:MSYS2_LOG_FILE"
-
-              }
+              Get-Content "$Env:MSYS2_LOG_FILE"
 
           } else {
 
-              & cmake --build . --config $Env:CONFIGURATION --target run_sample
+              echo "$Env:MSYS2_PREFIX/msys2_shell -mingw64 -lc cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark;"
 
-              & cmake --build . --config $Env:CONFIGURATION --target run_test
+              & "$Env:MSYS2_PREFIX/msys2_shell" -mingw64 -lc "cd '$Env:APPVEYOR_BUILD_FOLDER/build'; cmake --build . -- run_sample run_test benchmark > '$Env:MSYS2_LOG_FILE';" | Out-Host
 
-              & cmake --build . --config $Env:CONFIGURATION --target benchmark
+              Get-Content "$Env:MSYS2_LOG_FILE"
 
           }
+
+      } else {
+
+          & cmake --build . --config $Env:CONFIGURATION --target run_sample
+
+          & cmake --build . --config $Env:CONFIGURATION --target run_test
+
+          & cmake --build . --config $Env:CONFIGURATION --target benchmark
+
+      }
 
 #
 # Only build the master branch
 #
 branches:
-    only:
-        - master
-        - v2
+  only:
+    - master
+    - v2
 
 # no need artifacts
 
 notifications:
-    - provider: Email
-      to:
-          - admin@owent.net
-          - owt5008137@live.com
-      on_build_success: false
-      on_build_failure: false
-      on_build_status_changed: true
+  - provider: Email
+    to:
+      - admin@owent.net
+      - owt5008137@live.com
+    on_build_success: false
+    on_build_failure: false
+    on_build_status_changed: true

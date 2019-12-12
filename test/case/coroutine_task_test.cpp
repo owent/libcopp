@@ -630,9 +630,9 @@ CASE_TEST(coroutine_task, then_with_stack_pool) {
 #if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
     defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
-static util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
-static const int                        g_test_context_task_test_mt_run_times             = 10000;
-static size_t                           g_test_context_task_test_mt_max_run_thread_number = 0;
+static libcopp::util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
+static const int                                 g_test_context_task_test_mt_run_times             = 10000;
+static size_t                                    g_test_context_task_test_mt_max_run_thread_number = 0;
 enum {
     test_context_task_test_mt_thread_num = 100,
     test_context_task_test_mt_task_num   = 1000,

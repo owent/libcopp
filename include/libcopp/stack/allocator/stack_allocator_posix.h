@@ -5,6 +5,8 @@
 
 #include <cstddef>
 
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
@@ -20,10 +22,16 @@ namespace copp {
          * @brief memory allocator
          * this allocator will create buffer using posix api and protect it
          */
-        class stack_allocator_posix {
+        class LIBCOPP_COPP_API stack_allocator_posix {
         public:
             stack_allocator_posix() UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_posix();
+            stack_allocator_posix(const stack_allocator_posix &other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_posix &operator=(const stack_allocator_posix &other) UTIL_CONFIG_NOEXCEPT;
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+            stack_allocator_posix(stack_allocator_posix &&other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_posix &operator=(stack_allocator_posix &&other) UTIL_CONFIG_NOEXCEPT;
+#endif
 
             /**
              * allocate memory and attach to stack context [standard function]
@@ -38,8 +46,8 @@ namespace copp {
              */
             void deallocate(stack_context &) UTIL_CONFIG_NOEXCEPT;
         };
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <cstddef>
 
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/std/smart_ptr.h>
 
@@ -23,7 +25,7 @@ namespace copp {
          * this allocator will maintain buffer using malloc/free function
          */
         template <typename TPool>
-        class stack_allocator_pool {
+        class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
         public:
             typedef TPool pool_t;
 

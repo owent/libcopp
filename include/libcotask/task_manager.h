@@ -32,7 +32,7 @@
 namespace cotask {
 
     namespace detail {
-        struct tickspec_t {
+        struct LIBCOPP_COTASK_API_HEAD_ONLY tickspec_t {
             time_t tv_sec;  /* Seconds.  */
             int    tv_nsec; /* Nanoseconds.  */
 
@@ -50,7 +50,7 @@ namespace cotask {
         };
 
         template <typename TTask>
-        struct task_timer_node {
+        struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
             tickspec_t           expired_time;
             typename TTask::id_t task_id;
 
@@ -80,7 +80,7 @@ namespace cotask {
         };
 
         template <typename TTask>
-        struct task_manager_node {
+        struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
             typedef typename TTask::ptr_t task_ptr_t;
 
             task_ptr_t                                           task_;
@@ -99,7 +99,7 @@ namespace cotask {
               typename TTaskContainer = std::map<typename TTask::id_t, detail::task_manager_node<TTask> >
 #endif
               >
-    class task_manager {
+    class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     public:
         typedef TTask                             task_t;
         typedef TTaskContainer                    container_t;
@@ -158,7 +158,7 @@ namespace cotask {
             // first, lock and reset all data
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 for (typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
@@ -227,7 +227,7 @@ namespace cotask {
 
             // lock before we will operator tasks_
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+            libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
             id_t task_id = task->get_id();
@@ -286,7 +286,7 @@ namespace cotask {
 
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 typedef typename container_t::iterator iter_type;
@@ -328,7 +328,7 @@ namespace cotask {
             task_ptr_t task_inst;
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 typedef typename container_t::iterator iter_type;
@@ -373,7 +373,7 @@ namespace cotask {
             }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+            libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
             typedef typename container_t::iterator iter_type;
@@ -395,7 +395,7 @@ namespace cotask {
             task_ptr_t task_inst;
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 typedef typename container_t::iterator iter_type;
@@ -428,7 +428,7 @@ namespace cotask {
             task_ptr_t task_inst;
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 typedef typename container_t::iterator iter_type;
@@ -461,7 +461,7 @@ namespace cotask {
             task_ptr_t task_inst;
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 typedef typename container_t::iterator iter_type;
@@ -496,7 +496,7 @@ namespace cotask {
             task_ptr_t task_inst;
             {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 typedef typename container_t::iterator iter_type;
@@ -557,7 +557,7 @@ namespace cotask {
             if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
                 // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                 std::set<detail::task_timer_node<task_t> > real_checkpoints;
@@ -581,7 +581,7 @@ namespace cotask {
                 {
                     // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                    util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
                     const typename std::set<detail::task_timer_node<task_t> >::value_type &timer_node = *task_timeout_timer_.begin();
@@ -696,7 +696,7 @@ namespace cotask {
         std::set<detail::task_timer_node<task_t> > task_timeout_timer_;
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-        util::lock::spin_lock action_lock_;
+        libcopp::util::lock::spin_lock action_lock_;
 #endif
         int flags_;
     };

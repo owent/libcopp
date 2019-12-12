@@ -5,6 +5,8 @@
 
 #include <cstddef>
 
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
@@ -20,10 +22,16 @@ namespace copp {
          * @brief memory allocator
          * this allocator will maintain buffer using malloc/free function
          */
-        class stack_allocator_malloc {
+        class LIBCOPP_COPP_API stack_allocator_malloc {
         public:
             stack_allocator_malloc() UTIL_CONFIG_NOEXCEPT;
             ~stack_allocator_malloc();
+            stack_allocator_malloc(const stack_allocator_malloc &other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_malloc &operator=(const stack_allocator_malloc &other) UTIL_CONFIG_NOEXCEPT;
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+            stack_allocator_malloc(stack_allocator_malloc &&other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_malloc &operator=(stack_allocator_malloc &&other) UTIL_CONFIG_NOEXCEPT;
+#endif
 
             /**
              * allocate memory and attach to stack context [standard function]
@@ -39,8 +47,8 @@ namespace copp {
              */
             void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT;
         };
-    }
-}
+    } // namespace allocator
+} // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
 #include COPP_ABI_SUFFIX

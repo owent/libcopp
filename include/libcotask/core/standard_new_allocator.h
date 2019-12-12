@@ -12,12 +12,13 @@
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/std/smart_ptr.h>
 
 namespace cotask {
     namespace core {
-        class standard_new_allocator {
+        class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
         public:
 #if defined(COPP_MACRO_ENABLE_VARIADIC_TEMPLATE) && COPP_MACRO_ENABLE_VARIADIC_TEMPLATE
             /**
@@ -72,7 +73,7 @@ namespace cotask {
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
                                                 TARG2 COPP_MACRO_RV_REF arg2) {
                 return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2));
+                                            COPP_MACRO_STD_FORWARD(TARG2, arg2));
             }
 
             /**
@@ -87,7 +88,7 @@ namespace cotask {
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
                                                 TARG2 COPP_MACRO_RV_REF arg2, TARG3 COPP_MACRO_RV_REF arg3) {
                 return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3));
+                                            COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3));
             }
 
             /**
@@ -103,16 +104,16 @@ namespace cotask {
             static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
                                                 TARG2 COPP_MACRO_RV_REF arg2, TARG3 COPP_MACRO_RV_REF arg3, TARG4 COPP_MACRO_RV_REF arg4) {
                 return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                                                COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3),
-                                                                COPP_MACRO_STD_FORWARD(TARG4, arg4));
+                                            COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3),
+                                            COPP_MACRO_STD_FORWARD(TARG4, arg4));
             }
 
 #endif
             template <typename Ty>
             static void deallocate(std::shared_ptr<Ty> &) {}
         };
-    }
-}
+    } // namespace core
+} // namespace cotask
 
 
 #endif /* STANDARD_NEW_ALLOCATOR_H_ */

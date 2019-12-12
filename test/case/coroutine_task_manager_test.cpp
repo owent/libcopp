@@ -164,7 +164,7 @@ CASE_TEST(coroutine_task_manager, add_and_timeout) {
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
 
     CASE_EXPECT_EQ(copp::COPP_EC_TASK_IS_EXITING, task_mgr->add_task(co_another_task));
-    
+
     task_mgr.reset();
 }
 
@@ -325,7 +325,7 @@ CASE_TEST(coroutine_task_manager, protect_this_task) {
 #if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
     defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
-static util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
+static libcopp::util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
 
 static const int test_context_task_manager_action_mt_run_times = 10000;
 enum { test_context_task_manager_action_mt_thread_num = 1000 };

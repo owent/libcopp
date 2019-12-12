@@ -12,18 +12,20 @@
 #
 # ::
 #
-#   Libcopp_INCLUDE_DIRS   - where to find libcopp/utils/config/libcopp_build_features.h , etc.
-#   Libcopp_LIBRARY_DIRS   - where to find (lib)copp/cotask.(a/so/lib/dll/dylib), etc.
-#   Libcopp_LIBRARIES      - List of libraries when using libcopp.
-#   Libcotask_LIBRARIES    - List of libraries when using libcotask.
-#   Libcopp_FOUND          - True if libcopp found.
-#   Libcopp_VERSION        - Full version of libcopp
+#   Libcopp_INCLUDE_DIRS    - where to find libcopp/utils/config/libcopp_build_features.h , etc.
+#   Libcopp_LIBRARY_DIRS    - where to find (lib)copp/cotask.(a/so/lib/dll/dylib), etc.
+#   Libcopp_LIBRARIES       - List of libraries when using libcopp.
+#   Libcotask_LIBRARIES     - List of libraries when using libcotask.
+#   Libcopp_FOUND           - True if libcopp found.
+#   Libcopp_VERSION         - Full version of libcopp
 #
 # ::
+#   libcopp::copp           - Imported target of libcopp
+#   libcopp::cotask         - Imported target of libcotask if available
 #
 
 #=============================================================================
-# Copyright 2018 OWenT.
+# Copyright 2020 OWenT.
 #
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
@@ -46,16 +48,15 @@ set(Libcopp_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 set_and_check(Libcopp_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
 set_and_check(Libcopp_LIBRARY_DIRS "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
-
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOPP_EXPORT_NAME@.cmake")
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOTASK_EXPORT_NAME@.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOTASK_EXPORT_NAME@.cmake")
+endif ()
 # Normal search.
-set(Libcopp_NAMES copp libcopp)
-set(Libcotask_NAMES cotask libcotask)
-
-# Try each search configuration.
-find_library(Libcopp_LIBRARIES    NAMES ${Libcopp_NAMES}    PATHS ${Libcopp_LIBRARY_DIRS} NO_DEFAULT_PATH)
-find_library(Libcotask_LIBRARIES  NAMES ${Libcotask_NAMES}  PATHS ${Libcopp_LIBRARY_DIRS} NO_DEFAULT_PATH)
-
-mark_as_advanced(Libcopp_INCLUDE_DIRS Libcopp_LIBRARY_DIRS Libcopp_LIBRARIES Libcotask_LIBRARIES)
+set(Libcopp_LIBRARIES libcopp::copp)
+if (TARGET libcopp::cotask)
+    set(Libcotask_LIBRARIES libcopp::cotask)
+endif ()
 
 # handle the QUIETLY and REQUIRED arguments and set LIBCOPP_FOUND to TRUE if
 # all listed variables are TRUE
@@ -67,6 +68,5 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libcopp
 if (Libcopp_FOUND)
     set(LIBCOPP_FOUND ${Libcopp_FOUND})
 endif()
-
 
 # check_required_components(Libcopp)

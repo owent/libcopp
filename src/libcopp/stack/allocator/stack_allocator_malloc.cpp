@@ -23,10 +23,20 @@
 
 namespace copp {
     namespace allocator {
-        stack_allocator_malloc::stack_allocator_malloc() UTIL_CONFIG_NOEXCEPT {}
-        stack_allocator_malloc::~stack_allocator_malloc() {}
+        LIBCOPP_COPP_API stack_allocator_malloc::stack_allocator_malloc() UTIL_CONFIG_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_malloc::~stack_allocator_malloc() {}
+        LIBCOPP_COPP_API stack_allocator_malloc::stack_allocator_malloc(const stack_allocator_malloc &) UTIL_CONFIG_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_malloc &stack_allocator_malloc::operator=(const stack_allocator_malloc &) UTIL_CONFIG_NOEXCEPT {
+            return *this;
+        }
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        LIBCOPP_COPP_API stack_allocator_malloc::stack_allocator_malloc(stack_allocator_malloc &&) UTIL_CONFIG_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_malloc &stack_allocator_malloc::operator=(stack_allocator_malloc &&) UTIL_CONFIG_NOEXCEPT {
+            return *this;
+        }
+#endif
 
-        void stack_allocator_malloc::allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_malloc::allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
             size = (std::max)(size, stack_traits::minimum_size());
             size = (std::min)(size, stack_traits::maximum_size());
 
@@ -47,7 +57,7 @@ namespace copp {
 #endif
         }
 
-        void stack_allocator_malloc::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_malloc::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
             assert(ctx.sp);
             assert(stack_traits::minimum_size() <= ctx.size);
             assert(stack_traits::is_unbounded() || (stack_traits::maximum_size() >= ctx.size));

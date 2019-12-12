@@ -5,6 +5,8 @@
 
 #include <cstddef>
 
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 
 #ifdef COPP_HAS_ABI_HEADERS
@@ -20,7 +22,7 @@ namespace copp {
          * @brief memory allocator
          * this allocator will return address of specified memory section
          */
-        class stack_allocator_memory {
+        class LIBCOPP_COPP_API stack_allocator_memory {
         private:
             void *      start_ptr_;
             std::size_t memory_size_;

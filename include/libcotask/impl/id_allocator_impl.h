@@ -12,21 +12,21 @@
 
 #pragma once
 
-#include "libcopp/utils/config/compiler_features.h"
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 namespace cotask {
     namespace impl {
-        template<typename Ty>
-        class id_allocator
-        {
+        template <typename Ty>
+        class LIBCOPP_COTASK_API_HEAD_ONLY id_allocator {
         public:
             typedef Ty value_type;
-            ~id_allocator() {};
+            ~id_allocator(){};
             value_type allocate() UTIL_CONFIG_NOEXCEPT;
-            void deallocate(value_type) UTIL_CONFIG_NOEXCEPT;
+            void       deallocate(value_type) UTIL_CONFIG_NOEXCEPT;
         };
-    }
-}
+    } // namespace impl
+} // namespace cotask
 
 
 #endif /* _COTASK_IMPL_ID_ALLOCATOR_IMPL_H_ */

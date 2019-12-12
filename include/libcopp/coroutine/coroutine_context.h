@@ -8,8 +8,10 @@
 #include <libcopp/fcontext/all.hpp>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/utils/atomic_int_type.h>
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
-#include <libcopp/utils/non_copyable.h>
+#include <libcopp/utils/intrusive_ptr.h>
 #include <libcopp/utils/std/functional.h>
 #include <libcopp/utils/std/smart_ptr.h>
 
@@ -30,20 +32,20 @@ namespace copp {
 
     namespace details {
         template <size_t N, bool BIGGER_THAN_16>
-        struct align_helper_inner;
+        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner;
 
         template <size_t N>
-        struct align_helper_inner<N, true> {
+        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N, true> {
             static const size_t value = N;
         };
 
         template <size_t N>
-        struct align_helper_inner<N, false> {
+        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N, false> {
             static const size_t value = 16;
         };
 
         template <size_t N>
-        struct align_helper {
+        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
             static const size_t value = align_helper_inner<N, N >= 16>::value;
         };
 
@@ -61,15 +63,15 @@ namespace copp {
     /**
      * @brief base type of all coroutine context
      */
-    class coroutine_context : utils::non_copyable {
+    class coroutine_context {
     public:
-        typedef std::intrusive_ptr<coroutine_context> ptr_t;
-        typedef std::function<int(void *)>            callback_t;
+        typedef libcopp::util::intrusive_ptr<coroutine_context> ptr_t;
+        typedef std::function<int(void *)>                      callback_t;
 
         /**
          * @brief status of safe coroutine context base
          */
-        struct status_t {
+        struct LIBCOPP_COPP_API status_t {
             enum type {
                 EN_CRS_INVALID = 0, //!< EN_CRS_INVALID
                 EN_CRS_READY,       //!< EN_CRS_READY
@@ -79,7 +81,7 @@ namespace copp {
             };
         };
 
-        struct flag_t {
+        struct LIBCOPP_COPP_API flag_t {
             enum type {
                 EN_CFT_UNKNOWN  = 0,
                 EN_CFT_FINISHED = 0x01,
@@ -94,13 +96,13 @@ namespace copp {
         void *     priv_data_;
         size_t     private_buffer_size_;
 
-        struct jump_src_data_t {
+        struct UTIL_SYMBOL_HIDDEN jump_src_data_t {
             coroutine_context *from_co;
             coroutine_context *to_co;
             void *             priv_data;
         };
 
-        friend struct libcopp_inner_api_helper;
+        friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_inner_api_helper;
 
     protected:
         fcontext::fcontext_t caller_; /** caller runtime context **/
@@ -113,16 +115,25 @@ namespace copp {
 
     private:
 #if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
-        util::lock::atomic_int_type<util::lock::unsafe_int_type<int> > status_; /** status **/
+        libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<int> > status_; /** status **/
 #else
-        util::lock::atomic_int_type<int> status_; /** status **/
+        libcopp::util::lock::atomic_int_type<int> status_; /** status **/
 #endif
 
     protected:
-        coroutine_context() UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COPP_API coroutine_context() UTIL_CONFIG_NOEXCEPT;
 
     public:
-        ~coroutine_context();
+        LIBCOPP_COPP_API ~coroutine_context();
+
+    private:
+        coroutine_context(const coroutine_context &) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context &operator=(const coroutine_context &) UTIL_CONFIG_DELETED_FUNCTION;
+
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        coroutine_context(const coroutine_context &&) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context &operator=(const coroutine_context &&) UTIL_CONFIG_DELETED_FUNCTION;
+#endif
 
     public:
         /**
@@ -133,12 +144,12 @@ namespace copp {
          * @param private_buffer_size size of private buffer
          * @return COPP_EC_SUCCESS or error code
          */
-        static int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
-                          size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
+        static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
+                                      size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
 
         template <typename TRunner>
-        static int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack, size_t coroutine_size,
-                          size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+        static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack,
+                                                size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
             return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
                           private_buffer_size);
         }
@@ -148,14 +159,14 @@ namespace copp {
          * @param priv_data private data, will be passed to runner operator() or return to yield
          * @return COPP_EC_SUCCESS or error code
          */
-        int start(void *priv_data = UTIL_CONFIG_NULLPTR);
+        LIBCOPP_COPP_API int start(void *priv_data = UTIL_CONFIG_NULLPTR);
 
         /**
          * @brief resume coroutine
          * @param priv_data private data, will be passed to runner operator() or return to yield
          * @return COPP_EC_SUCCESS or error code
          */
-        int resume(void *priv_data = UTIL_CONFIG_NULLPTR);
+        LIBCOPP_COPP_API int resume(void *priv_data = UTIL_CONFIG_NULLPTR);
 
 
         /**
@@ -163,34 +174,34 @@ namespace copp {
          * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
          * @return COPP_EC_SUCCESS or error code
          */
-        int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
+        LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
 
         /**
          * @brief set all flags to true
          * @param flags (flags & EN_CFT_MASK) must be 0
          * @return true if flags is available, or return false
          */
-        bool set_flags(int flags);
+        LIBCOPP_COPP_API bool set_flags(int flags);
 
         /**
          * @brief set all flags to false
          * @param flags (flags & EN_CFT_MASK) must be 0
          * @return true if flags is available, or return false
          */
-        bool unset_flags(int flags);
+        LIBCOPP_COPP_API bool unset_flags(int flags);
 
         /**
          * @brief check flags
          * @param flags flags to be checked
          * @return true if flags any flags is true
          */
-        bool check_flags(int flags) const;
+        LIBCOPP_COPP_API bool check_flags(int flags) const;
 
     protected:
         /**
          * @brief coroutine entrance function
          */
-        inline void run_and_recv_retcode(void *priv_data) {
+        UTIL_FORCEINLINE void run_and_recv_retcode(void *priv_data) {
             if (!runner_) return;
 
             runner_ret_code_ = runner_(priv_data);
@@ -203,41 +214,41 @@ namespace copp {
          * @return COPP_EC_SUCCESS or error code
          */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        int set_runner(callback_t &&runner);
+        LIBCOPP_COPP_API int set_runner(callback_t &&runner);
 #else
-        int                              set_runner(const callback_t &runner);
+        LIBCOPP_COPP_API int                           set_runner(const callback_t &runner);
 #endif
 
         /**
          * get runner of this coroutine context (const)
          * @return NULL of pointer of runner
          */
-        inline const std::function<int(void *)> &get_runner() const UTIL_CONFIG_NOEXCEPT { return runner_; }
+        UTIL_FORCEINLINE const std::function<int(void *)> &get_runner() const UTIL_CONFIG_NOEXCEPT { return runner_; }
 
         /**
          * @brief get runner return code
          * @return
          */
-        inline int get_ret_code() const UTIL_CONFIG_NOEXCEPT { return runner_ret_code_; }
+        UTIL_FORCEINLINE int get_ret_code() const UTIL_CONFIG_NOEXCEPT { return runner_ret_code_; }
 
         /**
          * @brief get runner return code
          * @return true if coroutine has run and finished
          */
-        bool is_finished() const UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COPP_API bool is_finished() const UTIL_CONFIG_NOEXCEPT;
 
         /**
          * @brief get private buffer(raw pointer)
          */
-        inline void *get_private_buffer() const UTIL_CONFIG_NOEXCEPT { return priv_data_; }
+        UTIL_FORCEINLINE void *get_private_buffer() const UTIL_CONFIG_NOEXCEPT { return priv_data_; }
 
         /**
          * @brief get private buffer size
          */
-        inline size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
+        UTIL_FORCEINLINE size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
 
     public:
-        static inline size_t align_private_data_size(size_t sz) {
+        static UTIL_FORCEINLINE size_t align_private_data_size(size_t sz) {
             // static size_t random_index = 0;
             // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
             UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
@@ -268,7 +279,7 @@ namespace copp {
          * @see detail::coroutine_context
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
-        coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COPP_API coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT;
 
         /**
          * @brief get current coroutine and try to convert type
@@ -277,7 +288,7 @@ namespace copp {
          * @return pointer of current coroutine, if not in coroutine or fail to convert type, return NULL
          */
         template <typename Tc>
-        Tc *get() {
+        LIBCOPP_COPP_API_HEAD_ONLY Tc *get() {
             return static_cast<Tc *>(get_coroutine());
         }
 
@@ -286,7 +297,7 @@ namespace copp {
          * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
          * @return 0 or error code
          */
-        int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
+        LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
     } // namespace this_coroutine
 } // namespace copp
 

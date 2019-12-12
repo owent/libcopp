@@ -23,15 +23,15 @@
 // ============================================================
 
 /**
-* 导入智能指针（smart_ptr）
-* 如果是G++且支持c++0x草案1（tr1版本）的smart_ptr[GCC版本高于4.0]
-* 则会启用GNU-C++的智能指针
-*
-* 如果是VC++且支持c++0x草案1（tr1版本）的smart_ptr[VC++版本高于9.0 SP1]
-* 则会启用VC++的智能指针
-*
-* 否则启用boost中的smart_ptr库（如果是这种情况需要加入boost库）
-*/
+ * 导入智能指针（smart_ptr）
+ * 如果是G++且支持c++0x草案1（tr1版本）的smart_ptr[GCC版本高于4.0]
+ * 则会启用GNU-C++的智能指针
+ *
+ * 如果是VC++且支持c++0x草案1（tr1版本）的smart_ptr[VC++版本高于9.0 SP1]
+ * 则会启用VC++的智能指针
+ *
+ * 否则启用boost中的smart_ptr库（如果是这种情况需要加入boost库）
+ */
 
 #if defined(_MSC_VER) && _MSC_VER >= 1500
 #include <memory>
@@ -56,13 +56,13 @@ namespace std {
     using tr1::dynamic_pointer_cast;
     using tr1::enable_shared_from_this;
     using tr1::get_deleter;
-    using tr1::shared_ptr;
     using tr1::make_shared;
+    using tr1::shared_ptr;
     using tr1::static_pointer_cast;
     using tr1::swap;
-    using tr1::weak_ptr;
     using tr1::unique_ptr;
-}
+    using tr1::weak_ptr;
+} // namespace std
 #endif
 #else
 // 采用boost tr1库
@@ -73,15 +73,13 @@ namespace std {
     using tr1::dynamic_pointer_cast;
     using tr1::enable_shared_from_this;
     using tr1::get_deleter;
-    using tr1::shared_ptr;
     using tr1::make_shared;
+    using tr1::shared_ptr;
     using tr1::static_pointer_cast;
     using tr1::swap;
-    using tr1::weak_ptr;
     using tr1::unique_ptr;
-}
+    using tr1::weak_ptr;
+} // namespace std
 #endif
-
-#include "intrusive_ptr.h"
 
 #endif

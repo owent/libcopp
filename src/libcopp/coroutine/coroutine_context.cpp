@@ -16,45 +16,6 @@
 #include <pthread.h>
 #endif
 
-// ================ import/export: for compilers ================
-#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
-//  Intel
-//
-// Dynamic shared object (DSO) and dynamic-link library (DLL) support
-//
-#if defined(__GNUC__) && (__GNUC__ >= 4)
-#define LIBCOPP_SYMBOL_LOCAL __attribute__((visibility("hidden")))
-#endif
-
-#elif defined __clang__ && !defined(__CUDACC__) && !defined(__ibmxl__)
-// when using clang and cuda at same time, you want to appear as gcc
-//  Clang C++ emulates GCC, so it has to appear early.
-//
-
-// Dynamic shared object (DSO) and dynamic-link library (DLL) support
-//
-#if !defined(_WIN32) && !defined(__WIN32__) && !defined(WIN32)
-#define LIBCOPP_SYMBOL_LOCAL __attribute__((__visibility__("hidden")))
-#endif
-
-#elif defined(__GNUC__) && !defined(__ibmxl__)
-//  GNU C++:
-//
-// Dynamic shared object (DSO) and dynamic-link library (DLL) support
-//
-#if __GNUC__ >= 4
-#if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32)) && !defined(__CYGWIN__)
-// NONE
-#else
-#define LIBCOPP_SYMBOL_LOCAL __attribute__((__visibility__("hidden")))
-#endif
-#endif
-#endif
-
-#ifndef LIBCOPP_SYMBOL_LOCAL
-#define LIBCOPP_SYMBOL_LOCAL
-#endif
-
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
 void __splitstack_getcontext(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER]);
@@ -102,22 +63,22 @@ namespace copp {
     struct libcopp_inner_api_helper {
         typedef coroutine_context::jump_src_data_t jump_src_data_t;
 
-        static inline void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+        static UTIL_FORCEINLINE void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
             if (UTIL_CONFIG_NULLPTR != src) {
                 src->caller_ = fctx;
             }
         }
 
-        static inline void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+        static UTIL_FORCEINLINE void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
             if (UTIL_CONFIG_NULLPTR != src) {
                 src->callee_ = fctx;
             }
         }
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-        static inline void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
-                                                  EXPLICIT_UNUSED_ATTR stack_context &       to_sctx,
-                                                  libcopp_inner_api_helper::jump_src_data_t &jump_transfer) {
+        static UTIL_FORCEINLINE void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
+                                                            EXPLICIT_UNUSED_ATTR stack_context &       to_sctx,
+                                                            libcopp_inner_api_helper::jump_src_data_t &jump_transfer) {
             if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
                 __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
                 if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
@@ -130,7 +91,7 @@ namespace copp {
         }
 #endif
 
-        LIBCOPP_SYMBOL_LOCAL static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
+        UTIL_SYMBOL_HIDDEN static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
             assert(src_ctx.data);
             if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
                 abort();
@@ -164,7 +125,7 @@ namespace copp {
 
             ins_ptr->flags_ |= coroutine_context::flag_t::EN_CFT_FINISHED;
             // add memory fence to flush flags_(used in is_finished())
-            // UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+            // LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
 
             // jump back to caller
             ins_ptr->yield();
@@ -230,24 +191,24 @@ namespace copp {
         detail::set_this_coroutine_context(jump_transfer.from_co);
     }
 
-    coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
-                                                                  flags_(0),
-                                                                  runner_(UTIL_CONFIG_NULLPTR),
-                                                                  priv_data_(UTIL_CONFIG_NULLPTR),
-                                                                  private_buffer_size_(0),
-                                                                  caller_(UTIL_CONFIG_NULLPTR),
-                                                                  callee_(UTIL_CONFIG_NULLPTR),
-                                                                  callee_stack_(),
+    LIBCOPP_COPP_API coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
+                                                                                   flags_(0),
+                                                                                   runner_(UTIL_CONFIG_NULLPTR),
+                                                                                   priv_data_(UTIL_CONFIG_NULLPTR),
+                                                                                   private_buffer_size_(0),
+                                                                                   caller_(UTIL_CONFIG_NULLPTR),
+                                                                                   callee_(UTIL_CONFIG_NULLPTR),
+                                                                                   callee_stack_(),
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-                                                                  caller_stack_(),
+                                                                                   caller_stack_(),
 #endif
-                                                                  status_(status_t::EN_CRS_INVALID) {
+                                                                                   status_(status_t::EN_CRS_INVALID) {
     }
 
-    coroutine_context::~coroutine_context() {}
+    LIBCOPP_COPP_API coroutine_context::~coroutine_context() {}
 
-    int coroutine_context::create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
-                                  size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+    LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
+                                                   size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
         if (UTIL_CONFIG_NULLPTR == p) {
             return COPP_EC_ARGS_ERROR;
         }
@@ -298,7 +259,7 @@ namespace copp {
         return COPP_EC_SUCCESS;
     }
 
-    int coroutine_context::start(void *priv_data) {
+    LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
         if (UTIL_CONFIG_NULLPTR == callee_) {
             return COPP_EC_NOT_INITED;
         }
@@ -309,8 +270,8 @@ namespace copp {
                 return COPP_EC_NOT_INITED;
             }
 
-            if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING, util::lock::memory_order_acq_rel,
-                                                util::lock::memory_order_acquire)) {
+            if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING, libcopp::util::lock::memory_order_acq_rel,
+                                                libcopp::util::lock::memory_order_acquire)) {
                 break;
             } else {
                 // finished or stoped
@@ -339,15 +300,15 @@ namespace copp {
         // Move changing status to EN_CRS_EXITED is finished
         if (check_flags(flag_t::EN_CFT_FINISHED)) {
             // if in finished status, change it to exited
-            status_.store(status_t::EN_CRS_EXITED, util::lock::memory_order_release);
+            status_.store(status_t::EN_CRS_EXITED, libcopp::util::lock::memory_order_release);
         }
 
         return COPP_EC_SUCCESS;
     } // namespace copp
 
-    int coroutine_context::resume(void *priv_data) { return start(priv_data); }
+    LIBCOPP_COPP_API int coroutine_context::resume(void *priv_data) { return start(priv_data); }
 
-    int coroutine_context::yield(void **priv_data) {
+    LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) {
         if (UTIL_CONFIG_NULLPTR == callee_) {
             return COPP_EC_NOT_INITED;
         }
@@ -357,8 +318,8 @@ namespace copp {
         if (check_flags(flag_t::EN_CFT_FINISHED)) {
             to_status = status_t::EN_CRS_FINISHED;
         }
-        if (false ==
-            status_.compare_exchange_strong(from_status, to_status, util::lock::memory_order_acq_rel, util::lock::memory_order_acquire)) {
+        if (false == status_.compare_exchange_strong(from_status, to_status, libcopp::util::lock::memory_order_acq_rel,
+                                                     libcopp::util::lock::memory_order_acquire)) {
             switch (from_status) {
             case status_t::EN_CRS_INVALID:
                 return COPP_EC_NOT_INITED;
@@ -391,7 +352,7 @@ namespace copp {
         return COPP_EC_SUCCESS;
     }
 
-    bool coroutine_context::set_flags(int flags) {
+    LIBCOPP_COPP_API bool coroutine_context::set_flags(int flags) {
         if (flags & flag_t::EN_CFT_MASK) {
             return false;
         }
@@ -400,7 +361,7 @@ namespace copp {
         return true;
     }
 
-    bool coroutine_context::unset_flags(int flags) {
+    LIBCOPP_COPP_API bool coroutine_context::unset_flags(int flags) {
         if (flags & flag_t::EN_CFT_MASK) {
             return false;
         }
@@ -409,20 +370,20 @@ namespace copp {
         return true;
     }
 
-    bool coroutine_context::check_flags(int flags) const { return 0 != (flags_ & flags); }
+    LIBCOPP_COPP_API bool coroutine_context::check_flags(int flags) const { return 0 != (flags_ & flags); }
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-    int coroutine_context::set_runner(callback_t &&runner) {
+    LIBCOPP_COPP_API int coroutine_context::set_runner(callback_t &&runner) {
 #else
-    int coroutine_context::set_runner(const callback_t &runner) {
+    LIBCOPP_COPP_API int coroutine_context::set_runner(const callback_t &runner) {
 #endif
         if (!runner) {
             return COPP_EC_ARGS_ERROR;
         }
 
         int from_status = status_t::EN_CRS_INVALID;
-        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, util::lock::memory_order_acq_rel,
-                                                     util::lock::memory_order_acquire)) {
+        if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY, libcopp::util::lock::memory_order_acq_rel,
+                                                     libcopp::util::lock::memory_order_acquire)) {
             return COPP_EC_ALREADY_INITED;
         }
 
@@ -430,15 +391,15 @@ namespace copp {
         return COPP_EC_SUCCESS;
     } // namespace copp
 
-    bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
+    LIBCOPP_COPP_API bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
         // return !!(flags_ & flag_t::EN_CFT_FINISHED);
-        return status_.load(util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
+        return status_.load(libcopp::util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
     }
 
     namespace this_coroutine {
-        coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT { return detail::get_this_coroutine_context(); }
+        LIBCOPP_COPP_API coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT { return detail::get_this_coroutine_context(); }
 
-        int yield(void **priv_data) {
+        LIBCOPP_COPP_API int yield(void **priv_data) {
             coroutine_context *pco = get_coroutine();
             if (UTIL_CONFIG_NULLPTR != pco) {
                 return pco->yield(priv_data);

@@ -6,10 +6,12 @@
 
 #include <cstddef>
 
+#include <libcopp/utils/config/compiler_features.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 
 namespace copp {
-    struct stack_context {
+    struct LIBCOPP_COPP_API stack_context {
         size_t size; /** @brief stack size **/
         void * sp;   /** @brief stack end pointer **/
 
@@ -22,10 +24,19 @@ namespace copp {
         unsigned valgrind_stack_id;
 #endif
 
-        stack_context();
-        ~stack_context();
+        stack_context() UTIL_CONFIG_NOEXCEPT;
+        ~stack_context() UTIL_CONFIG_NOEXCEPT;
 
-        void reset();
+        stack_context(const stack_context &other) UTIL_CONFIG_NOEXCEPT;
+        stack_context &operator=(const stack_context &other) UTIL_CONFIG_NOEXCEPT;
+#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+        stack_context(stack_context &&other) UTIL_CONFIG_NOEXCEPT;
+        stack_context &operator=(stack_context &&other) UTIL_CONFIG_NOEXCEPT;
+#endif
+
+        void reset() UTIL_CONFIG_NOEXCEPT;
+
+        void copy_from(const stack_context &other) UTIL_CONFIG_NOEXCEPT;
     };
 } // namespace copp
 

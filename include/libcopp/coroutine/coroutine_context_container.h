@@ -26,7 +26,7 @@ namespace copp {
         typedef coroutine_context                           base_type;
         typedef TALLOC                                      allocator_type;
         typedef coroutine_context_container<allocator_type> this_type;
-        typedef std::intrusive_ptr<this_type>               ptr_t;
+        typedef libcopp::util::intrusive_ptr<this_type>     ptr_t;
         typedef coroutine_context::callback_t               callback_t;
 
         COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
@@ -195,9 +195,9 @@ namespace copp {
     private:
         allocator_type alloc_; /** stack allocator **/
 #if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
-        util::lock::atomic_int_type<util::lock::unsafe_int_type<size_t> > ref_count_; /** status **/
+        libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<size_t> > ref_count_; /** status **/
 #else
-        util::lock::atomic_int_type<size_t> ref_count_; /** status **/
+        libcopp::util::lock::atomic_int_type<size_t> ref_count_; /** status **/
 #endif
     };
 

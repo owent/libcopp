@@ -19,7 +19,7 @@
 
 namespace copp {
     template <typename TAlloc>
-    class stack_pool {
+    class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
     public:
         typedef TAlloc                               allocator_t;
         typedef std::shared_ptr<stack_pool<TAlloc> > ptr_t;
@@ -107,7 +107,7 @@ namespace copp {
          */
         void allocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+            libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
             // check limit
             if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
@@ -174,7 +174,7 @@ namespace copp {
             assert(ctx.sp && ctx.size > 0);
             do {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-                util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+                libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
                 // check ctx
                 if (ctx.sp == NULL || 0 == ctx.size) {
@@ -231,7 +231,7 @@ namespace copp {
             }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+            libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
             size_t keep_size   = limits_.free_stack_size >> 1;
@@ -272,14 +272,14 @@ namespace copp {
                 }
             }
 
-            UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+            LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
 
             return ret;
         }
 
         void clear() {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-            util::lock::lock_holder<util::lock::spin_lock> lock_guard(action_lock_);
+            libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
             limits_.free_stack_size   = 0;
@@ -289,7 +289,7 @@ namespace copp {
                 alloc_.deallocate(*iter);
             }
 
-            UTIL_LOCK_ATOMIC_THREAD_FENCE(util::lock::memory_order_release);
+            LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
         }
 
     private:
@@ -297,7 +297,7 @@ namespace copp {
         configure_t conf_;
         allocator_t alloc_;
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-        util::lock::spin_lock action_lock_;
+        libcopp::util::lock::spin_lock action_lock_;
 #endif
         std::list<stack_context> free_list_;
     };

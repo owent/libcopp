@@ -25,15 +25,15 @@
 
 
 namespace cotask {
-    struct macro_coroutine {
-        typedef copp::allocator::default_statck_allocator stack_allocator_t;
+    struct LIBCOPP_COTASK_API_HEAD_ONLY macro_coroutine {
+        typedef copp::allocator::default_statck_allocator            stack_allocator_t;
         typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
     };
 
-    struct macro_task {
-        typedef uint64_t id_t;
+    struct LIBCOPP_COTASK_API_HEAD_ONLY macro_task {
+        typedef uint64_t                                  id_t;
         typedef core::standard_int_id_allocator<uint64_t> id_allocator_t;
     };
-}
+} // namespace cotask
 
 #endif /* _COTASK_THIS_TASK_H_ */
