@@ -74,11 +74,11 @@ namespace cotask {
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename TAct, typename Ty>
         static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with_delegate(Ty &&callable, typename coroutine_t::allocator_type &alloc,
-                                                                size_t stack_size = 0, size_t private_buffer_size = 0) {
+                                                                       size_t stack_size = 0, size_t private_buffer_size = 0) {
 #else
         template <typename TAct, typename Ty>
         static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with_delegate(const Ty &callable, typename coroutine_t::allocator_type &alloc,
-                                                                size_t stack_size = 0, size_t private_buffer_size = 0) {
+                                                                       size_t stack_size = 0, size_t private_buffer_size = 0) {
 #endif
             typedef TAct a_t;
 
@@ -146,27 +146,27 @@ namespace cotask {
  */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
-        static UTIL_FORCEINLINE ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
+        static inline ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
             typename coroutine_t::allocator_type alloc;
             return create(COPP_MACRO_STD_FORWARD(Ty, functor), alloc, stack_size, private_buffer_size);
         }
 
         template <typename Ty>
-        static UTIL_FORCEINLINE ptr_t create(Ty &&functor, typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
-                                             size_t private_buffer_size = 0) {
+        static inline ptr_t create(Ty &&functor, typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
+                                   size_t private_buffer_size = 0) {
             typedef typename std::conditional<std::is_base_of<impl::task_action_impl, Ty>::value, Ty, task_action_functor<Ty> >::type a_t;
             return create_with_delegate<a_t>(COPP_MACRO_STD_FORWARD(Ty, functor), alloc, stack_size, private_buffer_size);
         }
 #else
         template <typename Ty>
-        static UTIL_FORCEINLINE ptr_t create(const Ty &functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
+        static inline ptr_t create(const Ty &functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
             typename coroutine_t::allocator_type alloc;
             return create(functor, alloc, stack_size, private_buffer_size);
         }
 
         template <typename Ty>
-        static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(const Ty &functor, typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
-                                                  size_t private_buffer_size = 0) {
+        static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(const Ty &functor, typename coroutine_t::allocator_type &alloc,
+                                                         size_t stack_size = 0, size_t private_buffer_size = 0) {
             typedef typename std::conditional<std::is_base_of<impl::task_action_impl, Ty>::value, Ty, task_action_functor<Ty> >::type a_t;
             return create_with_delegate<a_t>(COPP_MACRO_STD_FORWARD(Ty, functor), alloc, stack_size, private_buffer_size);
         }
@@ -179,15 +179,15 @@ namespace cotask {
          * @return task smart pointer
          */
         template <typename Ty>
-        static UTIL_FORCEINLINE ptr_t create(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
-                                             size_t private_buffer_size = 0) {
+        static inline ptr_t create(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
+                                   size_t private_buffer_size = 0) {
             typedef task_action_function<Ty> a_t;
 
             return create_with_delegate<a_t>(func, alloc, stack_size, private_buffer_size);
         }
 
         template <typename Ty>
-        static UTIL_FORCEINLINE ptr_t create(Ty (*func)(void *), size_t stack_size = 0, size_t private_buffer_size = 0) {
+        static inline ptr_t create(Ty (*func)(void *), size_t stack_size = 0, size_t private_buffer_size = 0) {
             typename coroutine_t::allocator_type alloc;
             return create(func, alloc, stack_size, private_buffer_size);
         }
@@ -200,14 +200,14 @@ namespace cotask {
          */
         template <typename Ty, typename TInst>
         static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type &alloc,
-                                                  size_t stack_size = 0, size_t private_buffer_size = 0) {
+                                                         size_t stack_size = 0, size_t private_buffer_size = 0) {
             typedef task_action_mem_function<Ty, TInst> a_t;
 
             return create<a_t>(a_t(func, instance), alloc, stack_size, private_buffer_size);
         }
 
         template <typename Ty, typename TInst>
-        static UTIL_FORCEINLINE ptr_t create(Ty(TInst::*func), TInst *instance, size_t stack_size = 0, size_t private_buffer_size = 0) {
+        static inline ptr_t create(Ty(TInst::*func), TInst *instance, size_t stack_size = 0, size_t private_buffer_size = 0) {
             typename coroutine_t::allocator_type alloc;
             return create(func, instance, alloc, stack_size, private_buffer_size);
         }
@@ -221,7 +221,7 @@ namespace cotask {
          */
         template <typename Ty, typename... TParams>
         static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with(typename coroutine_t::allocator_type &alloc, size_t stack_size,
-                                                       size_t private_buffer_size, TParams &&... args) {
+                                                              size_t private_buffer_size, TParams &&... args) {
             typedef Ty a_t;
 
             return create(COPP_MACRO_STD_MOVE(a_t(COPP_MACRO_STD_FORWARD(TParams, args)...)), alloc, stack_size, private_buffer_size);
@@ -272,26 +272,24 @@ namespace cotask {
  */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t next(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
-                                    size_t private_buffer_size = 0) {
+        inline ptr_t next(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(std::forward<Ty>(functor), stack_size, private_buffer_size), priv_data);
         }
 
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t next(Ty &&functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
-                                    size_t stack_size = 0, size_t private_buffer_size = 0) {
+        inline ptr_t next(Ty &&functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size), priv_data);
         }
 #else
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t next(const Ty &functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
-                                    size_t private_buffer_size = 0) {
+        inline ptr_t next(const Ty &functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(functor, stack_size, private_buffer_size), priv_data);
         }
 
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t next(const Ty &functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
-                                    size_t stack_size = 0, size_t private_buffer_size = 0) {
+        inline ptr_t next(const Ty &functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size), priv_data);
         }
 #endif
@@ -305,14 +303,14 @@ namespace cotask {
          * @return the created task if success , or self if failed
          */
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t next(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
-                                    size_t private_buffer_size = 0) {
+        inline ptr_t next(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
+                          size_t private_buffer_size = 0) {
             return next(create(func, stack_size, private_buffer_size), priv_data);
         }
 
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t next(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
-                                    size_t stack_size = 0, size_t private_buffer_size = 0) {
+        inline ptr_t next(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(func, alloc, stack_size, private_buffer_size), priv_data);
         }
 
@@ -326,14 +324,14 @@ namespace cotask {
          * @return the created task if success , or self if failed
          */
         template <typename Ty, typename TInst>
-        UTIL_FORCEINLINE ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
-                                    size_t private_buffer_size = 0) {
+        inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
+                          size_t private_buffer_size = 0) {
             return next(create(func, instance, stack_size, private_buffer_size), priv_data);
         }
 
         template <typename Ty, typename TInst>
-        UTIL_FORCEINLINE ptr_t next(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type &alloc,
-                                    void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
+        inline ptr_t next(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type &alloc,
+                          void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
             return next(create(func, instance, alloc, stack_size, private_buffer_size), priv_data);
         }
 
@@ -385,7 +383,7 @@ namespace cotask {
         }
 
         template <typename TTask>
-        UTIL_FORCEINLINE int await(TTask *wait_task) {
+        inline int await(TTask *wait_task) {
             return await(ptr_t(wait_task));
         }
 
@@ -397,7 +395,7 @@ namespace cotask {
          * @param priv_data priv_data passed to resume or start the stack
          * @return next_task if success , or self if failed
          */
-        UTIL_FORCEINLINE ptr_t then(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) { return next(next_task, priv_data); }
+        inline ptr_t then(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) { return next(next_task, priv_data); }
 
         /**
          * @brief create next task with functor using the same allocator and private buffer size as this task
@@ -408,7 +406,7 @@ namespace cotask {
          */
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t then(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR) {
+        inline ptr_t then(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR) {
             if (!coroutine_obj_) {
                 then(create(std::forward<Ty>(functor), stack_size_, get_private_buffer_size()), priv_data);
             }
@@ -418,8 +416,8 @@ namespace cotask {
         }
 #else
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t then(const Ty &functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
-                                    size_t stack_size = 0, size_t private_buffer_size = 0) {
+        inline ptr_t then(const Ty &functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
+                          size_t stack_size = 0, size_t private_buffer_size = 0) {
             if (!coroutine_obj_) {
                 return then(create(std::forward<Ty>(functor), stack_size_, get_private_buffer_size()), priv_data);
             }
@@ -430,7 +428,7 @@ namespace cotask {
 #endif
 
         template <typename Ty>
-        UTIL_FORCEINLINE ptr_t then(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR) {
+        inline ptr_t then(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR) {
             if (!coroutine_obj_) {
                 return then(create(func, stack_size_, get_private_buffer_size()), priv_data);
             }
@@ -458,10 +456,10 @@ namespace cotask {
             id_alloc_.deallocate(id_);
         }
 
-        UTIL_FORCEINLINE typename coroutine_t::ptr_t &      get_coroutine_context() UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
-        UTIL_FORCEINLINE const typename coroutine_t::ptr_t &get_coroutine_context() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
+        inline typename coroutine_t::ptr_t &      get_coroutine_context() UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
+        inline const typename coroutine_t::ptr_t &get_coroutine_context() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
 
-        UTIL_FORCEINLINE id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
+        inline id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
 
     public:
         virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE {
@@ -714,7 +712,7 @@ namespace cotask {
         private:
             template <typename, typename>
             friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
-            static bool                        setup_task_manager(self_t &task_inst, void *manager_ptr, void (*fn)(void *, self_t &)) {
+            static bool setup_task_manager(self_t &task_inst, void *manager_ptr, void (*fn)(void *, self_t &)) {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
                 libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
 #endif

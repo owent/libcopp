@@ -79,7 +79,7 @@ namespace cotask {
         task_action_functor(value_type &&functor) : functor_(functor) {}
 
         task_action_functor(task_action_functor &&other) : functor_(std::move(other.functor_)) {}
-        UTIL_FORCEINLINE task_action_functor &operator=(task_action_functor &&other) { functor_ = std::move(other.functor_); }
+        inline task_action_functor &operator=(task_action_functor &&other) { functor_ = std::move(other.functor_); }
 
 #else
     public:

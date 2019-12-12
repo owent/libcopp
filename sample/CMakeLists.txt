@@ -24,11 +24,6 @@ if (NOT (WIN32 AND BUILD_SHARED_LIBS))
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/sample")
 endif ()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-
 foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     get_filename_component(SAMPLE_SRC_BIN_NAME ${SAMPLE_SRC_FILE} NAME_WE)
     set(SAMPLE_SRC_BIN_NAME "libcopp_${SAMPLE_SRC_BIN_NAME}")
@@ -46,7 +41,7 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
 
     if (${SAMPLE_SRC_IS_BENCHMARK} LESS 0)
         add_custom_target("run_sample_${SAMPLE_SRC_BIN_NAME}"
-            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+            ${SAMPLE_SRC_BIN_NAME}
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
         add_dependencies(run_sample "run_sample_${SAMPLE_SRC_BIN_NAME}")
@@ -54,7 +49,7 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
 
         if (_VALGRIND_EXECUTABLE)
             add_custom_target("run_memcheck_${SAMPLE_SRC_BIN_NAME}"
-                ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=${SAMPLE_SRC_BIN_NAME}.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+                ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=${SAMPLE_SRC_BIN_NAME}.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 $<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}>
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             )
             add_dependencies(memcheck "run_memcheck_${SAMPLE_SRC_BIN_NAME}")
@@ -62,21 +57,21 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         endif()
     else()
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_30000"
-            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 30000 100 64
+            ${SAMPLE_SRC_BIN_NAME} 30000 100 64
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
         add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_30000")
         add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_30000" ${SAMPLE_SRC_BIN_NAME})
 
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1000"
-            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 1000 1000 2048
+            ${SAMPLE_SRC_BIN_NAME} 1000 1000 2048
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
         add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1000")
         add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1000" ${SAMPLE_SRC_BIN_NAME})
 
         add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1"
-            "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 1 3000000 16
+            ${SAMPLE_SRC_BIN_NAME} 1 3000000 16
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
         add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1")
@@ -85,7 +80,7 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         # for valgrind callgrind
         if (_VALGRIND_EXECUTABLE)
             add_custom_target("run_callgrind_${SAMPLE_SRC_BIN_NAME}_10000"
-                ${_VALGRIND_EXECUTABLE} "--tool=callgrind" "--log-file=${SAMPLE_SRC_BIN_NAME}.callgrind.log" "--callgrind-out-file=callgrind.out.${SAMPLE_SRC_BIN_NAME}" --cache-sim=yes --branch-sim=yes --dump-instr=yes --collect-jumps=yes "./${SAMPLE_SRC_BIN_NAME}${CMAKE_EXECUTABLE_SUFFIX}" 10000 1000 64
+                ${_VALGRIND_EXECUTABLE} "--tool=callgrind" "--log-file=${SAMPLE_SRC_BIN_NAME}.callgrind.log" "--callgrind-out-file=callgrind.out.${SAMPLE_SRC_BIN_NAME}" --cache-sim=yes --branch-sim=yes --dump-instr=yes --collect-jumps=yes $<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}> 10000 1000 64
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             )
             add_dependencies(callgrind "run_callgrind_${SAMPLE_SRC_BIN_NAME}_10000")
