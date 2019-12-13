@@ -8,8 +8,8 @@ enable_testing()
 project(libcopp C CXX ASM)
 
 set(LIBCOPP_VERSION_MAJOR "1")
-set(LIBCOPP_VERSION_MINOR "2")
-set(LIBCOPP_VERSION_PATCH "2")
+set(LIBCOPP_VERSION_MINOR "3")
+set(LIBCOPP_VERSION_PATCH "0")
 set(LIBCOPP_VERSION "${LIBCOPP_VERSION_MAJOR}.${LIBCOPP_VERSION_MINOR}.${LIBCOPP_VERSION_PATCH}")
 
 ########################################################################
