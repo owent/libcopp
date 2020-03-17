@@ -64,14 +64,12 @@
 #define UTIL_SYMBOL_EXPORT __attribute__((__visibility__("default")))
 #define UTIL_SYMBOL_IMPORT __attribute__((__visibility__("default")))
 #define UTIL_SYMBOL_VISIBLE __attribute__((__visibility__("default")))
-#define UTIL_SYMBOL_HIDDEN __attribute__((__visibility__("hidden")))
 #endif
 #else
 // config/platform/win32.hpp will define UTIL_SYMBOL_EXPORT, etc., unless already defined
 #define UTIL_SYMBOL_EXPORT
 #define UTIL_SYMBOL_IMPORT
 #define UTIL_SYMBOL_VISIBLE
-#define UTIL_SYMBOL_HIDDEN
 #endif
 
 #elif defined(_MSC_VER)
@@ -102,9 +100,6 @@
 #endif
 #ifndef UTIL_SYMBOL_VISIBLE
 #define UTIL_SYMBOL_VISIBLE
-#endif
-#ifndef UTIL_SYMBOL_HIDDEN
-#define UTIL_SYMBOL_HIDDEN
 #endif
 
 // ---------------- import/export ----------------

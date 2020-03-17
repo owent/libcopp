@@ -96,7 +96,7 @@ namespace copp {
         void *     priv_data_;
         size_t     private_buffer_size_;
 
-        struct UTIL_SYMBOL_HIDDEN jump_src_data_t {
+        struct jump_src_data_t {
             coroutine_context *from_co;
             coroutine_context *to_co;
             void *             priv_data;
@@ -144,12 +144,12 @@ namespace copp {
          * @param private_buffer_size size of private buffer
          * @return COPP_EC_SUCCESS or error code
          */
-        static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack, size_t coroutine_size,
-                                      size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
+        static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
+                                           size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
 
         template <typename TRunner>
         static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack,
-                                                size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+                                                     size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
             return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
                           private_buffer_size);
         }
@@ -216,7 +216,7 @@ namespace copp {
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         LIBCOPP_COPP_API int set_runner(callback_t &&runner);
 #else
-        LIBCOPP_COPP_API int                           set_runner(const callback_t &runner);
+        LIBCOPP_COPP_API int                      set_runner(const callback_t &runner);
 #endif
 
         /**

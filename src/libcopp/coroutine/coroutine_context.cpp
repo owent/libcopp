@@ -18,13 +18,13 @@
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
-void __splitstack_getcontext(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_getcontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_setcontext(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_setcontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_releasecontext(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_releasecontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_block_signals_context(void * [COPP_MACRO_SEGMENTED_STACK_NUMBER], int *, int *);
+void __splitstack_block_signals_context(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER], int *, int *);
 }
 #endif
 
@@ -91,7 +91,7 @@ namespace copp {
         }
 #endif
 
-        UTIL_SYMBOL_HIDDEN static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
+        static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
             assert(src_ctx.data);
             if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
                 abort();
