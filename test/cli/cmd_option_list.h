@@ -32,12 +32,12 @@ namespace util {
             class cmd_option_bind_base : public std::enable_shared_from_this<cmd_option_bind_base> {
             protected:
                 static const char *ROOT_NODE_CMD;
-                typedef struct {
-                    std::vector<std::string> cmd_paths;
-                    std::string all_cmds;
-                    std::string description;
+                struct help_msg_t {
+                    std::vector<std::string>              cmd_paths;
+                    std::string                           all_cmds;
+                    std::string                           description;
                     std::shared_ptr<cmd_option_bind_base> binded_obj;
-                } help_msg_t;
+                };
                 typedef std::vector<help_msg_t> help_list_t;
 
                 std::string help_msg_;
@@ -73,14 +73,14 @@ namespace util {
         public:
             // 类型定义
             typedef std::vector<std::pair<std::string, std::shared_ptr<binder::cmd_option_bind_base> > > cmd_array_type; // 大小类型
-            typedef std::shared_ptr<cmd_option_value> value_type;                                                        // 值类型
-            typedef std::vector<value_type>::size_type size_type;                                                        // 大小类型
+            typedef std::shared_ptr<cmd_option_value>                                                    value_type;     // 值类型
+            typedef std::vector<value_type>::size_type                                                   size_type;      // 大小类型
 
         protected:
             std::shared_ptr<std::map<std::string, std::shared_ptr<cmd_option_value> > > key_value_;
-            std::vector<std::shared_ptr<cmd_option_value> > keys_;
-            cmd_array_type cmd_array_;
-            void *ext_param_;
+            std::vector<std::shared_ptr<cmd_option_value> >                             keys_;
+            cmd_array_type                                                              cmd_array_;
+            void *                                                                      ext_param_;
 
             // 初始化Key-Value映射（用于第一次调用get(key)时调用）
             void init_key_value_map();
