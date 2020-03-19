@@ -292,7 +292,7 @@ namespace util {
              * 构造函数
              */
             cmd_option_bind()
-                : help_cmd_style_(shell_font_style::SHELL_FONT_COLOR_YELLOW | shell_font_style::SHELL_FONT_SPEC_BOLD),
+                : help_cmd_style_(shell_font_style::SHELL_FONT_COLOR_YELLOW | static_cast<int>(shell_font_style::SHELL_FONT_SPEC_BOLD)),
                   help_description_style_(0) {
                 // 如果已初始化则跳过
                 if (map_value_[(uc_t)' '] & SPLITCHAR) return;
