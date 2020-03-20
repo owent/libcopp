@@ -19,6 +19,9 @@
 #include <type_traits>
 #include <vector>
 
+#ifdef __cpp_impl_three_way_comparison
+#include <compare>
+#endif
 
 #include "cli/shell_font.h"
 
@@ -77,11 +80,15 @@ public:
         pick_param_str_t(const std::string &in);
 
         bool operator==(const pick_param_str_t &other) const;
+#ifdef __cpp_impl_three_way_comparison
+        std::strong_ordering operator<=>(const pick_param_str_t &other) const;
+#else
         bool operator!=(const pick_param_str_t &other) const;
         bool operator>=(const pick_param_str_t &other) const;
         bool operator>(const pick_param_str_t &other) const;
         bool operator<=(const pick_param_str_t &other) const;
         bool operator<(const pick_param_str_t &other) const;
+#endif
     };
 
     template <typename TL, typename TR, bool has_pointer, bool has_integer, bool all_integer>

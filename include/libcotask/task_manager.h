@@ -19,6 +19,10 @@
 #include <stdint.h>
 #include <vector>
 
+#ifdef __cpp_impl_three_way_comparison
+#include <compare>
+#endif
+
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
 #include <unordered_map>
 #define COTASK_MACRO_MANAGER_USING_UNORDERED_MAP 1
@@ -38,6 +42,11 @@ namespace cotask {
 
             friend bool operator==(const tickspec_t &l, const tickspec_t &r) { return l.tv_sec == r.tv_sec && l.tv_nsec == r.tv_nsec; }
 
+#ifdef __cpp_impl_three_way_comparison
+            friend std::strong_ordering operator<=>(const tickspec_t &l, const tickspec_t &r) { 
+                return (l.tv_sec != r.tv_sec) ? l.tv_sec <=> r.tv_sec : l.tv_nsec <=> r.tv_nsec;
+            }
+#else
             friend bool operator!=(const tickspec_t &l, const tickspec_t &r) { return l.tv_sec != r.tv_sec || l.tv_nsec != r.tv_nsec; }
 
             friend bool operator<(const tickspec_t &l, const tickspec_t &r) {
@@ -47,6 +56,15 @@ namespace cotask {
             friend bool operator<=(const tickspec_t &l, const tickspec_t &r) {
                 return (l.tv_sec != r.tv_sec) ? l.tv_sec <= r.tv_sec : l.tv_nsec <= r.tv_nsec;
             }
+
+            friend bool operator>(const tickspec_t &l, const tickspec_t &r) {
+                return (l.tv_sec != r.tv_sec) ? l.tv_sec > r.tv_sec : l.tv_nsec > r.tv_nsec;
+            }
+
+            friend bool operator>=(const tickspec_t &l, const tickspec_t &r) {
+                return (l.tv_sec != r.tv_sec) ? l.tv_sec >= r.tv_sec : l.tv_nsec >= r.tv_nsec;
+            }
+#endif
         };
 
         template <typename TTask>
@@ -58,6 +76,15 @@ namespace cotask {
                 return l.expired_time == r.expired_time && l.task_id == r.task_id;
             }
 
+#ifdef __cpp_impl_three_way_comparison
+            friend std::strong_ordering operator<=>(const task_timer_node &l, const task_timer_node &r) {
+                if (l.expired_time != r.expired_time) {
+                    return l.expired_time <=> r.expired_time;
+                }
+
+                return l.task_id <=> r.task_id;
+            }
+#else
             friend bool operator!=(const task_timer_node &l, const task_timer_node &r) {
                 return l.expired_time != r.expired_time || l.task_id != r.task_id;
             }
@@ -77,6 +104,23 @@ namespace cotask {
 
                 return l.task_id <= r.task_id;
             }
+
+            friend bool operator>(const task_timer_node &l, const task_timer_node &r) {
+                if (l.expired_time != r.expired_time) {
+                    return l.expired_time > r.expired_time;
+                }
+
+                return l.task_id > r.task_id;
+            }
+
+            friend bool operator>=(const task_timer_node &l, const task_timer_node &r) {
+                if (l.expired_time != r.expired_time) {
+                    return l.expired_time >= r.expired_time;
+                }
+
+                return l.task_id >= r.task_id;
+            }
+#endif
         };
 
         template <typename TTask>

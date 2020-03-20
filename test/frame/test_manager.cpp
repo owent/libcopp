@@ -24,11 +24,24 @@ test_manager::pick_param_str_t::pick_param_str_t(const char *in) : str_(in) {}
 test_manager::pick_param_str_t::pick_param_str_t(const std::string &in) : str_(in.c_str()) {}
 
 bool test_manager::pick_param_str_t::operator==(const pick_param_str_t &other) const { return strcmp(str_, other.str_) == 0; }
+#ifdef __cpp_impl_three_way_comparison
+std::strong_ordering test_manager::pick_param_str_t::operator<=>(const pick_param_str_t &other) const {
+    int res = strcmp(str_, other.str_);
+    if (res < 0) {
+        return std::strong_ordering::less;
+    } else if (res > 0) {
+        return std::strong_ordering::greater;
+    }
+
+    return std::strong_ordering::equal;
+}
+#else
 bool test_manager::pick_param_str_t::operator!=(const pick_param_str_t &other) const { return strcmp(str_, other.str_) != 0; }
 bool test_manager::pick_param_str_t::operator>=(const pick_param_str_t &other) const { return strcmp(str_, other.str_) >= 0; }
 bool test_manager::pick_param_str_t::operator>(const pick_param_str_t &other) const { return strcmp(str_, other.str_) > 0; }
 bool test_manager::pick_param_str_t::operator<=(const pick_param_str_t &other) const { return strcmp(str_, other.str_) <= 0; }
 bool test_manager::pick_param_str_t::operator<(const pick_param_str_t &other) const { return strcmp(str_, other.str_) < 0; }
+#endif
 
 test_manager::test_manager() {
     success_counter_ptr = failed_counter_ptr = NULL;
