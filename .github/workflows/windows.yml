@@ -1,0 +1,55 @@
+# setup @see https://help.github.com/en/articles/workflow-syntax-for-github-actions
+# environment @see https://help.github.com/en/articles/software-in-virtual-environments-for-github-actions
+#                  https://help.github.com/en/articles/virtual-environments-for-github-actions
+# example     @see https://github.com/actions/toolkit/blob/master/.github/workflows/workflow.yml
+name: Windows Building
+# This workflow is triggered on pushes to the repository.
+on: # @see https://help.github.com/en/articles/events-that-trigger-workflows#webhook-events
+  push:
+    branches: # Array of patterns that match refs/heads
+      # - master # Push events on master branch
+      - dev
+  # schedule:
+  #  - cron:  0 * * * *
+
+jobs:
+  build: # job id, can be any string
+    # Job name is Build And Publish
+    name: Build And Publish
+    # This job runs on Linux
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+          # - windows-2016
+        cmake_dll_option:
+          - "-DBUILD_SHARED_LIBS=ON"
+          # - "-DBUILD_SHARED_LIBS=OFF"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master # https://github.com/actions/actions
+      - name: Build
+        shell: pwsh
+        run: |
+          New-Item -Path "$Env:GITHUB_WORKSPACE/build_jobs_msvc" -ItemType directory
+          cd "$Env:GITHUB_WORKSPACE/build_jobs_msvc"
+          Remove-Item -r *
+          $CMAKE_CONFIGURE_ARGS = @("..", "-DPROJECT_GIT_CLONE_REMOTE_ORIGIN_DISABLE_SSH=ON")
+          if ( "${{ matrix.os }}" -ieq "windows-2016" ) {
+            $CMAKE_CONFIGURE_ARGS += "-G", "Visual Studio 15 2017 Win64"
+          } else {
+            $CMAKE_CONFIGURE_ARGS += "-G", "Visual Studio 16 2019", "-A", "x64"
+          }
+          $CMAKE_CONFIGURE_ARGS += "-DLIBCOPP_FCONTEXT_USE_TSX=ON", "-DPROJECT_ENABLE_UNITTEST=ON", "-DPROJECT_ENABLE_SAMPLE=ON", "${{ matrix.cmake_dll_option }}", "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+          echo "cmake $($CMAKE_CONFIGURE_ARGS -join ' ')"
+          & cmake $CMAKE_CONFIGURE_ARGS
+          echo "cmake --build . --config RelWithDebInfo"
+          & cmake --build . --config RelWithDebInfo
+      - name: Sample and Tests
+        shell: pwsh
+        run: |
+          cd "$Env:GITHUB_WORKSPACE/build_jobs_msvc"
+          & cmake --build . --config RelWithDebInfo --target run_sample
+          & cmake --build . --config RelWithDebInfo --target run_test
+          & cmake --build . --config RelWithDebInfo --target benchmark
