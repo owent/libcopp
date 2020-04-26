@@ -35,7 +35,7 @@ jobs:
           New-Item -Path "$Env:GITHUB_WORKSPACE/build_jobs_msvc" -ItemType directory
           cd "$Env:GITHUB_WORKSPACE/build_jobs_msvc"
           Remove-Item -r *
-          $CMAKE_CONFIGURE_ARGS = @("..", "-DPROJECT_GIT_CLONE_REMOTE_ORIGIN_DISABLE_SSH=ON")
+          $CMAKE_CONFIGURE_ARGS = @("..")
           if ( "${{ matrix.os }}" -ieq "windows-2016" ) {
             $CMAKE_CONFIGURE_ARGS += "-G", "Visual Studio 15 2017 Win64"
           } else {

@@ -21,6 +21,10 @@
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
 
+// it's conflict with some tools's macros
+#ifdef await
+#undef await
+#endif
 
 namespace cotask {
 
