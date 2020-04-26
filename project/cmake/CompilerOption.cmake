@@ -75,7 +75,9 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
 
         if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "5.0.0")
             set(CMAKE_C_STANDARD 11)
-            if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.8.0")
+            if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12.0")
+                set(CMAKE_CXX_STANDARD 20)
+            elseif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.8.0")
                 set(CMAKE_CXX_STANDARD 17)
             else()
                 set(CMAKE_CXX_STANDARD 14)
@@ -102,7 +104,9 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         list(APPEND COMPILER_STRICT_CFLAGS -Wall -Werror)
         if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "3.4")
             set(CMAKE_C_STANDARD 11)
-            if (CMAKE_VERSION VERSION_GREATER_EQUAL "5.0")
+            if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12.0")
+                set(CMAKE_CXX_STANDARD 20)
+            elseif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.8.0")
                 set(CMAKE_CXX_STANDARD 17)
             else()
                 set(CMAKE_CXX_STANDARD 14)
@@ -140,7 +144,9 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         list(APPEND COMPILER_STRICT_CFLAGS -Wall -Werror)
         if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "6.0")
             set(CMAKE_C_STANDARD 11)
-            if (CMAKE_VERSION VERSION_GREATER_EQUAL "7.0")
+            if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12.0")
+                set(CMAKE_CXX_STANDARD 20)
+            elseif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.8.0")
                 set(CMAKE_CXX_STANDARD 17)
             else()
                 set(CMAKE_CXX_STANDARD 14)
@@ -165,9 +171,13 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         list(APPEND COMPILER_STRICT_CFLAGS /W4 /wd4100 /wd4125 /wd4566 /wd4127 /wd4512 /WX)
         list(APPEND CMAKE_CXX_FLAGS /MP /EHsc)
         list(APPEND CMAKE_C_FLAGS /MP /EHsc)
-        if (MSVC_VERSION GREATER_EQUAL 1910)
-            list(APPEND CMAKE_CXX_FLAGS /std:c++17)
-            message(STATUS "MSVC ${MSVC_VERSION} found. using /std:c++17")
+        set(CMAKE_C_STANDARD 11)
+        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12.0")
+            set(CMAKE_CXX_STANDARD 20)
+        elseif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.8.0")
+            set(CMAKE_CXX_STANDARD 17)
+        else()
+            set(CMAKE_CXX_STANDARD 14)
         endif()
         # 设置 __cplusplus 宏为标准值, @see https://docs.microsoft.com/zh-cn/cpp/build/reference/zc-cplusplus
         if (MSVC_VERSION GREATER_EQUAL 1914 AND COMPILER_OPTION_MSVC_ZC_CPP)
@@ -176,6 +186,8 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     endif()
 
     # 配置公共编译选项
+    include(CheckCXXSourceCompiles)
+    set(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
     if ( NOT MSVC )
         if (NOT EMSCRIPTEN)
             list(APPEND CMAKE_CXX_FLAGS_DEBUG -ggdb)
@@ -185,6 +197,29 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         # list(APPEND CMAKE_CXX_FLAGS_RELEASE)
         # list(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO -ggdb)
         # list(APPEND CMAKE_CXX_FLAGS_MINSIZEREL)
+
+        # Try add coroutine
+        set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} -fcoroutines")
+        check_cxx_source_compiles("
+        #include <coroutine>
+        int main() {
+            return std::suspend_always().await_ready()? 0: 1;
+        }
+        " COMPILER_OPTIONS_TEST_STD_COROUTINE)
+        if (COMPILER_OPTIONS_TEST_STD_COROUTINE)
+            list(APPEND CMAKE_CXX_FLAGS -fcoroutines)
+        else()
+            set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} -fcoroutines-ts")
+            check_cxx_source_compiles("
+            #include <experimental/coroutine>
+            int main() {
+                return std::experimental::suspend_always().await_ready()? 0: 1;
+            }
+            " COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+            if (COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+                list(APPEND CMAKE_CXX_FLAGS -fcoroutines-ts)
+            endif()
+        endif()
     else()
         if(NOT CMAKE_MSVC_RUNTIME)
             set(CMAKE_MSVC_RUNTIME "MD")
@@ -193,7 +228,27 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         list(APPEND CMAKE_CXX_FLAGS_RELEASE /O2 /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
         list(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO /O2 /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
         list(APPEND CMAKE_CXX_FLAGS_MINSIZEREL /Ox /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
+
+        # Try add coroutine
+        set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} /await")
+        check_cxx_source_compiles("#include <coroutine>
+        int main() {
+            return std::suspend_always().await_ready()? 0: 1;
+        }" COMPILER_OPTIONS_TEST_STD_COROUTINE)
+        if (NOT COMPILER_OPTIONS_TEST_STD_COROUTINE)
+            check_cxx_source_compiles("
+            #include <experimental/coroutine>
+            int main() {
+                return std::experimental::suspend_always().await_ready()? 0: 1;
+            }
+            " COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+        endif()
+        if (COMPILER_OPTIONS_TEST_STD_COROUTINE OR COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+            list(APPEND CMAKE_CXX_FLAGS /await)
+        endif()
     endif()
+    set(CMAKE_REQUIRED_FLAGS ${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS})
+    unset(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS)
 
     # list => string
     string(REPLACE ";" " " CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -206,6 +261,4 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     string(REPLACE ";" " " CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
     string(REPLACE ";" " " CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
     string(REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-
-    # 多线程附加参数 -pthread -D_POSIX_MT_
 endif()

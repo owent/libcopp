@@ -30,6 +30,17 @@ EchoWithColor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")
 
 ########################################################################
 # 导入项目配置
+if (COMPILER_OPTIONS_TEST_STD_COROUTINE)
+    set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE 1)
+    unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
+elseif(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+    set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE 1)
+    set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE 1)
+else()
+    unset(LIBCOPP_MACRO_ENABLE_STD_COROUTINE)
+    unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
+endif()
+
 unset (PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 ## 导入所有 macro 定义
 include("${CMAKE_CURRENT_LIST_DIR}/include/include.macro.cmake")

@@ -44,8 +44,8 @@ jobs:
             USE_CC=${USE_CC:14}
             PROJECT_ADDON_OPTIONS=(${PROJECT_ADDON_OPTIONS[@]} "-DLIBCOPP_DISABLE_ATOMIC_LOCK=ON" "-DLIBCOPP_DISABLE_THIS_MT=ON")
           fi
-          USE_CXX="${USE_CC/%clang/clang++}"
-          USE_CXX="${USE_CXX/%gcc/g++}"
+          USE_CXX="$(echo $USE_CC | rev | sed -e 's/gnalc/++gnalc/' | rev)" # clang -> clang++
+          USE_CXX="$(echo $USE_CXX | rev | sed -e 's/ccg/++g/' | rev)"      # gcc -> g++
           mkdir -p "$GITHUB_WORKSPACE/build_jobs_dir_linux"
           cd "$GITHUB_WORKSPACE/build_jobs_dir_linux"
           cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_C_COMPILER=$USE_CC -DCMAKE_CXX_COMPILER=$USE_CXX ${PROJECT_ADDON_OPTIONS[@]}
