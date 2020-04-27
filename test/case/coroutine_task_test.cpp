@@ -465,8 +465,8 @@ static int test_context_task_await_1(void *) {
 
     task_ptr_type self = cotask::task<>::this_task();
 
-    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, self->await(NULL));
-    CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, self->await(self));
+    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, self->await_task(NULL));
+    CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, self->await_task(self));
 
 
     void *                  priv_data  = self->get_private_buffer();
@@ -474,12 +474,12 @@ static int test_context_task_await_1(void *) {
 
 
     if (other_task->is_exiting()) {
-        CASE_EXPECT_EQ(copp::COPP_EC_TASK_IS_EXITING, self->await(other_task));
+        CASE_EXPECT_EQ(copp::COPP_EC_TASK_IS_EXITING, self->await_task(other_task));
     } else {
         if (self->is_exiting()) {
-            CASE_EXPECT_EQ(copp::COPP_EC_TASK_IS_EXITING, self->await(other_task));
+            CASE_EXPECT_EQ(copp::COPP_EC_TASK_IS_EXITING, self->await_task(other_task));
         } else {
-            CASE_EXPECT_EQ(0, self->await(other_task));
+            CASE_EXPECT_EQ(0, self->await_task(other_task));
         }
     }
 
@@ -488,7 +488,7 @@ static int test_context_task_await_1(void *) {
 
 static int test_context_task_await_2(void *) { return 0; }
 
-CASE_TEST(coroutine_task, await) {
+CASE_TEST(coroutine_task, await_task) {
     typedef cotask::task<>::ptr_t task_ptr_type;
 
     // normal
@@ -499,7 +499,7 @@ CASE_TEST(coroutine_task, await) {
         void *priv_data = co_task_1->get_private_buffer();
 
         *reinterpret_cast<cotask::task<>::self_t **>(priv_data) = co_task_2.get();
-        CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await(co_task_2));
+        CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await_task(co_task_2));
 
         CASE_EXPECT_FALSE(co_task_1->is_exiting());
         CASE_EXPECT_FALSE(co_task_2->is_exiting());
@@ -520,11 +520,11 @@ CASE_TEST(coroutine_task, await) {
 
         void *priv_data = co_task_1->get_private_buffer();
 
-        CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, co_task_1->await(UTIL_CONFIG_NULLPTR));
-        CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, co_task_1->await(co_task_1));
+        CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, co_task_1->await_task(UTIL_CONFIG_NULLPTR));
+        CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, co_task_1->await_task(co_task_1));
 
         *reinterpret_cast<cotask::task<>::self_t **>(priv_data) = co_task_2.get();
-        CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await(co_task_2));
+        CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await_task(co_task_2));
 
         CASE_EXPECT_FALSE(co_task_1->is_exiting());
         CASE_EXPECT_FALSE(co_task_2->is_exiting());
@@ -548,7 +548,7 @@ CASE_TEST(coroutine_task, await) {
         void *priv_data = co_task_1->get_private_buffer();
 
         *reinterpret_cast<cotask::task<>::self_t **>(priv_data) = co_task_2.get();
-        CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await(co_task_2));
+        CASE_EXPECT_EQ(copp::COPP_EC_TASK_NOT_IN_ACTION, co_task_1->await_task(co_task_2));
 
         CASE_EXPECT_FALSE(co_task_1->is_exiting());
         CASE_EXPECT_FALSE(co_task_2->is_exiting());

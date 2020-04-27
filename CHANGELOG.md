@@ -5,6 +5,8 @@ HISTORY
 
 1. [OPTIMIZE] Using cmake export to generate module files
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
+3. [FIX] rename ```task::await_task``` into ```task::await_task```, MSVC can not allow ```await_task``` as function name.
+4. []
 
 ### 1.2.1 (2019-10-04)
 
@@ -17,7 +19,7 @@ HISTORY
 1. [OPTIMIZE] Add more unit test.Increase coverage to 90%+.
 2. [OPTIMIZE] Rewrite toolchain detection scripts, support clang-cl now.
 3. [BOOST] merge boost.context 1.71.0.
-4. [FIX] Fix a coredump problem when task_ptr is reset when await other tasks.
+4. [FIX] Fix a coredump problem when task_ptr is reset when await_task other tasks.
 5. [OPTIMIZE] Optimize timer implement, task_manager support modify task timer now.
 6. [OPTIMIZE] A task can only be added to one task_manager now, and when finish task with task's API, task_manager will also be cleanup.
 7. [OPTIMIZE] Fix some warning when compiling with gcc 9+ and clang 8+.
@@ -30,7 +32,7 @@ HISTORY
 2. [OPTIMIZE] using [GNUInstallDirs](https://cmake.org/cmake/help/v3.13/module/GNUInstallDirs.html) for all directories
 3. [BOOST] merge boost.context 1.67.0
 4. [OPTIMIZE] add libcopp-config.cmake and libcopp-config-version.cmake for cmake module
-5. [OPTIMIZE] add ***then*** and ***await*** API for easier usage
+5. [OPTIMIZE] add ***then*** and ***await_task*** API for easier usage
 6. [OPTIMIZE] add ***/Zc:__cplusplus*** for MSVC to make __cplusplus to the standard value.
 7. [OPTIMIZE] fix a guess to x86_64 environment
 8. [OPTIMIZE] add more API for statistics

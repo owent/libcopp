@@ -21,11 +21,6 @@
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
 
-// it's conflict with some tools's macros
-#ifdef await
-#undef await
-#endif
-
 namespace cotask {
 
     template <typename TCO_MACRO = macro_coroutine, typename TTASK_MACRO = macro_task>
@@ -340,14 +335,14 @@ namespace cotask {
         }
 
         /**
-         * @brief await another cotask to finish
+         * @brief await_task another cotask to finish
          * @note please not to make tasks refer to each other. [it will lead to memory leak]
-         * @note [don't do that] ptr_t a = ..., b = ...; a.await(b); b.await(a);
+         * @note [don't do that] ptr_t a = ..., b = ...; a.await_task(b); b.await_task(a);
          * @param wait_task which stack to wait for
          * @note we will loop wait and ignore any resume(...) call
          * @return 0 or error code
          */
-        inline int await(ptr_t wait_task) {
+        inline int await_task(ptr_t wait_task) {
             if (!wait_task) {
                 return copp::COPP_EC_ARGS_ERROR;
             }
@@ -387,8 +382,8 @@ namespace cotask {
         }
 
         template <typename TTask>
-        inline int await(TTask *wait_task) {
-            return await(ptr_t(wait_task));
+        inline int await_task(TTask *wait_task) {
+            return await_task(ptr_t(wait_task));
         }
 
         /**

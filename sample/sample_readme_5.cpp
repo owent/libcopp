@@ -69,10 +69,10 @@ int main() {
     });
 
     my_task_t::ptr_t await_task = my_task_t::create([&]() {
-        puts("await for first_task.");
+        puts("await_task for first_task.");
         return 0;
     });
-    await_task->await(first_task);
+    await_task->await_task(first_task);
 
     printf("|task start twice will failed: %d\n", first_task->start());
     printf("|test_code end with %d\n", test_code);

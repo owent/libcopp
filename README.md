@@ -449,8 +449,8 @@ int main() {
 }
 ~~~~~~~~~~
 
-#### using then or await
-This is a simple example of using ```then``` and ```await``` for cotask:
+#### using then or await_task
+This is a simple example of using ```then``` and ```await_task``` for cotask:
 
 ~~~~~~~~~~cpp
 #include <assert.h>
@@ -512,10 +512,10 @@ int main(int argc, char *argv[]) {
     });
 
     my_task_t::ptr_t await_task = my_task_t::create([&]() {
-        puts("await for first_task.");
+        puts("await_task for first_task.");
         return 0;
     });
-    await_task->await(first_task);
+    await_task->await_task(first_task);
 
     printf("|task start twice will failed: %d\n", first_task->start());
     printf("|test_code end with %d\n", test_code);
