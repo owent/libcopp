@@ -10,10 +10,13 @@
 namespace copp {
     namespace future {
         template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-        class LIBCOPP_COTASK_API_HEAD_ONLY future_t {
+        class LIBCOPP_COPP_API_HEAD_ONLY future_t {
         public:
-            typedef future_t<T, TPTR> self_type;
-            typedef poll_t<T, TPTR>   poll_type;
+            typedef future_t<T, TPTR>                self_type;
+            typedef poll_t<T, TPTR>                  poll_type;
+            typedef typename poll_type::storage_type storage_type;
+            typedef typename poll_type::value_type   value_type;
+            typedef typename poll_type::ptr_type     ptr_type;
 
         public:
             inline bool is_ready() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_ready(); }
@@ -28,10 +31,35 @@ namespace copp {
 
                 ctx.poll(poll_data_);
 
-                if (!ctx.get_wake_fn() && !is_ready()) {
-                    ctx.set_wake_fn(wake_future_t<TPD>(*this));
+                if (is_ready()) {
+                    if (ctx.get_wake_fn()) {
+                        ctx.set_wake_fn(NULL);
+                    }
+                } else {
+                    if (!ctx.get_wake_fn()) {
+                        ctx.set_wake_fn(wake_future_t<TPD>(*this));
+                    }
                 }
             }
+
+            inline const value_type *data() const UTIL_CONFIG_NOEXCEPT {
+                if (!is_ready()) {
+                    return NULL;
+                }
+                return poll_data_.data();
+            }
+
+            inline value_type *data() UTIL_CONFIG_NOEXCEPT {
+                if (!is_ready()) {
+                    return NULL;
+                }
+
+                return poll_data_.data();
+            }
+
+            inline const ptr_type &raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
+
+            inline ptr_type &raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
 
         private:
             template <class TPD>

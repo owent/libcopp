@@ -19,15 +19,10 @@
 
 namespace copp {
     namespace type_traits {
-        template <class T>
-        struct remove_cvref {
-            typedef typename std::remove_cv<typename std::remove_reference<T>::type>::type type;
-        };
-
 #if (defined(__cplusplus) && __cplusplus >= 201703L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L))
-#define COPP_RETURN_VALUE_CVREF(F, ARG) typename ::copp::type_traits::remove_cvref<std::invoke_result_t<F, ARG> >::type
+#define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<std::invoke_result_t<F, ARG> >::type
 #elif (defined(__cplusplus) && __cplusplus >= 201103L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
-#define COPP_RETURN_VALUE_CVREF(F, ARG) typename ::copp::type_traits::remove_cvref<std::result_of<F, ARG> >::type
+#define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<std::result_of<F, ARG> >::type
 #endif
 
         template <class T>

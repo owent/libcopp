@@ -27,8 +27,10 @@ jobs:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         shell: bash
         run: |
+          whoami
           cd "$GITHUB_WORKSPACE/build_jobs_dir_linux"
           cmake --build . -j -- run_sample run_test benchmark
+          python3 -m pip install --user wheel
           python3 -m pip install --user setuptools
           python3 -m pip install --user cpp-coveralls
           coveralls -r .. --gcov-options '\-lp' -e sample -e test -e build_jobs_dir_linux/CMakeFiles
