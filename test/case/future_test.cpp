@@ -108,6 +108,19 @@ struct test_future_void_context_poll_functor {
     }
 };
 
+template <bool>
+static const char *test_future_trivial_name();
+
+template <>
+const char *test_future_trivial_name<false>() {
+    return "no trivial";
+}
+
+template <>
+const char *test_future_trivial_name<true>() {
+    return "trivial";
+}
+
 template <class T>
 struct test_future_custom_poller_for_context {
     typedef test_future_custom_poller_for_context<T> self_type;
@@ -115,22 +128,9 @@ struct test_future_custom_poller_for_context {
     int32_t                                          delay;
     copp::future::context_t<self_type> *             last_trigger;
 
-    template <bool>
-    static const char *trivial_name();
-
-    template <>
-    static const char *trivial_name<false>() {
-        return "no trivial";
-    }
-
-    template <>
-    static const char *trivial_name<true>() {
-        return "trivial";
-    }
-
     void operator()(copp::future::context_t<self_type> &ctx) {
         last_trigger = &ctx;
-        CASE_MSG_INFO() << "[Future] custom " << trivial_name<std::is_trivial<self_type>::value>() << " poller " << this
+        CASE_MSG_INFO() << "[Future] custom " << test_future_trivial_name<std::is_trivial<self_type>::value>() << " poller " << this
                         << " created/moved by context " << &ctx << std::endl;
     }
 
@@ -139,7 +139,7 @@ struct test_future_custom_poller_for_context {
         if (false == ctx.is_shared_storage()) {
             CASE_EXPECT_EQ(last_trigger, &ctx);
         }
-        CASE_MSG_INFO() << "[Future] custom " << trivial_name<std::is_trivial<self_type>::value>() << " poller " << this
+        CASE_MSG_INFO() << "[Future] custom " << test_future_trivial_name<std::is_trivial<self_type>::value>() << " poller " << this
                         << " polled by context " << &ctx << ". poll_t: " << &out << std::endl;
         if (delay > 0) {
             --delay;
@@ -343,3 +343,8 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
 
     ctx_cloned2.wake();
 }
+
+
+// ================= Unit Test - C++20 Coroutine Support =================
+#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+#endif

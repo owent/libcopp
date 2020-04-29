@@ -186,6 +186,8 @@ namespace copp {
 
             inline const value_type get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
 
+            static inline bool is_shared_storage() UTIL_CONFIG_NOEXCEPT { return false; }
+
         private:
             void copy_from(const self_type &other) {
                 private_data_ = other.private_data_;
