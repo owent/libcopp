@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.12.0)
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
     cmake_policy(SET CMP0074 NEW)
 endif()
@@ -58,7 +58,7 @@ write_compiler_detection_header(
     FILE "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h"
     PREFIX UTIL_CONFIG
     COMPILERS GNU Clang AppleClang MSVC
-    FEATURES cxx_auto_type cxx_constexpr cxx_decltype cxx_decltype_auto cxx_defaulted_functions cxx_deleted_functions cxx_final cxx_override cxx_range_for cxx_noexcept cxx_nullptr cxx_rvalue_references cxx_static_assert cxx_thread_local cxx_variadic_templates cxx_lambdas
+    FEATURES cxx_std_98 cxx_std_11 cxx_std_14 cxx_std_17 cxx_std_20 cxx_alias_templates cxx_attributes cxx_auto_type cxx_constexpr cxx_decltype cxx_decltype_auto cxx_defaulted_functions cxx_deleted_functions cxx_final cxx_override cxx_range_for cxx_noexcept cxx_nullptr cxx_rvalue_references cxx_static_assert cxx_thread_local cxx_variadic_templates cxx_lambdas
 )
 
 if (LIBCOTASK_ENABLE)

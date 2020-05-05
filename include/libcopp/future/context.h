@@ -29,20 +29,20 @@ namespace copp {
 
         public:
             template <class... TARGS>
-            context_t(TARGS COPP_MACRO_RV_REF... args) {
-                setup_from(COPP_MACRO_STD_FORWARD(TARGS, args)...);
+            context_t(TARGS &&... args) {
+                setup_from(std::forward<TARGS>(args)...);
             }
 
             context_t(const self_type &other) { copy_from(other); }
-            context_t(self_type COPP_MACRO_RV_REF other) { move_from(COPP_MACRO_STD_MOVE(other)); }
+            context_t(self_type && other) { move_from(std::move(other)); }
 
             context_t &operator=(const self_type &other) {
                 copy_from(other);
                 return *this;
             }
 
-            context_t &operator=(self_type COPP_MACRO_RV_REF other) {
-                move_from(COPP_MACRO_STD_MOVE(other));
+            context_t &operator=(self_type && other) {
+                move_from(std::move(other));
                 return *this;
             }
 
@@ -92,9 +92,10 @@ namespace copp {
                 }
             }
 
-            void move_from(self_type COPP_MACRO_RV_REF other) {
+            void move_from(self_type && other) {
                 wake_fn_.swap(other.wake_fn_);
-                private_data_storage_type::move_storage(private_data_, COPP_MACRO_STD_MOVE(other.private_data_));
+                private_data_storage_type::move_storage(private_data_, std::move(other.private_data_));
+                other.wake_fn_ = NULL;
 
                 value_type *pd = get_private_data();
                 if (NULL != pd) {
@@ -103,8 +104,8 @@ namespace copp {
             }
 
             template <class... TARGS>
-            void setup_from(TARGS COPP_MACRO_RV_REF... args) {
-                private_data_storage_type::construct_storage(private_data_, COPP_MACRO_STD_FORWARD(TARGS, args)...);
+            void setup_from(TARGS &&... args) {
+                private_data_storage_type::construct_storage(private_data_, std::forward<TARGS>(args)...);
 
                 value_type *pd = get_private_data();
                 if (NULL != pd) {
@@ -113,12 +114,7 @@ namespace copp {
             }
 
             void setup_from(const self_type &other) { copy_from(other); }
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-            void setup_from(self_type &other) { copy_from(other); }
             void setup_from(self_type &&other) { move_from(other); }
-#else
-            void setup_from(self_type &other) { move_from(other); }
-#endif
 
         private:
             typename private_data_storage_type::storage_type private_data_;
@@ -150,15 +146,15 @@ namespace copp {
 
             context_t(const self_type &other) { copy_from(other); }
 
-            context_t(self_type COPP_MACRO_RV_REF other) { move_from(COPP_MACRO_STD_MOVE(other)); }
+            context_t(self_type && other) { move_from(std::move(other)); }
 
             context_t &operator=(const self_type &other) {
                 copy_from(other);
                 return *this;
             }
 
-            context_t &operator=(self_type COPP_MACRO_RV_REF other) {
-                move_from(COPP_MACRO_STD_MOVE(other));
+            context_t &operator=(self_type && other) {
+                move_from(std::move(other));
                 return *this;
             }
 
@@ -193,11 +189,13 @@ namespace copp {
                 poll_fn_      = other.poll_fn_;
             }
 
-            void move_from(self_type COPP_MACRO_RV_REF other) {
+            void move_from(self_type && other) {
                 private_data_ = other.private_data_;
                 wake_fn_.swap(other.wake_fn_);
                 poll_fn_.swap(other.poll_fn_);
 
+                other.wake_fn_ = NULL;
+                other.poll_fn_ = NULL;
                 other.private_data_ = NULL;
             }
 

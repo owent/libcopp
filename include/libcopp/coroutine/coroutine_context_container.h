@@ -35,7 +35,7 @@ namespace copp {
         coroutine_context_container(const allocator_type &alloc) UTIL_CONFIG_NOEXCEPT : alloc_(alloc), ref_count_(0) {}
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        coroutine_context_container(allocator_type &&alloc) UTIL_CONFIG_NOEXCEPT : alloc_(COPP_MACRO_STD_MOVE(alloc)), ref_count_(0) {}
+        coroutine_context_container(allocator_type &&alloc) UTIL_CONFIG_NOEXCEPT : alloc_(std::move(alloc)), ref_count_(0) {}
 #endif
 
     public:
@@ -95,19 +95,19 @@ namespace copp {
             unsigned char *this_addr = reinterpret_cast<unsigned char *>(callee_stack.sp);
             // stack down
             this_addr -= private_buffer_size + this_align_size;
-            ret.reset(new ((void *)this_addr) this_type(COPP_MACRO_STD_MOVE(alloc)));
+            ret.reset(new ((void *)this_addr) this_type(std::move(alloc)));
 
             // callee_stack and alloc unavailable any more.
             if (ret) {
-                ret->alloc_        = COPP_MACRO_STD_MOVE(alloc);
-                ret->callee_stack_ = COPP_MACRO_STD_MOVE(callee_stack);
+                ret->alloc_        = std::move(alloc);
+                ret->callee_stack_ = std::move(callee_stack);
             } else {
                 alloc.deallocate(callee_stack);
                 return ret;
             }
 
             // after this call runner will be unavailable
-            callback_t callback(COPP_MACRO_STD_MOVE(runner));
+            callback_t callback(std::move(runner));
             if (coroutine_context::create(ret.get(), callback, ret->callee_stack_, coroutine_size, private_buffer_size) < 0) {
                 ret.reset();
             }
@@ -144,7 +144,7 @@ namespace copp {
 #endif
             size_t stack_size = 0, size_t private_buffer_size = 0, size_t coroutine_size = 0) UTIL_CONFIG_NOEXCEPT {
             allocator_type alloc;
-            return create(COPP_MACRO_STD_MOVE(runner), alloc, stack_size, private_buffer_size, coroutine_size);
+            return create(std::move(runner), alloc, stack_size, private_buffer_size, coroutine_size);
         }
 
         template <class TRunner>
@@ -181,8 +181,8 @@ namespace copp {
 
             size_t left = --p->ref_count_;
             if (0 == left) {
-                allocator_type copy_alloc(COPP_MACRO_STD_MOVE(p->alloc_));
-                stack_context  copy_stack(COPP_MACRO_STD_MOVE(p->callee_stack_));
+                allocator_type copy_alloc(std::move(p->alloc_));
+                stack_context  copy_stack(std::move(p->callee_stack_));
 
                 // then destruct object and reset data
                 p->~coroutine_context_container();

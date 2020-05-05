@@ -127,6 +127,7 @@ struct test_future_custom_poller_for_context {
     T                                                data;
     int32_t                                          delay;
     copp::future::context_t<self_type> *             last_trigger;
+    copp::future::context_t<self_type> *             copy_when_poll;
 
     void operator()(copp::future::context_t<self_type> &ctx) {
         last_trigger = &ctx;
@@ -143,10 +144,14 @@ struct test_future_custom_poller_for_context {
                         << " polled by context " << &ctx << ". poll_t: " << &out << std::endl;
         if (delay > 0) {
             --delay;
+            if (NULL != copy_when_poll) {
+                *copy_when_poll = std::move(ctx);
+            }
+            copy_when_poll = NULL;
             return;
         }
 
-        out = copp::future::poll_t<U, UPTR>(COPP_MACRO_STD_MOVE(data));
+        out = copp::future::poll_t<U, UPTR>(std::move(data));
         CASE_MSG_INFO() << "[Future] custom poller " << this << " finished" << std::endl;
     }
 };
@@ -190,8 +195,10 @@ CASE_TEST(future, future_and_custom_poller_context_trivial) {
 
 
     copp::future::context_t<custom_poller_t> ctx;
+    copp::future::context_t<custom_poller_t> ctx_cloned1;
     ctx.get_private_data()->delay = 1;
     ctx.get_private_data()->data  = simulator_result;
+    ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
     CASE_EXPECT_FALSE(fut.is_ready());
@@ -202,7 +209,6 @@ CASE_TEST(future, future_and_custom_poller_context_trivial) {
     CASE_EXPECT_NE(NULL, ctx.get_private_data()->last_trigger);
     // When jobs finished, call wake to poll again
     // Notice: Copying a context may trigger to copy the private data object (as is TPD) if it's a trivial type
-    copp::future::context_t<custom_poller_t> ctx_cloned1 = *ctx.get_private_data()->last_trigger;
     copp::future::context_t<custom_poller_t> ctx_cloned2 =
         *const_cast<const copp::future::context_t<custom_poller_t> *>(ctx.get_private_data()->last_trigger);
     ctx_cloned1.wake();
@@ -229,7 +235,9 @@ CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
 
 
     copp::future::context_t<custom_poller_t> ctx;
+    copp::future::context_t<custom_poller_t> ctx_cloned1;
     ctx.get_private_data()->delay = 1;
+    ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
     CASE_EXPECT_FALSE(fut.is_ready());
@@ -240,7 +248,6 @@ CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
     CASE_EXPECT_NE(NULL, ctx.get_private_data()->last_trigger);
     // When jobs finished, call wake to poll again
     // Notice: Copying a context may trigger to copy the private data object (as is TPD) if it's a trivial type
-    copp::future::context_t<custom_poller_t> ctx_cloned1 = *ctx.get_private_data()->last_trigger;
     copp::future::context_t<custom_poller_t> ctx_cloned2 =
         *const_cast<const copp::future::context_t<custom_poller_t> *>(ctx.get_private_data()->last_trigger);
 
@@ -272,8 +279,10 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_trivial) {
 
 
     copp::future::context_t<custom_poller_t> ctx;
+    copp::future::context_t<custom_poller_t> ctx_cloned1;
     ctx.get_private_data()->delay = 1;
     ctx.get_private_data()->data  = result_type::create_success(simulator_result);
+    ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
     CASE_EXPECT_FALSE(fut.is_ready());
@@ -284,7 +293,6 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_trivial) {
     CASE_EXPECT_NE(NULL, ctx.get_private_data()->last_trigger);
     // When jobs finished, call wake to poll again
     // Notice: Copying a context may trigger to copy the private data object (as is TPD) if it's a trivial type
-    copp::future::context_t<custom_poller_t> ctx_cloned1 = *ctx.get_private_data()->last_trigger;
     copp::future::context_t<custom_poller_t> ctx_cloned2 =
         *const_cast<const copp::future::context_t<custom_poller_t> *>(ctx.get_private_data()->last_trigger);
     ctx_cloned1.wake();
@@ -314,7 +322,9 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
 
 
     copp::future::context_t<custom_poller_t> ctx;
+    copp::future::context_t<custom_poller_t> ctx_cloned1;
     ctx.get_private_data()->delay = 1;
+    ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
     CASE_EXPECT_FALSE(fut.is_ready());
@@ -325,7 +335,6 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
     CASE_EXPECT_NE(NULL, ctx.get_private_data()->last_trigger);
     // When jobs finished, call wake to poll again
     // Notice: Copying a context may trigger to copy the private data object (as is TPD) if it's a trivial type
-    copp::future::context_t<custom_poller_t> ctx_cloned1 = *ctx.get_private_data()->last_trigger;
     copp::future::context_t<custom_poller_t> ctx_cloned2 =
         *const_cast<const copp::future::context_t<custom_poller_t> *>(ctx.get_private_data()->last_trigger);
 

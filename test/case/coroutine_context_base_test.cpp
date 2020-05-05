@@ -157,7 +157,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     copp::coroutine_context *    placement_new_addr = reinterpret_cast<copp::coroutine_context *>(stack_buff + 112 * 1024);
     test_context_base_foo_runner runner;
     {
-        copp::coroutine_context::callback_t callback(COPP_MACRO_STD_MOVE(runner));
+        copp::coroutine_context::callback_t callback(std::move(runner));
         copp::stack_context                 callee_stack;
         callee_stack.sp   = reinterpret_cast<void *>(stack_buff + 120 * 1024);
         callee_stack.size = 120 * 1024;
@@ -166,7 +166,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     }
 
     {
-        copp::coroutine_context::callback_t callback(COPP_MACRO_STD_MOVE(runner));
+        copp::coroutine_context::callback_t callback(std::move(runner));
         copp::stack_context                 callee_stack;
         callee_stack.sp   = reinterpret_cast<void *>(stack_buff + 120 * 1024);
         callee_stack.size = 120 * 1024;
@@ -175,7 +175,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     }
 
     {
-        copp::coroutine_context::callback_t callback(COPP_MACRO_STD_MOVE(runner));
+        copp::coroutine_context::callback_t callback(std::move(runner));
         copp::stack_context                 callee_stack;
         callee_stack.sp   = reinterpret_cast<void *>(stack_buff + 120 * 1024);
         callee_stack.size = 120 * 1024;
@@ -184,7 +184,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     }
 
     {
-        copp::coroutine_context::callback_t callback(COPP_MACRO_STD_MOVE(runner));
+        copp::coroutine_context::callback_t callback(std::move(runner));
         copp::stack_context                 callee_stack;
         callee_stack.sp   = NULL;
         callee_stack.size = 120 * 1024;
@@ -193,7 +193,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     }
 
     {
-        copp::coroutine_context::callback_t callback(COPP_MACRO_STD_MOVE(runner));
+        copp::coroutine_context::callback_t callback(std::move(runner));
         copp::stack_context                 callee_stack;
         callee_stack.sp   = reinterpret_cast<void *>(stack_buff + 120 * 1024);
         callee_stack.size = 8192;
@@ -202,7 +202,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     }
 
     {
-        copp::coroutine_context::callback_t callback(COPP_MACRO_STD_MOVE(runner));
+        copp::coroutine_context::callback_t callback(std::move(runner));
         copp::stack_context                 callee_stack;
         callee_stack.sp   = reinterpret_cast<void *>(stack_buff + 120 * 1024);
         callee_stack.size = 120 * 1024;

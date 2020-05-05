@@ -17,6 +17,25 @@
 
 namespace copp {
     namespace future {
+        // FUNCTION TEMPLATE make_unique
+        template <class T, class... TARGS, typename std::enable_if<!std::is_array<T>::value, int>::type = 0>
+        EXPLICIT_NODISCARD_ATTR std::unique_ptr<T> make_unique(TARGS&&... args) { // make a unique_ptr
+            return std::unique_ptr<T>(new T(std::forward<TARGS>(args)...));
+        }
+
+        template <class T, typename std::enable_if<std::is_array<T>::value && std::extent<T>::value == 0, int>::type = 0>
+        EXPLICIT_NODISCARD_ATTR std::unique_ptr<T> make_unique(size_t sz) { // make a unique_ptr
+#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
+            using TELEM = typename std::remove_extent<T>::type;
+#else
+            typename typename std::remove_extent<T>::type TELEM;
+#endif
+            return std::unique_ptr<T>(new TELEM[sz]());
+        }
+
+        template <class T, class... TARGS, typename std::enable_if<std::extent<T>::value != 0, int>::type = 0>
+        void make_unique(TARGS&&...) UTIL_CONFIG_DELETED_FUNCTION;
+
         template <class T>
         struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_delete_t {
             inline void operator()(T *) const UTIL_CONFIG_NOEXCEPT {
@@ -61,7 +80,7 @@ namespace copp {
                                                   std::is_convertible<typename std::decay<U>::type, T>::value,
                                               bool>::type = false>
             static inline void construct_storage(storage_type &                                 out,
-                                                 std::unique_ptr<U, UDELETOR> COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+                                                 std::unique_ptr<U, UDELETOR> && in) UTIL_CONFIG_NOEXCEPT {
                 if (in) {
                     out.first = *in;
                     out.second.reset(&out.first);
@@ -75,12 +94,12 @@ namespace copp {
             template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value ||
                                                            std::is_convertible<typename std::decay<U>::type, T>::value,
                                                        bool>::type = false>
-            static inline void construct_storage(storage_type &out, U COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+            static inline void construct_storage(storage_type &out, U && in) UTIL_CONFIG_NOEXCEPT {
                 out.first = in;
                 out.second.reset(&out.first);
             }
 
-            static inline void move_storage(storage_type &out, storage_type COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+            static inline void move_storage(storage_type &out, storage_type && in) UTIL_CONFIG_NOEXCEPT {
                 if (in.second) {
                     out.first = in.first;
                     out.second.reset(&out.first);
@@ -106,19 +125,19 @@ namespace copp {
             template <class U, class UDELETOR,
                       typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
             static inline void construct_storage(storage_type &                                 out,
-                                                 std::unique_ptr<U, UDELETOR> COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
-                out = COPP_MACRO_STD_MOVE(in);
+                                                 std::unique_ptr<U, UDELETOR> && in) UTIL_CONFIG_NOEXCEPT {
+                out = std::move(in);
             }
 
             template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value &&
                                                            type_traits::is_shared_ptr<ptr_type>::value,
                                                        bool>::type = false>
-            static inline void construct_storage(storage_type &out, std::shared_ptr<U> COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
-                out = COPP_MACRO_STD_MOVE(std::static_pointer_cast<typename ptr_type::element_type>(in));
+            static inline void construct_storage(storage_type &out, std::shared_ptr<U> && in) UTIL_CONFIG_NOEXCEPT {
+                out = std::move(std::static_pointer_cast<typename ptr_type::element_type>(in));
             }
 
-            static inline void move_storage(storage_type &out, storage_type COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
-                out = COPP_MACRO_STD_MOVE(in);
+            static inline void move_storage(storage_type &out, storage_type && in) UTIL_CONFIG_NOEXCEPT {
+                out = std::move(in);
             }
 
             static inline const ptr_type &unwrap(const storage_type &storage) UTIL_CONFIG_NOEXCEPT { return storage; }
@@ -147,7 +166,7 @@ namespace copp {
                                                   std::is_convertible<typename std::decay<U>::type, T>::value,
                                               bool>::type = false>
             static inline void construct_storage(storage_type &                                 out,
-                                                 std::unique_ptr<U, UDELETOR> COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+                                                 std::unique_ptr<U, UDELETOR> && in) UTIL_CONFIG_NOEXCEPT {
                 if (in) {
                     out = *in;
                 } else {
@@ -158,7 +177,7 @@ namespace copp {
             template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value ||
                                                            std::is_convertible<typename std::decay<U>::type, T>::value,
                                                        bool>::type = false>
-            static inline void construct_storage(storage_type &out, U COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+            static inline void construct_storage(storage_type &out, U && in) UTIL_CONFIG_NOEXCEPT {
                 out = in;
             }
 
@@ -166,7 +185,7 @@ namespace copp {
                 memcpy(&out, &in, sizeof(out));
             }
 
-            static inline void move_storage(storage_type &out, storage_type COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+            static inline void move_storage(storage_type &out, storage_type && in) UTIL_CONFIG_NOEXCEPT {
                 memcpy(&out, &in, sizeof(out));
                 memset(&in, 0, sizeof(in));
             }
@@ -188,16 +207,16 @@ namespace copp {
 
             template <class U, class UDELETOR,
                       typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-            static inline void construct_storage(storage_type &out, std::unique_ptr<U, UDELETOR> COPP_MACRO_RV_REF in) {
+            static inline void construct_storage(storage_type &out, std::unique_ptr<U, UDELETOR> && in) {
                 if (in) {
-                    out = COPP_MACRO_STD_MOVE(in);
+                    out = std::move(in);
                 } else {
                     out.reset();
                 }
             }
 
             template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-            static inline void construct_storage(storage_type &out, std::shared_ptr<U> COPP_MACRO_RV_REF in) {
+            static inline void construct_storage(storage_type &out, std::shared_ptr<U> && in) {
                 if (in) {
                     out = std::static_pointer_cast<T>(in);
                 } else {
@@ -206,12 +225,12 @@ namespace copp {
             }
 
             template <class... TARGS>
-            static inline void construct_storage(storage_type &out, TARGS COPP_MACRO_RV_REF... in) {
-                out = std::make_shared<T>(COPP_MACRO_STD_FORWARD(TARGS, in)...);
+            static inline void construct_storage(storage_type &out, TARGS &&... in) {
+                out = std::make_shared<T>(std::forward<TARGS>(in)...);
             }
 
             static inline void clone_storage(storage_type &out, const storage_type &in) { out = in; }
-            static inline void move_storage(storage_type &out, storage_type COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
+            static inline void move_storage(storage_type &out, storage_type && in) UTIL_CONFIG_NOEXCEPT {
                 out.swap(in);
                 in.reset();
             }
@@ -247,13 +266,13 @@ namespace copp {
             friend class result_t;
 
             template <class TARGS>
-            inline void construct_success(TARGS COPP_MACRO_RV_REF args) UTIL_CONFIG_NOEXCEPT {
+            inline void construct_success(TARGS && args) UTIL_CONFIG_NOEXCEPT {
                 success_data_ = args;
                 mode_         = EN_RESULT_SUCCESS;
             }
 
             template <class TARGS>
-            inline void construct_error(TARGS COPP_MACRO_RV_REF args) UTIL_CONFIG_NOEXCEPT {
+            inline void construct_error(TARGS && args) UTIL_CONFIG_NOEXCEPT {
                 error_data_ = args;
                 mode_       = EN_RESULT_ERROR;
             }
@@ -301,16 +320,16 @@ namespace copp {
             friend class result_t;
 
             template <class... TARGS>
-            inline void construct_success(TARGS COPP_MACRO_RV_REF... args) {
+            inline void construct_success(TARGS &&... args) {
                 reset();
-                success_storage_type::construct_storage(success_data_, COPP_MACRO_STD_FORWARD(TARGS, args)...);
+                success_storage_type::construct_storage(success_data_, std::forward<TARGS>(args)...);
                 mode_ = EN_RESULT_SUCCESS;
             }
 
             template <class... TARGS>
-            inline void construct_error(TARGS COPP_MACRO_RV_REF... args) {
+            inline void construct_error(TARGS &&... args) {
                 reset();
-                error_storage_type::construct_storage(error_data_, COPP_MACRO_STD_FORWARD(TARGS, args)...);
+                error_storage_type::construct_storage(error_data_, std::forward<TARGS>(args)...);
                 mode_ = EN_RESULT_ERROR;
             }
 
@@ -344,16 +363,16 @@ namespace copp {
             typedef result_t<TOK, TERR> self_type;
 
             template <class... TARGS>
-            static self_type create_success(TARGS COPP_MACRO_RV_REF... args) {
+            static self_type create_success(TARGS &&... args) {
                 self_type ret;
-                ret.construct_success(COPP_MACRO_STD_FORWARD(TARGS, args)...);
+                ret.construct_success(std::forward<TARGS>(args)...);
                 return ret;
             }
 
             template <class... TARGS>
-            static self_type create_error(TARGS COPP_MACRO_RV_REF... args) {
+            static self_type create_error(TARGS &&... args) {
                 self_type ret;
-                ret.construct_error(COPP_MACRO_STD_FORWARD(TARGS, args)...);
+                ret.construct_error(std::forward<TARGS>(args)...);
                 return ret;
             }
         };

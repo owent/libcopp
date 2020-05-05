@@ -385,7 +385,7 @@ namespace cotask {
                 }
 
                 // make sure running task be killed first
-                task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+                task_inst = std::move(iter->second.task_);
 
                 remove_timeout_timer(iter->second);
                 tasks_.erase(iter);
@@ -514,7 +514,7 @@ namespace cotask {
                     return copp::COPP_EC_NOT_FOUND;
                 }
 
-                task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+                task_inst = std::move(iter->second.task_);
 
                 remove_timeout_timer(iter->second);
                 tasks_.erase(iter); // remove from container
@@ -549,7 +549,7 @@ namespace cotask {
                     return copp::COPP_EC_NOT_FOUND;
                 }
 
-                task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+                task_inst = std::move(iter->second.task_);
 
                 remove_timeout_timer(iter->second);
                 tasks_.erase(iter); // remove from container
@@ -641,7 +641,7 @@ namespace cotask {
 
                     if (tasks_.end() != iter) {
                         // task may be removed before
-                        task_inst = COPP_MACRO_STD_MOVE(iter->second.task_);
+                        task_inst = std::move(iter->second.task_);
 
                         remove_timeout_timer(iter->second);
                         tasks_.erase(iter); // remove from container

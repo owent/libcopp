@@ -168,6 +168,18 @@
 #  define UTIL_CONFIG_COMPILER_VERSION_PATCH (__GNUC_PATCHLEVEL__)
 # endif
 
+#    if (__GNUC__ * 100 + __GNUC_MINOR__) >= 407 && __cplusplus >= 201103L
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 0
+#    endif
+
+#    if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408 && __cplusplus >= 201103L
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 0
+#    endif
+
 #    if (__GNUC__ * 100 + __GNUC_MINOR__) >= 404 && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__))
 #      define UTIL_CONFIG_COMPILER_CXX_AUTO_TYPE 1
 #    else
@@ -278,6 +290,18 @@
 #  define UTIL_CONFIG_SIMULATE_VERSION_MAJOR (_MSC_VER / 100)
 #  define UTIL_CONFIG_SIMULATE_VERSION_MINOR (_MSC_VER % 100)
 # endif
+
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_alias_templates)
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 0
+#    endif
+
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_attributes)
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 0
+#    endif
 
 #    if ((__clang_major__ * 100) + __clang_minor__) >= 301 && __has_feature(cxx_auto_type)
 #      define UTIL_CONFIG_COMPILER_CXX_AUTO_TYPE 1
@@ -390,6 +414,18 @@
 #  define UTIL_CONFIG_SIMULATE_VERSION_MINOR (_MSC_VER % 100)
 # endif
 # define UTIL_CONFIG_COMPILER_VERSION_TWEAK (__apple_build_version__)
+
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 400 && __has_feature(cxx_alias_templates)
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 0
+#    endif
+
+#    if ((__clang_major__ * 100) + __clang_minor__) >= 400 && __has_feature(cxx_attributes)
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 0
+#    endif
 
 #    if ((__clang_major__ * 100) + __clang_minor__) >= 400 && __has_feature(cxx_auto_type)
 #      define UTIL_CONFIG_COMPILER_CXX_AUTO_TYPE 1
@@ -508,6 +544,18 @@
 # if defined(_MSC_BUILD)
 #  define UTIL_CONFIG_COMPILER_VERSION_TWEAK (_MSC_BUILD)
 # endif
+
+#    if _MSC_VER >= 1800
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES 0
+#    endif
+
+#    if _MSC_VER >= 1900
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 1
+#    else
+#      define UTIL_CONFIG_COMPILER_CXX_ATTRIBUTES 0
+#    endif
 
 #    if _MSC_VER >= 1600
 #      define UTIL_CONFIG_COMPILER_CXX_AUTO_TYPE 1

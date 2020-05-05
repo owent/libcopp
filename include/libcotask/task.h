@@ -112,7 +112,7 @@ namespace cotask {
             ret->coroutine_obj_->set_flags(impl::task_impl::ext_coroutine_flag_t::EN_ECFT_COTASK);
 
             // placement new action
-            a_t *action = new (action_addr) a_t(COPP_MACRO_STD_FORWARD(Ty, callable));
+            a_t *action = new (action_addr) a_t(std::forward<Ty>(callable));
             if (UTIL_CONFIG_NULLPTR == action) {
                 return ret;
             }
@@ -147,14 +147,14 @@ namespace cotask {
         template <typename Ty>
         static inline ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
             typename coroutine_t::allocator_type alloc;
-            return create(COPP_MACRO_STD_FORWARD(Ty, functor), alloc, stack_size, private_buffer_size);
+            return create(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size);
         }
 
         template <typename Ty>
         static inline ptr_t create(Ty &&functor, typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
                                    size_t private_buffer_size = 0) {
             typedef typename std::conditional<std::is_base_of<impl::task_action_impl, Ty>::value, Ty, task_action_functor<Ty> >::type a_t;
-            return create_with_delegate<a_t>(COPP_MACRO_STD_FORWARD(Ty, functor), alloc, stack_size, private_buffer_size);
+            return create_with_delegate<a_t>(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size);
         }
 #else
         template <typename Ty>
@@ -167,7 +167,7 @@ namespace cotask {
         static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(const Ty &functor, typename coroutine_t::allocator_type &alloc,
                                                          size_t stack_size = 0, size_t private_buffer_size = 0) {
             typedef typename std::conditional<std::is_base_of<impl::task_action_impl, Ty>::value, Ty, task_action_functor<Ty> >::type a_t;
-            return create_with_delegate<a_t>(COPP_MACRO_STD_FORWARD(Ty, functor), alloc, stack_size, private_buffer_size);
+            return create_with_delegate<a_t>(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size);
         }
 #endif
 
@@ -223,7 +223,7 @@ namespace cotask {
                                                               size_t private_buffer_size, TParams &&... args) {
             typedef Ty a_t;
 
-            return create(COPP_MACRO_STD_MOVE(a_t(COPP_MACRO_STD_FORWARD(TParams, args)...)), alloc, stack_size, private_buffer_size);
+            return create(std::move(a_t(std::forward<TParams>(args)...)), alloc, stack_size, private_buffer_size);
         }
 #endif
 

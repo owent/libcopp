@@ -20,96 +20,17 @@ namespace cotask {
     namespace core {
         class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
         public:
-#if defined(COPP_MACRO_ENABLE_VARIADIC_TEMPLATE) && COPP_MACRO_ENABLE_VARIADIC_TEMPLATE
             /**
              * @brief allocate a object
              * @param args construct parameters
              * @return pointer of new object
              */
-            template <typename Ty, typename... TARGS>
-            static std::shared_ptr<Ty> allocate(Ty *, TARGS COPP_MACRO_RV_REF... args) {
-                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARGS, args)...);
+            template <class Ty, class... TARGS>
+            static std::shared_ptr<Ty> allocate(Ty *, TARGS &&... args) {
+                return std::make_shared<Ty>(std::forward<TARGS>(args)...);
             }
 
-#else
-            /**
-             * @brief allocate a object with 0 parameter(s).
-             * @return pointer of new object
-             */
-            template <typename Ty>
-            static std::shared_ptr<Ty> allocate(Ty *) {
-                return std::make_shared<Ty>();
-            }
-
-            /**
-             * @brief allocate a object with 1 parameter(s).
-             * @param arg0  parameter 0
-             * @return pointer of new object
-             */
-            template <typename Ty, typename TARG0>
-            static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0) {
-                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0));
-            }
-
-            /**
-             * @brief allocate a object with 2 parameter(s).
-             * @param arg0  parameter 0
-             * @param arg1  parameter 1
-             * @return pointer of new object
-             */
-            template <typename Ty, typename TARG0, typename TARG1>
-            static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1) {
-                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1));
-            }
-
-            /**
-             * @brief allocate a object with 3 parameter(s).
-             * @param arg0  parameter 0
-             * @param arg1  parameter 1
-             * @param arg2  parameter 2
-             * @return pointer of new object
-             */
-            template <typename Ty, typename TARG0, typename TARG1, typename TARG2>
-            static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
-                                                TARG2 COPP_MACRO_RV_REF arg2) {
-                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                            COPP_MACRO_STD_FORWARD(TARG2, arg2));
-            }
-
-            /**
-             * @brief allocate a object with 4 parameter(s).
-             * @param arg0  parameter 0
-             * @param arg1  parameter 1
-             * @param arg2  parameter 2
-             * @param arg3  parameter 3
-             * @return pointer of new object
-             */
-            template <typename Ty, typename TARG0, typename TARG1, typename TARG2, typename TARG3>
-            static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
-                                                TARG2 COPP_MACRO_RV_REF arg2, TARG3 COPP_MACRO_RV_REF arg3) {
-                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                            COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3));
-            }
-
-            /**
-             * @brief allocate a object with 5 parameter(s).
-             * @param arg0  parameter 0
-             * @param arg1  parameter 1
-             * @param arg2  parameter 2
-             * @param arg3  parameter 3
-             * @param arg4  parameter 4
-             * @return pointer of new object
-             */
-            template <typename Ty, typename TARG0, typename TARG1, typename TARG2, typename TARG3, typename TARG4>
-            static std::shared_ptr<Ty> allocate(Ty *, TARG0 COPP_MACRO_RV_REF arg0, TARG1 COPP_MACRO_RV_REF arg1,
-                                                TARG2 COPP_MACRO_RV_REF arg2, TARG3 COPP_MACRO_RV_REF arg3, TARG4 COPP_MACRO_RV_REF arg4) {
-                return std::make_shared<Ty>(COPP_MACRO_STD_FORWARD(TARG0, arg0), COPP_MACRO_STD_FORWARD(TARG1, arg1),
-                                            COPP_MACRO_STD_FORWARD(TARG2, arg2), COPP_MACRO_STD_FORWARD(TARG3, arg3),
-                                            COPP_MACRO_STD_FORWARD(TARG4, arg4));
-            }
-
-#endif
-            template <typename Ty>
+            template <class Ty>
             static void deallocate(std::shared_ptr<Ty> &) {}
         };
     } // namespace core

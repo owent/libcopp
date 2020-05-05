@@ -240,7 +240,7 @@ namespace copp {
         }
 
         // if runner is empty, we can set it later
-        p->set_runner(COPP_MACRO_STD_MOVE(runner));
+        p->set_runner(std::move(runner));
 
         if (&p->callee_stack_ != &callee_stack) {
             p->callee_stack_ = callee_stack;
@@ -387,7 +387,7 @@ namespace copp {
             return COPP_EC_ALREADY_INITED;
         }
 
-        runner_ = COPP_MACRO_STD_MOVE(runner);
+        runner_ = std::move(runner);
         return COPP_EC_SUCCESS;
     } // namespace copp
 

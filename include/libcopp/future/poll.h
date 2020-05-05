@@ -21,14 +21,14 @@ namespace copp {
             poll_t() UTIL_CONFIG_NOEXCEPT { poll_storage_t::construct_default_storage(storage_data_); }
 
             template <class U>
-            poll_t(U COPP_MACRO_RV_REF in) UTIL_CONFIG_NOEXCEPT {
-                setup_from(COPP_MACRO_STD_FORWARD(U, in));
+            poll_t(U && in) UTIL_CONFIG_NOEXCEPT {
+                setup_from(std::forward<U>(in));
             }
 
-            poll_t(self_type COPP_MACRO_RV_REF other) UTIL_CONFIG_NOEXCEPT { setup_from(COPP_MACRO_STD_MOVE(other)); }
+            poll_t(self_type && other) UTIL_CONFIG_NOEXCEPT { setup_from(std::move(other)); }
 
-            poll_t &operator=(self_type COPP_MACRO_RV_REF other) UTIL_CONFIG_NOEXCEPT {
-                setup_from(COPP_MACRO_STD_MOVE(other));
+            poll_t &operator=(self_type && other) UTIL_CONFIG_NOEXCEPT {
+                setup_from(std::move(other));
                 return *this;
             }
 
@@ -45,17 +45,17 @@ namespace copp {
         private:
             template <class U, class UDELETER,
                       typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-            void setup_from(std::unique_ptr<U, UDELETER> COPP_MACRO_RV_REF in) {
-                poll_storage_t::construct_storage(storage_data_, COPP_MACRO_STD_MOVE(in));
+            void setup_from(std::unique_ptr<U, UDELETER> && in) {
+                poll_storage_t::construct_storage(storage_data_, std::move(in));
             }
 
             template <class TARGS>
-            void setup_from(TARGS COPP_MACRO_RV_REF args) {
-                poll_storage_t::construct_storage(storage_data_, COPP_MACRO_STD_FORWARD(TARGS, args));
+            void setup_from(TARGS && args) {
+                poll_storage_t::construct_storage(storage_data_, std::forward<TARGS>(args));
             }
 
-            void setup_from(self_type COPP_MACRO_RV_REF other) {
-                poll_storage_t::move_storage(storage_data_, COPP_MACRO_STD_MOVE(other.storage_data_));
+            void setup_from(self_type && other) {
+                poll_storage_t::move_storage(storage_data_, std::move(other.storage_data_));
             }
 
         private:
