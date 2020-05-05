@@ -9,6 +9,9 @@
 
 namespace copp {
     namespace future {
+        template <class T, class TPTR>
+        class task_t;
+
         template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
         class LIBCOPP_COPP_API_HEAD_ONLY future_t {
         public:
@@ -57,36 +60,50 @@ namespace copp {
                 return poll_data_.data();
             }
 
-            inline const ptr_type &raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
-
-            inline ptr_type &raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
+            inline const ptr_type & raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
+            inline ptr_type &       raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
+            inline const poll_type &get_poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            inline poll_type &      get_poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
 
 
             // ================= C++20 Coroutine Support =================
         public:
-            struct promise_type {
-                self_type *bind_future_;
-
-                self_type get_return_object() { return self_type(); }
+            task_t<T, TPTR> get_return_object() UTIL_CONFIG_NOEXCEPT;
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 #if defined(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE) && LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-                auto initial_suspend() { return std::experimental::suspend_never(); }
-                auto final_suspend() { return std::experimental::suspend_never(); }
+            auto initial_suspend() UTIL_CONFIG_NOEXCEPT { return std::experimental::suspend_always(); }
+            auto final_suspend() UTIL_CONFIG_NOEXCEPT { return std::experimental::suspend_never(); }
 #else
-                auto initial_suspend() { return std::suspend_never(); }
-                auto final_suspend() { return std::suspend_never(); }
+            auto                      initial_suspend() UTIL_CONFIG_NOEXCEPT { return std::suspend_always(); }
+            auto                      final_suspend() UTIL_CONFIG_NOEXCEPT { return std::suspend_never(); }
 #endif
-#endif
+            void unhandled_exception() UTIL_CONFIG_NOEXCEPT {
+                // exception_ptr_ = std::new (static_cast<void*>(std::addressof(m_exception))) std::exception_ptr(std::current_exception());
+            }
 
-                void unhandled_exception() {}
-                void return_void() {}
+            void return_void() UTIL_CONFIG_NOEXCEPT {}
 
-                template <class U>
-                void return_value(U &&in) {}
+            template <class U>
+            void return_value(U &&in) UTIL_CONFIG_NOEXCEPT {
+                poll_data_ = COPP_MACRO_STD_FORWARD(U, in);
+            }
 
-                template <class... U>
-                auto await_transform(U &&...) {}
+            template <class... U>
+            auto await_transform(U &&...) UTIL_CONFIG_NOEXCEPT {}
+
+            struct final_awaiter {
+                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return false; }
+
+                void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_TYPE(self_type) h) UTIL_CONFIG_NOEXCEPT {
+                    // handle_ = LIBCOPP_MACRO_FUTURE_COROUTINE_VOID::from_address(h.address());
+
+                    // set waker into call handle_.resume();
+                    // context_.set_wake_fn(wake_future_awaiter_t{*this});
+                }
+
+                void await_resume() noexcept {}
             };
+#endif
 
         private:
             template <class TPD>
@@ -115,15 +132,16 @@ namespace copp {
         template <class TFUTURE, class TPD>
         class LIBCOPP_COPP_API_HEAD_ONLY future_awaiter_t {
         public:
-            typedef future_awaiter_t<TFUTURE, TPD> self_type;
-            typedef TFUTURE                        future_type;
-            typedef context_t<TPD>                 context_type;
+            typedef future_awaiter_t<TFUTURE, TPD>  self_type;
+            typedef TFUTURE                         future_type;
+            typedef context_t<TPD>                  context_type;
+            typedef typename future_type::poll_type poll_type;
 
         public:
             template <class... TARGS>
             future_awaiter_t(future_type &fut, TARGS &&... args) : future_(&fut), context_(COPP_MACRO_STD_FORWARD(TARGS, args)...) {}
 
-            bool await_ready() UTIL_CONFIG_NOEXCEPT {
+            bool await_ready() const UTIL_CONFIG_NOEXCEPT {
                 if (nullptr != future_ && !future_->is_ready()) {
                     future_->poll(context_);
                 }
@@ -146,11 +164,16 @@ namespace copp {
                 context_.set_wake_fn(wake_future_awaiter_t{*this});
             }
 
-            void await_resume() UTIL_CONFIG_NOEXCEPT {
+            poll_type await_resume() UTIL_CONFIG_NOEXCEPT {
                 handle_ = nullptr;
                 if (nullptr != future_) {
                     future_->poll(context_, false);
+                    if (future_->is_ready()) {
+                        return COPP_MACRO_STD_MOVE(future_->get_poll_data());
+                    }
                 }
+
+                return poll_type();
             }
 
         private:
@@ -172,6 +195,22 @@ namespace copp {
             context_type                        context_;
         };
 
+        template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
+        class task_t {
+        public:
+#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+            using promise_type = future_t<T, TPTR>;
+#else
+            typedef future_t<T, TPTR> promise_type;
+#endif
+        };
+
+        template <typename T, class TPTR>
+        task_t<T, TPTR> future_t<T, TPTR>::get_return_object() UTIL_CONFIG_NOEXCEPT {
+            return task_t<T, TPTR>{
+                // std::experimental::coroutine_handle<future_t<T> >::from_promise(*this)
+            };
+        }
 
         template <class TPD, class TFUTURE, class... TARGS>
         LIBCOPP_COPP_API_HEAD_ONLY inline future_awaiter_t<TFUTURE, TPD> make_awaiter(TFUTURE &fut, TARGS &&... args) {

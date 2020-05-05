@@ -12,6 +12,7 @@
 #define likely(x) !!(x)
 #endif
 #endif
+// C++20 [[likely]]
 
 #ifndef unlikely
 #ifdef __GNUC__
@@ -20,6 +21,7 @@
 #define unlikely(x) !!(x)
 #endif
 #endif
+// C++20 [[unlikely]]
 
 #ifndef unreachable
 #ifdef __GNUC__
@@ -153,5 +155,11 @@
 #define UTIL_NOINLINE
 #endif
 #endif
+
+//#ifndef UTIL_TRIVIAL_ABI
+//#define UTIL_TRIVIAL_ABI [[trivial_abi]]
+//#define UTIL_TRIVIAL_ABI [[clang::trivial_abi]]
+//#define UTIL_TRIVIAL_ABI __attribute__((trivial_abi))
+//#endif
 
 #endif

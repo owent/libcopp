@@ -247,13 +247,13 @@ namespace copp {
             friend class result_t;
 
             template <class TARGS>
-            inline void construct_success(TARGS COPP_MACRO_RV_REF args) {
+            inline void construct_success(TARGS COPP_MACRO_RV_REF args) UTIL_CONFIG_NOEXCEPT {
                 success_data_ = args;
                 mode_         = EN_RESULT_SUCCESS;
             }
 
             template <class TARGS>
-            inline void construct_error(TARGS COPP_MACRO_RV_REF args) {
+            inline void construct_error(TARGS COPP_MACRO_RV_REF args) UTIL_CONFIG_NOEXCEPT {
                 error_data_ = args;
                 mode_       = EN_RESULT_ERROR;
             }

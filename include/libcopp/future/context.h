@@ -182,9 +182,7 @@ namespace copp {
             inline const wake_fn_t &get_wake_fn() const { return wake_fn_; }
             inline wake_fn_t &      get_wake_fn() { return wake_fn_; }
 
-            inline value_type get_private_data() UTIL_CONFIG_NOEXCEPT { return private_data_; }
-
-            inline const value_type get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
+            inline value_type get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
 
             static inline bool is_shared_storage() UTIL_CONFIG_NOEXCEPT { return false; }
 
