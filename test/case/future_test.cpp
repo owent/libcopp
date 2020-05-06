@@ -85,7 +85,7 @@ struct test_future_void_context_poll_functor {
     int32_t delay;
 
     template <class U>
-    test_future_void_context_poll_functor(int32_t d, U in) : delay(d), data(in) {}
+    test_future_void_context_poll_functor(int32_t d, U in) : data(in), delay(d) {}
 
     void operator()(copp::future::context_t<void> &ctx, copp::future::context_t<void>::poll_event_data_t evt) {
         CASE_MSG_INFO() << "[Future] custom poll functor " << this << " polled by " << &ctx << ". poll_t: " << evt.poll_output << std::endl;
@@ -196,8 +196,8 @@ CASE_TEST(future, future_and_custom_poller_context_trivial) {
 
     copp::future::context_t<custom_poller_t> ctx;
     copp::future::context_t<custom_poller_t> ctx_cloned1;
-    ctx.get_private_data()->delay = 1;
-    ctx.get_private_data()->data  = simulator_result;
+    ctx.get_private_data()->delay          = 1;
+    ctx.get_private_data()->data           = simulator_result;
     ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
@@ -236,7 +236,7 @@ CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
 
     copp::future::context_t<custom_poller_t> ctx;
     copp::future::context_t<custom_poller_t> ctx_cloned1;
-    ctx.get_private_data()->delay = 1;
+    ctx.get_private_data()->delay          = 1;
     ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
@@ -280,8 +280,8 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_trivial) {
 
     copp::future::context_t<custom_poller_t> ctx;
     copp::future::context_t<custom_poller_t> ctx_cloned1;
-    ctx.get_private_data()->delay = 1;
-    ctx.get_private_data()->data  = result_type::create_success(simulator_result);
+    ctx.get_private_data()->delay          = 1;
+    ctx.get_private_data()->data           = result_type::create_success(simulator_result);
     ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
@@ -323,7 +323,7 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
 
     copp::future::context_t<custom_poller_t> ctx;
     copp::future::context_t<custom_poller_t> ctx_cloned1;
-    ctx.get_private_data()->delay = 1;
+    ctx.get_private_data()->delay          = 1;
     ctx.get_private_data()->copy_when_poll = &ctx_cloned1;
 
     fut.poll(ctx);
