@@ -91,20 +91,21 @@ namespace copp {
 
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-        template <class T, class TPD, class TPTR>
+        template <class T, class TPD, class TPTR, class TWAKELISTALLOC>
         class LIBCOPP_COPP_API_HEAD_ONLY task_t;
 
-        template <class T, class TPD, class TPTR = typename poll_storage_select_ptr_t<T>::type>
+        template <class T, class TPD, class TPTR = typename poll_storage_select_ptr_t<T>::type,
+                  class TWAKELISTALLOC = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
         class LIBCOPP_COPP_API_HEAD_ONLY coroutine_future_t : public future_t<T, TPTR> {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using self_type      = coroutine_future_t<T, TPD, TPTR>;
+            using self_type      = coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC>;
             using context_type   = context_t<TPD>;
-            using wake_list_type = std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>;
+            using wake_list_type = std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, TWAKELISTALLOC>;
 #else
-            typedef coroutine_future_t<T, TPD, TPTR>               self_type;
-            typedef context_t<TPD>                                 context_type;
-            typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> wake_list_type;
+            typedef coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC> self_type;
+            typedef context_t<TPD>                                   context_type;
+            typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>   wake_list_type;
 #endif
 
             // ================= C++20 Coroutine Support =================
@@ -123,7 +124,7 @@ namespace copp {
             template <class... TARGS>
             coroutine_future_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...) {}
 
-            task_t<T, TPD, TPTR> get_return_object() UTIL_CONFIG_NOEXCEPT;
+            task_t<T, TPD, TPTR, TWAKELISTALLOC> get_return_object() UTIL_CONFIG_NOEXCEPT;
 
             auto initial_suspend() UTIL_CONFIG_NOEXCEPT { return LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_never{}; }
             auto final_suspend() UTIL_CONFIG_NOEXCEPT { return final_awaitable{}; }
@@ -176,12 +177,13 @@ namespace copp {
             context_type   context_;
         };
 
-        template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-        class LIBCOPP_COPP_API_HEAD_ONLY task_t {
+        template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type,
+                  class TWAKELISTALLOC = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
+        class LIBCOPP_COPP_API_HEAD_ONLY EXPLICIT_NODISCARD_ATTR task_t {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using self_type      = task_t<T, TPD, TPTR>;
-            using promise_type   = coroutine_future_t<T, TPTR>;
+            using self_type      = task_t<T, TPD, TPTR, TWAKELISTALLOC>;
+            using promise_type   = coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC>;
             using context_type   = typename promise_type::context_type;
             using poll_type      = typename promise_type::poll_type;
             using wake_list_type = typename promise_type::wake_list_type;
@@ -189,14 +191,14 @@ namespace copp {
             using value_type     = typename poll_type::value_type;
             using ptr_type       = typename poll_type::ptr_type;
 #else
-            typedef task_t<T, TPD, TPTR>                           self_type;
-            typedef coroutine_future_t<T, TPTR>                    promise_type;
-            typedef typename promise_type::context_type            context_type;
-            typedef typename promise_type::poll_type               poll_type;
-            typedef typename promise_type::wake_list_type          wake_list_type;
-            typedef typename poll_type::storage_type               storage_type;
-            typedef typename poll_type::value_type                 value_type;
-            typedef typename poll_type::ptr_type                   ptr_type;
+            typedef task_t<T, TPD, TPTR, TWAKELISTALLOC>             self_type;
+            typedef coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC> promise_type;
+            typedef typename promise_type::context_type              context_type;
+            typedef typename promise_type::poll_type                 poll_type;
+            typedef typename promise_type::wake_list_type            wake_list_type;
+            typedef typename poll_type::storage_type                 storage_type;
+            typedef typename poll_type::value_type                   value_type;
+            typedef typename poll_type::ptr_type                     ptr_type;
 #endif
 
         private:
@@ -321,10 +323,11 @@ namespace copp {
             LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle_;
         };
 
-        template <typename T, class TPD, class TPTR>
-        task_t<T, TPD, TPTR> coroutine_future_t<T, TPD, TPTR>::get_return_object() UTIL_CONFIG_NOEXCEPT {
-            return task_t<T, TPD, TPTR>{
-                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<typename task_t<T, TPD, TPTR>::promise_type>::from_promise(*this)};
+        template <typename T, class TPD, class TPTR, class TWAKELISTALLOC>
+        task_t<T, TPD, TPTR, TWAKELISTALLOC> coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC>::get_return_object() UTIL_CONFIG_NOEXCEPT {
+            return task_t<T, TPD, TPTR, TWAKELISTALLOC>{
+                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
+                    coroutine_handle<typename task_t<T, TPD, TPTR, TWAKELISTALLOC>::promise_type>::from_promise(*this)};
         }
 #endif
     } // namespace future

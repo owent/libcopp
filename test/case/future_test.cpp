@@ -24,6 +24,26 @@ struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
     virtual int get_type() { return 2; }
 };
 
+CASE_TEST(future, poll_void) {
+    copp::future::poll_t<void> p1;
+    CASE_EXPECT_FALSE(p1.is_ready());
+
+    copp::future::poll_t<void> p2(123);
+    CASE_EXPECT_TRUE(p2.is_ready() && p2.data());
+    CASE_EXPECT_EQ(p2.data(), &p2.raw_ptr());
+
+    std::unique_ptr<bool>      param3 = std::unique_ptr<bool>(new bool(false));
+    copp::future::poll_t<void> p3(std::move(param3));
+    CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
+    CASE_EXPECT_EQ(p3.data(), &p3.raw_ptr());
+
+    copp::future::poll_t<void> p4;
+    // set ready
+    p4 = true;
+    CASE_EXPECT_TRUE(p4.is_ready() && p4.data());
+    CASE_EXPECT_EQ(p4.data(), &p4.raw_ptr());
+}
+
 CASE_TEST(future, poll_trival) {
     copp::future::poll_t<int> p1;
     CASE_EXPECT_FALSE(p1.is_ready());
@@ -78,6 +98,32 @@ CASE_TEST(future, poll_shared_ptr) {
     CASE_EXPECT_EQ(p5.data() ? p5.data()->data : 0, -456);
     CASE_EXPECT_EQ(p5.data() ? p5.data()->get_type() : 0, 2);
 }
+
+template <class T>
+struct test_future_void_context_poll_functor;
+
+template <>
+struct test_future_void_context_poll_functor<void> {
+    int32_t delay;
+
+    test_future_void_context_poll_functor(int32_t d) : delay(d) {}
+
+    void operator()(copp::future::context_t<void> &ctx, copp::future::context_t<void>::poll_event_data_t evt) {
+        CASE_MSG_INFO() << "[Future] custom void poll functor " << this << " polled by " << &ctx << ". poll_t: " << evt.poll_output
+                        << std::endl;
+
+        if (delay > 0) {
+            --delay;
+            return;
+        }
+
+        copp::future::poll_t<void> *poll_out = reinterpret_cast<copp::future::poll_t<void> *>(evt.poll_output);
+
+        *poll_out = true;
+
+        CASE_MSG_INFO() << "[Future] custom void poll functor " << this << " finished" << std::endl;
+    }
+};
 
 template <class T>
 struct test_future_void_context_poll_functor {
@@ -155,6 +201,27 @@ struct test_future_custom_poller_for_context {
         CASE_MSG_INFO() << "[Future] custom poller " << this << " finished" << std::endl;
     }
 };
+
+CASE_TEST(future, future_with_void_result_and_void_context) {
+    copp::future::future_t<void> fut;
+
+    CASE_EXPECT_FALSE(fut.is_ready());
+    CASE_EXPECT_TRUE(fut.is_pending());
+    CASE_EXPECT_EQ(NULL, fut.data());
+    CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+
+    copp::future::context_t<void> ctx(test_future_void_context_poll_functor<void>(1), NULL);
+    fut.poll(ctx);
+    CASE_EXPECT_FALSE(fut.is_ready());
+    CASE_EXPECT_TRUE(fut.is_pending());
+
+    // After first poll, ctx is binded to the future
+    CASE_EXPECT_TRUE(!!ctx.get_wake_fn());
+    // When jobs finished, call wake to poll again
+    ctx.wake();
+    CASE_EXPECT_TRUE(fut.is_ready());
+    CASE_EXPECT_FALSE(fut.is_pending());
+}
 
 CASE_TEST(future, future_with_trival_result_and_void_context) {
     copp::future::future_t<int32_t> fut;
@@ -352,8 +419,3 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
 
     ctx_cloned2.wake();
 }
-
-
-// ================= Unit Test - C++20 Coroutine Support =================
-#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-#endif

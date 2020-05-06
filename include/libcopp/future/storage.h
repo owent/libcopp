@@ -48,11 +48,28 @@ namespace copp {
         };
 
         template <class T>
+        struct poll_storage_select_ptr_t;
+
+
+        template <>
+        struct poll_storage_select_ptr_t<void> {
+            typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
+        };
+
+        template <class T>
         struct poll_storage_select_ptr_t {
             typedef typename std::conditional<std::is_trivial<T>::value && sizeof(T) < (sizeof(size_t) << 2),
                                               std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >,
                                               std::unique_ptr<T, std::default_delete<T> > >::type type;
         };
+
+        template <class T>
+        struct context_storage_select_t;
+        template <>
+        struct context_storage_select_t<void> {
+            typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
+        };
+
 
         template <class T>
         struct context_storage_select_t {
@@ -63,6 +80,47 @@ namespace copp {
 
         template <class T, class TPTR>
         struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t;
+
+        template <>
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t<void, std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > > {
+            typedef void                                                                 value_type;
+            typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > ptr_type;
+            typedef ptr_type                                                             storage_type;
+
+            static inline void construct_default_storage(storage_type &out) UTIL_CONFIG_NOEXCEPT { out.reset(); }
+
+            template <class U, class UDELETOR,
+                      typename std::enable_if<std::is_convertible<typename std::decay<U>::type, bool>::value, bool>::type = false>
+            static inline void construct_storage(storage_type &out, std::unique_ptr<U, UDELETOR> &&in) UTIL_CONFIG_NOEXCEPT {
+                if (in) {
+                    out.reset(reinterpret_cast<void *>(&out));
+                } else {
+                    out.reset();
+                }
+            }
+
+            template <class U, typename std::enable_if<std::is_convertible<typename std::decay<U>::type, bool>::value, bool>::type = false>
+            static inline void construct_storage(storage_type &out, U &&in) UTIL_CONFIG_NOEXCEPT {
+                if (in) {
+                    out.reset(reinterpret_cast<void *>(&out));
+                } else {
+                    out.reset();
+                }
+            }
+
+            static inline void move_storage(storage_type &out, storage_type &&in) UTIL_CONFIG_NOEXCEPT {
+                if (in) {
+                    out.reset(reinterpret_cast<void *>(&out));
+                } else {
+                    out.reset();
+                }
+
+                in.reset();
+            }
+
+            static inline const ptr_type &unwrap(const storage_type &storage) UTIL_CONFIG_NOEXCEPT { return storage; }
+            static inline ptr_type &      unwrap(storage_type &storage) UTIL_CONFIG_NOEXCEPT { return storage; }
+        };
 
         template <class T>
         struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > > {
