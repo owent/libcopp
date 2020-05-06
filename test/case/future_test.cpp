@@ -145,7 +145,7 @@ struct test_future_custom_poller_for_context {
         if (delay > 0) {
             --delay;
             if (NULL != copy_when_poll) {
-                *copy_when_poll = std::move(ctx);
+                *copy_when_poll = ctx;
             }
             copy_when_poll = NULL;
             return;

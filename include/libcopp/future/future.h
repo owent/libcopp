@@ -109,19 +109,19 @@ namespace copp {
 
             // ================= C++20 Coroutine Support =================
             struct final_awaitable {
-				bool await_ready() const UTIL_CONFIG_NOEXCEPT { return false; }
+                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return false; }
 
-				template<typename U>
-				void await_suspend(std::experimental::coroutine_handle<U> handle) {
-					handle.promise().wake_all();
-				}
+                template <typename U>
+                void await_suspend(std::experimental::coroutine_handle<U> handle) {
+                    handle.promise().wake_all();
+                }
 
-				void await_resume() UTIL_CONFIG_NOEXCEPT {}
-			};
+                void await_resume() UTIL_CONFIG_NOEXCEPT {}
+            };
 
         public:
-            template<class... TARGS>
-            coroutine_future_t(TARGS&&... args): context_(std::forward<TARGS>(args)...) {}
+            template <class... TARGS>
+            coroutine_future_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...) {}
 
             task_t<T, TPD, TPTR> get_return_object() UTIL_CONFIG_NOEXCEPT;
 
@@ -141,8 +141,8 @@ namespace copp {
             // template <class... TARGS>
             // auto await_transform(TARGS &&...) UTIL_CONFIG_NOEXCEPT;
 
-            const context_type& get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
-            context_type& get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
+            const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
+            context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
 
             typename wake_list_type::iterator begin_wake_handles() UTIL_CONFIG_NOEXCEPT { return await_handles_.begin(); }
             typename wake_list_type::iterator end_wake_handles() UTIL_CONFIG_NOEXCEPT { return await_handles_.end(); }
@@ -153,7 +153,7 @@ namespace copp {
 
                 return end_wake_handles();
             }
-            void remove_wake_handle(typename wake_list_type::iterator& iter) {
+            void remove_wake_handle(typename wake_list_type::iterator &iter) {
                 if (iter != await_handles_.end()) {
                     await_handles_.erase(iter);
                     iter = await_handles_.end();
@@ -162,15 +162,18 @@ namespace copp {
 
             void wake_all() {
                 for (typename wake_list_type::iterator iter = await_handles_.begin(); iter != await_handles_.end();) {
-                    typename wake_list_type::iterator wake_iter = iter ++;
+                    typename wake_list_type::iterator wake_iter = iter++;
                     if (*wake_iter) {
                         (*wake_iter).resume();
                     }
                 }
+
+                await_handles_.clear();
             }
+
         private:
             wake_list_type await_handles_;
-            context_type context_;
+            context_type   context_;
         };
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
@@ -186,35 +189,35 @@ namespace copp {
             using value_type     = typename poll_type::value_type;
             using ptr_type       = typename poll_type::ptr_type;
 #else
-            typedef task_t<T, TPD, TPTR>                  self_type;
-            typedef coroutine_future_t<T, TPTR>           promise_type;
-            typedef typename promise_type::context_type   context_type;
-            typedef typename promise_type::poll_type      poll_type;
-            typedef typename promise_type::wake_list_type wake_list_type;
-            typedef typename poll_type::storage_type      storage_type;
-            typedef typename poll_type::value_type        value_type;
-            typedef typename poll_type::ptr_type          ptr_type;
+            typedef task_t<T, TPD, TPTR>                           self_type;
+            typedef coroutine_future_t<T, TPTR>                    promise_type;
+            typedef typename promise_type::context_type            context_type;
+            typedef typename promise_type::poll_type               poll_type;
+            typedef typename promise_type::wake_list_type          wake_list_type;
+            typedef typename poll_type::storage_type               storage_type;
+            typedef typename poll_type::value_type                 value_type;
+            typedef typename poll_type::ptr_type                   ptr_type;
 #endif
 
         private:
             class awaitable_base_t {
             private:
-                awaitable_base_t(const awaitable_base_t&) UTIL_CONFIG_DELETED_FUNCTION;
-                awaitable_base_t& operator=(const awaitable_base_t&) UTIL_CONFIG_DELETED_FUNCTION;
+                awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+                awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
 
             public:
-                awaitable_base_t(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle): handle_(handle) {
+                awaitable_base_t(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle) : handle_(handle) {
                     if (handle) {
                         await_iterator_ = handle.promise().end_wake_handles();
                     }
                 }
 
-                awaitable_base_t(awaitable_base_t && other): await_iterator_(other.await_iterator_), handle_(other.handle_) {
+                awaitable_base_t(awaitable_base_t &&other) : await_iterator_(other.await_iterator_), handle_(other.handle_) {
                     other.handle_ = nullptr;
                 }
-                awaitable_base_t& operator=(awaitable_base_t&& other) {
+                awaitable_base_t &operator=(awaitable_base_t &&other) {
                     await_iterator_ = other.await_iterator_;
-                    handle_ = other.handle_;
+                    handle_         = other.handle_;
 
                     other.handle_ = nullptr;
                     if (handle_) {
@@ -222,9 +225,7 @@ namespace copp {
                     }
                 }
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT {
-                    return !handle_ || handle_.done();
-                }
+                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !handle_ || handle_.done(); }
 
                 void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
                     if (handle_ && h != handle_) {
@@ -239,7 +240,7 @@ namespace copp {
                 }
 
             protected:
-                wake_list_type await_iterator_;
+                wake_list_type                        await_iterator_;
                 LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle_;
             };
 
@@ -248,7 +249,7 @@ namespace copp {
                 wake_awaitable_t(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> &h) : handle(&h) {}
                 void operator()(context_type &ctx) {
                     if (handle) {
-                        promise_type& promise = handle.promise();
+                        promise_type &promise = handle.promise();
                         if (!promise.is_ready()) {
                             promise.poll(ctx);
                         }
@@ -263,12 +264,12 @@ namespace copp {
             };
 
         private:
-            task_t(const task_t&) UTIL_CONFIG_DELETED_FUNCTION;
-            task_t& operator=(const task_t&) UTIL_CONFIG_DELETED_FUNCTION;
+            task_t(const task_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            task_t &operator=(const task_t &) UTIL_CONFIG_DELETED_FUNCTION;
 
         public:
-            task_t(): handle_(nullptr) {}
-            task_t(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle): handle_(handle) {
+            task_t() : handle_(nullptr) {}
+            task_t(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle) : handle_(handle) {
                 if (handle && !handle.promise().is_ready()) {
                     handle.promise().poll(handle.promise().get_context());
 
@@ -276,18 +277,15 @@ namespace copp {
                         handle.promise().get_context().set_wake_fn(wake_awaitable_t{handle});
                     }
                 }
-
             }
-            task_t(task_t && other): handle_(other.handle_) {
+            task_t(task_t &&other) : handle_(other.handle_) { other.handle_ = nullptr; }
+            task_t &operator=(task_t &&other) {
+                handle_       = other.handle_;
                 other.handle_ = nullptr;
             }
-            task_t& operator=(task_t&& other) {
-                handle_ = other.handle_;
-                other.handle_ = nullptr;
-            }
-            
 
-            auto operator co_await() const & UTIL_CONFIG_NOEXCEPT {
+
+            auto operator co_await() const &UTIL_CONFIG_NOEXCEPT {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
 
@@ -297,17 +295,17 @@ namespace copp {
                     }
                 };
 
-                return awaitable_t { handle_ };
+                return awaitable_t{handle_};
             }
 
-            auto operator co_await() const && UTIL_CONFIG_NOEXCEPT {
+            auto operator co_await() const &&UTIL_CONFIG_NOEXCEPT {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
 
                     decltype(auto) await_resume() {
                         awaitable_base_t::await_resume();
 
-                        promise_type& promise = this->handle.promise();
+                        promise_type &promise = this->handle.promise();
                         if (promise.is_ready()) {
                             return std::move(promise.get_poll_data());
                         }
@@ -316,7 +314,7 @@ namespace copp {
                     }
                 };
 
-                return awaitable_t{ handle_ };
+                return awaitable_t{handle_};
             }
 
         private:
@@ -325,9 +323,8 @@ namespace copp {
 
         template <typename T, class TPD, class TPTR>
         task_t<T, TPD, TPTR> coroutine_future_t<T, TPD, TPTR>::get_return_object() UTIL_CONFIG_NOEXCEPT {
-            return task_t<T, TPD, TPTR> {
-                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<typename task_t<T, TPD, TPTR>::promise_type>::from_promise(*this)
-            };
+            return task_t<T, TPD, TPTR>{
+                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<typename task_t<T, TPD, TPTR>::promise_type>::from_promise(*this)};
         }
 #endif
     } // namespace future
