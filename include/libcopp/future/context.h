@@ -34,14 +34,14 @@ namespace copp {
             }
 
             context_t(const self_type &other) { copy_from(other); }
-            context_t(self_type && other) { move_from(std::move(other)); }
+            context_t(self_type &&other) { move_from(std::move(other)); }
 
             context_t &operator=(const self_type &other) {
                 copy_from(other);
                 return *this;
             }
 
-            context_t &operator=(self_type && other) {
+            context_t &operator=(self_type &&other) {
                 move_from(std::move(other));
                 return *this;
             }
@@ -92,7 +92,7 @@ namespace copp {
                 }
             }
 
-            void move_from(self_type && other) {
+            void move_from(self_type &&other) {
                 wake_fn_.swap(other.wake_fn_);
                 private_data_storage_type::move_storage(private_data_, std::move(other.private_data_));
                 other.wake_fn_ = NULL;
@@ -114,6 +114,7 @@ namespace copp {
             }
 
             void setup_from(const self_type &other) { copy_from(other); }
+            void setup_from(self_type &other) { copy_from(other); }
             void setup_from(self_type &&other) { move_from(other); }
 
         private:
@@ -141,19 +142,19 @@ namespace copp {
             typedef void *                                              value_type;
 
         public:
-            context_t(poll_fn_t pool_fn) : poll_fn_(pool_fn), private_data_(NULL) {}
-            context_t(poll_fn_t pool_fn, void *ptr) : poll_fn_(pool_fn), private_data_(ptr) {}
+            context_t(poll_fn_t pool_fn) : private_data_(NULL), poll_fn_(pool_fn) {}
+            context_t(poll_fn_t pool_fn, void *ptr) : private_data_(ptr), poll_fn_(pool_fn) {}
 
             context_t(const self_type &other) { copy_from(other); }
 
-            context_t(self_type && other) { move_from(std::move(other)); }
+            context_t(self_type &&other) { move_from(std::move(other)); }
 
             context_t &operator=(const self_type &other) {
                 copy_from(other);
                 return *this;
             }
 
-            context_t &operator=(self_type && other) {
+            context_t &operator=(self_type &&other) {
                 move_from(std::move(other));
                 return *this;
             }
@@ -189,13 +190,13 @@ namespace copp {
                 poll_fn_      = other.poll_fn_;
             }
 
-            void move_from(self_type && other) {
+            void move_from(self_type &&other) {
                 private_data_ = other.private_data_;
                 wake_fn_.swap(other.wake_fn_);
                 poll_fn_.swap(other.poll_fn_);
 
-                other.wake_fn_ = NULL;
-                other.poll_fn_ = NULL;
+                other.wake_fn_      = NULL;
+                other.poll_fn_      = NULL;
                 other.private_data_ = NULL;
             }
 

@@ -135,7 +135,7 @@ namespace copp {
 
             template <class U>
             void return_value(U &&in) UTIL_CONFIG_NOEXCEPT {
-                get_poll_data() = std::forward<U>(in);
+                this->get_poll_data() = std::forward<U>(in);
             }
 
             // template <class... TARGS>
@@ -218,7 +218,7 @@ namespace copp {
 
                     other.handle_ = nullptr;
                     if (handle_) {
-                        other.await_iterator_ = handle.promise().end_wake_handles();
+                        other.await_iterator_ = handle_.promise().end_wake_handles();
                     }
                 }
 
