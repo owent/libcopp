@@ -55,21 +55,9 @@ int                                            max_task_number = 100000; // ÂçèÁ
 std::vector<std::unique_ptr<custom_future_t> > task_arr;
 std::vector<custom_context_t>                  context_arr;
 
-int main(int argc, char *argv[]) {
-    puts("###################### future poll ###################");
-    printf("########## Cmd:");
-    for (int i = 0; i < argc; ++i) {
-        printf(" %s", argv[i]);
-    }
-    puts("");
+static void benchmark_round(int index) {
+    printf("### Round: %d ###\n", index);
 
-    if (argc > 1) {
-        max_task_number = atoi(argv[1]);
-    }
-
-    if (argc > 2) {
-        switch_count = atoi(argv[2]);
-    }
 
     time_t       begin_time  = time(NULL);
     CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
@@ -124,6 +112,26 @@ int main(int argc, char *argv[]) {
     printf("remove %d future and context, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
            static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
            CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number));
+}
 
+int main(int argc, char *argv[]) {
+    puts("###################### future poll ###################");
+    printf("########## Cmd:");
+    for (int i = 0; i < argc; ++i) {
+        printf(" %s", argv[i]);
+    }
+    puts("");
+
+    if (argc > 1) {
+        max_task_number = atoi(argv[1]);
+    }
+
+    if (argc > 2) {
+        switch_count = atoi(argv[2]);
+    }
+
+    for (int i = 1; i <= 5; ++i) {
+        benchmark_round(i);
+    }
     return 0;
 }
