@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
     while (task_arr.size() < static_cast<size_t>(max_task_number)) {
         task_arr.emplace_back(copp::future::make_unique<custom_future_t>());
         context_arr.push_back(custom_context_t());
+        context_arr.back().get_private_data()->left_count = switch_count;
     }
 
     time_t       end_time  = time(NULL);
