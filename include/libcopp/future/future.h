@@ -29,7 +29,25 @@ namespace copp {
             typedef typename poll_type::ptr_type     ptr_type;
 #endif
 
+            struct waker_t {
+                self_type *self;
+            };
+
+        private:
+            // future can not be copy or moved.
+            future_t(const future_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            future_t &operator=(const future_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            future_t(future_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+            future_t &operator=(future_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+
         public:
+            future_t() {}
+            ~future_t() {
+                if (shared_waker_) {
+                    shared_waker_->self = NULL;
+                }
+            }
+
             inline bool is_ready() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_ready(); }
 
             inline bool is_pending() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_pending(); }
@@ -42,7 +60,7 @@ namespace copp {
 
                 // Set waker first, and then context can be moved or copyed in private data callback
                 if (!ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(wake_future_t<TPD>(*this));
+                    ctx.set_wake_fn(wake_future_t<TPD>(mutable_waker()));
                 }
 
                 ctx.poll(poll_data_);
@@ -73,20 +91,34 @@ namespace copp {
             inline const poll_type &get_poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
             inline poll_type &      get_poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
 
+            const std::shared_ptr<waker_t> &mutable_waker() {
+                if (shared_waker_) {
+                    return shared_waker_;
+                }
+
+                shared_waker_ = std::make_shared<waker_t>();
+                if (shared_waker_) {
+                    shared_waker_->self = this;
+                }
+
+                return shared_waker_;
+            }
+
         private:
             template <class TPD>
             struct wake_future_t {
-                self_type *self_;
-                wake_future_t(self_type &s) : self_(&s) {}
+                std::shared_ptr<waker_t> waker;
+                wake_future_t(const std::shared_ptr<waker_t> &w) : waker(w) {}
                 void operator()(context_t<TPD> &ctx) {
-                    if (NULL != self_) {
-                        self_->poll(ctx);
+                    if (waker && NULL != waker->self) {
+                        waker->self->poll(ctx);
                     }
                 }
             };
 
         private:
-            poll_type poll_data_;
+            std::shared_ptr<waker_t> shared_waker_;
+            poll_type                poll_data_;
         };
 
 
@@ -247,10 +279,14 @@ namespace copp {
             };
 
             struct wake_awaitable_t {
+                std::shared_ptr<typename promise_type::waker_t> waker;
                 LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
-                wake_awaitable_t(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> &h) : handle(&h) {}
+                wake_awaitable_t(const std::shared_ptr<typename promise_type::waker_t> &w,
+                                 LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> &h)
+                    : waker(w), handle(&h) {}
                 void operator()(context_type &ctx) {
-                    if (handle) {
+                    // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
+                    if (waker && waker->self && handle) {
                         promise_type &promise = handle.promise();
                         if (!promise.is_ready()) {
                             promise.poll(ctx);
@@ -276,7 +312,7 @@ namespace copp {
                     handle.promise().poll(handle.promise().get_context());
 
                     if (!handle.promise().is_ready()) {
-                        handle.promise().get_context().set_wake_fn(wake_awaitable_t{handle});
+                        handle.promise().get_context().set_wake_fn(wake_awaitable_t{handle.promise().mutable_waker(), handle});
                     }
                 }
             }
