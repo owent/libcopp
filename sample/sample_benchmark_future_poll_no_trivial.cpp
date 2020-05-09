@@ -52,7 +52,7 @@ struct custom_waker_t {
     custom_waker_t(custom_waker_t &&other) : left_count(other.left_count) { other.left_count = 0; }
     ~custom_waker_t() {}
 
-    void operator()(custom_future_t &fut, custom_context_t &ctx) {
+    void operator()(custom_future_t &fut, custom_context_t &) {
         if (left_count < 0) {
             ++left_count;
 
@@ -73,7 +73,7 @@ struct custom_waker_t {
 int                                             switch_count    = 100;
 int                                             max_task_number = 100000; // 协程Task数量
 std::vector<std::unique_ptr<custom_future_t> >  task_arr;
-std::vector<std::shared_ptr<custom_context_t> > context_arr;
+std::vector<std::unique_ptr<custom_context_t> > context_arr;
 
 static void benchmark_round(int index) {
     printf("### Round: %d ###\n", index);
@@ -87,7 +87,7 @@ static void benchmark_round(int index) {
     context_arr.reserve(static_cast<size_t>(max_task_number));
     while (task_arr.size() < static_cast<size_t>(max_task_number)) {
         task_arr.emplace_back(copp::future::make_unique<custom_future_t>());
-        context_arr.push_back(std::make_shared<custom_context_t>());
+        context_arr.push_back(copp::future::make_unique<custom_context_t>());
         context_arr.back()->get_private_data().left_count = switch_count;
     }
 
