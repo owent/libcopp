@@ -50,7 +50,6 @@ namespace copp {
         template <class T>
         struct poll_storage_select_ptr_t;
 
-
         template <>
         struct poll_storage_select_ptr_t<void> {
             typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
@@ -82,7 +81,8 @@ namespace copp {
         struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t;
 
         template <>
-        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t<void, std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > > {
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t<void, std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > >
+            : public std::true_type {
             typedef void                                                                 value_type;
             typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > ptr_type;
             typedef ptr_type                                                             storage_type;
@@ -123,7 +123,8 @@ namespace copp {
         };
 
         template <class T>
-        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > > {
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > >
+            : public std::true_type {
             typedef T                                                              value_type;
             typedef std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > ptr_type;
             typedef std::pair<T, ptr_type>                                         storage_type;
@@ -172,7 +173,7 @@ namespace copp {
         };
 
         template <class T, class TPTR>
-        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t {
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t : public std::false_type {
             typedef T        value_type;
             typedef TPTR     ptr_type;
             typedef ptr_type storage_type;
@@ -202,7 +203,8 @@ namespace copp {
         struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t;
 
         template <class T>
-        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > > {
+        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > >
+            : public std::true_type {
             typedef T                                                              value_type;
             typedef std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > ptr_type;
             typedef T                                                              storage_type;
@@ -249,7 +251,7 @@ namespace copp {
         };
 
         template <class T>
-        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t<T, std::shared_ptr<T> > {
+        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t<T, std::shared_ptr<T> > : public std::false_type {
             typedef T                  value_type;
             typedef std::shared_ptr<T> ptr_type;
             typedef ptr_type           storage_type;
@@ -320,12 +322,22 @@ namespace copp {
 
             template <class TARGS>
             inline void construct_success(TARGS &&args) UTIL_CONFIG_NOEXCEPT {
+                make_success_base(std::forward<TARGS>(args));
+            }
+
+            template <class TARGS>
+            inline void construct_error(TARGS &&args) UTIL_CONFIG_NOEXCEPT {
+                make_error_base(std::forward<TARGS>(args));
+            }
+
+            template <class TARGS>
+            inline void make_success_base(TARGS &&args) UTIL_CONFIG_NOEXCEPT {
                 success_data_ = args;
                 mode_         = EN_RESULT_SUCCESS;
             }
 
             template <class TARGS>
-            inline void construct_error(TARGS &&args) UTIL_CONFIG_NOEXCEPT {
+            inline void make_error_base(TARGS &&args) UTIL_CONFIG_NOEXCEPT {
                 error_data_ = args;
                 mode_       = EN_RESULT_ERROR;
             }
@@ -386,6 +398,20 @@ namespace copp {
                 mode_ = EN_RESULT_ERROR;
             }
 
+            template <class... TARGS>
+            inline void make_success_base(TARGS &&... args) {
+                reset();
+                make_object<success_storage_type>(success_data_, std::forward<TARGS>(args)...);
+                mode_ = EN_RESULT_SUCCESS;
+            }
+
+            template <class... TARGS>
+            inline void make_error_base(TARGS &&... args) {
+                reset();
+                make_object<error_storage_type>(error_data_, std::forward<TARGS>(args)...);
+                mode_ = EN_RESULT_ERROR;
+            }
+
             void reset() {
                 if (EN_RESULT_SUCCESS == mode_) {
                     success_storage_type::destroy_storage(success_data_);
@@ -401,6 +427,16 @@ namespace copp {
                 EN_RESULT_INNER_NONE = 2,
             };
 
+            template <class TSTORAGE, class... TARGS>
+            static void make_object(typename TSTORAGE::storage_type &out, TARGS &&... args) {
+                TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...);
+            }
+
+            template <class TSTORAGE, class... TARGS>
+            static void make_object(std::shared_ptr<typename TSTORAGE::storage_type> &out, TARGS &&... args) {
+                TSTORAGE::construct_storage(out, std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
+            }
+
             typedef context_storage_base_t<success_type, typename context_storage_select_t<success_type>::type> success_storage_type;
             typedef context_storage_base_t<error_type, typename context_storage_select_t<error_type>::type>     error_storage_type;
 
@@ -413,7 +449,8 @@ namespace copp {
         class LIBCOPP_COPP_API_HEAD_ONLY result_t
             : public result_base_t<TOK, TERR, std::is_trivial<TOK>::value && std::is_trivial<TERR>::value> {
         public:
-            typedef result_t<TOK, TERR> self_type;
+            typedef result_base_t<TOK, TERR, std::is_trivial<TOK>::value && std::is_trivial<TERR>::value> base_type;
+            typedef result_t<TOK, TERR>                                                                   self_type;
 
             template <class... TARGS>
             static self_type create_success(TARGS &&... args) {
@@ -427,6 +464,68 @@ namespace copp {
                 self_type ret;
                 ret.construct_error(std::forward<TARGS>(args)...);
                 return ret;
+            }
+
+
+        private:
+            template <bool>
+            struct _make_instance;
+
+            template <>
+            struct _make_instance<false> {
+                typedef std::unique_ptr<self_type> type;
+
+                template <class... TARGS>
+                static type make_success(TARGS &&... args) {
+                    type ret = copp::future::make_unique<self_type>();
+                    if (ret) {
+                        ret->make_success_base(std::forward<TARGS>(args)...);
+                    }
+
+                    return ret;
+                }
+
+                template <class... TARGS>
+                static type make_error(TARGS &&... args) {
+                    type ret = copp::future::make_unique<self_type>();
+                    if (ret) {
+                        ret->make_error_base(std::forward<TARGS>(args)...);
+                    }
+
+                    return ret;
+                }
+            };
+
+            template <>
+            struct _make_instance<true> {
+                typedef self_type type;
+
+                template <class... TARGS>
+                static type make_success(TARGS &&... args) {
+                    self_type ret;
+                    ret.make_success_base(std::forward<TARGS>(args)...);
+                    return ret;
+                }
+
+                template <class... TARGS>
+                static type make_error(TARGS &&... args) {
+                    self_type ret;
+                    ret.make_error_base(std::forward<TARGS>(args)...);
+                    return ret;
+                }
+            };
+            typedef _make_instance<poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
+                _make_instance_type;
+
+        public:
+            template <class... TARGS>
+            static typename _make_instance_type::type make_success(TARGS &&... args) {
+                return _make_instance_type::make_success(std::forward<TARGS>(args)...);
+            }
+
+            template <class... TARGS>
+            static typename _make_instance_type::type make_error(TARGS &&... args) {
+                return _make_instance_type::make_error(std::forward<TARGS>(args)...);
             }
         };
     } // namespace future

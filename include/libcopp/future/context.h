@@ -9,12 +9,12 @@ namespace copp {
     namespace future {
         /**
          * @brief context_t
-         * @note TPD::operator()(context_t<TPD>&, poll_t&) and TPD::operator()(context_t<TPD>&) must be declared
-         *       for private data type 'TPD' (template argument).
-         *       TPD::operator()(context_t<TPD>&, poll_t&) will be called with private_data_(*this, out) when related event state changes.
-         *          and the "poll_t& out" must be set if all related asynchronous jobs is done.
-         *       TPD::operator()(context_t<TPD>&) will be called when context is created or assigned.
-         *          (including copy construction/assignment or moved construction/assignment)
+         * @note TPD::operator()(future_t<T>&, context_t<TPD>&) and TPD::operator()(context_t<TPD>&) must be declared
+         *         for private data type 'TPD' (template argument).
+         *       TPD::operator()(future_t<T>&, context_t<TPD>&) will be called with private_data_(future, *this) when related event state
+         *         changes. and the "future.poll_data()" must be set if all related asynchronous jobs is done.
+         *       TPD::operator()(context_t<TPD>&) will be called when context is created or assigned. (including copy
+         *         construction/assignment or moved construction/assignment)
          *
          * @note context_t<TPD> may hold the shared_ptr<TPD> to keep private data always available before context_t<TPD> is destroyed.
          *       So you must not hold the context in any member of TPD
@@ -46,10 +46,10 @@ namespace copp {
                 return *this;
             }
 
-            template <class T, class TPTR>
-            void poll(poll_t<T, TPTR> &out) {
+            template <class TFUTURE>
+            void poll(TFUTURE &fut) {
                 if (private_data_storage_type::unwrap(private_data_)) {
-                    (*private_data_storage_type::unwrap(private_data_))(*this, out);
+                    (*private_data_storage_type::unwrap(private_data_))(fut, *this);
                 }
             }
 
@@ -131,7 +131,7 @@ namespace copp {
         class LIBCOPP_COPP_API_HEAD_ONLY context_t<void> {
         public:
             struct poll_event_data_t {
-                void *poll_output;  // set to address of **out** when call poll(poll_t<T, TPTR> &out)
+                void *future_ptr;   // set to address of **fut** when call poll(future_t<T> &fut)
                 void *private_data; // set to ptr passed by constructor
             };
 
@@ -159,11 +159,11 @@ namespace copp {
                 return *this;
             }
 
-            template <class T, class TPTR>
-            void poll(poll_t<T, TPTR> &out) {
+            template <class TFUTURE>
+            void poll(TFUTURE &fut) {
                 if (poll_fn_) {
                     poll_event_data_t data;
-                    data.poll_output  = reinterpret_cast<void *>(&out);
+                    data.future_ptr   = reinterpret_cast<void *>(&fut);
                     data.private_data = private_data_;
                     poll_fn_(*this, data);
                 }

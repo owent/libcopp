@@ -63,7 +63,7 @@ namespace copp {
                     ctx.set_wake_fn(wake_future_t<TPD>(mutable_waker()));
                 }
 
-                ctx.poll(poll_data_);
+                ctx.poll(*this);
 
                 if (is_ready() && ctx.get_wake_fn()) {
                     ctx.set_wake_fn(NULL);
@@ -88,8 +88,8 @@ namespace copp {
 
             inline const ptr_type & raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
             inline ptr_type &       raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
-            inline const poll_type &get_poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
-            inline poll_type &      get_poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            inline const poll_type &poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            inline poll_type &      poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
 
             const std::shared_ptr<waker_t> &mutable_waker() {
                 if (shared_waker_) {
@@ -123,21 +123,30 @@ namespace copp {
 
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-        template <class T, class TPD, class TPTR, class TWAKELISTALLOC>
+
+        struct macro_task {
+#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
+            using coroutine_handle_allocator = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>;
+#else
+            typedef std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> coroutine_handle_allocator;
+#endif
+        };
+
+        template <class T, class TPD, class TPTR, class TMACRO>
         class LIBCOPP_COPP_API_HEAD_ONLY task_t;
 
         template <class T, class TPD, class TPTR = typename poll_storage_select_ptr_t<T>::type,
-                  class TWAKELISTALLOC = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
+                  class TMACRO = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
         class LIBCOPP_COPP_API_HEAD_ONLY coroutine_future_t : public future_t<T, TPTR> {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using self_type      = coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC>;
+            using self_type      = coroutine_future_t<T, TPD, TPTR, TMACRO>;
             using context_type   = context_t<TPD>;
-            using wake_list_type = std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, TWAKELISTALLOC>;
+            using wake_list_type = std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator>;
 #else
-            typedef coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC> self_type;
-            typedef context_t<TPD>                                   context_type;
-            typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>   wake_list_type;
+            typedef coroutine_future_t<T, TPD, TPTR, TMACRO>            self_type;
+            typedef context_t<TPD>                                      context_type;
+            typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator> wake_list_type;
 #endif
 
             // ================= C++20 Coroutine Support =================
@@ -156,7 +165,7 @@ namespace copp {
             template <class... TARGS>
             coroutine_future_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...) {}
 
-            task_t<T, TPD, TPTR, TWAKELISTALLOC> get_return_object() UTIL_CONFIG_NOEXCEPT;
+            task_t<T, TPD, TPTR, TMACRO> get_return_object() UTIL_CONFIG_NOEXCEPT;
 
             auto initial_suspend() UTIL_CONFIG_NOEXCEPT { return LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_never{}; }
             auto final_suspend() UTIL_CONFIG_NOEXCEPT { return final_awaitable{}; }
@@ -164,11 +173,14 @@ namespace copp {
                 // exception_ptr_ = std::new (static_cast<void*>(std::addressof(m_exception))) std::exception_ptr(std::current_exception());
             }
 
-            // void return_void() UTIL_CONFIG_NOEXCEPT {}
+            void return_void() UTIL_CONFIG_NOEXCEPT {}
 
             template <class U>
             void return_value(U &&in) UTIL_CONFIG_NOEXCEPT {
-                this->get_poll_data() = std::forward<U>(in);
+                // Maybe set error data on custom poller, ignore co_return here.
+                if (this->is_ready()) {
+                    this->poll_data() = std::forward<U>(in);
+                }
             }
 
             // template <class... TARGS>
@@ -210,12 +222,12 @@ namespace copp {
         };
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type,
-                  class TWAKELISTALLOC = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
+                  class TMACRO = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
         class LIBCOPP_COPP_API_HEAD_ONLY EXPLICIT_NODISCARD_ATTR task_t {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using self_type      = task_t<T, TPD, TPTR, TWAKELISTALLOC>;
-            using promise_type   = coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC>;
+            using self_type      = task_t<T, TPD, TPTR, TMACRO>;
+            using promise_type   = coroutine_future_t<T, TPD, TPTR, TMACRO>;
             using context_type   = typename promise_type::context_type;
             using poll_type      = typename promise_type::poll_type;
             using wake_list_type = typename promise_type::wake_list_type;
@@ -223,14 +235,14 @@ namespace copp {
             using value_type     = typename poll_type::value_type;
             using ptr_type       = typename poll_type::ptr_type;
 #else
-            typedef task_t<T, TPD, TPTR, TWAKELISTALLOC>             self_type;
-            typedef coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC> promise_type;
-            typedef typename promise_type::context_type              context_type;
-            typedef typename promise_type::poll_type                 poll_type;
-            typedef typename promise_type::wake_list_type            wake_list_type;
-            typedef typename poll_type::storage_type                 storage_type;
-            typedef typename poll_type::value_type                   value_type;
-            typedef typename poll_type::ptr_type                     ptr_type;
+            typedef task_t<T, TPD, TPTR, TMACRO>                                                                    self_type;
+            typedef coroutine_future_t<T, TPD, TPTR, TMACRO>                                                        promise_type;
+            typedef typename promise_type::context_type                                                             context_type;
+            typedef typename promise_type::poll_type                                                                poll_type;
+            typedef typename promise_type::wake_list_type                                                           wake_list_type;
+            typedef typename poll_type::storage_type                                                                storage_type;
+            typedef typename poll_type::value_type                                                                  value_type;
+            typedef typename poll_type::ptr_type                                                                    ptr_type;
 #endif
 
         private:
@@ -322,21 +334,7 @@ namespace copp {
                 other.handle_ = nullptr;
             }
 
-
-            auto operator co_await() const &UTIL_CONFIG_NOEXCEPT {
-                struct awaitable_t : awaitable_base_t {
-                    using awaitable_base_t::awaitable_base_t;
-
-                    decltype(auto) await_resume() {
-                        awaitable_base_t::await_resume();
-                        return this->handle_.promise().data();
-                    }
-                };
-
-                return awaitable_t{handle_};
-            }
-
-            auto operator co_await() const &&UTIL_CONFIG_NOEXCEPT {
+            auto operator co_await() const UTIL_CONFIG_NOEXCEPT {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
 
@@ -345,7 +343,7 @@ namespace copp {
 
                         promise_type &promise = this->handle.promise();
                         if (promise.is_ready()) {
-                            return std::move(promise.get_poll_data());
+                            return std::move(promise.poll_data());
                         }
 
                         return poll_type();
@@ -359,11 +357,11 @@ namespace copp {
             LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle_;
         };
 
-        template <typename T, class TPD, class TPTR, class TWAKELISTALLOC>
-        task_t<T, TPD, TPTR, TWAKELISTALLOC> coroutine_future_t<T, TPD, TPTR, TWAKELISTALLOC>::get_return_object() UTIL_CONFIG_NOEXCEPT {
-            return task_t<T, TPD, TPTR, TWAKELISTALLOC>{
-                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
-                    coroutine_handle<typename task_t<T, TPD, TPTR, TWAKELISTALLOC>::promise_type>::from_promise(*this)};
+        template <typename T, class TPD, class TPTR, class TMACRO>
+        task_t<T, TPD, TPTR, TMACRO> coroutine_future_t<T, TPD, TPTR, TMACRO>::get_return_object() UTIL_CONFIG_NOEXCEPT {
+            return task_t<T, TPD, TPTR, TMACRO>{
+                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<typename task_t<T, TPD, TPTR, TMACRO>::promise_type>::from_promise(
+                    *this)};
         }
 #endif
     } // namespace future

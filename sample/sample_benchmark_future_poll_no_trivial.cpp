@@ -32,14 +32,26 @@
 #define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / (y ? y : 1))
 #endif
 
+struct custom_success_msg {
+    custom_success_msg() {}
+    custom_success_msg(const custom_success_msg &) {}
+    custom_success_msg(custom_success_msg &&) {}
+    ~custom_success_msg() {}
+};
+
 struct custom_waker_t;
-typedef copp::future::context_t<custom_waker_t> custom_context_t;
-typedef copp::future::result_t<int, int>        custom_result_t;
-typedef copp::future::poll_t<custom_result_t>   custom_poll_t;
-typedef copp::future::future_t<custom_result_t> custom_future_t;
+typedef copp::future::context_t<custom_waker_t>         custom_context_t;
+typedef copp::future::result_t<custom_success_msg, int> custom_result_t;
+typedef copp::future::poll_t<custom_result_t>           custom_poll_t;
+typedef copp::future::future_t<custom_result_t>         custom_future_t;
 
 struct custom_waker_t {
-    int  left_count;
+    int left_count;
+    custom_waker_t() : left_count(0) {}
+    custom_waker_t(const custom_waker_t &other) : left_count(other.left_count) {}
+    custom_waker_t(custom_waker_t &&other) : left_count(other.left_count) { other.left_count = 0; }
+    ~custom_waker_t() {}
+
     void operator()(custom_context_t &) {}
     void operator()(custom_future_t &fut, custom_context_t &ctx) {
         if (ctx.get_private_data()->left_count < 0) {
@@ -55,7 +67,7 @@ struct custom_waker_t {
             return;
         }
 
-        fut.poll_data() = custom_result_t::make_success(200);
+        fut.poll_data() = custom_result_t::make_success();
     }
 };
 

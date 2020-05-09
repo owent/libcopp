@@ -109,7 +109,7 @@ struct test_future_void_context_poll_functor<void> {
     test_future_void_context_poll_functor(int32_t d) : delay(d) {}
 
     void operator()(copp::future::context_t<void> &ctx, copp::future::context_t<void>::poll_event_data_t evt) {
-        CASE_MSG_INFO() << "[Future] custom void poll functor " << this << " polled by " << &ctx << ". poll_t: " << evt.poll_output
+        CASE_MSG_INFO() << "[Future] custom void poll functor " << this << " polled by " << &ctx << ". future: " << evt.future_ptr
                         << std::endl;
 
         if (delay > 0) {
@@ -117,9 +117,9 @@ struct test_future_void_context_poll_functor<void> {
             return;
         }
 
-        copp::future::poll_t<void> *poll_out = reinterpret_cast<copp::future::poll_t<void> *>(evt.poll_output);
+        copp::future::future_t<void> *fut = reinterpret_cast<copp::future::future_t<void> *>(evt.future_ptr);
 
-        *poll_out = true;
+        fut->poll_data() = true;
 
         CASE_MSG_INFO() << "[Future] custom void poll functor " << this << " finished" << std::endl;
     }
@@ -134,9 +134,9 @@ struct test_future_void_context_poll_functor {
     test_future_void_context_poll_functor(int32_t d, U in) : data(in), delay(d) {}
 
     void operator()(copp::future::context_t<void> &ctx, copp::future::context_t<void>::poll_event_data_t evt) {
-        CASE_MSG_INFO() << "[Future] custom poll functor " << this << " polled by " << &ctx << ". poll_t: " << evt.poll_output << std::endl;
+        CASE_MSG_INFO() << "[Future] custom poll functor " << this << " polled by " << &ctx << ". future: " << evt.future_ptr << std::endl;
 
-        copp::future::poll_t<T> *poll_out = reinterpret_cast<copp::future::poll_t<int32_t> *>(evt.poll_output);
+        copp::future::future_t<T> *fut = reinterpret_cast<copp::future::future_t<int32_t> *>(evt.future_ptr);
 
         if (delay > 0) {
             --delay;
@@ -145,9 +145,9 @@ struct test_future_void_context_poll_functor {
 
         T *r = reinterpret_cast<T *>(evt.private_data);
         if (NULL == r) {
-            *poll_out = copp::future::poll_t<T>(data);
+            fut->poll_data() = copp::future::poll_t<T>(data);
         } else {
-            *poll_out = copp::future::poll_t<T>(*r);
+            fut->poll_data() = copp::future::poll_t<T>(*r);
         }
 
         CASE_MSG_INFO() << "[Future] custom poll functor " << this << " finished" << std::endl;
@@ -182,12 +182,12 @@ struct test_future_custom_poller_for_context {
     }
 
     template <class U, class UPTR>
-    void operator()(copp::future::context_t<self_type> &ctx, copp::future::poll_t<U, UPTR> &out) {
+    void operator()(copp::future::future_t<U, UPTR> &fut, copp::future::context_t<self_type> &ctx) {
         if (false == ctx.is_shared_storage()) {
             CASE_EXPECT_EQ(last_trigger, &ctx);
         }
         CASE_MSG_INFO() << "[Future] custom " << test_future_trivial_name<std::is_trivial<self_type>::value>() << " poller " << this
-                        << " polled by context " << &ctx << ". poll_t: " << &out << std::endl;
+                        << " polled by context " << &ctx << ". future_t: " << &fut << std::endl;
         if (delay > 0) {
             --delay;
             if (NULL != copy_when_poll) {
@@ -197,7 +197,7 @@ struct test_future_custom_poller_for_context {
             return;
         }
 
-        out = copp::future::poll_t<U, UPTR>(std::move(data));
+        fut.poll_data() = copp::future::poll_t<U, UPTR>(std::move(data));
         CASE_MSG_INFO() << "[Future] custom poller " << this << " finished" << std::endl;
     }
 };
