@@ -48,30 +48,31 @@ namespace copp {
         };
 
         template <class T>
-        struct poll_storage_select_ptr_t;
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t;
 
         template <>
-        struct poll_storage_select_ptr_t<void> {
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t<void> {
             typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
         };
 
         template <class T>
-        struct poll_storage_select_ptr_t {
+        struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t {
             typedef typename std::conditional<std::is_trivial<T>::value && sizeof(T) < (sizeof(size_t) << 2),
                                               std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >,
                                               std::unique_ptr<T, std::default_delete<T> > >::type type;
         };
 
         template <class T>
-        struct context_storage_select_t;
+        struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t;
+
         template <>
-        struct context_storage_select_t<void> {
+        struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t<void> {
             typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
         };
 
 
         template <class T>
-        struct context_storage_select_t {
+        struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t {
             typedef
                 typename std::conditional<std::is_trivial<T>::value && sizeof(T) <= (sizeof(size_t) << 2),
                                           std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >, std::shared_ptr<T> >::type type;
@@ -200,10 +201,10 @@ namespace copp {
         };
 
         template <class T, class TPTR>
-        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t;
+        struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t;
 
         template <class T>
-        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > >
+        struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > >
             : public std::true_type {
             typedef T                                                              value_type;
             typedef std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > ptr_type;
@@ -251,7 +252,7 @@ namespace copp {
         };
 
         template <class T>
-        struct LIBCOPP_COPP_API_HEAD_ONLY context_storage_base_t<T, std::shared_ptr<T> > : public std::false_type {
+        struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t<T, std::shared_ptr<T> > : public std::false_type {
             typedef T                  value_type;
             typedef std::shared_ptr<T> ptr_type;
             typedef ptr_type           storage_type;
@@ -441,8 +442,8 @@ namespace copp {
                 TSTORAGE::construct_storage(out, std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
             }
 
-            typedef context_storage_base_t<success_type, typename context_storage_select_t<success_type>::type> success_storage_type;
-            typedef context_storage_base_t<error_type, typename context_storage_select_t<error_type>::type>     error_storage_type;
+            typedef compact_storage_t<success_type, typename compact_storage_select_t<success_type>::type> success_storage_type;
+            typedef compact_storage_t<error_type, typename compact_storage_select_t<error_type>::type>     error_storage_type;
 
             typename success_storage_type::storage_type success_data_;
             typename error_storage_type::storage_type   error_data_;
@@ -520,7 +521,7 @@ namespace copp {
 
         private:
             typedef _make_result_instance_helper<self_type,
-                poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
+                                                 poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
                 _make_instance_type;
 
         public:

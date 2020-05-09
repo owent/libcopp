@@ -52,18 +52,17 @@ struct custom_waker_t {
     custom_waker_t(custom_waker_t &&other) : left_count(other.left_count) { other.left_count = 0; }
     ~custom_waker_t() {}
 
-    void operator()(custom_context_t &) {}
     void operator()(custom_future_t &fut, custom_context_t &ctx) {
-        if (ctx.get_private_data()->left_count < 0) {
-            ++ctx.get_private_data()->left_count;
+        if (left_count < 0) {
+            ++left_count;
 
-            if (ctx.get_private_data()->left_count == 0) {
+            if (left_count == 0) {
                 fut.poll_data() = custom_result_t::make_error(403);
             }
             return;
         }
 
-        if (ctx.get_private_data()->left_count-- > 0) {
+        if (left_count-- > 0) {
             return;
         }
 
@@ -89,7 +88,7 @@ static void benchmark_round(int index) {
     while (task_arr.size() < static_cast<size_t>(max_task_number)) {
         task_arr.emplace_back(copp::future::make_unique<custom_future_t>());
         context_arr.push_back(std::make_shared<custom_context_t>());
-        context_arr.back()->get_private_data()->left_count = switch_count;
+        context_arr.back()->get_private_data().left_count = switch_count;
     }
 
     time_t       end_time  = time(NULL);
