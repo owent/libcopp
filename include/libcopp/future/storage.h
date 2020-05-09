@@ -319,6 +319,8 @@ namespace copp {
         private:
             template <class UOK, class UERR>
             friend class result_t;
+            template <class TRESULT, bool>
+            friend struct _make_result_instance_helper;
 
             template <class TARGS>
             inline void construct_success(TARGS &&args) UTIL_CONFIG_NOEXCEPT {
@@ -383,6 +385,8 @@ namespace copp {
         private:
             template <class UOK, class UERR>
             friend class result_t;
+            template <class TRESULT, bool>
+            friend struct _make_result_instance_helper;
 
             template <class... TARGS>
             inline void construct_success(TARGS &&... args) {
@@ -445,6 +449,53 @@ namespace copp {
             uint8_t                                     mode_;
         };
 
+        template <class TRESULT, bool>
+        struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper;
+
+        template <class TRESULT>
+        struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
+            typedef std::unique_ptr<TRESULT> type;
+
+            template <class... TARGS>
+            static type make_success(TARGS &&... args) {
+                type ret = copp::future::make_unique<TRESULT>();
+                if (ret) {
+                    ret->make_success_base(std::forward<TARGS>(args)...);
+                }
+
+                return ret;
+            }
+
+            template <class... TARGS>
+            static type make_error(TARGS &&... args) {
+                type ret = copp::future::make_unique<TRESULT>();
+                if (ret) {
+                    ret->make_error_base(std::forward<TARGS>(args)...);
+                }
+
+                return ret;
+            }
+        };
+
+        template <class TRESULT>
+        struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, true> {
+            typedef TRESULT type;
+
+            template <class... TARGS>
+            static type make_success(TARGS &&... args) {
+                TRESULT ret;
+                ret.make_success_base(std::forward<TARGS>(args)...);
+                return ret;
+            }
+
+            template <class... TARGS>
+            static type make_error(TARGS &&... args) {
+                TRESULT ret;
+                ret.make_error_base(std::forward<TARGS>(args)...);
+                return ret;
+            }
+        };
+
         template <class TOK, class TERR>
         class LIBCOPP_COPP_API_HEAD_ONLY result_t
             : public result_base_t<TOK, TERR, std::is_trivial<TOK>::value && std::is_trivial<TERR>::value> {
@@ -468,53 +519,8 @@ namespace copp {
 
 
         private:
-            template <bool>
-            struct _make_instance;
-
-            template <>
-            struct _make_instance<false> {
-                typedef std::unique_ptr<self_type> type;
-
-                template <class... TARGS>
-                static type make_success(TARGS &&... args) {
-                    type ret = copp::future::make_unique<self_type>();
-                    if (ret) {
-                        ret->make_success_base(std::forward<TARGS>(args)...);
-                    }
-
-                    return ret;
-                }
-
-                template <class... TARGS>
-                static type make_error(TARGS &&... args) {
-                    type ret = copp::future::make_unique<self_type>();
-                    if (ret) {
-                        ret->make_error_base(std::forward<TARGS>(args)...);
-                    }
-
-                    return ret;
-                }
-            };
-
-            template <>
-            struct _make_instance<true> {
-                typedef self_type type;
-
-                template <class... TARGS>
-                static type make_success(TARGS &&... args) {
-                    self_type ret;
-                    ret.make_success_base(std::forward<TARGS>(args)...);
-                    return ret;
-                }
-
-                template <class... TARGS>
-                static type make_error(TARGS &&... args) {
-                    self_type ret;
-                    ret.make_error_base(std::forward<TARGS>(args)...);
-                    return ret;
-                }
-            };
-            typedef _make_instance<poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
+            typedef _make_result_instance_helper<self_type,
+                poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
                 _make_instance_type;
 
         public:
