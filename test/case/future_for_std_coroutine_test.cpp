@@ -6,6 +6,8 @@
 
 #include <libcopp/future/future.h>
 #include <libcopp/future/poll.h>
+#include <libcopp/future/std_coroutine_generator.h>
+#include <libcopp/future/std_coroutine_task.h>
 
 #include "frame/test_macros.h"
 
@@ -87,4 +89,15 @@ CASE_TEST(future_for_std_coroutine, poll_trival) {
     // CASE_MSG_INFO() << test_var << std::endl;
 }
 */
+
+EXPLICIT_UNUSED_ATTR copp::future::task_t<int> call_for_coroutine_fn_runtime_trivial() {
+    // test compile for trivial result type of task_t
+    co_return 123;
+}
+
+EXPLICIT_UNUSED_ATTR copp::future::task_t<void> call_for_coroutine_fn_runtime_void() {
+    // test compile for void result type of task_t
+    co_return;
+}
+
 #endif

@@ -13,9 +13,9 @@ namespace copp {
         class LIBCOPP_COPP_API_HEAD_ONLY generator_future_t : public future_t<T, TPTR> {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using self_type = generator_future_t<T, TPD>;
+            using self_type = generator_future_t<T, TPTR>;
 #else
-            typedef generator_future_t<T, TPD>      self_type;
+            typedef generator_future_t<T, TPTR>     self_type;
 #endif
 
         public:

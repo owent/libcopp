@@ -41,11 +41,11 @@ namespace copp {
 #if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
         private:
             struct _test_context_functor_t {
-                template <class U>
-                int operator()(U &);
+                // template <class U>
+                // int operator()(U *);
 
                 template <class U>
-                bool operator()(context_t<U> &);
+                bool operator()(context_t<U> *);
             };
 #endif
 
@@ -62,9 +62,10 @@ namespace copp {
             inline bool is_pending() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_pending(); }
 
             template <class TCONTEXT>
-            void poll(TCONTEXT &ctx) {
+            void poll(TCONTEXT &&ctx) {
 #if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
-                static_assert(std::is_same<bool, COPP_RETURN_VALUE_DECAY(_test_context_functor_t, TCONTEXT &)>::value,
+                typedef typename std::decay<TCONTEXT>::type decay_context_type;
+                static_assert(std::is_same<bool, COPP_RETURN_VALUE_DECAY(_test_context_functor_t, decay_context_type *)>::value,
                               "ctx must be drive of context_t");
 #endif
                 if (is_ready()) {
@@ -73,7 +74,7 @@ namespace copp {
 
                 // Set waker first, and then context can be moved or copyed in private data callback
                 if (!ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(wake_future_t<TCONTEXT>(mutable_waker()));
+                    ctx.set_wake_fn(wake_future_t(mutable_waker()));
                 }
 
                 ctx.poll(*this);
@@ -118,13 +119,14 @@ namespace copp {
             }
 
         private:
-            template <class TCONTEXT>
             struct wake_future_t {
                 std::shared_ptr<waker_t> waker;
                 wake_future_t(const std::shared_ptr<waker_t> &w) : waker(w) {}
-                void operator()(TCONTEXT &ctx) {
+
+                template <class TCONTEXT>
+                void operator()(TCONTEXT &&ctx) {
                     if (waker && NULL != waker->self) {
-                        waker->self->poll(ctx);
+                        waker->self->poll(std::forward<TCONTEXT>(ctx));
                     }
                 }
             };

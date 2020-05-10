@@ -34,8 +34,8 @@ namespace copp {
             context_t(TARGS &&... args) : private_data_(std::forward<TARGS>(args)...) {}
 
             template <class TFUTURE>
-            void poll(TFUTURE &fut) {
-                private_data_(fut, *this);
+            void poll(TFUTURE &&fut) {
+                private_data_(std::forward<TFUTURE>(fut), *this);
             }
 
             void wake() {
@@ -82,6 +82,7 @@ namespace copp {
             context_t &operator=(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
 
         public:
+            context_t() : private_data_(NULL) {}
             context_t(poll_fn_t pool_fn) : private_data_(NULL), poll_fn_(pool_fn) {}
             context_t(poll_fn_t pool_fn, void *ptr) : private_data_(ptr), poll_fn_(pool_fn) {}
             ~context_t() {
@@ -91,7 +92,7 @@ namespace copp {
             }
 
             template <class TFUTURE>
-            void poll(TFUTURE &fut) {
+            void poll(TFUTURE &&fut) {
                 if (poll_fn_) {
                     poll_event_data_t data;
                     data.future_ptr   = reinterpret_cast<void *>(&fut);
