@@ -188,19 +188,24 @@ namespace copp {
             void operator()(TCONTEXT &&ctx) {
                 // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
                 if (waker && waker->self && handle) {
-                    TPROMISE &promise = handle.promise();
-                    if (promise.get_bind_future() != nullptr) {
-                        if (!promise.get_bind_future()->is_ready()) {
-                            promise.get_bind_future()->poll(std::forward<TCONTEXT>(ctx));
-                        }
-                        // TODO check type
-                    }
+                    call_poll(waker, handle, std::forward<TCONTEXT>(ctx));
+                }
+            }
 
-                    if (promise.get_bind_future() == nullptr || promise.get_bind_future()->is_ready()) {
-                        while (!handle.done()) {
-                            handle.resume();
-                        }
+            template <class TCONTEXT>
+            static void call_poll(std::shared_ptr<typename TPROMISE::waker_type> waker,
+                                  LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> handle, TCONTEXT &&ctx) {
+                TPROMISE &promise = handle.promise();
+                if (promise.get_bind_future() != nullptr) {
+                    if (!promise.get_bind_future()->is_ready()) {
+                        promise.get_bind_future()->poll(std::forward<TCONTEXT>(ctx));
                     }
+                    // TODO check type
+                }
+
+                // waker may be destroyed when call poll, so copy waker and handle into stack
+                while (!handle.done() && (promise.get_bind_future() == nullptr || promise.get_bind_future()->is_ready())) {
+                    handle.resume();
                 }
             }
         };
@@ -376,8 +381,8 @@ namespace copp {
         template <class TPD, class TPTR, class TMACRO>
         task_t<void, TPD, TPTR, TMACRO> task_promise_t<void, TPD, TPTR, TMACRO>::get_return_object() UTIL_CONFIG_NOEXCEPT {
             return task_t<void, TPD, TPTR, TMACRO>{
-                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<typename task_t<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(
-                    *this)};
+                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
+                    coroutine_handle<typename task_t<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this)};
         }
 #endif
     } // namespace future

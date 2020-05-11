@@ -210,7 +210,7 @@ CASE_TEST(future, future_with_void_result_and_void_context) {
     CASE_EXPECT_EQ(NULL, fut.data());
     CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
 
-    copp::future::context_t<void> ctx(test_future_void_context_poll_functor<void>(1), NULL);
+    copp::future::context_t<void> ctx(copp::future::context_t<void>::construct(test_future_void_context_poll_functor<void>(1), NULL));
     fut.poll(ctx);
     CASE_EXPECT_FALSE(fut.is_ready());
     CASE_EXPECT_TRUE(fut.is_pending());
@@ -232,7 +232,8 @@ CASE_TEST(future, future_with_trival_result_and_void_context) {
     CASE_EXPECT_EQ(NULL, fut.data());
     CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
 
-    copp::future::context_t<void> ctx(test_future_void_context_poll_functor<int32_t>(1, 0), &simulator_result);
+    copp::future::context_t<void> ctx(
+        copp::future::context_t<void>::construct(test_future_void_context_poll_functor<int32_t>(1, 0), &simulator_result));
     fut.poll(ctx);
     CASE_EXPECT_FALSE(fut.is_ready());
     CASE_EXPECT_TRUE(fut.is_pending());

@@ -81,10 +81,45 @@ namespace copp {
             context_t(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
             context_t &operator=(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
 
+            struct construct_helper_t {
+                poll_fn_t pool_fn;
+                void *    private_data;
+
+                template <class U>
+                inline construct_helper_t(U &&fn, void *ptr = NULL) : pool_fn(std::forward<U>(fn)), private_data(ptr) {}
+            };
+
+            template <bool>
+            struct construct_helper_assign_t;
+
+            template <>
+            struct construct_helper_assign_t<true> {
+                template <class U>
+                static inline void assign(self_type &self, U &&helper) {
+                    self.set_private_data(helper.private_data);
+                    self.set_poll_fn(std::move(helper.pool_fn));
+                }
+            };
+
+            template <>
+            struct construct_helper_assign_t<false> {
+                template <class U>
+                static inline void assign(self_type &, U &&) {}
+            };
+
         public:
+            template <class U>
+            static inline construct_helper_t construct(U &&fn, void *ptr = NULL) {
+                return construct_helper_t(std::forward<U>(fn), ptr);
+            }
+
             context_t() : private_data_(NULL) {}
-            context_t(poll_fn_t pool_fn) : private_data_(NULL), poll_fn_(pool_fn) {}
-            context_t(poll_fn_t pool_fn, void *ptr) : private_data_(ptr), poll_fn_(pool_fn) {}
+            template <class TFIRST, class... TARGS>
+            context_t(TFIRST &&helper, TARGS &&...) : private_data_(NULL) {
+                construct_helper_assign_t<std::is_same<construct_helper_t, typename std::decay<TFIRST>::type>::value>::assign(
+                    *this, std::forward<TFIRST>(helper));
+            }
+
             ~context_t() {
                 if (on_destroy_fn_) {
                     on_destroy_fn_(*this);
@@ -107,14 +142,19 @@ namespace copp {
                 }
             }
 
-            inline void             set_wake_fn(wake_fn_t fn) { wake_fn_ = fn; }
+            inline void             set_poll_fn(poll_fn_t fn) { poll_fn_.swap(fn); }
+            inline const poll_fn_t &get_poll_fn() const { return poll_fn_; }
+            inline poll_fn_t &      get_poll_fn() { return poll_fn_; }
+
+            inline void             set_wake_fn(wake_fn_t fn) { wake_fn_.swap(fn); }
             inline const wake_fn_t &get_wake_fn() const { return wake_fn_; }
             inline wake_fn_t &      get_wake_fn() { return wake_fn_; }
 
-            inline void             set_on_destroy(wake_fn_t fn) { on_destroy_fn_ = fn; }
+            inline void             set_on_destroy(wake_fn_t fn) { on_destroy_fn_.swap(fn); }
             inline const wake_fn_t &get_on_destroy() const { return on_destroy_fn_; }
             inline wake_fn_t &      get_on_destroy() { return on_destroy_fn_; }
 
+            inline void        set_private_data(void *ptr) { private_data_ = ptr; }
             inline void *      get_private_data() UTIL_CONFIG_NOEXCEPT { return private_data_; }
             inline const void *get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
 

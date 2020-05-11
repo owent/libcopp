@@ -49,6 +49,32 @@ namespace copp {
             };
 #endif
 
+        protected:
+            template <class TSELF, class TCONTEXT>
+            static void poll(TSELF &self, TCONTEXT &&ctx) {
+#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
+                typedef typename std::decay<TCONTEXT>::type decay_context_type;
+                static_assert(std::is_same<bool, COPP_RETURN_VALUE_DECAY(_test_context_functor_t, decay_context_type *)>::value,
+                              "ctx must be drive of context_t");
+                static_assert(std::is_base_of<self_type, typename std::decay<TSELF>::type>::value,
+                              "self must be drive of future_t<T, TPTR>");
+#endif
+                if (self.is_ready()) {
+                    return;
+                }
+
+                // Set waker first, and then context can be moved or copyed in private data callback
+                if (!ctx.get_wake_fn()) {
+                    ctx.set_wake_fn(wake_future_t<typename std::decay<TSELF>::type>(self.mutable_waker()));
+                }
+
+                ctx.poll(self);
+
+                if (self.is_ready() && ctx.get_wake_fn()) {
+                    ctx.set_wake_fn(NULL);
+                }
+            }
+
         public:
             future_t() {}
             ~future_t() {
@@ -63,25 +89,7 @@ namespace copp {
 
             template <class TCONTEXT>
             void poll(TCONTEXT &&ctx) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
-                typedef typename std::decay<TCONTEXT>::type decay_context_type;
-                static_assert(std::is_same<bool, COPP_RETURN_VALUE_DECAY(_test_context_functor_t, decay_context_type *)>::value,
-                              "ctx must be drive of context_t");
-#endif
-                if (is_ready()) {
-                    return;
-                }
-
-                // Set waker first, and then context can be moved or copyed in private data callback
-                if (!ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(wake_future_t(mutable_waker()));
-                }
-
-                ctx.poll(*this);
-
-                if (is_ready() && ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(NULL);
-                }
+                poll(*this, std::forward<TCONTEXT>(ctx));
             }
 
             inline const value_type *data() const UTIL_CONFIG_NOEXCEPT {
@@ -119,7 +127,21 @@ namespace copp {
             }
 
         private:
+            template <class TCONVERT>
             struct wake_future_t {
+                std::shared_ptr<waker_t> waker;
+                wake_future_t(const std::shared_ptr<waker_t> &w) : waker(w) {}
+
+                template <class TCONTEXT>
+                void operator()(TCONTEXT &&ctx) {
+                    if (waker && NULL != waker->self) {
+                        static_cast<TCONVERT *>(waker->self)->poll(std::forward<TCONTEXT>(ctx));
+                    }
+                }
+            };
+
+            template <>
+            struct wake_future_t<self_type> {
                 std::shared_ptr<waker_t> waker;
                 wake_future_t(const std::shared_ptr<waker_t> &w) : waker(w) {}
 

@@ -13,72 +13,83 @@
 
 // ================= Unit Test - C++20 Coroutine Support =================
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-/*
-struct test_no_trivial_parent_clazz {
-    test_no_trivial_parent_clazz() : data(0) {}
-    test_no_trivial_parent_clazz(int a) : data(a) {}
-    virtual ~test_no_trivial_parent_clazz() {}
-    virtual int get_type() { return 1; }
 
-    int data;
-};
-
-struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
-    test_no_trivial_child_clazz() {}
-    test_no_trivial_child_clazz(int a) : test_no_trivial_parent_clazz(-a) {}
-    virtual ~test_no_trivial_child_clazz() {}
-    virtual int get_type() { return 2; }
-};
-
-struct test_future_for_std_coroutine_result_message_t {
+struct test_future_for_std_coroutine_trivial_result_message_t {
     int ret_code;
     int rsp_code;
 };
 
-struct test_future_for_std_coroutine_waker_t;
+struct test_future_for_std_coroutine_trivial_generator_waker_t;
 
-typedef copp::future::result_t<test_future_for_std_coroutine_result_message_t, int32_t> test_result_t;
-typedef copp::future::task_t<test_result_t>                                             test_task_t;
-typedef copp::future::poll_t<test_result_t>                                             test_poll_t;
-typedef copp::future::context_t<test_future_for_std_coroutine_waker_t>                  test_context_t;
+typedef copp::future::result_t<test_future_for_std_coroutine_trivial_result_message_t, int32_t> test_trivial_result_t;
+typedef copp::future::task_t<test_trivial_result_t>                                             test_trivial_task_t;
+typedef copp::future::context_t<test_future_for_std_coroutine_trivial_generator_waker_t>        test_trivial_context_t;
+typedef copp::future::generator_future_t<test_trivial_result_t>                                 test_trivial_generator_future_t;
+typedef copp::future::poll_t<test_trivial_result_t>                                             test_trivial_poll_t;
 
-std::list<test_context_t> g_test_future_for_std_coroutine_waker_context_list;
+std::list<test_trivial_context_t *> g_test_future_for_std_coroutine_waker_context_list;
 
-struct test_future_for_std_coroutine_waker_t {
-    int code;
-    int pend_poll;
+struct test_future_for_std_coroutine_trivial_generator_waker_t {
+    int32_t                                       code;
+    int32_t                                       await_times;
+    std::list<test_trivial_context_t *>::iterator refer_to;
+    test_future_for_std_coroutine_trivial_generator_waker_t(int32_t c, int32_t at) : code(c), await_times(at) {
+        refer_to = g_test_future_for_std_coroutine_waker_context_list.end();
+    }
 
-    // for call_for_coroutine_fn_success
-    test_future_for_std_coroutine_waker_t() : code(200), pend_poll(1) {}
+    ~test_future_for_std_coroutine_trivial_generator_waker_t() {
+        if (refer_to != g_test_future_for_std_coroutine_waker_context_list.end()) {
+            g_test_future_for_std_coroutine_waker_context_list.erase(refer_to);
+        }
+    }
 
-    // for call_for_coroutine_fn_failed
-    test_future_for_std_coroutine_waker_t(int32_t c) : code(c), pend_poll(1) {}
+    void operator()(test_trivial_generator_future_t &fut, test_trivial_context_t &ctx) {
+        if (refer_to != g_test_future_for_std_coroutine_waker_context_list.end()) {
+            g_test_future_for_std_coroutine_waker_context_list.erase(refer_to);
+            refer_to = g_test_future_for_std_coroutine_waker_context_list.end();
+        }
+        if (await_times-- > 0) {
+            refer_to =
+                g_test_future_for_std_coroutine_waker_context_list.insert(g_test_future_for_std_coroutine_waker_context_list.end(), &ctx);
+            return;
+        }
 
-    void operator()(test_context_t &ctx) {}
-
-    void operator()(test_context_t &ctx, test_poll_t &out) {
-        //
-        g_test_future_for_std_coroutine_waker_context_list.push_back(ctx);
+        if (code > 0) {
+            test_future_for_std_coroutine_trivial_result_message_t msg;
+            msg.ret_code    = code;
+            msg.rsp_code    = code;
+            fut.poll_data() = test_trivial_result_t::make_success(msg);
+        } else {
+            fut.poll_data() = test_trivial_result_t::make_error(code);
+        }
     }
 };
 
-static test_task_t call_for_coroutine_fn_failed(int32_t code) {
-    //
-    co_return test_result_t::create_error(code);
-}
+typedef copp::future::generator_t<test_trivial_result_t, test_future_for_std_coroutine_trivial_generator_waker_t> test_generator_t;
 
-static test_task_t call_for_coroutine_fn_success() {
-    auto ret = copp::future::make_unique<test_future_for_std_coroutine_result_message_t>();
+static test_generator_t call_for_coroutine_fn_generator(int32_t code) { return test_generator_t{code, 1}; }
 
-    ret->ret_code = 0;
-    ret->rsp_code = 0;
+static test_trivial_task_t call_for_coroutine_fn_runtime_with_code(int32_t await_times, int32_t code) {
+    test_trivial_poll_t ret;
+    for (int32_t i = 0; i < await_times; ++i) {
+        ret = co_await call_for_coroutine_fn_generator(code);
+        if (nullptr != ret.data()) {
+            if (ret.data()->is_success()) {
+                CASE_MSG_INFO() << "co_await got success response: (" << ret.data()->get_success()->ret_code << ","
+                                << ret.data()->get_success()->rsp_code << ")" << std::endl;
+            } else if (ret.data()->is_error()) {
+                CASE_MSG_INFO() << "co_await got error response: " << *ret.data()->get_error() << std::endl;
+            }
+        } else {
+            CASE_MSG_INFO() << "co_await got pending poll data." << std::endl;
+        }
+    }
 
-    co_return test_result_t::create_success(std::move(ret));
-}
+    if (nullptr != ret.data()) {
+        co_return std::move(*ret.data());
+    }
 
-static test_task_t call_for_coroutine_fn_runtime() {
-    //
-    auto failed_res = co_await call_for_coroutine_fn_failed(403);
+    co_return test_trivial_result_t::make_error(-1);
 }
 
 CASE_TEST(future_for_std_coroutine, poll_trival) {
@@ -87,17 +98,64 @@ CASE_TEST(future_for_std_coroutine, poll_trival) {
 
     // CASE_MSG_INFO() << test_var << std::endl;
     // CASE_MSG_INFO() << test_var << std::endl;
-}
-*/
+    test_trivial_task_t t1 = call_for_coroutine_fn_runtime_with_code(3, 200);
+    test_trivial_task_t t2 = call_for_coroutine_fn_runtime_with_code(3, -200);
 
-EXPLICIT_UNUSED_ATTR copp::future::task_t<int> call_for_coroutine_fn_runtime_trivial() {
+    CASE_EXPECT_FALSE(t1.is_finished());
+    CASE_EXPECT_FALSE(t2.is_finished());
+
+    for (int i = 0; i < 10 && (!t1.is_finished() || !t2.is_finished()); ++i) {
+        for (std::list<test_generator_t::context_type *>::iterator iter = g_test_future_for_std_coroutine_waker_context_list.begin();
+             iter != g_test_future_for_std_coroutine_waker_context_list.end();) {
+            test_generator_t::context_type *ctx = (*iter);
+            ++iter;
+            ctx->wake();
+        }
+    }
+
+    CASE_EXPECT_TRUE(t1.is_finished());
+    CASE_EXPECT_TRUE(t2.is_finished());
+    CASE_EXPECT_NE(nullptr, t1.data());
+    CASE_EXPECT_NE(nullptr, t2.data());
+    if (nullptr != t1.data()) {
+        CASE_EXPECT_TRUE(t1.data()->is_success());
+        if (t1.data()->is_success()) {
+            CASE_EXPECT_EQ(200, t1.data()->get_success()->rsp_code);
+        }
+    }
+    if (nullptr != t2.data()) {
+        CASE_EXPECT_TRUE(t2.data()->is_error());
+        CASE_EXPECT_EQ(-200, *t2.data()->get_error());
+    }
+}
+
+static copp::future::task_t<int> call_for_coroutine_fn_runtime_trivial() {
     // test compile for trivial result type of task_t
     co_return 123;
 }
 
-EXPLICIT_UNUSED_ATTR copp::future::task_t<void> call_for_coroutine_fn_runtime_void() {
+static copp::future::task_t<void> call_for_coroutine_fn_runtime_void() {
     // test compile for void result type of task_t
     co_return;
+}
+
+CASE_TEST(future_for_std_coroutine, tast_with_trivial_result) {
+    copp::future::task_t<int> t = call_for_coroutine_fn_runtime_trivial();
+
+    CASE_EXPECT_TRUE(t.is_finished());
+    CASE_EXPECT_TRUE(t.poll_data().is_ready());
+    CASE_EXPECT_NE(nullptr, t.data());
+    if (nullptr != t.data()) {
+        CASE_EXPECT_EQ(123, *t.data());
+    }
+}
+
+CASE_TEST(future_for_std_coroutine, tast_with_void_result) {
+    copp::future::task_t<void> t = call_for_coroutine_fn_runtime_void();
+
+    CASE_EXPECT_TRUE(t.is_finished());
+    CASE_EXPECT_TRUE(t.poll_data().is_ready());
+    CASE_EXPECT_NE(nullptr, t.data());
 }
 
 #endif

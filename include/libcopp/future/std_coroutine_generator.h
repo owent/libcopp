@@ -26,6 +26,11 @@ namespace copp {
             inline LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &      get_handle() { return await_handle_; }
             inline void                                       set_handle(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) { await_handle_ = h; }
 
+            template <class TCONTEXT>
+            void poll(TCONTEXT &&ctx) {
+                future_t<T, TPTR>::poll(*this, std::forward<TCONTEXT>(ctx));
+            }
+
         private:
             LIBCOPP_MACRO_FUTURE_COROUTINE_VOID await_handle_;
         };
@@ -61,7 +66,7 @@ namespace copp {
                     other.future_ = nullptr;
                 }
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !future_ || !future_->get_handle() || future_->get_handle().done(); }
+                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !future_ || future_->is_ready(); }
 
                 void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
                     if (future_) {
@@ -74,9 +79,7 @@ namespace copp {
                     }
                 }
 
-                decltype(auto) await_resume() UTIL_CONFIG_NOEXCEPT {
-                    await_handle_ = nullptr;
-
+                poll_type await_resume() UTIL_CONFIG_NOEXCEPT {
                     if (future_) {
                         if (future_->is_ready()) {
                             future_type *fut = future_;
@@ -101,18 +104,19 @@ namespace copp {
                 wake_awaitable_t(future_type &fut, const std::shared_ptr<typename future_type::waker_t> &w) : future(&fut), waker(w) {}
                 void operator()(context_type &ctx) {
                     // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
-                    if (waker && waker->self) {
-                        if (future) {
-                            if (!future->is_ready()) {
-                                future->poll(ctx);
-                            }
+                    if (waker && waker->self && future) {
+                        call_poll(future, waker, ctx);
+                    }
+                }
 
-                            if (future->is_ready()) {
-                                while (future->get_handle() && !future->get_handle().done()) {
-                                    future->get_handle().resume();
-                                }
-                            }
-                        }
+                static void call_poll(future_type *future, std::shared_ptr<typename future_type::waker_t> waker, context_type &ctx) {
+                    if (!future->is_ready()) {
+                        future->poll(ctx);
+                    }
+
+                    // waker may be destroyed when call poll, so copy waker and future into stack
+                    while (future->is_ready() && (future->get_handle() && !future->get_handle().done())) {
+                        future->get_handle().resume();
                     }
                 }
             };
@@ -123,7 +127,7 @@ namespace copp {
                 future_.poll(context_);
                 // setup waker
                 if (!future_.is_ready()) {
-                    context_.set_wake_fn(wake_awaitable_t{&future_, future_.mutable_waker()});
+                    context_.set_wake_fn(wake_awaitable_t{future_, future_.mutable_waker()});
                 }
             }
 
