@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <assert.h>
+
 #include "future.h"
 
 namespace copp {
@@ -81,6 +83,12 @@ namespace copp {
         public:
             template <class... TARGS>
             task_promise_base_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...), task_future_(nullptr) {}
+            ~task_promise_base_t() {
+                // printf("~task_promise_base_t %p\n", this);
+                // cleanup: await_handles_ should be already cleanup in final_awaitable::await_suspend
+                assert(await_handles_.empty());
+                // wake_all();
+            }
 
             auto initial_suspend() UTIL_CONFIG_NOEXCEPT { return LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_never{}; }
             auto final_suspend() UTIL_CONFIG_NOEXCEPT { return final_awaitable{}; }
@@ -277,7 +285,7 @@ namespace copp {
                 }
 
             protected:
-                wake_list_type                        await_iterator_;
+                typename wake_list_type::iterator     await_iterator_;
                 LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle_;
             };
 
@@ -337,12 +345,17 @@ namespace copp {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
 
-                    decltype(auto) await_resume() {
+                    poll_type await_resume() {
                         awaitable_base_t::await_resume();
-                        return std::move(future_.poll_data());
+                        if (handle_ && nullptr != handle_.promise().get_bind_future()) {
+                            return std::move(handle_.promise().get_bind_future()->poll_data());
+                        }
+
+                        return poll_type{};
                     }
                 };
 
+                // TODO if (future_.is_ready()) { return awaitable_t{nullptr}; }
                 return awaitable_t{handle_};
             }
 
@@ -350,12 +363,17 @@ namespace copp {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
 
-                    decltype(auto) await_resume() {
+                    value_type *await_resume() {
                         awaitable_base_t::await_resume();
-                        return future_.poll_data();
+                        if (handle_ && nullptr != handle_.promise().get_bind_future()) {
+                            return handle_.promise().get_bind_future()->data();
+                        }
+
+                        return nullptr;
                     }
                 };
 
+                // TODO if (future_.is_ready()) { return awaitable_t{nullptr}; }
                 return awaitable_t{handle_};
             }
 
