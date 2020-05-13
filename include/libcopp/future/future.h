@@ -64,24 +64,22 @@ namespace copp {
                 }
 
                 // Set waker first, and then context can be moved or copyed in private data callback
+                // If two or more context poll the same future, we just use the last one
                 if (!ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(wake_future_t<typename std::decay<TSELF>::type>(self.mutable_waker()));
+                    ctx.set_wake_fn(wake_future_t<TSELF>(self));
+                    self.set_ctx_waker(std::forward<TCONTEXT>(ctx));
                 }
 
                 ctx.poll(self);
 
-                if (self.is_ready() && ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(NULL);
+                if (self.is_ready() && self.clear_ctx_waker_) {
+                    self.clear_ctx_waker();
                 }
             }
 
         public:
             future_t() {}
-            ~future_t() {
-                if (shared_waker_) {
-                    shared_waker_->self = NULL;
-                }
-            }
+            ~future_t() { clear_ctx_waker(); }
 
             inline bool is_ready() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_ready(); }
 
@@ -113,49 +111,50 @@ namespace copp {
             inline const poll_type &poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
             inline poll_type &      poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
 
-            const std::shared_ptr<waker_t> &mutable_waker() {
-                if (shared_waker_) {
-                    return shared_waker_;
-                }
 
-                shared_waker_ = std::make_shared<waker_t>();
-                if (shared_waker_) {
-                    shared_waker_->self = this;
+            inline void clear_ctx_waker() {
+                if (clear_ctx_waker_) {
+                    clear_ctx_waker_();
+                    clear_ctx_waker_ = NULL;
                 }
-
-                return shared_waker_;
             }
 
+            template<class TCONTEXT>
+            inline void set_ctx_waker(TCONTEXT&& ctx) {
+                clear_ctx_waker();
+                clear_ctx_waker_ = clear_context_waker_t<typename std::decay<TCONTEXT>::type>(ctx); 
+            }
+
+        protected:
+            template<class TCONTEXT>
+            struct clear_context_waker_t {
+                TCONTEXT* context;
+                clear_context_waker_t(TCONTEXT& ctx): context(&ctx) {}
+
+                void operator()() {
+                    if (likely(context)) {
+                        context->set_wake_fn(NULL);
+                    }
+                }
+            };
+
         private:
-            template <class TCONVERT>
+            template<class TSELF>
             struct wake_future_t {
-                std::shared_ptr<waker_t> waker;
-                wake_future_t(const std::shared_ptr<waker_t> &w) : waker(w) {}
+                TSELF* self;
+                wake_future_t(TSELF& s) : self(&s) {}
 
                 template <class TCONTEXT>
                 void operator()(TCONTEXT &&ctx) {
-                    if (waker && NULL != waker->self) {
-                        static_cast<TCONVERT *>(waker->self)->poll(std::forward<TCONTEXT>(ctx));
-                    }
-                }
-            };
-
-            template <>
-            struct wake_future_t<self_type> {
-                std::shared_ptr<waker_t> waker;
-                wake_future_t(const std::shared_ptr<waker_t> &w) : waker(w) {}
-
-                template <class TCONTEXT>
-                void operator()(TCONTEXT &&ctx) {
-                    if (waker && NULL != waker->self) {
-                        waker->self->poll(std::forward<TCONTEXT>(ctx));
+                    if (likely(self)) {
+                        self->poll(std::forward<TCONTEXT>(ctx));
                     }
                 }
             };
 
         private:
-            std::shared_ptr<waker_t> shared_waker_;
-            poll_type                poll_data_;
+            std::function<void ()> clear_ctx_waker_;
+            poll_type              poll_data_;
         };
     } // namespace future
 } // namespace copp

@@ -99,10 +99,10 @@ CASE_TEST(future_for_std_coroutine, poll_trival_generator) {
     test_trivial_task_t t1 = call_for_coroutine_fn_runtime_with_code(3, 200);
     test_trivial_task_t t2 = call_for_coroutine_fn_runtime_with_code(3, -200);
 
-    CASE_EXPECT_FALSE(t1.is_finished());
-    CASE_EXPECT_FALSE(t2.is_finished());
+    CASE_EXPECT_FALSE(t1.done());
+    CASE_EXPECT_FALSE(t2.done());
 
-    for (int i = 0; i < 10 && (!t1.is_finished() || !t2.is_finished()); ++i) {
+    for (int i = 0; i < 10 && (!t1.done() || !t2.done()); ++i) {
         for (std::list<test_trivial_generator_t::context_type *>::iterator iter =
                  g_test_future_for_std_coroutine_trivial_context_waker_list.begin();
              iter != g_test_future_for_std_coroutine_trivial_context_waker_list.end();) {
@@ -112,8 +112,8 @@ CASE_TEST(future_for_std_coroutine, poll_trival_generator) {
         }
     }
 
-    CASE_EXPECT_TRUE(t1.is_finished());
-    CASE_EXPECT_TRUE(t2.is_finished());
+    CASE_EXPECT_TRUE(t1.done());
+    CASE_EXPECT_TRUE(t2.done());
     CASE_EXPECT_NE(nullptr, t1.data());
     CASE_EXPECT_NE(nullptr, t2.data());
     if (nullptr != t1.data()) {
@@ -141,8 +141,8 @@ static copp::future::task_t<void> call_for_coroutine_fn_runtime_void() {
 CASE_TEST(future_for_std_coroutine, tast_with_trivial_result) {
     copp::future::task_t<int> t = call_for_coroutine_fn_runtime_trivial();
 
-    CASE_EXPECT_TRUE(t.is_finished());
-    CASE_EXPECT_TRUE(t.poll_data().is_ready());
+    CASE_EXPECT_TRUE(t.done());
+    CASE_EXPECT_TRUE(t.poll_data()->is_ready());
     CASE_EXPECT_NE(nullptr, t.data());
     if (nullptr != t.data()) {
         CASE_EXPECT_EQ(123, *t.data());
@@ -152,8 +152,8 @@ CASE_TEST(future_for_std_coroutine, tast_with_trivial_result) {
 CASE_TEST(future_for_std_coroutine, tast_with_void_result) {
     copp::future::task_t<void> t = call_for_coroutine_fn_runtime_void();
 
-    CASE_EXPECT_TRUE(t.is_finished());
-    CASE_EXPECT_TRUE(t.poll_data().is_ready());
+    CASE_EXPECT_TRUE(t.done());
+    CASE_EXPECT_TRUE(t.poll_data()->is_ready());
     CASE_EXPECT_NE(nullptr, t.data());
 }
 
@@ -231,7 +231,6 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
     co_await call_for_coroutine_fn_runtime_void();
     // refer to auto task_t::operator co_await() &
 
-
     copp::future::task_t<int> t123 = call_for_coroutine_fn_runtime_trivial();
 
     // TODO lifetime of task_t::handle_
@@ -242,6 +241,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
         CASE_EXPECT_EQ(123, *r123);
     }
 
+    CASE_MSG_INFO() << "ready to co_await generator." << std::endl;
     test_no_trivial_poll_t ret;
     for (int32_t i = 0; i < await_times; ++i) {
         ret = co_await call_for_coroutine_fn_no_trivial_generator(code);
@@ -271,10 +271,10 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
     test_no_trivial_task_t t1 = call_for_no_trivial_coroutine_fn_runtime_with_code(3, 200);
     test_no_trivial_task_t t2 = call_for_no_trivial_coroutine_fn_runtime_with_code(3, -200);
 
-    CASE_EXPECT_FALSE(t1.is_finished());
-    CASE_EXPECT_FALSE(t2.is_finished());
+    CASE_EXPECT_FALSE(t1.done());
+    CASE_EXPECT_FALSE(t2.done());
 
-    for (int i = 0; i < 10 && (!t1.is_finished() || !t2.is_finished()); ++i) {
+    for (int i = 0; i < 10 && (!t1.done() || !t2.done()); ++i) {
         for (std::list<test_no_trivial_generator_t::context_type *>::iterator iter =
                  g_test_future_for_std_coroutine_no_trivial_context_waker_list.begin();
              iter != g_test_future_for_std_coroutine_no_trivial_context_waker_list.end();) {
@@ -284,8 +284,8 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
         }
     }
 
-    CASE_EXPECT_TRUE(t1.is_finished());
-    CASE_EXPECT_TRUE(t2.is_finished());
+    CASE_EXPECT_TRUE(t1.done());
+    CASE_EXPECT_TRUE(t2.done());
     CASE_EXPECT_NE(nullptr, t1.data());
     CASE_EXPECT_NE(nullptr, t2.data());
     if (nullptr != t1.data()) {
