@@ -26,6 +26,12 @@
 .file	"ontop_i386_ms_pe_gas.asm"
 .text
 .p2align 4,,15
+
+/* mark as using no unregistered SEH handlers */
+.globl	@feat.00
+.def	@feat.00;	.scl	3;	.type	0;	.endef
+.set    @feat.00,   1
+
 .globl	_copp_ontop_fcontext
 .def	_copp_ontop_fcontext;	.scl	2;	.type	32;	.endef
 _copp_ontop_fcontext:
@@ -122,4 +128,4 @@ _copp_ontop_fcontext:
     jmp  *%ecx
 
 .section .drectve
-.ascii " -export:\"copp_ontop_fcontext\""
+.ascii " -export:\"_copp_ontop_fcontext\""

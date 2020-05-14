@@ -26,6 +26,12 @@
 .file	"make_i386_ms_pe_gas.asm"
 .text
 .p2align 4,,15
+
+/* mark as using no unregistered SEH handlers */
+.globl	@feat.00
+.def	@feat.00;	.scl	3;	.type	0;	.endef
+.set    @feat.00,   1
+
 .globl	_copp_make_fcontext
 .def	_copp_make_fcontext;	.scl	2;	.type	32;	.endef
 _copp_make_fcontext:
@@ -144,4 +150,4 @@ finish:
 .def	__exit;	.scl	2;	.type	32;	.endef  /* standard C library function */
 
 .section .drectve
-.ascii " -export:\"copp_make_fcontext\""
+.ascii " -export:\"_copp_make_fcontext\""

@@ -48,7 +48,7 @@
 .file "make_mips64_n64_elf_gas.S"
 .text
 .globl copp_make_fcontext
-.align 2
+.align 3
 .type copp_make_fcontext,@function
 .ent copp_make_fcontext
 copp_make_fcontext:
