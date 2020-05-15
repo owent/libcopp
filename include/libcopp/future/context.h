@@ -3,10 +3,75 @@
 
 #pragma once
 
+#include <assert.h>
+
 #include "poll.h"
 
 namespace copp {
     namespace future {
+        template <class TFUNCTION>
+        struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
+            TFUNCTION   func;
+            TFUNCTION** call_backup;
+
+            context_event_function_t(): call_backup(NULL) {}
+            ~context_event_function_t() {
+                if (call_backup) {
+                    *call_backup = NULL;
+                }
+            }
+
+            template<class... TARGS>
+            inline void invoke(TARGS&&... args) {
+                // can not call recursive
+                if (call_backup) {
+                    return;
+                }
+
+                if (func) {
+                    // move into stack in case of removed when call func
+                    TFUNCTION move_to_stack;
+                    TFUNCTION* move_to_stack_ptr = &move_to_stack;
+                    move_to_stack.swap(func);
+                    call_backup = &move_to_stack_ptr;
+
+                    move_to_stack(std::forward<TARGS>(args)...);
+
+                    // restore functor, if move_to_stack_ptr is still not NULL, this object must still exists 
+                    //   and not call context_event_function_t::set(arg) 
+                    // FIXME: Maybe there is visibillity problem?
+                    if (move_to_stack_ptr) {
+                        move_to_stack_ptr->swap(func);
+                        call_backup = NULL;
+                    }
+                }
+            }
+
+            template<class TARG>
+            inline void set(TARG&& arg) {
+                func = std::forward<TARG>(arg);
+                if (call_backup) {
+                    *call_backup = NULL;
+                    call_backup = NULL;
+                }
+            }
+
+            inline TFUNCTION& get() {
+                if (NULL != call_backup) {
+                    return **call_backup;
+                }
+
+                return func;
+            }
+
+            inline const TFUNCTION& get() const {
+                if (NULL != call_backup) {
+                    return **call_backup;
+                }
+
+                return func;
+            }
+        };
         /**
          * @brief context_t
          * @note TPD::operator()(future_t<T>&, context_t<TPD>&) must be declared
@@ -33,27 +98,27 @@ namespace copp {
             template <class... TARGS>
             context_t(TARGS &&... args) : private_data_(std::forward<TARGS>(args)...) {}
 
-            template <class TFUTURE>
-            void poll(TFUTURE &&fut) {
-                private_data_(std::forward<TFUTURE>(fut), *this);
+            template <class TCONTEXT, class TFUTURE>
+            void poll_as(TFUTURE &&fut) {
+#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
+                static_assert(std::is_base_of<self_type, typename std::decay<TCONTEXT>::type>::value,
+                              "The context type must be drive of context_t<TPD>");
+#endif
+                private_data_(std::forward<TFUTURE>(fut), *static_cast<typename std::decay<TCONTEXT>::type*>(this));
             }
 
-            void wake() {
-                if (wake_fn_) {
-                    wake_fn_(*this);
-                }
-            }
+            void wake() { wake_fn_.invoke(*this); }
 
-            inline void             set_wake_fn(wake_fn_t fn) { wake_fn_ = fn; }
-            inline const wake_fn_t &get_wake_fn() const { return wake_fn_; }
-            inline wake_fn_t &      get_wake_fn() { return wake_fn_; }
+            inline void             set_wake_fn(wake_fn_t fn) { wake_fn_.set(std::move(fn)); }
+            inline const wake_fn_t &get_wake_fn() const { return wake_fn_.get(); }
+            inline wake_fn_t &      get_wake_fn() { return wake_fn_.get(); }
 
             inline value_type &      get_private_data() UTIL_CONFIG_NOEXCEPT { return private_data_; }
             inline const value_type &get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
 
         private:
-            value_type private_data_;
-            wake_fn_t  wake_fn_;
+            value_type                          private_data_;
+            context_event_function_t<wake_fn_t> wake_fn_;
         };
 
         /**
@@ -121,48 +186,44 @@ namespace copp {
             }
 
             ~context_t() {
-                if (on_destroy_fn_) {
-                    on_destroy_fn_(*this);
-                }
+                on_destroy_fn_.invoke(*this);
             }
 
-            template <class TFUTURE>
-            void poll(TFUTURE &&fut) {
-                if (poll_fn_) {
-                    poll_event_data_t data;
-                    data.future_ptr   = reinterpret_cast<void *>(&fut);
-                    data.private_data = private_data_;
-                    poll_fn_(*this, data);
-                }
+            template <class TCONTEXT, class TFUTURE>
+            void poll_as(TFUTURE &&fut) {
+#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
+                static_assert(std::is_base_of<self_type, typename std::decay<TCONTEXT>::type>::value,
+                              "The context type must be drive of context_t<TPD>");
+#endif
+                poll_event_data_t data;
+                data.future_ptr   = reinterpret_cast<void *>(&fut);
+                data.private_data = private_data_;
+                poll_fn_.invoke(*static_cast<typename std::decay<TCONTEXT>::type*>(this), data);
             }
 
-            void wake() {
-                if (wake_fn_) {
-                    wake_fn_(*this);
-                }
-            }
+            void wake() { wake_fn_.invoke(*this); }
 
-            inline void             set_poll_fn(poll_fn_t fn) { poll_fn_.swap(fn); }
-            inline const poll_fn_t &get_poll_fn() const { return poll_fn_; }
-            inline poll_fn_t &      get_poll_fn() { return poll_fn_; }
+            inline void             set_poll_fn(poll_fn_t fn) { poll_fn_.set(std::move(fn)); }
+            inline const poll_fn_t &get_poll_fn() const { return poll_fn_.get(); }
+            inline poll_fn_t &      get_poll_fn() { return poll_fn_.get(); }
 
-            inline void             set_wake_fn(wake_fn_t fn) { wake_fn_.swap(fn); }
-            inline const wake_fn_t &get_wake_fn() const { return wake_fn_; }
-            inline wake_fn_t &      get_wake_fn() { return wake_fn_; }
+            inline void             set_wake_fn(wake_fn_t fn) { wake_fn_.set(std::move(fn)); }
+            inline const wake_fn_t &get_wake_fn() const { return wake_fn_.get(); }
+            inline wake_fn_t &      get_wake_fn() { return wake_fn_.get(); }
 
-            inline void             set_on_destroy(wake_fn_t fn) { on_destroy_fn_.swap(fn); }
-            inline const wake_fn_t &get_on_destroy() const { return on_destroy_fn_; }
-            inline wake_fn_t &      get_on_destroy() { return on_destroy_fn_; }
+            inline void             set_on_destroy(wake_fn_t fn) { on_destroy_fn_.set(std::move(fn)); }
+            inline const wake_fn_t &get_on_destroy() const { return on_destroy_fn_.get(); }
+            inline wake_fn_t &      get_on_destroy() { return on_destroy_fn_.get(); }
 
             inline void        set_private_data(void *ptr) { private_data_ = ptr; }
             inline void *      get_private_data() UTIL_CONFIG_NOEXCEPT { return private_data_; }
             inline const void *get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
 
         private:
-            value_type private_data_;
-            wake_fn_t  wake_fn_;
-            poll_fn_t  poll_fn_;
-            wake_fn_t  on_destroy_fn_;
+            value_type                          private_data_;
+            context_event_function_t<wake_fn_t> wake_fn_;
+            context_event_function_t<poll_fn_t> poll_fn_;
+            context_event_function_t<wake_fn_t> on_destroy_fn_;
         };
     } // namespace future
 } // namespace copp

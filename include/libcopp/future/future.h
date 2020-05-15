@@ -51,7 +51,7 @@ namespace copp {
 
         protected:
             template <class TSELF, class TCONTEXT>
-            static void poll(TSELF &self, TCONTEXT &&ctx) {
+            static void poll_as(TSELF &self, TCONTEXT &&ctx) {
 #if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
                 typedef typename std::decay<TCONTEXT>::type decay_context_type;
                 static_assert(std::is_same<bool, COPP_RETURN_VALUE_DECAY(_test_context_functor_t, decay_context_type *)>::value,
@@ -66,11 +66,11 @@ namespace copp {
                 // Set waker first, and then context can be moved or copyed in private data callback
                 // If two or more context poll the same future, we just use the last one
                 if (!ctx.get_wake_fn()) {
-                    ctx.set_wake_fn(wake_future_t<TSELF>(self));
+                    ctx.set_wake_fn(future_waker_t<TSELF, typename std::decay<TCONTEXT>::type>(self));
                     self.set_ctx_waker(std::forward<TCONTEXT>(ctx));
                 }
 
-                ctx.poll(self);
+                ctx.poll_as<TCONTEXT>(self);
 
                 if (self.is_ready() && self.clear_ctx_waker_) {
                     self.clear_ctx_waker();
@@ -87,7 +87,12 @@ namespace copp {
 
             template <class TCONTEXT>
             void poll(TCONTEXT &&ctx) {
-                poll(*this, std::forward<TCONTEXT>(ctx));
+                poll_as(*this, std::forward<TCONTEXT>(ctx));
+            }
+
+            template <class TSELF, class TCONTEXT>
+            void poll_as(TCONTEXT &&ctx) {
+                poll_as(*static_cast<typename std::decay<TSELF>::type*>(this), std::forward<TCONTEXT>(ctx));
             }
 
             inline const value_type *data() const UTIL_CONFIG_NOEXCEPT {
@@ -139,15 +144,37 @@ namespace copp {
             };
 
         private:
-            template<class TSELF>
-            struct wake_future_t {
+            // Allow to auto set waker for any child class of context_t
+            template<class TSELF, class TCONTEXT>
+            struct future_waker_t {
                 TSELF* self;
-                wake_future_t(TSELF& s) : self(&s) {}
+                future_waker_t(TSELF& s) : self(&s) {}
 
-                template <class TCONTEXT>
-                void operator()(TCONTEXT &&ctx) {
+                void operator()(TCONTEXT &ctx) {
                     if (likely(self)) {
-                        self->poll(std::forward<TCONTEXT>(ctx));
+                        self->poll_as<TSELF>(ctx);
+                    }
+                }
+
+                // convert type
+                template<class TPD>
+                inline void operator()(context_t<TPD> &ctx) {
+#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
+                static_assert(std::is_base_of<context_t<TPD>, TCONTEXT>::value,
+                              "TCONTEXT must be drive of context_t<T, TPTR>");
+#endif
+                    (*this)(*static_cast<TCONTEXT*>(&ctx));
+                }
+            };
+
+            template<class TSELF, class TPD>
+            struct future_waker_t <TSELF, context_t<TPD> > {
+                TSELF* self;
+                future_waker_t(TSELF& s) : self(&s) {}
+
+                void operator()(context_t<TPD> &ctx) {
+                    if (likely(self)) {
+                        self->poll_as<TSELF>(ctx);
                     }
                 }
             };

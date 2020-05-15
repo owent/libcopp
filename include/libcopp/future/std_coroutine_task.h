@@ -40,6 +40,12 @@ namespace copp {
             task_context_t(TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...) {}
         };
 
+        template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
+        class LIBCOPP_COPP_API_HEAD_ONLY task_future_t : public future_t<T, TPTR> {
+        public:
+            using future_t<T, TPTR>::future_t;
+        };
+
         template <class T, class TPD, class TPTR, class TMACRO>
         class LIBCOPP_COPP_API_HEAD_ONLY task_t;
 
@@ -61,16 +67,16 @@ namespace copp {
         template <class T, class TPD, class TPTR, class TMACRO>
         struct LIBCOPP_COPP_API_HEAD_ONLY task_common_types_t {
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using future_type    = future_t<T, TPTR>;
+            using future_type    = task_future_t<T, TPTR>;
             using poll_type      = typename future_type::poll_type;
             using waker_type     = typename future_type::waker_t;
             using context_type   = task_context_t<TPD>;
             using wake_list_type = std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator>;
 #else
-            typedef future_t<T, TPTR>    future_type;
-            typedef typename future_type::poll_type      poll_type;
-            typedef typename future_type::waker_t     waker_type;
-            typedef task_context_t<TPD>   context_type;
+            typedef task_future_t<T, TPTR>          future_type;
+            typedef typename future_type::poll_type poll_type;
+            typedef typename future_type::waker_t   waker_type;
+            typedef task_context_t<TPD>             context_type;
             typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator> wake_list_type;
 #endif
         };
@@ -125,22 +131,33 @@ namespace copp {
 
         template <class TPROMISE>
         struct task_waker_t {
+            typedef typename TPROMISE::context_type context_type;
             std::shared_ptr<typename TPROMISE::runtime_type> runtime;
             task_waker_t(std::shared_ptr<typename TPROMISE::runtime_type> &r): runtime(r) {}
 
-            template <class TCONTEXT>
-            void operator()(TCONTEXT &&ctx) {
+            void operator()(context_type &ctx) {
                 // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
-                if (runtime && !runtime->done()) {
-                    if (!runtime->future.is_ready()) {
-                        runtime->future.poll(std::forward<TCONTEXT>(ctx));
+                if (likely(runtime)) {
+                    if (!runtime->done() && !runtime->future.is_ready()) {
+                        runtime->future.poll_as<typename TPROMISE::future_type>(ctx);
                     }
 
-                    while (!runtime->done()) {
-                        runtime->handle.resume();
+                    if (runtime->done()) {
+                        while (runtime->handle && !runtime->handle.done()) {
+                            runtime->handle.resume();
+                        }
                     }
                 }
                 // TODO check type
+            }
+
+            template<class UPD>
+            void operator()(context_t<UPD> &ctx) {
+#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
+                static_assert(!std::is_same<context_type, context_t<UPD> >::value,
+                              "task context type must be drive of task_context_t");
+#endif
+                (*this)(*static_cast<context_type*>(&ctx));
             }
         };
 
@@ -188,9 +205,12 @@ namespace copp {
                         if (likely(handle.promise().runtime_)) {
                             runtime_type& runtime = *handle.promise().runtime_;
                             handle.promise().get_context().set_wake_fn(task_waker_t<U>{handle.promise().runtime_});
+                            // Can not set waker clear functor, because even future is polled outside
+                            //   we still need to resume handle after event finished
+                            // runtime.future.set_ctx_waker(handle.promise().get_context());
 
                             if (!runtime.future.is_ready()) {
-                                runtime.future.poll(handle.promise().get_context());
+                                runtime.future.poll_as<future_type>(handle.promise().get_context());
                             }
                         }
 
@@ -219,7 +239,10 @@ namespace copp {
                         if (likely(promise->runtime_)) {
                             promise->runtime_->status = task_status_t::DONE;
                             promise->runtime_->handle = nullptr;
+
                         }
+                        // clear waker
+                        promise->get_context().set_wake_fn(NULL);
 
                         // wake all co_await handles
                         promise->wake_all();

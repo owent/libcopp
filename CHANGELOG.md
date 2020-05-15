@@ -6,7 +6,9 @@ HISTORY
 1. [OPTIMIZE] Using cmake export to generate module files
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
 3. [FIX] rename ```task::await_task``` into ```task::await_task```, MSVC can not allow ```await_task``` as function name.
-4. []
+4. [BOOST] Merge boost.context 1.73.0
+5. [TODO] Implement context of windows fiber and test SetUnhandledExceptionFilter to catch exception in coroutine action
+6. [TODO] Catch and rethrow unhandle exception after coroutine resumed
 
 ### 1.2.1 (2019-10-04)
 

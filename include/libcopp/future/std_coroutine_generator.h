@@ -29,11 +29,17 @@ namespace copp {
 
             template <class TCONTEXT>
             void poll(TCONTEXT &&ctx) {
-                future_t<T, TPTR>::poll(*this, std::forward<TCONTEXT>(ctx));
+                future_t<T, TPTR>::poll_as<self_type>(*this, std::forward<TCONTEXT>(ctx));
             }
 
         private:
             LIBCOPP_MACRO_FUTURE_COROUTINE_VOID await_handle_;
+        };
+
+        template <class TPD>
+        class LIBCOPP_COPP_API_HEAD_ONLY generator_context_t : public context_t<TPD> {
+        public:
+            using context_t<TPD>::context_t;
         };
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
@@ -41,12 +47,12 @@ namespace copp {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using self_type    = generator_t<T, TPD, TPTR>;
-            using context_type = context_t<TPD>;
+            using context_type = generator_context_t<TPD>;
             using future_type  = generator_future_t<T, TPTR>;
             using poll_type    = typename future_type::poll_type;
 #else
             typedef generator_t<T, TPD, TPTR>       self_type;
-            typedef context_t<TPD>                  context_type;
+            typedef generator_context_t<TPD>        context_type;
             typedef generator_future_t<T, TPTR>     future_type;
             typedef typename future_type::poll_type poll_type;
 #endif
@@ -92,17 +98,14 @@ namespace copp {
                     }
 
                     if (likely(future_)) {
-                        // clear reference
-                        future_->clear_ctx_waker();
-
+                        future_->set_handle(nullptr);
+                        
                         if (future_->is_ready()) {
                             future_type *fut = future_;
                             future_          = nullptr;
 
                             return std::move(fut->poll_data());
                         }
-
-                        future_->set_handle(nullptr);
                     }
 
                     return poll_type{};
@@ -113,42 +116,61 @@ namespace copp {
                 context_type *context_;
             };
 
-            struct wake_awaitable_t {
+            struct generator_waker_t {
                 future_type *                                  future;
-                wake_awaitable_t(future_type &fut) : future(&fut) {}
+                generator_waker_t(future_type &fut) : future(&fut) {}
+
                 void operator()(context_type &ctx) {
-                    if (future) {
-                        call_poll(future, ctx);
+                    if (likely(future)) {
+                        if (!future->is_ready()) {
+                            future->poll_as<future_type>(ctx);
+                        }
+
+                        // waker may be destroyed when call poll, so copy waker and future into stack
+                        if (future->is_ready() && future->get_handle() && !future->get_handle().done()) {
+                            future_type* fut = future;
+                            future = NULL;
+
+                            // This may lead to deallocation of generator_waker_t later, and we need not to resume again
+                            fut->get_handle().resume();
+                        }
                     }
                 }
 
-                static void call_poll(future_type *future, context_type &ctx) {
-                    if (!future->is_ready()) {
-                        future->poll(ctx);
-                    }
-
-                    // waker may be destroyed when call poll, so copy waker and future into stack
-                    if (future->is_ready() && future->get_handle() && !future->get_handle().done()) {
-                        future->get_handle().resume();
-                    }
+                void operator()(context_t<TPD> &ctx) {
+                    (*this)(*static_cast<context_type*>(&ctx));
                 }
             };
 
         public:
             template <class... TARGS>
             generator_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...) {
-                context_.set_wake_fn(wake_awaitable_t{future_});
-                future_.set_ctx_waker(context_);
+                context_.set_wake_fn(generator_waker_t{future_});
+                // Can not set waker clear functor, because even future is polled outside
+                //   we still need to resume handle after event finished
+                // future_.set_ctx_waker(context_);
 
-                future_.poll(context_);
+                future_.poll_as<future_type>(context_);
             }
 
             auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return awaitable_t{future_, context_}; }
+
+        private:
+            // generator can not be copy or moved.
+            generator_t(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            generator_t &operator=(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            generator_t(generator_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+            generator_t &operator=(generator_t &&) UTIL_CONFIG_DELETED_FUNCTION;
 
         protected:
             context_type context_;
             future_type  future_;
         };
+
+        template<class T, class ... TARGS>
+        inline T make_generator(TARGS&&... args) {
+            return T {std::forward<TARGS>(args)...};
+        }
 #endif
     } // namespace future
 } // namespace copp

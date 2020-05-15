@@ -23,8 +23,6 @@ Cross-platform coroutine library in C++ .
 [windows-link]:  https://ci.appveyor.com/project/owt5008137/libcopp "AppVeyor build status"
 [coverage-badge]: https://coveralls.io/repos/github/owt5008137/libcopp/badge.svg?branch=v2 "Coveralls coverage"
 [coverage-link]:  https://coveralls.io/github/owt5008137/libcopp?branch=v2 "Coveralls coverage"
-[gitter-badge]: https://badges.gitter.im/owt5008137/libcopp.svg "Gitter"
-[gitter-link]:  https://gitter.im/owt5008137/libcopp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge "Gitter"
 
 LICENSE
 ----------------
