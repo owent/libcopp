@@ -139,7 +139,7 @@ namespace copp {
                 // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
                 if (likely(runtime)) {
                     if (!runtime->done() && !runtime->future.is_ready()) {
-                        runtime->future.poll_as<typename TPROMISE::future_type>(ctx);
+                        runtime->future.template poll_as<typename TPROMISE::future_type>(ctx);
                     }
 
                     // once set ready, it must be polled to the end
@@ -196,7 +196,7 @@ namespace copp {
                 }
 
                 template <typename U>
-                void await_suspend(std::experimental::coroutine_handle<U> handle) {
+                void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> handle) {
                     if (likely(promise && promise->runtime_)) {
                         if (unlikely(promise->runtime_->handle)) {
                             promise->runtime_->handle.resume();
@@ -213,7 +213,7 @@ namespace copp {
                             // runtime.future.set_ctx_waker(handle.promise().get_context());
 
                             if (!runtime.future.is_ready()) {
-                                runtime.future.poll_as<future_type>(handle.promise().get_context());
+                                runtime.future.template poll_as<future_type>(handle.promise().get_context());
                             }
                         }
 
@@ -235,7 +235,7 @@ namespace copp {
                 bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
 
                 template <typename U>
-                void await_suspend(std::experimental::coroutine_handle<U> handle) {}
+                void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> /*handle*/) {}
 
                 void await_resume() UTIL_CONFIG_NOEXCEPT {
                     if (likely(promise)) {
@@ -267,8 +267,8 @@ namespace copp {
 
                 bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
 
-                template <typename U>
-                void await_suspend(std::experimental::coroutine_handle<U> handle) UTIL_CONFIG_NOEXCEPT {}
+                template <typename TPROMISE>
+                void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> /*handle*/) UTIL_CONFIG_NOEXCEPT {}
 
                 U *await_resume() UTIL_CONFIG_NOEXCEPT { return data; }
             };
@@ -371,6 +371,7 @@ namespace copp {
 
         public:
             task_t<T, TPD, TPTR, TMACRO> get_return_object() UTIL_CONFIG_NOEXCEPT;
+            using task_promise_base_t<T, TPD, TPTR, TMACRO>::get_runtime;
 
             template <class U>
             void return_value(U &&in) UTIL_CONFIG_NOEXCEPT {
@@ -393,6 +394,7 @@ namespace copp {
 
         public:
             task_t<void, TPD, TPTR, TMACRO> get_return_object() UTIL_CONFIG_NOEXCEPT;
+            using task_promise_base_t<void, TPD, TPTR, TMACRO>::get_runtime;
 
             void return_void() UTIL_CONFIG_NOEXCEPT {
                 // Maybe set error data on custom poller, ignore co_return here.
@@ -500,30 +502,33 @@ namespace copp {
             friend inline bool operator>=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.runtime_ >= r.runtime_; }
 #endif
 
-            auto operator co_await() && UTIL_CONFIG_NOEXCEPT {
-                struct awaitable_t : awaitable_base_t {
-                    using awaitable_base_t::awaitable_base_t;
-
-                    poll_type await_resume() {
-                        awaitable_base_t::await_resume();
-                        if (likely(refer_task_)) {
-                            poll_type *ret = refer_task_->poll_data();
-                            if (nullptr != ret) {
-                                return std::move(*ret);
-                            }
-                        }
-
-
-                        return poll_type{};
-                    }
-                };
-
-                return awaitable_t{this};
-            }
+            // co_await a temporary task_t in GCC 10.1.0 will destroy task_t first, which may cause all resources unavailable
+            // auto operator co_await() && UTIL_CONFIG_NOEXCEPT {
+            //     struct awaitable_t : awaitable_base_t {
+            //         using awaitable_base_t::awaitable_base_t;
+            //         using awaitable_base_t::refer_task_;
+            // 
+            //         poll_type await_resume() {
+            //             awaitable_base_t::await_resume();
+            //             if (likely(refer_task_)) {
+            //                 poll_type *ret = refer_task_->poll_data();
+            //                 if (nullptr != ret) {
+            //                     return std::move(*ret);
+            //                 }
+            //             }
+            // 
+            // 
+            //             return poll_type{};
+            //         }
+            //     };
+            // 
+            //     return awaitable_t{this};
+            // }
 
             auto operator co_await() & UTIL_CONFIG_NOEXCEPT {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
+                    using awaitable_base_t::refer_task_;
 
                     value_type *await_resume() {
                         awaitable_base_t::await_resume();

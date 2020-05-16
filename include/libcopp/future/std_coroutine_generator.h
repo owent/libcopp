@@ -29,7 +29,7 @@ namespace copp {
 
             template <class TCONTEXT>
             void poll(TCONTEXT &&ctx) {
-                future_t<T, TPTR>::poll_as<self_type>(*this, std::forward<TCONTEXT>(ctx));
+                future_t<T, TPTR>::template poll_as<self_type>(*this, std::forward<TCONTEXT>(ctx));
             }
 
         private:
@@ -123,7 +123,7 @@ namespace copp {
                 void operator()(context_type &ctx) {
                     if (likely(future)) {
                         if (!future->is_ready()) {
-                            future->poll_as<future_type>(ctx);
+                            future->template poll_as<future_type>(ctx);
                         }
 
                         // waker may be destroyed when call poll, so copy waker and future into stack
@@ -150,10 +150,13 @@ namespace copp {
                 //   we still need to resume handle after event finished
                 // future_.set_ctx_waker(context_);
 
-                future_.poll_as<future_type>(context_);
+                future_.template poll_as<future_type>(context_);
             }
 
-            auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return awaitable_t{future_, context_}; }
+            auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return awaitable_t{future_, context_}; }
+
+            // co_await a temporary generator_t in GCC 10.1.0 will destroy generator_t first, which will cause all resources unavailable
+            // auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return awaitable_t{future_, context_}; }
 
         private:
             // generator can not be copy or moved.

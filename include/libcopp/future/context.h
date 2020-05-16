@@ -121,6 +121,24 @@ namespace copp {
             context_event_function_t<wake_fn_t> wake_fn_;
         };
 
+        template <bool>
+        struct context_construct_helper_assign_t;
+
+        template <>
+        struct context_construct_helper_assign_t<true> {
+            template <class TCONTEXT, class U>
+            static inline void assign(TCONTEXT &&self, U &&helper) {
+                self.set_private_data(helper.private_data);
+                self.set_poll_fn(std::move(helper.pool_fn));
+            }
+        };
+
+        template <>
+        struct context_construct_helper_assign_t<false> {
+            template <class TCONTEXT, class U>
+            static inline void assign(TCONTEXT &&, U &&) {}
+        };
+
         /**
          * @brief context_t<void>
          * @note pool_fn(self_type&, poll_event_data_t) will be called with pool_fn(*this, {&out, private_data_}) when related event state
@@ -154,24 +172,6 @@ namespace copp {
                 inline construct_helper_t(U &&fn, void *ptr = NULL) : pool_fn(std::forward<U>(fn)), private_data(ptr) {}
             };
 
-            template <bool>
-            struct construct_helper_assign_t;
-
-            template <>
-            struct construct_helper_assign_t<true> {
-                template <class U>
-                static inline void assign(self_type &self, U &&helper) {
-                    self.set_private_data(helper.private_data);
-                    self.set_poll_fn(std::move(helper.pool_fn));
-                }
-            };
-
-            template <>
-            struct construct_helper_assign_t<false> {
-                template <class U>
-                static inline void assign(self_type &, U &&) {}
-            };
-
         public:
             template <class U>
             static inline construct_helper_t construct(U &&fn, void *ptr = NULL) {
@@ -181,7 +181,7 @@ namespace copp {
             context_t() : private_data_(NULL) {}
             template <class TFIRST, class... TARGS>
             context_t(TFIRST &&helper, TARGS &&...) : private_data_(NULL) {
-                construct_helper_assign_t<std::is_same<construct_helper_t, typename std::decay<TFIRST>::type>::value>::assign(
+                context_construct_helper_assign_t<std::is_same<construct_helper_t, typename std::decay<TFIRST>::type>::value>::assign(
                     *this, std::forward<TFIRST>(helper));
             }
 

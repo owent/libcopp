@@ -70,7 +70,7 @@ namespace copp {
                     self.set_ctx_waker(std::forward<TCONTEXT>(ctx));
                 }
 
-                ctx.poll_as<TCONTEXT>(self);
+                ctx.template poll_as<TCONTEXT>(self);
 
                 if (self.is_ready() && self.clear_ctx_waker_) {
                     self.clear_ctx_waker();
@@ -152,7 +152,7 @@ namespace copp {
 
                 void operator()(TCONTEXT &ctx) {
                     if (likely(self)) {
-                        self->poll_as<TSELF>(ctx);
+                        self->template poll_as<TSELF>(ctx);
                     }
                 }
 
@@ -174,7 +174,7 @@ namespace copp {
 
                 void operator()(context_t<TPD> &ctx) {
                     if (likely(self)) {
-                        self->poll_as<TSELF>(ctx);
+                        self->template poll_as<TSELF>(ctx);
                     }
                 }
             };
