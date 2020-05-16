@@ -176,6 +176,8 @@ public:
     ~test_future_for_std_coroutine_no_trivial_result_message_t() {}
 };
 
+#define STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE (-500)
+
 struct test_future_for_std_coroutine_no_trivial_generator_waker_t;
 struct test_future_for_std_coroutine_no_trivial_task_waker_t;
 
@@ -228,7 +230,7 @@ struct test_future_for_std_coroutine_no_trivial_task_waker_t {
     std::list<test_no_trivial_task_context_t *>::iterator refer_iter;
 
     template<class... TARGS>
-    test_future_for_std_coroutine_no_trivial_task_waker_t(TARGS&&... args): code(0), 
+    test_future_for_std_coroutine_no_trivial_task_waker_t(TARGS&&... args): code(0),
         refer_iter(g_test_future_for_std_coroutine_no_trivial_task_waker_list.end()) {}
     ~test_future_for_std_coroutine_no_trivial_task_waker_t() {
         if (g_test_future_for_std_coroutine_no_trivial_task_waker_list.end() != refer_iter) {
@@ -302,6 +304,8 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
 
     CASE_EXPECT_FALSE(t1.done());
     CASE_EXPECT_FALSE(t2.done());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t2.get_status());
 
     for (int i = 0; i < 10 && (!t1.done() || !t2.done()); ++i) {
         for (std::list<test_no_trivial_generator_t::context_type *>::iterator iter =
@@ -315,6 +319,8 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
 
     CASE_EXPECT_TRUE(t1.done());
     CASE_EXPECT_TRUE(t2.done());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t1.get_status());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t2.get_status());
     CASE_EXPECT_NE(nullptr, t1.data());
     CASE_EXPECT_NE(nullptr, t2.data());
     if (nullptr != t1.data()) {
@@ -326,6 +332,118 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
     if (nullptr != t2.data()) {
         CASE_EXPECT_TRUE(t2.data()->is_error());
         CASE_EXPECT_EQ(-200, *t2.data()->get_error());
+    }
+}
+
+static test_no_trivial_task_t call_for_no_trivial_coroutine_await_generator_and_timeout(int32_t await_times) {
+    CASE_MSG_INFO() << "ready to co_await generator." << std::endl;
+    test_no_trivial_poll_t ret = co_await copp::future::make_generator<test_no_trivial_generator_t>(200, await_times);
+
+    // the return is still pending, because it's resumed by timeout waker
+    CASE_EXPECT_TRUE(ret.is_pending());
+    test_no_trivial_task_context_t* context = co_yield test_no_trivial_task_t::current_context();
+    CASE_EXPECT_NE(nullptr, context);
+    if (context) {
+        CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, context->get_private_data().code);
+    }
+
+    test_no_trivial_task_future_t* fut = co_yield test_no_trivial_task_t::current_future();
+    CASE_EXPECT_NE(nullptr, fut);
+    if (fut) {
+        CASE_EXPECT_TRUE(fut->is_ready());
+        CASE_EXPECT_TRUE(fut->data() && fut->data()->is_error());
+        if (fut->data() && fut->data()->is_error()) {
+            CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, *fut->data()->get_error());
+        }
+    }
+
+    co_return test_no_trivial_result_t::make_error(-1);
+}
+
+CASE_TEST(future_for_std_coroutine, poll_no_trival_generator_and_timeout) {
+    test_no_trivial_task_t t1 = call_for_no_trivial_coroutine_await_generator_and_timeout(3);
+    CASE_EXPECT_FALSE(t1.done());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
+
+    // set timeout result
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); -- retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
+        // wake and resume task
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->wake();
+    }
+
+    CASE_EXPECT_TRUE(t1.done());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t1.get_status());
+    CASE_EXPECT_TRUE(t1.data() && t1.data()->is_error());
+    if (t1.data() && t1.data()->is_error()) {
+        CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, *t1.data()->get_error());
+    }
+
+    // cleanup generator dispatcher
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty(); -- retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_generator_waker_list.begin())->wake();
+    }
+
+    // cleanup task dispatcher
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); -- retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->wake();
+    }
+}
+
+static test_no_trivial_task_t call_for_no_trivial_coroutine_await_task_and_timeout(int32_t await_times) {
+    CASE_MSG_INFO() << "ready to co_await task." << std::endl;
+    test_no_trivial_poll_t ret = co_await call_for_no_trivial_coroutine_await_generator_and_timeout(await_times);
+
+    // the return is still pending, because it's resumed by timeout waker
+    CASE_EXPECT_TRUE(ret.is_pending());
+    test_no_trivial_task_context_t* context = co_yield test_no_trivial_task_t::current_context();
+    CASE_EXPECT_NE(nullptr, context);
+    if (context) {
+        CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, context->get_private_data().code);
+    }
+
+    test_no_trivial_task_future_t* fut = co_yield test_no_trivial_task_t::current_future();
+    CASE_EXPECT_NE(nullptr, fut);
+    if (fut) {
+        CASE_EXPECT_TRUE(fut->is_ready());
+        CASE_EXPECT_TRUE(fut->data() && fut->data()->is_error());
+        if (fut->data() && fut->data()->is_error()) {
+            CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, *fut->data()->get_error());
+        }
+    }
+
+    co_return test_no_trivial_result_t::make_error(-1);
+}
+
+CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
+    test_no_trivial_task_t t1 = call_for_no_trivial_coroutine_await_task_and_timeout(3);
+    CASE_EXPECT_FALSE(t1.done());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
+
+    // set timeout result
+    for (int retry_times = 10; retry_times >= 0 && !t1.done() && t1.get_context(); -- retry_times) {
+        t1.get_context()->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
+        // wake and resume task
+        t1.get_context()->wake();
+    }
+
+    CASE_EXPECT_TRUE(t1.done());
+    CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t1.get_status());
+    CASE_EXPECT_TRUE(t1.data() && t1.data()->is_error());
+    if (t1.data() && t1.data()->is_error()) {
+        CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, *t1.data()->get_error());
+    }
+
+    // cleanup task dispatcher
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); -- retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->wake();
+    }
+
+    
+    // cleanup generator dispatcher
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty(); -- retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_generator_waker_list.begin())->wake();
     }
 }
 

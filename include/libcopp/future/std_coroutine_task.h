@@ -99,7 +99,7 @@ namespace copp {
             typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
 #endif
 
-            task_runtime_t() : status(task_status_t::CREATED) {}
+            task_runtime_t() : status(task_status_t::CREATED), handle(NULL) {}
 
 #ifdef __cpp_impl_three_way_comparison
             friend inline std::strong_ordering operator<=>(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT {
@@ -142,7 +142,8 @@ namespace copp {
                         runtime->future.poll_as<typename TPROMISE::future_type>(ctx);
                     }
 
-                    if (runtime->done()) {
+                    // once set ready, it must be polled to the end
+                    if (runtime->done() || runtime->future.is_ready()) {
                         while (runtime->handle && !runtime->handle.done()) {
                             runtime->handle.resume();
                         }
@@ -182,6 +183,7 @@ namespace copp {
             typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
 #endif
 
+        private:
             // ================= C++20 Coroutine Support =================
             struct initial_awaitable {
                 self_type *promise;
@@ -189,7 +191,8 @@ namespace copp {
 
                 bool await_ready() const UTIL_CONFIG_NOEXCEPT {
                     // only setup handle once
-                    return promise && promise->runtime_ && promise->runtime_->handle;
+                    // return promise && promise->runtime_ && promise->runtime_->handle;
+                    return false;
                 }
 
                 template <typename U>
@@ -260,7 +263,7 @@ namespace copp {
             template <class U>
             struct pick_pointer_awaitable {
                 U *data;
-                pick_pointer_awaitable() : data(nullptr);
+                pick_pointer_awaitable() : data(nullptr) {}
 
                 bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
 
@@ -270,6 +273,7 @@ namespace copp {
                 U *await_resume() UTIL_CONFIG_NOEXCEPT { return data; }
             };
 
+        public:
             template <class U>
             struct pick_context_awaitable : pick_pointer_awaitable<U> {};
 
@@ -315,9 +319,6 @@ namespace copp {
                 return std::move(args);
             }
 
-            static pick_context_awaitable<context_type> current_context() { return pick_context_awaitable<context_type>{}; }
-            static pick_future_awaitable<future_type>   current_future() { return pick_future_awaitable<context_type>{}; }
-
             inline const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
             inline context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
             inline const std::shared_ptr<runtime_type>& get_runtime() const UTIL_CONFIG_NOEXCEPT { return runtime_; }
@@ -349,6 +350,9 @@ namespace copp {
 
                 await_handles_.clear();
             }
+
+            static inline pick_context_awaitable<context_type> current_context() { return pick_context_awaitable<context_type>{}; }
+            static inline pick_future_awaitable<future_type>   current_future() { return pick_future_awaitable<future_type>{}; }
 
         private:
             wake_list_type                await_handles_;
@@ -582,25 +586,44 @@ namespace copp {
                 return status_type::DONE;
             }
 
+            inline context_type *get_context() UTIL_CONFIG_NOEXCEPT {
+                if (done()) {
+                    return nullptr;
+                }
+
+                return &runtime_->handle.promise().get_context();
+            }
+
+            inline const context_type *get_context() const UTIL_CONFIG_NOEXCEPT {
+                if (done()) {
+                    return nullptr;
+                }
+
+                return &runtime_->handle.promise().get_context();
+            }
+
+            static typename promise_type::template pick_context_awaitable<context_type> current_context() { return promise_type::current_context(); }
+            static typename promise_type::template pick_future_awaitable<future_type>   current_future() { return promise_type::current_future(); }
+
         private:
             std::shared_ptr<runtime_type> runtime_;
         };
 
         template <typename T, class TPD, class TPTR, class TMACRO>
         task_t<T, TPD, TPTR, TMACRO> task_promise_t<T, TPD, TPTR, TMACRO>::get_return_object() UTIL_CONFIG_NOEXCEPT {
-            if (get_runtime() && !get_runtime()->handle) {
-                get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
-                    coroutine_handle<typename task_t<T, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
-            }
+            // if (get_runtime() && !get_runtime()->handle) {
+            //     get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
+            //         coroutine_handle<typename task_t<T, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
+            // }
             return task_t<T, TPD, TPTR, TMACRO>{get_runtime()};
         }
 
         template <class TPD, class TPTR, class TMACRO>
         task_t<void, TPD, TPTR, TMACRO> task_promise_t<void, TPD, TPTR, TMACRO>::get_return_object() UTIL_CONFIG_NOEXCEPT {
-            if (get_runtime() && !get_runtime()->handle) {
-                LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
-                coroutine_handle<typename task_t<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
-            }
+            // if (get_runtime() && !get_runtime()->handle) {
+            //     get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
+            //     coroutine_handle<typename task_t<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
+            // }
             return task_t<void, TPD, TPTR, TMACRO>{get_runtime()};
         }
 #endif
