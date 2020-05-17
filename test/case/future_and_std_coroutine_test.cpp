@@ -417,17 +417,17 @@ struct test_future_for_std_coroutine_trivial_result_message_t {
 
 struct test_future_for_std_coroutine_trivial_generator_waker_t;
 
-typedef copp::future::result_t<test_future_for_std_coroutine_trivial_result_message_t, int32_t>     test_trivial_result_t;
-typedef copp::future::task_t<test_trivial_result_t>                                                 test_trivial_task_t;
-typedef copp::future::generator_context_t<test_future_for_std_coroutine_trivial_generator_waker_t>  test_trivial_generator_context_t;
-typedef copp::future::generator_future_t<test_trivial_result_t>                                     test_trivial_generator_future_t;
-typedef copp::future::poll_t<test_trivial_result_t>                                                 test_trivial_poll_t;
+typedef copp::future::result_t<test_future_for_std_coroutine_trivial_result_message_t, int32_t>    test_trivial_result_t;
+typedef copp::future::task_t<test_trivial_result_t>                                                test_trivial_task_t;
+typedef copp::future::generator_context_t<test_future_for_std_coroutine_trivial_generator_waker_t> test_trivial_generator_context_t;
+typedef copp::future::generator_future_t<test_trivial_result_t>                                    test_trivial_generator_future_t;
+typedef copp::future::poll_t<test_trivial_result_t>                                                test_trivial_poll_t;
 
 std::list<test_trivial_generator_context_t *> g_test_future_for_std_coroutine_trivial_context_waker_list;
 
 struct test_future_for_std_coroutine_trivial_generator_waker_t {
-    int32_t                                       code;
-    int32_t                                       await_times;
+    int32_t                                                 code;
+    int32_t                                                 await_times;
     std::list<test_trivial_generator_context_t *>::iterator refer_to;
     test_future_for_std_coroutine_trivial_generator_waker_t(int32_t c, int32_t at) : code(c), await_times(at) {
         refer_to = g_test_future_for_std_coroutine_trivial_context_waker_list.end();
@@ -466,8 +466,9 @@ typedef copp::future::generator_t<test_trivial_result_t, test_future_for_std_cor
 static test_trivial_task_t call_for_coroutine_fn_runtime_with_code(int32_t await_times, int32_t code) {
     test_trivial_poll_t ret;
     for (int32_t i = 0; i < await_times; ++i) {
-        auto gen = copp::future::make_generator<test_trivial_generator_t>(code, 1);
-        ret = co_await gen;
+        auto     gen = copp::future::make_generator<test_trivial_generator_t>(code, 1);
+        co_await gen;
+        ret = std::move(gen.poll_data());
         if (nullptr != ret.data()) {
             if (ret.data()->is_success()) {
                 CASE_MSG_INFO() << "co_await got success response: (" << ret.data()->get_success()->ret_code << ","
@@ -580,18 +581,18 @@ struct test_future_for_std_coroutine_no_trivial_task_waker_t;
 
 typedef copp::future::result_t<test_future_for_std_coroutine_no_trivial_result_message_t, int32_t>            test_no_trivial_result_t;
 typedef copp::future::task_t<test_no_trivial_result_t, test_future_for_std_coroutine_no_trivial_task_waker_t> test_no_trivial_task_t;
-typedef copp::future::generator_context_t<test_future_for_std_coroutine_no_trivial_generator_waker_t>         test_no_trivial_generator_context_t;
-typedef copp::future::generator_future_t<test_no_trivial_result_t>                                            test_no_trivial_generator_future_t;
-typedef copp::future::poll_t<test_no_trivial_result_t>                                                        test_no_trivial_poll_t;
-typedef copp::future::task_context_t<test_future_for_std_coroutine_no_trivial_task_waker_t>                   test_no_trivial_task_context_t;
-typedef copp::future::task_future_t<test_no_trivial_result_t>                                                 test_no_trivial_task_future_t;
+typedef copp::future::generator_context_t<test_future_for_std_coroutine_no_trivial_generator_waker_t> test_no_trivial_generator_context_t;
+typedef copp::future::generator_future_t<test_no_trivial_result_t>                                    test_no_trivial_generator_future_t;
+typedef copp::future::poll_t<test_no_trivial_result_t>                                                test_no_trivial_poll_t;
+typedef copp::future::task_context_t<test_future_for_std_coroutine_no_trivial_task_waker_t>           test_no_trivial_task_context_t;
+typedef copp::future::task_future_t<test_no_trivial_result_t>                                         test_no_trivial_task_future_t;
 
 std::list<test_no_trivial_generator_context_t *> g_test_future_for_std_coroutine_no_trivial_generator_waker_list;
-std::list<test_no_trivial_task_context_t *> g_test_future_for_std_coroutine_no_trivial_task_waker_list;
+std::list<test_no_trivial_task_context_t *>      g_test_future_for_std_coroutine_no_trivial_task_waker_list;
 
 struct test_future_for_std_coroutine_no_trivial_generator_waker_t {
-    int32_t                                          code;
-    int32_t                                          await_times;
+    int32_t                                                    code;
+    int32_t                                                    await_times;
     std::list<test_no_trivial_generator_context_t *>::iterator refer_to;
     test_future_for_std_coroutine_no_trivial_generator_waker_t(int32_t c, int32_t at) : code(c), await_times(at) {
         refer_to = g_test_future_for_std_coroutine_no_trivial_generator_waker_list.end();
@@ -626,9 +627,9 @@ struct test_future_for_std_coroutine_no_trivial_task_waker_t {
     int32_t                                               code;
     std::list<test_no_trivial_task_context_t *>::iterator refer_iter;
 
-    template<class... TARGS>
-    test_future_for_std_coroutine_no_trivial_task_waker_t(TARGS&&...): code(0),
-        refer_iter(g_test_future_for_std_coroutine_no_trivial_task_waker_list.end()) {}
+    template <class... TARGS>
+    test_future_for_std_coroutine_no_trivial_task_waker_t(TARGS &&...)
+        : code(0), refer_iter(g_test_future_for_std_coroutine_no_trivial_task_waker_list.end()) {}
     ~test_future_for_std_coroutine_no_trivial_task_waker_t() {
         if (g_test_future_for_std_coroutine_no_trivial_task_waker_list.end() != refer_iter) {
             g_test_future_for_std_coroutine_no_trivial_task_waker_list.erase(refer_iter);
@@ -647,7 +648,8 @@ struct test_future_for_std_coroutine_no_trivial_task_waker_t {
         }
 
         // repush into manager
-        refer_iter = g_test_future_for_std_coroutine_no_trivial_task_waker_list.insert(g_test_future_for_std_coroutine_no_trivial_task_waker_list.end(), &ctx);
+        refer_iter = g_test_future_for_std_coroutine_no_trivial_task_waker_list.insert(
+            g_test_future_for_std_coroutine_no_trivial_task_waker_list.end(), &ctx);
     }
 };
 
@@ -656,14 +658,12 @@ typedef copp::future::generator_t<test_no_trivial_result_t, test_future_for_std_
 
 static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code(int32_t await_times, int32_t code) {
     // refer to auto task_t::operator co_await() &&
-    auto t_void = call_for_coroutine_fn_runtime_void();
+    auto     t_void = call_for_coroutine_fn_runtime_void();
     co_await t_void;
     // refer to auto task_t::operator co_await() &
 
     copp::future::task_t<int> t123 = call_for_coroutine_fn_runtime_trivial();
 
-    // TODO lifetime of task_t::handle_
-    // TODO timeout control for test_no_trivial_task_t
     decltype(auto) r123 = co_await t123;
     CASE_EXPECT_NE(nullptr, r123);
     if (nullptr != r123) {
@@ -673,8 +673,9 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
     CASE_MSG_INFO() << "ready to co_await generator." << std::endl;
     test_no_trivial_poll_t ret;
     for (int32_t i = 0; i < await_times; ++i) {
-        auto gen = copp::future::make_generator<test_no_trivial_generator_t>(code, 1);
-        ret = co_await gen;
+        auto     gen = copp::future::make_generator<test_no_trivial_generator_t>(code, 1);
+        co_await gen;
+        ret = std::move(gen.poll_data());
         if (nullptr != ret.data()) {
             if (ret.data()->is_success()) {
                 CASE_MSG_INFO() << "co_await got success response: (" << ret.data()->get_success()->ret_code << ","
@@ -736,18 +737,20 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
 
 static test_no_trivial_task_t call_for_no_trivial_coroutine_await_generator_and_timeout(int32_t await_times) {
     CASE_MSG_INFO() << "ready to co_await generator." << std::endl;
-    auto gen = copp::future::make_generator<test_no_trivial_generator_t>(200, await_times);
-    test_no_trivial_poll_t ret = co_await gen;
+    auto                   gen = copp::future::make_generator<test_no_trivial_generator_t>(200, await_times);
+    test_no_trivial_poll_t ret;
+    co_await               gen;
+    ret = std::move(gen.poll_data());
 
     // the return is still pending, because it's resumed by timeout waker
     CASE_EXPECT_TRUE(ret.is_pending());
-    test_no_trivial_task_context_t* context = co_yield test_no_trivial_task_t::current_context();
+    test_no_trivial_task_context_t *context = co_yield test_no_trivial_task_t::current_context();
     CASE_EXPECT_NE(nullptr, context);
     if (context) {
         CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, context->get_private_data().code);
     }
 
-    test_no_trivial_task_future_t* fut = co_yield test_no_trivial_task_t::current_future();
+    test_no_trivial_task_future_t *fut = co_yield test_no_trivial_task_t::current_future();
     CASE_EXPECT_NE(nullptr, fut);
     if (fut) {
         CASE_EXPECT_TRUE(fut->is_ready());
@@ -766,8 +769,9 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator_and_timeout) {
     CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
 
     // set timeout result
-    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); -- retry_times) {
-        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); --retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->get_private_data().code =
+            STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
         // wake and resume task
         (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->wake();
     }
@@ -780,12 +784,13 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator_and_timeout) {
     }
 
     // cleanup generator dispatcher
-    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty(); -- retry_times) {
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty();
+         --retry_times) {
         (*g_test_future_for_std_coroutine_no_trivial_generator_waker_list.begin())->wake();
     }
 
     // cleanup task dispatcher
-    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); -- retry_times) {
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); --retry_times) {
         (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->wake();
     }
 }
@@ -793,18 +798,18 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator_and_timeout) {
 static test_no_trivial_task_t call_for_no_trivial_coroutine_await_task_and_timeout(int32_t await_times) {
     CASE_MSG_INFO() << "ready to co_await task." << std::endl;
     auto t_dep = call_for_no_trivial_coroutine_await_generator_and_timeout(await_times);
-    auto ret = co_await t_dep;
+    auto ret   = co_await t_dep;
 
     // the return is still pending, because it's resumed by timeout waker
     CASE_EXPECT_EQ(nullptr, ret);
     CASE_EXPECT_FALSE(t_dep.done());
-    test_no_trivial_task_context_t* context = co_yield test_no_trivial_task_t::current_context();
+    test_no_trivial_task_context_t *context = co_yield test_no_trivial_task_t::current_context();
     CASE_EXPECT_NE(nullptr, context);
     if (context) {
         CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, context->get_private_data().code);
     }
 
-    test_no_trivial_task_future_t* fut = co_yield test_no_trivial_task_t::current_future();
+    test_no_trivial_task_future_t *fut = co_yield test_no_trivial_task_t::current_future();
     CASE_EXPECT_NE(nullptr, fut);
     if (fut) {
         CASE_EXPECT_TRUE(fut->is_ready());
@@ -823,7 +828,7 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
     CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
 
     // set timeout result
-    for (int retry_times = 10; retry_times >= 0 && !t1.done() && t1.get_context(); -- retry_times) {
+    for (int retry_times = 10; retry_times >= 0 && !t1.done() && t1.get_context(); --retry_times) {
         t1.get_context()->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
         // wake and resume task
         t1.get_context()->wake();
@@ -837,14 +842,16 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
     }
 
     // cleanup task dispatcher
-    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); -- retry_times) {
-        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty(); --retry_times) {
+        (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->get_private_data().code =
+            STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
         (*g_test_future_for_std_coroutine_no_trivial_task_waker_list.begin())->wake();
     }
 
-    
+
     // cleanup generator dispatcher
-    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty(); -- retry_times) {
+    for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty();
+         --retry_times) {
         (*g_test_future_for_std_coroutine_no_trivial_generator_waker_list.begin())->wake();
     }
 }

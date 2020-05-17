@@ -15,7 +15,7 @@ namespace copp {
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using self_type = generator_future_t<T, TPTR>;
 #else
-            typedef generator_future_t<T, TPTR>     self_type;
+            typedef generator_future_t<T, TPTR>      self_type;
 #endif
 
         public:
@@ -50,28 +50,30 @@ namespace copp {
             using context_type = generator_context_t<TPD>;
             using future_type  = generator_future_t<T, TPTR>;
             using poll_type    = typename future_type::poll_type;
+            using value_type   = typename future_type::value_type;
 #else
-            typedef generator_t<T, TPD, TPTR>       self_type;
-            typedef generator_context_t<TPD>        context_type;
-            typedef generator_future_t<T, TPTR>     future_type;
-            typedef typename future_type::poll_type poll_type;
+            typedef generator_t<T, TPD, TPTR>        self_type;
+            typedef generator_context_t<TPD>         context_type;
+            typedef generator_future_t<T, TPTR>      future_type;
+            typedef typename future_type::poll_type  poll_type;
+            typedef typename future_type::value_type value_type;
 #endif
 
         private:
-            class awaitable_t {
+            class awaitable_base_t {
             private:
-                awaitable_t(const awaitable_t &) UTIL_CONFIG_DELETED_FUNCTION;
-                awaitable_t &operator=(const awaitable_t &) UTIL_CONFIG_DELETED_FUNCTION;
+                awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+                awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
 
             public:
-                awaitable_t(future_type &fut, context_type & ctx) : future_(&fut), context_(&ctx) {}
+                awaitable_base_t(future_type &fut, context_type &ctx) : future_(&fut), context_(&ctx) {}
 
-                awaitable_t(awaitable_t &&other) : future_(other.future_), context_(&other.context_) { 
-                    other.future_ = nullptr; 
-                    other.context_ = nullptr; 
+                awaitable_base_t(awaitable_base_t &&other) : future_(other.future_), context_(&other.context_) {
+                    other.future_  = nullptr;
+                    other.context_ = nullptr;
                 }
-                awaitable_t &operator=(awaitable_t &&other) {
-                    future_ = other.future_;
+                awaitable_base_t &operator=(awaitable_base_t &&other) {
+                    future_  = other.future_;
                     context_ = other.context_;
 
                     other.future_  = nullptr;
@@ -91,7 +93,7 @@ namespace copp {
                     }
                 }
 
-                poll_type await_resume() UTIL_CONFIG_NOEXCEPT {
+                inline future_type *await_resume() UTIL_CONFIG_NOEXCEPT {
                     // clear reference
                     if (likely(context_)) {
                         context_->set_wake_fn(NULL);
@@ -99,25 +101,51 @@ namespace copp {
 
                     if (likely(future_)) {
                         future_->set_handle(nullptr);
-                        
+
                         if (future_->is_ready()) {
                             future_type *fut = future_;
                             future_          = nullptr;
 
-                            return std::move(fut->poll_data());
+                            return fut;
                         }
                     }
 
-                    return poll_type{};
+                    return nullptr;
                 }
 
             protected:
-                future_type *future_;
+                future_type * future_;
                 context_type *context_;
             };
 
+            class reference_awaitable_t : public awaitable_base_t {
+            public:
+                using awaitable_base_t::awaitable_base_t;
+
+                value_type *await_resume() UTIL_CONFIG_NOEXCEPT {
+                    future_type *fut = awaitable_base_t::await_resume();
+                    if (nullptr != fut) {
+                        return fut->data();
+                    }
+                    return nullptr;
+                }
+            };
+
+            class rvalue_awaitable_t : public awaitable_base_t {
+            public:
+                using awaitable_base_t::awaitable_base_t;
+
+                poll_type await_resume() UTIL_CONFIG_NOEXCEPT {
+                    future_type *fut = awaitable_base_t::await_resume();
+                    if (nullptr != fut) {
+                        return std::move(fut->poll_data());
+                    }
+                    return nullptr;
+                }
+            };
+
             struct generator_waker_t {
-                future_type *                                  future;
+                future_type *future;
                 generator_waker_t(future_type &fut) : future(&fut) {}
 
                 void operator()(context_type &ctx) {
@@ -128,8 +156,8 @@ namespace copp {
 
                         // waker may be destroyed when call poll, so copy waker and future into stack
                         if (future->is_ready() && future->get_handle() && !future->get_handle().done()) {
-                            future_type* fut = future;
-                            future = NULL;
+                            future_type *fut = future;
+                            future           = NULL;
 
                             // This may lead to deallocation of generator_waker_t later, and we need not to resume again
                             fut->get_handle().resume();
@@ -137,9 +165,7 @@ namespace copp {
                     }
                 }
 
-                void operator()(context_t<TPD> &ctx) {
-                    (*this)(*static_cast<context_type*>(&ctx));
-                }
+                void operator()(context_t<TPD> &ctx) { (*this)(*static_cast<context_type *>(&ctx)); }
             };
 
         public:
@@ -153,10 +179,17 @@ namespace copp {
                 future_.template poll_as<future_type>(context_);
             }
 
-            auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return awaitable_t{future_, context_}; }
+            auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return reference_awaitable_t{future_, context_}; }
 
             // co_await a temporary generator_t in GCC 10.1.0 will destroy generator_t first, which will cause all resources unavailable
-            // auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return awaitable_t{future_, context_}; }
+            // auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return rvalue_awaitable_t{future_, context_}; }
+
+            inline value_type *        data() UTIL_CONFIG_NOEXCEPT { return future_.data(); }
+            inline const value_type *  data() const UTIL_CONFIG_NOEXCEPT { return future_.data(); }
+            inline poll_type &         poll_data() UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
+            inline const poll_type &   poll_data() const UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
+            inline context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
+            inline const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
 
         private:
             // generator can not be copy or moved.
@@ -170,9 +203,9 @@ namespace copp {
             future_type  future_;
         };
 
-        template<class T, class ... TARGS>
-        inline T make_generator(TARGS&&... args) {
-            return T {std::forward<TARGS>(args)...};
+        template <class T, class... TARGS>
+        inline T make_generator(TARGS &&... args) {
+            return T{std::forward<TARGS>(args)...};
         }
 #endif
     } // namespace future
