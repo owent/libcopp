@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <libcopp/utils/uint64_id_allocator.h>
-
 #include "future.h"
 
 namespace copp {
@@ -52,15 +50,11 @@ namespace copp {
 
         public:
             template <class... TARGS>
-            generator_context_t(uint64_t gid, TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...), generator_id_(gid) {}
-
-            inline uint64_t get_id() const UTIL_CONFIG_NOEXCEPT { return generator_id_; }
-        private:
-            uint64_t generator_id_;
+            generator_context_t(TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...) {}
         };
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-        class LIBCOPP_COPP_API_HEAD_ONLY EXPLICIT_NODISCARD_ATTR generator_t {
+        class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using self_type    = generator_t<T, TPD, TPTR>;
@@ -187,7 +181,7 @@ namespace copp {
 
         public:
             template <class... TARGS>
-            generator_t(TARGS &&... args) : context_(copp::util::uint64_id_allocator::allocate(), std::forward<TARGS>(args)...) {
+            generator_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...) {
                 context_.set_wake_fn(generator_waker_t{future_});
                 // Can not set waker clear functor, because even future is polled outside
                 //   we still need to resume handle after event finished
@@ -207,8 +201,6 @@ namespace copp {
             inline const poll_type &   poll_data() const UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
             inline context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
             inline const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
-
-            inline uint64_t get_id() const UTIL_CONFIG_NOEXCEPT { return context_.get_id(); }
         private:
             // generator can not be copy or moved.
             generator_t(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;

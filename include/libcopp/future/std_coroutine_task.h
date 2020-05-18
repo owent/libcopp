@@ -419,7 +419,7 @@ namespace copp {
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type,
                   class TMACRO = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
-        class LIBCOPP_COPP_API_HEAD_ONLY EXPLICIT_NODISCARD_ATTR task_t {
+        class LIBCOPP_COPP_API_HEAD_ONLY task_t {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using self_type      = task_t<T, TPD, TPTR, TMACRO>;

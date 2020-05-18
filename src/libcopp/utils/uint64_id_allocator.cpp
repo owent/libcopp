@@ -1,11 +1,12 @@
 #include <ctime>
 
+#include <libcopp/utils/atomic_int_type.h>
+#include <libcopp/utils/uint64_id_allocator.h>
+
 #if defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD
 #include <pthread.h>
 #endif
 
-#include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/uint64_id_allocator.h>
 
 namespace copp {
     namespace util {
@@ -93,7 +94,7 @@ namespace copp {
 
                 ~gt_uint64_id_allocator_tls_cache_main_thread_dtor_t() {
                     pthread_setspecific(gt_uint64_id_allocator_tls_key, NULL);
-                    dtor_pthread_uint64_id_allocator_tls(reinterpret_cast<uint64_id_allocator_tls_cache_t *>(p));
+                    dtor_pthread_uint64_id_allocator_tls(reinterpret_cast<uint64_id_allocator_tls_cache_t *>(cache_ptr));
                 }
             };
             static gt_uint64_id_allocator_tls_cache_main_thread_dtor_t gt_uint64_id_allocator_tls_cache_main_thread_dtor;
