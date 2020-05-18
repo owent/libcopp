@@ -468,6 +468,8 @@ static test_trivial_task_t call_for_coroutine_fn_runtime_with_code(int32_t await
     for (int32_t i = 0; i < await_times; ++i) {
         auto     gen = copp::future::make_generator<test_trivial_generator_t>(code, 1);
         co_await gen;
+        CASE_EXPECT_EQ(gen.get_id(), gen.get_context().get_id());
+        CASE_EXPECT_NE(gen.get_id(), 0);
         ret = std::move(gen.poll_data());
         if (nullptr != ret.data()) {
             if (ret.data()->is_success()) {
@@ -675,6 +677,8 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
     for (int32_t i = 0; i < await_times; ++i) {
         auto     gen = copp::future::make_generator<test_no_trivial_generator_t>(code, 1);
         co_await gen;
+        CASE_EXPECT_EQ(gen.get_id(), gen.get_context().get_id());
+        CASE_EXPECT_NE(gen.get_id(), 0);
         ret = std::move(gen.poll_data());
         if (nullptr != ret.data()) {
             if (ret.data()->is_success()) {
@@ -740,6 +744,9 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_await_generator_and_
     auto                   gen = copp::future::make_generator<test_no_trivial_generator_t>(200, await_times);
     test_no_trivial_poll_t ret;
     co_await               gen;
+
+    CASE_EXPECT_EQ(gen.get_id(), gen.get_context().get_id());
+    CASE_EXPECT_NE(gen.get_id(), 0);
     ret = std::move(gen.poll_data());
 
     // the return is still pending, because it's resumed by timeout waker
@@ -829,6 +836,9 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
 
     // set timeout result
     for (int retry_times = 10; retry_times >= 0 && !t1.done() && t1.get_context(); --retry_times) {
+        CASE_EXPECT_NE(0, t1.get_context()->get_task_id());
+        CASE_EXPECT_EQ(t1.get_task_id(), t1.get_context()->get_task_id());
+        
         t1.get_context()->get_private_data().code = STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE;
         // wake and resume task
         t1.get_context()->wake();

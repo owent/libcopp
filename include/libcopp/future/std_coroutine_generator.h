@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <libcopp/utils/uint64_id_allocator.h>
+
 #include "future.h"
 
 namespace copp {
@@ -39,7 +41,22 @@ namespace copp {
         template <class TPD>
         class LIBCOPP_COPP_API_HEAD_ONLY generator_context_t : public context_t<TPD> {
         public:
-            using context_t<TPD>::context_t;
+            typedef generator_context_t<TPD> self_type;
+
+        private:
+            // context can not be copy or moved.
+            generator_context_t(const generator_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            generator_context_t &operator=(const generator_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            generator_context_t(generator_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+            generator_context_t &operator=(generator_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+
+        public:
+            template <class... TARGS>
+            generator_context_t(uint64_t gid, TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...), generator_id_(gid) {}
+
+            inline uint64_t get_id() const UTIL_CONFIG_NOEXCEPT { return generator_id_; }
+        private:
+            uint64_t generator_id_;
         };
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
@@ -170,7 +187,7 @@ namespace copp {
 
         public:
             template <class... TARGS>
-            generator_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...) {
+            generator_t(TARGS &&... args) : context_(copp::util::uint64_id_allocator::allocate(), std::forward<TARGS>(args)...) {
                 context_.set_wake_fn(generator_waker_t{future_});
                 // Can not set waker clear functor, because even future is polled outside
                 //   we still need to resume handle after event finished
@@ -191,6 +208,7 @@ namespace copp {
             inline context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
             inline const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
 
+            inline uint64_t get_id() const UTIL_CONFIG_NOEXCEPT { return context_.get_id(); }
         private:
             // generator can not be copy or moved.
             generator_t(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;

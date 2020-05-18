@@ -5,10 +5,17 @@ HISTORY
 
 1. [OPTIMIZE] Using cmake export to generate module files
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
-3. [FIX] rename ```task::await_task``` into ```task::await_task```, MSVC can not allow ```await_task``` as function name.
+3. [FIX] Rename ```task::await``` into ```task::await_task```, Some compile don't allow ```await_task``` as function name.
 4. [BOOST] Merge boost.context 1.73.0
 5. [TODO] Implement context of windows fiber and test SetUnhandledExceptionFilter to catch exception in coroutine action
 6. [TODO] Catch and rethrow unhandle exception after coroutine resumed
+7. [OPTIMIZE] Remove TTASK_MACRO in cotask::task, task id now is always set uint64_t and use the id allocator with thread cache.
+
+#### BREAK CHANGES & UPGRADE GUIDE FROM 1.2.X
+
++ Rename ```cotask::task::await``` into ```cotask::task::await_task```
++ Replace ```cotask::task<TCO_MACRO, TTASK_MACRO>``` with ```cotask::task<TCO_MACRO>``` , we don't allow to custom id allocator now.
++ Replace ```cotask::core::standard_int_id_allocator<uint64_t>``` with ```copp::util::uint64_id_allocator``` , we don't allow to custom id allocator now.
 
 ### 1.2.1 (2019-10-04)
 

@@ -9,6 +9,8 @@
 #include <compare>
 #endif
 
+#include <libcopp/utils/uint64_id_allocator.h>
+
 #include "future.h"
 
 namespace copp {
@@ -37,7 +39,11 @@ namespace copp {
 
         public:
             template <class... TARGS>
-            task_context_t(TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...) {}
+            task_context_t(uint64_t tid, TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...), task_id_(tid) {}
+
+            inline uint64_t get_task_id() const UTIL_CONFIG_NOEXCEPT { return task_id_; }
+        private:
+            uint64_t task_id_;
         };
 
         template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
@@ -99,24 +105,25 @@ namespace copp {
             typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
 #endif
 
-            task_runtime_t() : status(task_status_t::CREATED), handle(NULL) {}
+            task_runtime_t() : task_id(0), status(task_status_t::CREATED), handle(NULL) {}
 
 #ifdef __cpp_impl_three_way_comparison
             friend inline std::strong_ordering operator<=>(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT {
-                return &l <=> &r;
+                return l.task_id <=> r.task_id;
             }
 #else
-            friend inline bool operator!=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return &l != &r; }
-            friend inline bool operator<(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return &l < &r; }
-            friend inline bool operator<=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return &l <= &r; }
-            friend inline bool operator>(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return &l > &r; }
-            friend inline bool operator>=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return &l >= &r; }
+            friend inline bool operator!=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id != r.task_id; }
+            friend inline bool operator<(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id < r.task_id; }
+            friend inline bool operator<=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id <= r.task_id; }
+            friend inline bool operator>(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id > r.task_id; }
+            friend inline bool operator>=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id >= r.task_id; }
 #endif
 
             inline bool done() const UTIL_CONFIG_NOEXCEPT {
                 return status == task_status_t::DONE || !handle || handle.done();
             }
 
+            uint64_t      task_id;
             task_status_t status;
             future_type   future;
             LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
@@ -282,7 +289,12 @@ namespace copp {
 
         public:
             template <class... TARGS>
-            task_promise_base_t(TARGS &&... args) : context_(std::forward<TARGS>(args)...), runtime_(std::make_shared<runtime_type>()) {}
+            task_promise_base_t(TARGS &&... args) : context_(copp::util::uint64_id_allocator::allocate(), std::forward<TARGS>(args)...), 
+                runtime_(std::make_shared<runtime_type>()) {
+                if (runtime_) {
+                    runtime_->task_id = context_.get_task_id();
+                }
+            }
             ~task_promise_base_t() {
                 // printf("~task_promise_base_t %p - %s\n", this, typeid(typename future_type::value_type).name());
                 // cleanup: await_handles_ should be already cleanup in final_awaitable::await_suspend
@@ -492,14 +504,14 @@ namespace copp {
 
 #ifdef __cpp_impl_three_way_comparison
             friend inline std::strong_ordering operator<=>(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT {
-                return l.runtime_ <=> r.runtime_;
+                return l.get_task_id() <=> r.get_task_id();
             }
 #else
-            friend inline bool operator!=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.runtime_ != r.runtime_; }
-            friend inline bool operator<(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.runtime_ < r.runtime_; }
-            friend inline bool operator<=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.runtime_ <= r.runtime_; }
-            friend inline bool operator>(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.runtime_ > r.runtime_; }
-            friend inline bool operator>=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.runtime_ >= r.runtime_; }
+            friend inline bool operator!=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() != r.get_task_id(); }
+            friend inline bool operator<(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() < r.get_task_id(); }
+            friend inline bool operator<=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() <= r.get_task_id(); }
+            friend inline bool operator>(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() > r.get_task_id(); }
+            friend inline bool operator>=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() >= r.get_task_id(); }
 #endif
 
             // co_await a temporary task_t in GCC 10.1.0 will destroy task_t first, which may cause all resources unavailable
@@ -605,6 +617,19 @@ namespace copp {
                 }
 
                 return &runtime_->handle.promise().get_context();
+            }
+
+            inline uint64_t get_task_id() const UTIL_CONFIG_NOEXCEPT {
+                if (likely(runtime_)) {
+                    return runtime_->task_id;
+                }
+
+                const context_type * ctx = get_context();
+                if (ctx) {
+                    return ctx->get_task_id();
+                }
+
+                return 0; 
             }
 
             static typename promise_type::template pick_context_awaitable<context_type> current_context() { return promise_type::current_context(); }

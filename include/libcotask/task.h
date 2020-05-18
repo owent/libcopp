@@ -16,6 +16,8 @@
 #include <cstddef>
 #include <stdint.h>
 
+#include <libcopp/utils/uint64_id_allocator.h>
+
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 #include <libcotask/task_macros.h>
@@ -23,20 +25,18 @@
 
 namespace cotask {
 
-    template <typename TCO_MACRO = macro_coroutine, typename TTASK_MACRO = macro_task>
+    template <typename TCO_MACRO = macro_coroutine>
     class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     public:
-        typedef task<TCO_MACRO, TTASK_MACRO>         self_t;
+        typedef task<TCO_MACRO>                      self_t;
         typedef libcopp::util::intrusive_ptr<self_t> ptr_t;
         typedef TCO_MACRO                            macro_coroutine_t;
-        typedef TTASK_MACRO                          macro_task_t;
 
         typedef typename macro_coroutine_t::coroutine_t       coroutine_t;
         typedef typename macro_coroutine_t::stack_allocator_t stack_allocator_t;
 
-        typedef typename macro_task_t::id_t           id_t;
-        typedef typename macro_task_t::id_allocator_t id_allocator_t;
-
+        typedef typename copp::util::uint64_id_allocator::value_type id_t;
+        typedef typename copp::util::uint64_id_allocator id_allocator_t;
 
         struct task_group {
             std::list<std::pair<ptr_t, void *> > member_list_;

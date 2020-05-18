@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 ~~~~~~~~~~
-Also, you can your stack allocator or id allocator by setting different parameters in template class **cotask::task<TCO_MACRO, TTASK_MACRO>**
+Also, you can your stack allocator or id allocator by setting different parameters in template class **cotask::task<TCO_MACRO>**
 
 #### using coroutine task manager
 This is a simple example of using task manager:
