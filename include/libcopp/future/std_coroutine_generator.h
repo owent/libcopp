@@ -60,7 +60,7 @@ namespace copp {
         };
 
         template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-        class LIBCOPP_COPP_API_HEAD_ONLY EXPLICIT_NODISCARD_ATTR generator_t {
+        class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
         public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using self_type    = generator_t<T, TPD, TPTR>;
