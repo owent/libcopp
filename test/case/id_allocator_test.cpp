@@ -38,7 +38,7 @@ CASE_TEST(coroutine_task, id_allocator_st) {
 CASE_TEST(coroutine_task, id_allocator_mt) {
     copp::util::uint64_id_allocator alloc;
 
-    std::unique_ptr<std::thread> thds[4];
+    std::unique_ptr<std::thread> thds[40];
     std::set<uint64_t> s[40];
     for (int i = 0; i < 40; ++i) {
         std::set<uint64_t> *sp = &s[i];
