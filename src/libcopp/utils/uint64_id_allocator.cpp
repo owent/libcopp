@@ -13,7 +13,7 @@ namespace copp {
 
             // TIMESTAMP:32|SEQUENCE:24 -> about 16M id per second
             static uint64_t allocate_id_by_atomic() {
-                static libcopp::util::lock::atomic_int_type<uint64_t> seq_alloc(255);
+                static libcopp::util::lock::atomic_int_type<uint64_t> seq_alloc(0);
 
                 // 
 #if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
