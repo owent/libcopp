@@ -99,7 +99,6 @@ namespace copp {
 
             // callee_stack and alloc unavailable any more.
             if (ret) {
-                ret->alloc_        = std::move(alloc);
                 ret->callee_stack_ = std::move(callee_stack);
             } else {
                 alloc.deallocate(callee_stack);

@@ -49,24 +49,29 @@
  */
 class test_manager {
 public:
-    typedef test_case_base *                                    case_ptr_type;
-    typedef std::vector<std::pair<std::string, case_ptr_type> > test_type;
-    typedef UTILS_TEST_ENV_AUTO_MAP(std::string, test_type) test_data_type;
+    typedef test_case_base *                                        case_ptr_type;
+    typedef test_on_start_base *                                    on_start_ptr_type;
+    typedef test_on_exit_base *                                     on_exit_ptr_type;
+    typedef std::vector<std::pair<std::string, case_ptr_type> >     test_type;
+    typedef std::vector<std::pair<std::string, on_start_ptr_type> > event_on_start_type;
+    typedef std::vector<std::pair<std::string, on_exit_ptr_type> >  event_on_exit_type;
+    typedef UTILS_TEST_ENV_AUTO_MAP(std::string, test_type)         test_data_type;
 
 public:
     test_manager();
     virtual ~test_manager();
 
-    void append(const std::string &test_name, const std::string &case_name, case_ptr_type);
+    void append_test_case(const std::string &test_name, const std::string &case_name, case_ptr_type);
+    void append_event_on_start(const std::string &event_name, on_start_ptr_type);
+    void append_event_on_exit(const std::string &event_name, on_exit_ptr_type);
 
+    int run_event_on_start();
+    int run_event_on_exit();
     int run();
 
     void set_cases(const std::vector<std::string> &case_names);
 
     static test_manager &me();
-
-    int *success_counter_ptr;
-    int *failed_counter_ptr;
 
     static std::string get_expire_time(clock_t begin, clock_t end);
 
@@ -132,10 +137,10 @@ public:
                    std::is_integral<TL>::value || std::is_integral<TR>::value, std::is_integral<TL>::value && std::is_integral<TR>::value>
             pp;
         if (pp(l) == pp(r)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected: " << lexpr << " == " << rexpr << std::endl
@@ -153,10 +158,10 @@ public:
             pp;
 
         if (pp(l) != pp(r)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected: " << lexpr << " ！= " << rexpr << std::endl
@@ -174,10 +179,10 @@ public:
             pp;
 
         if (pp(l) < pp(r)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected: " << lexpr << " < " << rexpr << std::endl
@@ -195,10 +200,10 @@ public:
             pp;
 
         if (pp(l) <= pp(r)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected: " << lexpr << " <= " << rexpr << std::endl
@@ -216,10 +221,10 @@ public:
             pp;
 
         if (pp(l) > pp(r)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected: " << lexpr << " > " << rexpr << std::endl
@@ -237,10 +242,10 @@ public:
             pp;
 
         if (pp(l) >= pp(r)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected: " << lexpr << " >= " << rexpr << std::endl
@@ -254,10 +259,10 @@ public:
     template <typename TL>
     bool expect_true(const TL &l, const char *expr, const char *file, size_t line) {
         if (!!(l)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected true: " << expr << std::endl
@@ -270,10 +275,10 @@ public:
     template <typename TL>
     bool expect_false(const TL &l, const char *expr, const char *file, size_t line) {
         if (!(l)) {
-            ++(*success_counter_ptr);
+            inc_success_counter();
             return true;
         } else {
-            ++(*failed_counter_ptr);
+            inc_failed_counter();
             util::cli::shell_stream ss(std::cout);
             ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
                  << "Expected false: " << expr << std::endl
@@ -283,14 +288,21 @@ public:
         }
     }
 
+    static void set_counter_ptr(int* success_counter_ptr, int* failed_counter_ptr);
+    static void inc_success_counter();
+    static void inc_failed_counter();
 private:
     test_data_type tests_;
+    event_on_start_type evt_on_starts_;
+    event_on_exit_type  evt_on_exits_;
     int            success_;
     int            failed_;
     UTILS_TEST_ENV_AUTO_SET(std::string) run_cases_;
     UTILS_TEST_ENV_AUTO_SET(std::string) run_groups_;
 };
 
+int run_event_on_start();
+int run_event_on_exit();
 int run_tests(int argc, char *argv[]);
 
 #endif /* TEST_MANAGER_H_ */

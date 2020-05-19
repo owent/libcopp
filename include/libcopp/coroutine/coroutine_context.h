@@ -36,17 +36,29 @@ namespace copp {
 
         template <size_t N>
         struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N, true> {
+#if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
+            static constexpr size_t value = N;
+#else
             static const size_t value = N;
+#endif
         };
 
         template <size_t N>
         struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N, false> {
+#if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
+            static constexpr size_t value = 16;
+#else
             static const size_t value = 16;
+#endif
         };
 
         template <size_t N>
         struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
+#if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
+            static constexpr size_t value = align_helper_inner<N, N >= 16>::value;
+#else
             static const size_t value = align_helper_inner<N, N >= 16>::value;
+#endif
         };
 
         // We should align to at least 16 bytes, @see https://wiki.osdev.org/System_V_ABI for more details
