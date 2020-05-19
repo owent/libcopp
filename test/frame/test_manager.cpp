@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <list>
 
 #include <libcopp/utils/config/compile_optimize.h>
 #include <libcopp/utils/config/compiler_features.h>
