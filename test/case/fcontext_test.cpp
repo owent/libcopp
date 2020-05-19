@@ -2,6 +2,12 @@
 #include <cstdio>
 #include <cstring>
 
+#include "libcopp/utils/config/libcopp_build_features.h"
+
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
+#include <valgrind/valgrind.h>
+#endif
+
 #include "libcopp/fcontext/all.hpp"
 #include "frame/test_macros.h"
 
@@ -47,6 +53,10 @@ void test_core_fcontext_func_b(::copp::fcontext::transfer_t src)
 
 CASE_TEST(core, fcontext)
 {
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
+    unsigned valgrind_stack_id_a = VALGRIND_STACK_REGISTER(test_core_fcontext_stack_a, test_core_fcontext_stack_a + sizeof(test_core_fcontext_stack_a));
+    unsigned valgrind_stack_id_b = VALGRIND_STACK_REGISTER(test_core_fcontext_stack_b, test_core_fcontext_stack_b + sizeof(test_core_fcontext_stack_b));
+#endif
     ++ g_test_core_fcontext_status;
     CASE_EXPECT_EQ(g_test_core_fcontext_status, 1);
 
@@ -57,4 +67,9 @@ CASE_TEST(core, fcontext)
 
     ++ g_test_core_fcontext_status;
     CASE_EXPECT_EQ(g_test_core_fcontext_status, 5);
+
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
+    VALGRIND_STACK_DEREGISTER(valgrind_stack_id_a);
+    VALGRIND_STACK_DEREGISTER(valgrind_stack_id_b);
+#endif
 }

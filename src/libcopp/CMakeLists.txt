@@ -40,6 +40,12 @@ target_include_directories(${PROJECT_LIBCOPP_LIB_LINK}
         "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_ROOT_INC_DIR}>"
         "$<INSTALL_INTERFACE:include>"
 )
+if (PROJECT_LIBCOPP_DEP_INC_DIR)
+    target_include_directories(${PROJECT_LIBCOPP_LIB_LINK} 
+        PUBLIC 
+            "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_DEP_INC_DIR}>"
+    )
+endif()
 
 install(TARGETS ${PROJECT_LIBCOPP_LIB_LINK}
     EXPORT ${PROJECT_LIBCOPP_EXPORT_NAME}

@@ -66,7 +66,7 @@ namespace copp {
     (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<sizeof(max_align_t)>::value
 #else
-#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(long double)>::value
+#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(size_t)>::value
 #endif
 
         UTIL_CONFIG_STATIC_ASSERT(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16);
