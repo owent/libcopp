@@ -91,9 +91,9 @@ namespace copp {
                     other.context_ = nullptr;
                 }
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !future_ || future_->is_ready(); }
+                inline bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !future_ || future_->is_ready(); }
 
-                void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
+                inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
                     if (future_) {
                         // This should never triggered, because a generator can only be co_await once
                         if (future_->get_handle() && !future_->get_handle().done()) {

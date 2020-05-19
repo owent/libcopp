@@ -121,7 +121,15 @@ namespace copp {
             detail::set_this_coroutine_context(ins_ptr);
 
             // run logic code
-            ins_ptr->run_and_recv_retcode(jump_src.priv_data);
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            try {
+#endif
+                ins_ptr->run_and_recv_retcode(jump_src.priv_data);
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            } catch(...) {
+                ins_ptr->unhandle_exception_ = std::current_exception();
+            }
+#endif
 
             ins_ptr->flags_ |= coroutine_context::flag_t::EN_CFT_FINISHED;
             // add memory fence to flush flags_(used in is_finished())
@@ -302,6 +310,10 @@ namespace copp {
             // if in finished status, change it to exited
             status_.store(status_t::EN_CRS_EXITED, libcopp::util::lock::memory_order_release);
         }
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        maybe_rethrow();
+#endif
 
         return COPP_EC_SUCCESS;
     } // namespace copp

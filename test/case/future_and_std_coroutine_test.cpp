@@ -406,7 +406,9 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
 
 #include <libcopp/future/std_coroutine_generator.h>
 #include <libcopp/future/std_coroutine_task.h>
-
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+#include <stdexcept>
+#endif
 // ================= Unit Test - C++20 Coroutine Support =================
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
@@ -553,6 +555,26 @@ CASE_TEST(future_for_std_coroutine, tast_with_void_result) {
     CASE_EXPECT_NE(nullptr, t.data());
 }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+static copp::future::task_t<int> call_for_coroutine_fn_and_throw_exception() {
+    co_return (int)std::string().at(1);
+}
+
+CASE_TEST(future_for_std_coroutine, tast_with_exception) {
+    try {
+        copp::future::task_t<int> t = call_for_coroutine_fn_and_throw_exception();
+        CASE_EXPECT_TRUE(t.done());
+        CASE_EXPECT_FALSE(t.poll_data()->is_ready());
+        CASE_EXPECT_NE(nullptr, t.data());
+
+        // this should never be called
+        CASE_EXPECT_TRUE(false);
+    } catch (const std::exception& e) {
+        CASE_MSG_INFO() << "Caught exception \"" << e.what() << "\""<<std::endl;
+    }
+}
+
+#endif
 
 class test_future_for_std_coroutine_no_trivial_result_message_t {
 private:

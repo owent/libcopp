@@ -13,6 +13,10 @@
 
 #include "future.h"
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+#include <exception>
+#endif
+
 namespace copp {
     namespace future {
 
@@ -128,7 +132,9 @@ namespace copp {
             future_type   future;
             LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
             coroutine_handle<task_promise_t<T, TPD, TPTR, TMACRO> > handle;
-
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            std::exception_ptr unhandle_exception;
+#endif
         private:
             task_runtime_t(const task_runtime_t &) UTIL_CONFIG_DELETED_FUNCTION;
             task_runtime_t &operator=(const task_runtime_t &) UTIL_CONFIG_DELETED_FUNCTION;
@@ -196,7 +202,7 @@ namespace copp {
                 self_type *promise;
                 initial_awaitable(self_type &s) : promise(&s) {}
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT {
+                inline bool await_ready() const UTIL_CONFIG_NOEXCEPT {
                     // only setup handle once
                     // return promise && promise->runtime_ && promise->runtime_->handle;
                     return false;
@@ -228,7 +234,7 @@ namespace copp {
                     }
                 }
 
-                void await_resume() UTIL_CONFIG_NOEXCEPT {
+                inline void await_resume() UTIL_CONFIG_NOEXCEPT {
                     if (likely(promise && promise->runtime_)) {
                         promise->runtime_->status = task_status_t::RUNNING;
                     }
@@ -239,10 +245,10 @@ namespace copp {
                 self_type *promise;
                 final_awaitable(self_type &s) : promise(&s) {}
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
+                inline bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
 
                 template <typename U>
-                void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> /*handle*/) {}
+                inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> /*handle*/) UTIL_CONFIG_NOEXCEPT {}
 
                 void await_resume() UTIL_CONFIG_NOEXCEPT {
                     if (likely(promise)) {
@@ -303,8 +309,13 @@ namespace copp {
 
             auto initial_suspend() UTIL_CONFIG_NOEXCEPT { return initial_awaitable{*this}; }
             auto final_suspend() UTIL_CONFIG_NOEXCEPT { return final_awaitable{*this}; }
+
             void unhandled_exception() UTIL_CONFIG_NOEXCEPT {
-                // exception_ptr_ = std::new (static_cast<void*>(std::addressof(m_exception))) std::exception_ptr(std::current_exception());
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                if (likely(runtime_)) {
+                    runtime_->unhandle_exception = std::current_exception();
+                }
+#endif
             }
 
             // template <class... TARGS>
@@ -477,7 +488,7 @@ namespace copp {
                     return !refer_task_ || refer_task_->done();
                 }
 
-                void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
+                void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) {
                     if (await_ready()) {
                         h.resume();
                         return;
@@ -563,16 +574,30 @@ namespace copp {
                 return true;
             }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            inline const value_type *data() const {
+#else
             inline const value_type *data() const UTIL_CONFIG_NOEXCEPT {
+#endif
                 if (likely(runtime_)) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                    maybe_rethrow();
+#endif
                     return runtime_->future.data();
                 }
 
                 return nullptr;
             }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            inline value_type *data() {
+#else
             inline value_type *data() UTIL_CONFIG_NOEXCEPT {
+#endif
                 if (likely(runtime_)) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                    maybe_rethrow();
+#endif
                     return runtime_->future.data();
                 }
 
@@ -634,6 +659,19 @@ namespace copp {
 
             static typename promise_type::template pick_context_awaitable<context_type> current_context() { return promise_type::current_context(); }
             static typename promise_type::template pick_future_awaitable<future_type>   current_future() { return promise_type::current_future(); }
+
+        private:
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            inline void maybe_rethrow() {
+                if (likely(runtime_)) {
+                    if (unlikely(runtime_->unhandle_exception)) {
+                        std::exception_ptr eptr;
+                        std::swap(eptr, runtime_->unhandle_exception);
+                        std::rethrow_exception(eptr);
+                    }
+                }
+            }
+#endif
 
         private:
             std::shared_ptr<runtime_type> runtime_;

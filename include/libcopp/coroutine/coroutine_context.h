@@ -15,6 +15,10 @@
 #include <libcopp/utils/std/functional.h>
 #include <libcopp/utils/std/smart_ptr.h>
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+#include <exception>
+#endif
+
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 #define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type) using base_type::caller_stack_;
 #else
@@ -130,6 +134,10 @@ namespace copp {
         libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<int> > status_; /** status **/
 #else
         libcopp::util::lock::atomic_int_type<int> status_; /** status **/
+#endif
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        std::exception_ptr unhandle_exception_;
 #endif
 
     protected:
@@ -283,6 +291,16 @@ namespace copp {
             sz &= ~align_mask;
             return sz;
         }
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        inline void maybe_rethrow() {
+            if (unlikely(unhandle_exception_)) {
+                std::exception_ptr eptr;
+                std::swap(eptr, unhandle_exception_);
+                std::rethrow_exception(eptr);
+            }
+        }
+#endif
     };
 
     namespace this_coroutine {

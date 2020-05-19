@@ -5,6 +5,7 @@ endif()
 # 默认配置选项
 #####################################################################
 if(NOT DEFINED __COMPILER_OPTION_LOADED)
+    include(CheckCXXSourceCompiles)
     set(__COMPILER_OPTION_LOADED 1)
     option(COMPILER_OPTION_MSVC_ZC_CPP "Add /Zc:__cplusplus for MSVC (let __cplusplus be equal to _MSVC_LANG) when it support." ON)
     option(COMPILER_OPTION_CLANG_ENABLE_LIBCXX "Try to use libc++ when using clang." ON)
@@ -118,7 +119,6 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         endif()
         message(STATUS "Clang Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c${CMAKE_C_STANDARD}/c++${CMAKE_CXX_STANDARD}.")
         # Test libc++ and libc++abi
-        include(CheckCXXSourceCompiles)
         set(COMPILER_CLANG_TEST_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
         set(COMPILER_CLANG_TEST_BAKCUP_CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES})
         set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -stdlib=libc++")
@@ -171,7 +171,6 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         endif()
         message(STATUS "AppleClang Version ${CMAKE_CXX_COMPILER_VERSION} , using -std=c${CMAKE_C_STANDARD}/c++${CMAKE_CXX_STANDARD}.")
         # Test libc++ and libc++abi
-        include(CheckCXXSourceCompiles)
         set(COMPILER_CLANG_TEST_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
         set(COMPILER_CLANG_TEST_BAKCUP_CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES})
         set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -stdlib=libc++")
@@ -213,7 +212,6 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     endif()
 
     # 配置公共编译选项
-    include(CheckCXXSourceCompiles)
     set(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
     if ( NOT MSVC )
         if (NOT EMSCRIPTEN)
@@ -276,6 +274,26 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     endif()
     set(CMAKE_REQUIRED_FLAGS ${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS})
     unset(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS)
+    check_cxx_source_compiles("
+    #include <exception>
+    void handle_eptr(std::exception_ptr eptr) {
+        try {
+            if (eptr) {
+                std::rethrow_exception(eptr);
+            }
+        } catch(...) {}
+    }
+ 
+    int main() {
+        std::exception_ptr eptr;
+        try {
+            throw 1;
+        } catch(...) {
+            eptr = std::current_exception(); // capture
+        }
+        handle_eptr(eptr);
+    }
+    " COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR)
 
     # list => string
     string(REPLACE ";" " " CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")

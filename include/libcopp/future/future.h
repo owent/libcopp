@@ -117,7 +117,7 @@ namespace copp {
             inline poll_type &      poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
 
 
-            inline void clear_ctx_waker() {
+            inline void clear_ctx_waker() UTIL_CONFIG_NOEXCEPT {
                 if (clear_ctx_waker_) {
                     clear_ctx_waker_();
                     clear_ctx_waker_ = NULL;
@@ -136,7 +136,7 @@ namespace copp {
                 TCONTEXT* context;
                 clear_context_waker_t(TCONTEXT& ctx): context(&ctx) {}
 
-                void operator()() {
+                void operator()() UTIL_CONFIG_NOEXCEPT {
                     if (likely(context)) {
                         context->set_wake_fn(NULL);
                     }
