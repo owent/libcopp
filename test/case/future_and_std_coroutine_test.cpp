@@ -503,6 +503,7 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
     ctx.wake();
 }
 
+#include <libcotask/task.h>
 
 #include <libcopp/future/std_coroutine_generator.h>
 #include <libcopp/future/std_coroutine_task.h>
@@ -979,6 +980,40 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
     for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_generator_waker_list.empty();
          --retry_times) {
         (*g_test_future_for_std_coroutine_no_trivial_generator_waker_list.begin())->wake();
+    }
+}
+
+static copp::future::task_t<int> call_for_await_cotask(cotask::task<>::ptr_t t) {
+    if (t) {
+        co_return co_await t;
+    }
+
+    co_return 0;
+}
+
+static int cotask_action_callback(void *) {
+    int ret = 234;
+    void* ptr = nullptr;
+    cotask::this_task::get_task()->yield(&ptr);
+    if (ptr != nullptr) {
+        ret = *reinterpret_cast<int*>(ptr);
+    }
+    return ret;
+}
+
+CASE_TEST(future_for_std_coroutine, co_await_cotask) {
+    cotask::task<>::ptr_t co_task = cotask::task<>::create(cotask_action_callback);
+
+    auto t = call_for_await_cotask(co_task);
+    co_task->start();
+    CASE_EXPECT_FALSE(t.done());
+
+    int res = 345;
+    co_task->resume(reinterpret_cast<void*>(&res));
+
+    CASE_EXPECT_TRUE(t.done());
+    if (nullptr != t.data()) {
+        CASE_EXPECT_EQ(res, *t.data());
     }
 }
 

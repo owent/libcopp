@@ -1,7 +1,7 @@
 ﻿/*
- * sample_task_with_lambda.cpp
+ * sample_readme_5.cpp
  *
- *  Created on: 2014年5月19日
+ *  Created on: 2014-05-19
  *      Author: owent
  *
  *  Released under the MIT license

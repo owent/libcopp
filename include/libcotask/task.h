@@ -14,9 +14,11 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <list>
 #include <stdint.h>
 
 #include <libcopp/utils/uint64_id_allocator.h>
+#include <libcopp/future/std_coroutine_generator.h>
 
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
@@ -648,6 +650,23 @@ namespace cotask {
                 }
             }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+            // and then, resume all std coroutine handles
+            while (!next_std_handles_.empty()) {
+                if(!*next_std_handles_.begin()) {
+                    next_std_handles_.pop_front();
+                    continue;
+                }
+
+                if((*next_std_handles_.begin()).done()) {
+                    next_std_handles_.pop_front();
+                    continue;
+                }
+
+                (*next_std_handles_.begin()).resume();
+            }
+#endif
+
             // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
             if (UTIL_CONFIG_NULLPTR != manager_ptr && UTIL_CONFIG_NULLPTR != manager_fn) {
@@ -739,6 +758,60 @@ namespace cotask {
         };
 #endif
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+    public:
+        class awaitable_base_t {
+        private:
+            awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+            awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+
+        public:
+            awaitable_base_t(ptr_t t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}
+
+            awaitable_base_t(awaitable_base_t &&other) : refer_task_(other.refer_task_), await_handle_iter_(other.await_handle_iter_) {
+                if (other.refer_task_) {
+                    other.await_handle_iter_ = other.refer_task_->next_std_handles_.end();
+                    other.refer_task_.reset();
+                }
+            }
+            awaitable_base_t &operator=(awaitable_base_t &&other) {
+                refer_task_        = other.refer_task_;
+                await_handle_iter_ = other.await_handle_iter_;
+
+                if (other.refer_task_) {
+                    other.await_handle_iter_ = other.refer_task_->next_std_handles_.end();
+                    other.refer_task_.reset();
+                }
+            }
+
+            inline bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !refer_task_ || refer_task_->is_completed(); }
+
+            inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
+                if (likely(refer_task_)) {
+                    await_handle_iter_ = refer_task_->next_std_handles_.insert(refer_task_->next_std_handles_.end(), h);
+                }
+            }
+
+            inline int await_resume() UTIL_CONFIG_NOEXCEPT {
+                if (likely(refer_task_ && await_handle_iter_ != refer_task_->next_std_handles_.end())) {
+                    refer_task_->next_std_handles_.erase(await_handle_iter_);
+                    await_handle_iter_ = refer_task_->next_std_handles_.end();
+                }
+
+                if (likely(refer_task_)) {
+                    return refer_task_->get_ret_code();
+                }
+
+                return copp::COPP_EC_NOT_FOUND;
+            }
+
+        protected:
+            ptr_t refer_task_;
+            typename std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>::iterator await_handle_iter_;
+        };
+
+        auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return awaitable_base_t{ptr_t(this)}; }
+#endif
     private:
         id_t                        id_;
         size_t                      stack_size_;
@@ -760,7 +833,19 @@ namespace cotask {
         void *binding_manager_ptr_;
         void (*binding_manager_fn_)(void *, self_t &);
 #endif
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+        std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> next_std_handles_;
+#endif
     };
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+    template <typename TCO_MACRO>
+    auto operator co_await(libcopp::util::intrusive_ptr<task<TCO_MACRO> > t) UTIL_CONFIG_NOEXCEPT {
+        typedef typename task<TCO_MACRO>::awaitable_base_t awaitable_t;
+        return awaitable_t{t}; 
+    }
+#endif
 } // namespace cotask
 
 
