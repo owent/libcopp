@@ -23,9 +23,9 @@ namespace copp {
             generator_future_t(TARGS &&... args) : future_t<T, TPTR>(std::forward<TARGS>(args)...), await_handle_(nullptr) {}
             ~generator_future_t() {}
 
-            inline const LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &get_handle() const { return await_handle_; }
-            inline LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &      get_handle() { return await_handle_; }
-            inline void                                       set_handle(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) { await_handle_ = h; }
+            UTIL_FORCEINLINE const LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &get_handle() const { return await_handle_; }
+            UTIL_FORCEINLINE LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &      get_handle() { return await_handle_; }
+            UTIL_FORCEINLINE void                                       set_handle(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) { await_handle_ = h; }
 
             template <class TCONTEXT>
             void poll(TCONTEXT &&ctx) {
@@ -105,11 +105,6 @@ namespace copp {
                 }
 
                 inline future_type *await_resume() UTIL_CONFIG_NOEXCEPT {
-                    // clear reference
-                    if (likely(context_)) {
-                        context_->set_wake_fn(NULL);
-                    }
-
                     if (likely(future_)) {
                         future_->set_handle(nullptr);
 
@@ -167,11 +162,8 @@ namespace copp {
 
                         // waker may be destroyed when call poll, so copy waker and future into stack
                         if (future->is_ready() && future->get_handle() && !future->get_handle().done()) {
-                            future_type *fut = future;
-                            future           = NULL;
-
                             // This may lead to deallocation of generator_waker_t later, and we need not to resume again
-                            fut->get_handle().resume();
+                            future->get_handle().resume();
                         }
                     }
                 }
@@ -189,18 +181,23 @@ namespace copp {
 
                 future_.template poll_as<future_type>(context_);
             }
+            ~generator_t() { context_.set_wake_fn(NULL); }
 
             auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return reference_awaitable_t{future_, context_}; }
 
             // co_await a temporary generator_t in GCC 10.1.0 will destroy generator_t first, which will cause all resources unavailable
             // auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return rvalue_awaitable_t{future_, context_}; }
 
-            inline value_type *        data() UTIL_CONFIG_NOEXCEPT { return future_.data(); }
-            inline const value_type *  data() const UTIL_CONFIG_NOEXCEPT { return future_.data(); }
-            inline poll_type &         poll_data() UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
-            inline const poll_type &   poll_data() const UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
-            inline context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
-            inline const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
+            UTIL_FORCEINLINE value_type *        data() UTIL_CONFIG_NOEXCEPT { return future_.data(); }
+            UTIL_FORCEINLINE const value_type *  data() const UTIL_CONFIG_NOEXCEPT { return future_.data(); }
+            UTIL_FORCEINLINE poll_type &         poll_data() UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
+            UTIL_FORCEINLINE const poll_type &   poll_data() const UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
+            UTIL_FORCEINLINE context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
+            UTIL_FORCEINLINE const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
+
+            UTIL_FORCEINLINE operator bool() const UTIL_CONFIG_NOEXCEPT { return has_data(); }
+            UTIL_FORCEINLINE bool has_data() const UTIL_CONFIG_NOEXCEPT { return future_.is_ready(); }
+            UTIL_FORCEINLINE void reset_data() { future_.reset_data(); }
         private:
             // generator can not be copy or moved.
             generator_t(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;

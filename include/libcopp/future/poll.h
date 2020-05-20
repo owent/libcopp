@@ -32,16 +32,21 @@ namespace copp {
                 return *this;
             }
 
-            inline bool is_ready() const UTIL_CONFIG_NOEXCEPT { return !!poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE bool is_ready() const UTIL_CONFIG_NOEXCEPT { return !!poll_storage_t::unwrap(storage_data_); }
 
-            inline bool is_pending() const UTIL_CONFIG_NOEXCEPT { return !poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE bool is_pending() const UTIL_CONFIG_NOEXCEPT { return !poll_storage_t::unwrap(storage_data_); }
 
-            inline const value_type *data() const UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
-            inline value_type *      data() UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
+            UTIL_FORCEINLINE const value_type *data() const UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
+            UTIL_FORCEINLINE value_type *      data() UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
 
-            inline const ptr_type &raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
-            inline ptr_type &      raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE const ptr_type &raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE ptr_type &      raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
 
+            UTIL_FORCEINLINE void reset() { poll_storage_t::reset(storage_data_); }
+            UTIL_FORCEINLINE void swap(self_type& other) UTIL_CONFIG_NOEXCEPT {
+                poll_storage_t::swap(storage_data_, other.storage_data_);
+            }
+            friend UTIL_FORCEINLINE void swap(self_type& l, self_type& r) UTIL_CONFIG_NOEXCEPT { l.swap(r); }
         private:
             template <class U, class UDELETER,
                       typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>

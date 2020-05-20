@@ -61,11 +61,10 @@ struct benchmark_generator_waker_t {
     ~benchmark_generator_waker_t() { g_benchmark_waker_list[index] = nullptr; }
 
     void operator()(benchmark_generator_future_t &fut, benchmark_generator_context_t &ctx) {
+        g_benchmark_waker_list[index] = &ctx;
         if (code) {
-            fut.poll_data()               = benchmark_result_t::make_error(code);
-            g_benchmark_waker_list[index] = nullptr;
-        } else {
-            g_benchmark_waker_list[index] = &ctx;
+            fut.poll_data() = benchmark_result_t::make_error(code);
+            code = 0;
         }
     }
 };
@@ -74,12 +73,13 @@ typedef copp::future::generator_t<benchmark_result_t, benchmark_generator_waker_
 
 static benchmark_task_t benchmark_start_sum_task(size_t index, int32_t await_times) {
     int32_t sum = 0;
+    auto gen = copp::future::make_generator<benchmark_generator_t>(index);
     for (int32_t i = 0; i < await_times; ++i) {
-        auto gen = copp::future::make_generator<benchmark_generator_t>(index);
         auto res = co_await gen;
         if (nullptr != res && res->is_error()) {
             sum += *res->get_error();
         }
+        gen.reset_data();
     }
 
     co_return benchmark_result_t::make_error(sum);
@@ -122,20 +122,19 @@ static void benchmark_round(int index) {
         continue_flag = false;
         for (size_t i = 0; i < g_benchmark_waker_list.size(); ++i) {
             if (g_benchmark_waker_list[i]) {
-                g_benchmark_waker_list[i]->get_private_data().code = round;
+                if (0 == g_benchmark_waker_list[i]->get_private_data().code) {
+                    g_benchmark_waker_list[i]->get_private_data().code = round;
+                    ++real_switch_times;
+                    continue_flag = true;
+                }
                 g_benchmark_waker_list[i]->wake();
-                ++real_switch_times;
-            }
-
-            if (g_benchmark_waker_list[i]) {
-                continue_flag = true;
             }
         }
     }
 
     end_time  = time(NULL);
     end_clock = CALC_CLOCK_NOW();
-    printf("poll %d task(s) and %lld generator(s), cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, real_switch_times,
+    printf("poll %d task(s) and generator(s) for %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number, real_switch_times,
            static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
            CALC_NS_AVG_CLOCK(end_clock - begin_clock, real_switch_times));
 

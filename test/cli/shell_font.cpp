@@ -39,8 +39,8 @@ namespace util {
             bool bFirst = true;
 
             // 第一部分，特殊样式
-            if (shell_font_style::SHELL_FONT_SPEC_BOLD) {
-                ret += std::string((!bFirst) ? ";" : "") + "1";
+            if (iFlag & shell_font_style::SHELL_FONT_SPEC_BOLD) {
+                ret += "1";
                 bFirst = false;
             }
             if (iFlag & shell_font_style::SHELL_FONT_SPEC_UNDERLINE) {
@@ -217,9 +217,6 @@ namespace util {
 #endif
 
 
-        shell_stream::shell_stream(stream_t &stream) : m_pOs(&stream) {}
-
-
         shell_stream::shell_stream_opr::shell_stream_opr(stream_t *os) : pOs(os), flag(shell_font_style::SHELL_FONT_SPEC_NULL) {
 #ifdef SHELL_FONT_USING_WIN32_CONSOLE
             if (os == &std::cout) {
@@ -252,6 +249,36 @@ namespace util {
 
             return (*this);
         }
+
+#if defined(UTIL_CONFIG_COMPILER_CXX_NULLPTR) && UTIL_CONFIG_COMPILER_CXX_NULLPTR
+        const shell_stream::shell_stream_opr &shell_stream::shell_stream_opr::operator<<(std::nullptr_t) const {
+            close();
+            (*pOs) << "nullptr";
+            return (*this);
+        }
+#endif
+
+        const shell_stream::shell_stream_opr &shell_stream::shell_stream_opr::operator<<(shell_font_style::shell_font_spec style) const {
+            open(style);
+            return (*this);
+        }
+
+        const shell_stream::shell_stream_opr &shell_stream::shell_stream_opr::operator<<(shell_font_style::shell_font_color style) const {
+            open(style);
+            return (*this);
+        }
+
+        const shell_stream::shell_stream_opr &shell_stream::shell_stream_opr::operator<<(shell_font_style::shell_font_background_color style) const {
+            open(style);
+            return (*this);
+        }
+
+        const shell_stream::shell_stream_opr &shell_stream::shell_stream_opr::operator<<(stream_t &(*fn)(stream_t &)) const {
+            close();
+            (*pOs) << fn;
+            return (*this);
+        }
+
 
         const shell_stream::shell_stream_opr &shell_stream::shell_stream_opr::open(int f) const {
             if (f == shell_font_style::SHELL_FONT_SPEC_NULL) {
@@ -315,6 +342,10 @@ namespace util {
 
 #endif
         }
+
+        shell_stream::shell_stream(stream_t &stream) : m_pOs(&stream) {}
+
+        shell_stream::shell_stream_opr shell_stream::operator()() const { return shell_stream_opr(m_pOs); }
 
     } // namespace cli
 } // namespace util

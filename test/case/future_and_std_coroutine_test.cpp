@@ -99,6 +99,106 @@ CASE_TEST(future, poll_shared_ptr) {
     CASE_EXPECT_EQ(p5.data() ? p5.data()->get_type() : 0, 2);
 }
 
+CASE_TEST(future, poll_void_reset_and_swap) {
+    using copp::future::swap;
+    {
+        copp::future::poll_t<void> p1;
+        copp::future::poll_t<void> p2;
+
+        p1 = true;
+        CASE_EXPECT_TRUE(p1.is_ready());
+        CASE_EXPECT_TRUE(p2.is_pending());
+
+        swap(p1, p2);
+
+        CASE_EXPECT_FALSE(p1.is_ready());
+        CASE_EXPECT_FALSE(p2.is_pending());
+
+        p2.reset();
+        CASE_EXPECT_TRUE(p2.is_pending());
+    }
+}
+
+CASE_TEST(future, poll_trivial_reset_and_swap) {
+    using copp::future::swap;
+    {
+        copp::future::poll_t<int> p1;
+        copp::future::poll_t<int> p2;
+
+        p1 = 123;
+        CASE_EXPECT_TRUE(p1.is_ready());
+        CASE_EXPECT_TRUE(p2.is_pending());
+
+        swap(p1, p2);
+
+        CASE_EXPECT_FALSE(p1.is_ready());
+        CASE_EXPECT_FALSE(p2.is_pending());
+        CASE_EXPECT_EQ(123, *p2.data());
+
+        p2.reset();
+        CASE_EXPECT_TRUE(p2.is_pending());
+    }
+}
+
+CASE_TEST(future, poll_no_trivial_reset_and_swap) {
+    using copp::future::swap;
+    {
+        copp::future::poll_t<test_no_trivial_parent_clazz> p1;
+        copp::future::poll_t<test_no_trivial_parent_clazz> p2;
+
+        p1 = copp::future::make_unique<test_no_trivial_parent_clazz>(123);
+        CASE_EXPECT_TRUE(p1.is_ready());
+        CASE_EXPECT_TRUE(p2.is_pending());
+
+        swap(p1, p2);
+
+        CASE_EXPECT_FALSE(p1.is_ready());
+        CASE_EXPECT_FALSE(p2.is_pending());
+        CASE_EXPECT_EQ(123, p2.data()->data);
+
+        p2.reset();
+        CASE_EXPECT_TRUE(p2.is_pending());
+    }
+}
+
+CASE_TEST(future, swap_trivial_result) {
+    using copp::future::swap;
+    {
+        copp::future::result_t<test_no_trivial_parent_clazz, int> p1 = copp::future::result_t<test_no_trivial_parent_clazz, int>::create_success(123);
+        copp::future::result_t<test_no_trivial_parent_clazz, int> p2 = copp::future::result_t<test_no_trivial_parent_clazz, int>::create_error(456);
+
+        CASE_EXPECT_TRUE(p1.is_success());
+        CASE_EXPECT_TRUE(p2.is_error());
+
+        swap(p1, p2);
+
+        CASE_EXPECT_FALSE(p1.is_success());
+        CASE_EXPECT_FALSE(p2.is_error());
+
+        CASE_EXPECT_EQ(456, *p1.get_error());
+        CASE_EXPECT_EQ(123, p2.get_success()->data);
+    }
+}
+
+CASE_TEST(future, swap_no_trivial_result) {
+    using copp::future::swap;
+    {
+        copp::future::result_t<int, int> p1 = copp::future::result_t<int, int>::create_success(123);
+        copp::future::result_t<int, int> p2 = copp::future::result_t<int, int>::create_error(456);
+
+        CASE_EXPECT_TRUE(p1.is_success());
+        CASE_EXPECT_TRUE(p2.is_error());
+
+        swap(p1, p2);
+
+        CASE_EXPECT_FALSE(p1.is_success());
+        CASE_EXPECT_FALSE(p2.is_error());
+
+        CASE_EXPECT_EQ(456, *p1.get_error());
+        CASE_EXPECT_EQ(123, *p2.get_success());
+    }
+}
+
 template <class T>
 struct test_future_void_context_poll_functor;
 

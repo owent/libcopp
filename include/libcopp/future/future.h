@@ -81,21 +81,21 @@ namespace copp {
             future_t() {}
             ~future_t() { clear_ctx_waker(); }
 
-            inline bool is_ready() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_ready(); }
+            UTIL_FORCEINLINE bool is_ready() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_ready(); }
 
-            inline bool is_pending() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_pending(); }
+            UTIL_FORCEINLINE bool is_pending() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_pending(); }
 
             template <class TCONTEXT>
-            void poll(TCONTEXT &&ctx) {
+            UTIL_FORCEINLINE void poll(TCONTEXT &&ctx) {
                 poll_as(*this, std::forward<TCONTEXT>(ctx));
             }
 
             template <class TSELF, class TCONTEXT>
-            void poll_as(TCONTEXT &&ctx) {
+            UTIL_FORCEINLINE void poll_as(TCONTEXT &&ctx) {
                 poll_as(*static_cast<typename std::decay<TSELF>::type*>(this), std::forward<TCONTEXT>(ctx));
             }
 
-            inline const value_type *data() const UTIL_CONFIG_NOEXCEPT {
+            UTIL_FORCEINLINE const value_type *data() const UTIL_CONFIG_NOEXCEPT {
                 if (!is_ready()) {
                     return NULL;
                 }
@@ -103,7 +103,7 @@ namespace copp {
                 return poll_data_.data();
             }
 
-            inline value_type *data() UTIL_CONFIG_NOEXCEPT {
+            UTIL_FORCEINLINE value_type *data() UTIL_CONFIG_NOEXCEPT {
                 if (!is_ready()) {
                     return NULL;
                 }
@@ -111,10 +111,11 @@ namespace copp {
                 return poll_data_.data();
             }
 
-            inline const ptr_type & raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
-            inline ptr_type &       raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
-            inline const poll_type &poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
-            inline poll_type &      poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            UTIL_FORCEINLINE const ptr_type & raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
+            UTIL_FORCEINLINE ptr_type &       raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
+            UTIL_FORCEINLINE const poll_type &poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            UTIL_FORCEINLINE poll_type &      poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
 
 
             inline void clear_ctx_waker() UTIL_CONFIG_NOEXCEPT {
