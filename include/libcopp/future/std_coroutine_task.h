@@ -442,7 +442,6 @@ namespace copp {
             using wake_list_type = typename promise_type::wake_list_type;
             using storage_type   = typename poll_type::storage_type;
             using value_type     = typename poll_type::value_type;
-            using ptr_type       = typename poll_type::ptr_type;
             using status_type    = task_status_t;
 #else
             typedef task_t<T, TPD, TPTR, TMACRO>                                                                    self_type;
@@ -454,7 +453,6 @@ namespace copp {
             typedef typename promise_type::wake_list_type                                                           wake_list_type;
             typedef typename poll_type::storage_type                                                                storage_type;
             typedef typename poll_type::value_type                                                                  value_type;
-            typedef typename poll_type::ptr_type                                                                    ptr_type;
             typedef task_status_t                                                                                   status_type;
 #endif
 

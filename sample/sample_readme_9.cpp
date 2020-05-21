@@ -16,11 +16,13 @@
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
 // static copp::future::task_t<int> call_for_await_cotask() {
+//     auto context = co_yield copp::future::task_t<int>::current_context();
+//     auto future = co_yield copp::future::task_t<int>::current_future();
 //     co_return 0;
 // }
 
 int main() {
-    // timeout
+    // timeout manager and get context or future from task function
     return 0;
 }
 #else

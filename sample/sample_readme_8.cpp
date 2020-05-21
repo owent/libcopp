@@ -19,6 +19,7 @@
 // }
 
 int main() {
+    // using generator
     return 0;
 }
 #else

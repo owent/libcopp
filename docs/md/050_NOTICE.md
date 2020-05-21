@@ -11,6 +11,21 @@ BENCHMARK
 
 Please see CI output for latest benchmark report. the [benchmark on Linux and macOS can be see here](https://travis-ci.org/owt5008137/libcopp) and the [benchmark on Windows can be see here](https://ci.appveyor.com/project/owt5008137/libcopp).
 
+FAQ
+----------------
+
+Q: How to enable c++20 coroutine
+
+> ANS: Add ```/std:c++latest /await``` for MSVC or add ```-std=c++20 -fcoroutines-ts -stdlib=libc++``` for clang or add ```-std=c++20 -fcoroutines``` for gcc.
+
+Q: Will libcopp handle exception?
+
+> ANS: When using c++11 or above, libcopp will catch all unhandled exception and rethrow it after coroutine resumed.
+
+Q: Why ```SetUnhandledExceptionFilter``` can not catch the unhandled exception in a coroutine?
+
+> ANS: Please use ```AddVectoredExceptionHandler``` for tempolary, we will implement WinFiber in the future, and then ```SetUnhandledExceptionFilter``` will work.
+
 FEEDBACK
 ----------------
 

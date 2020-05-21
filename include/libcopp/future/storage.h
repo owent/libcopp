@@ -340,6 +340,11 @@ namespace copp {
             static UTIL_FORCEINLINE ptr_type          clone_ptr(storage_type &storage) UTIL_CONFIG_NOEXCEPT { return storage; }
         };
 
+        template <class T>
+        struct default_compact_storage_t : public compact_storage_t<T, typename compact_storage_select_t<T>::type> {
+            typedef compact_storage_t<T, typename compact_storage_select_t<T>::type> type;
+        };
+
         template <class TOK, class TERR, bool is_all_trivial>
         class LIBCOPP_COPP_API_HEAD_ONLY result_base_t;
 
@@ -507,8 +512,8 @@ namespace copp {
                 TSTORAGE::construct_storage(out, std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
             }
 
-            typedef compact_storage_t<success_type, typename compact_storage_select_t<success_type>::type> success_storage_type;
-            typedef compact_storage_t<error_type, typename compact_storage_select_t<error_type>::type>     error_storage_type;
+            typedef typename default_compact_storage_t<success_type>::type success_storage_type;
+            typedef typename default_compact_storage_t<error_type>::type error_storage_type;
 
             typename success_storage_type::storage_type success_data_;
             typename error_storage_type::storage_type   error_data_;
@@ -564,10 +569,17 @@ namespace copp {
 
         template <class TOK, class TERR>
         class LIBCOPP_COPP_API_HEAD_ONLY result_t
-            : public result_base_t<TOK, TERR, std::is_trivial<TOK>::value && std::is_trivial<TERR>::value> {
+            : public result_base_t<TOK, TERR, default_compact_storage_t<TOK>::value && default_compact_storage_t<TERR>::value> {
         public:
-            typedef result_base_t<TOK, TERR, std::is_trivial<TOK>::value && std::is_trivial<TERR>::value> base_type;
-            typedef result_t<TOK, TERR>                                                                   self_type;
+            typedef result_base_t<TOK, TERR, default_compact_storage_t<TOK>::value && default_compact_storage_t<TERR>::value> base_type;
+            typedef result_t<TOK, TERR>                                                                                       self_type;
+
+        private:
+            typedef _make_result_instance_helper<self_type,
+                                                 poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
+                _make_instance_type;
+        public: 
+            typedef typename _make_instance_type::type storage_type;
 
             template <class... TARGS>
             static inline self_type create_success(TARGS &&... args) {
@@ -584,19 +596,16 @@ namespace copp {
             }
 
 
-        private:
-            typedef _make_result_instance_helper<self_type,
-                                                 poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
-                _make_instance_type;
+
 
         public:
             template <class... TARGS>
-            static inline typename _make_instance_type::type make_success(TARGS &&... args) {
+            static inline storage_type make_success(TARGS &&... args) {
                 return _make_instance_type::make_success(std::forward<TARGS>(args)...);
             }
 
             template <class... TARGS>
-            static inline typename _make_instance_type::type make_error(TARGS &&... args) {
+            static inline storage_type make_error(TARGS &&... args) {
                 return _make_instance_type::make_error(std::forward<TARGS>(args)...);
             }
         };
