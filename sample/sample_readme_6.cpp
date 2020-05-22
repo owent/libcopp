@@ -97,7 +97,7 @@ void run_with_custom_context () {
     std::cout<< "Got future success response code: "<< result->get_success()->response_code<< std::endl;
 }
 
-static void custom_poller_function(copp::future::context_t<void> & ctx, copp::future::context_t<void>::poll_event_data_t evt_data) {
+static void custom_poller_function(copp::future::context_t<void> &, copp::future::context_t<void>::poll_event_data_t evt_data) {
     if (NULL == evt_data.private_data) {
         return;
     }
