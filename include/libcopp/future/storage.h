@@ -15,6 +15,7 @@
 
 #include <libcopp/utils/features.h>
 
+
 namespace copp {
     namespace future {
         // FUNCTION TEMPLATE make_unique
@@ -57,7 +58,7 @@ namespace copp {
 
         template <class T>
         struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t {
-            typedef typename std::conditional<std::is_trivial<T>::value && sizeof(T) < (sizeof(size_t) << 2),
+            typedef typename std::conditional<COPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) < (sizeof(size_t) << 2),
                                               std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >,
                                               std::unique_ptr<T, std::default_delete<T> > >::type type;
         };
@@ -74,7 +75,7 @@ namespace copp {
         template <class T>
         struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t {
             typedef
-                typename std::conditional<std::is_trivial<T>::value && sizeof(T) <= (sizeof(size_t) << 2),
+                typename std::conditional<COPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) <= (sizeof(size_t) << 2),
                                           std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >, std::shared_ptr<T> >::type type;
         };
 
@@ -422,6 +423,7 @@ namespace copp {
             enum mode_t {
                 EN_RESULT_SUCCESS = 0,
                 EN_RESULT_ERROR   = 1,
+                EN_RESULT_NONE    = 2,
             };
 
             UTIL_FORCEINLINE bool is_success() const UTIL_CONFIG_NOEXCEPT { return mode_ == EN_RESULT_SUCCESS; }
@@ -438,11 +440,24 @@ namespace copp {
             }
             UTIL_FORCEINLINE error_type *get_error() UTIL_CONFIG_NOEXCEPT { return is_error() ? error_storage_type::unwrap(error_data_) : NULL; }
 
-            result_base_t() : mode_(EN_RESULT_INNER_NONE) {
+            result_base_t() : mode_(EN_RESULT_NONE) {
                 success_storage_type::construct_default_storage(success_data_);
                 error_storage_type::construct_default_storage(error_data_);
             }
             ~result_base_t() { reset(); }
+
+            result_base_t(result_base_t&& other) : mode_(EN_RESULT_NONE) {
+                success_storage_type::construct_default_storage(success_data_);
+                error_storage_type::construct_default_storage(error_data_);
+
+                swap(other);
+            }
+
+            result_base_t& operator=(result_base_t&& other) {
+                swap(other);
+                other.reset();
+                return *this;
+            }
 
             inline void swap(result_base_t& other) UTIL_CONFIG_NOEXCEPT {
                 using std::swap;
@@ -494,14 +509,10 @@ namespace copp {
                     error_storage_type::destroy_storage(error_data_);
                 }
 
-                mode_ = EN_RESULT_INNER_NONE;
+                mode_ = EN_RESULT_NONE;
             }
 
         private:
-            enum inner_mode_t {
-                EN_RESULT_INNER_NONE = 2,
-            };
-
             template <class TSTORAGE, class... TARGS>
             static inline void make_object(typename TSTORAGE::storage_type &out, TARGS &&... args) {
                 TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...);
@@ -517,7 +528,7 @@ namespace copp {
 
             typename success_storage_type::storage_type success_data_;
             typename error_storage_type::storage_type   error_data_;
-            uint8_t                                     mode_;
+            mode_t                                      mode_;
         };
 
         template <class TRESULT, bool>
@@ -594,9 +605,6 @@ namespace copp {
                 ret.construct_error(std::forward<TARGS>(args)...);
                 return ret;
             }
-
-
-
 
         public:
             template <class... TARGS>

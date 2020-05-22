@@ -62,7 +62,11 @@ struct sample_generator_waker_t {
             sample_message_t msg;
             msg.ret_code    = code;
             msg.response.swap((*refer_to).second);
+            
             fut.poll_data() = sample_result_t::make_success(msg);
+            // Because sample_result_t is not a trivial type, upper code is equal to these codes below:
+            // auto ptr = std::make_unique<sample_result_t>(sample_result_t::create_success(std::move(msg)));
+            // fut.poll_data() = std::move(ptr);
 
             g_sample_executor.erase(refer_to);
             refer_to = g_sample_executor.end();
