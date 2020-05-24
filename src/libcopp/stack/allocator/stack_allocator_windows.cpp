@@ -4,6 +4,10 @@
 #include <limits>
 #include <numeric>
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 extern "C" {
 #include <Windows.h>
 }

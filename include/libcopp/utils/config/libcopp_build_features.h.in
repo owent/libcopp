@@ -89,4 +89,6 @@
 #define LIBCOPP_MACRO_NOEXCEPT
 #endif
 
+#cmakedefine01 LIBCOPP_MACRO_ENABLE_WIN_FIBER
+
 #endif

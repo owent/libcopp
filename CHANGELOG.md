@@ -7,8 +7,8 @@ HISTORY
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
 3. [FIX] Rename ```task::await``` into ```task::await_task```, Some compile don't allow ```await_task``` as function name.
 4. [BOOST] Merge boost.context 1.73.0
-5. [TODO] Implement context of windows fiber and test SetUnhandledExceptionFilter to catch exception in coroutine action
-6. [OPTIMIZE] Catch and rethrow unhandle exception after coroutine resumed
+5. [FEATURE] Implement context of windows fiber and test SetUnhandledExceptionFilter to catch exception in coroutine action
+6. [OPTIMIZE] Catch and rethrow unhandle exception after coroutine resumed, most APIs are exception safe now.
 7. [OPTIMIZE] Remove TTASK_MACRO in cotask::task, task id now is always set uint64_t and use the id allocator with thread cache.
 8. [OPTIMIZE] Fix ```Warning: client switching stacks?``` in unit test when enable valgrind support.
 

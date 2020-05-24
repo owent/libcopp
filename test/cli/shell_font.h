@@ -27,7 +27,9 @@
  * @see https://github.com/owent-utils/python/blob/master/print_color.py
  */
 #ifdef _MSC_VER
-
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 
 #define SHELL_FONT_USING_WIN32_CONSOLE

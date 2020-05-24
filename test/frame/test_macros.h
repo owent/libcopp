@@ -17,6 +17,9 @@
 #include <cstdio>
 
 #ifdef _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 #endif
 
@@ -113,6 +116,9 @@ void test_event_on_exit_func_name(event_name) ()
     #define CASE_THREAD_YIELD() std::this_thread::yield()
 
 #elif  defined(_MSC_VER)
+    #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+    #endif
     #include <Windows.h>
     #define CASE_THREAD_SLEEP_MS(x) Sleep(x)
     #define CASE_THREAD_YIELD() YieldProcessor()

@@ -29,7 +29,31 @@ include("${PROJECT_CMAKE_MODULE_DIR}/TargetOption.cmake")
 EchoWithColor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")
 
 ########################################################################
-# 导入项目配置
+# Check Fiber API for Win32
+if (WIN32)
+    check_cxx_source_compiles("
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <Windows.h>
+#include <cstring>
+#include <cstdlib>
+
+static VOID __stdcall FiberMainFunc(LPVOID main_fiber) {
+    // codes...
+    SwitchToFiber(main_fiber);
+}
+
+int main() {
+    LPVOID main_fiber = ConvertThreadToFiber(NULL);
+    LPVOID sub_fiber = CreateFiber(0, FiberMainFunc, (LPVOID)&main_fiber);
+    SwitchToFiber(sub_fiber);
+    return 0;
+}
+    " LIBCOPP_MACRO_ENABLE_WIN_FIBER)
+endif ()
+# Import options
 if (COMPILER_OPTIONS_TEST_STD_COROUTINE)
     set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE 1)
     unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
