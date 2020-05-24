@@ -26,6 +26,7 @@ jobs:
           - gcc
           - gcc-9
           - shared:gcc-9
+          - no-exceptions:gcc-9
           - thread-unsafe:gcc-9
     runs-on: ${{ matrix.os }}
     steps:
@@ -36,11 +37,15 @@ jobs:
         run: |
           PROJECT_ADDON_OPTIONS=()
           USE_CC=${{ matrix.cc }}
-          if [ "x${USE_CC:0:7}" == "xshared:" ]; then
+          if [[ "x${USE_CC:0:14}" == "xno-exceptions:" ]]; then
+            USE_CC=${USE_CC:14}
+            PROJECT_ADDON_OPTIONS=(${PROJECT_ADDON_OPTIONS[@]} "-DCMAKE_CXX_FLAGS=-fno-exceptions")
+          fi
+          if [[ "x${USE_CC:0:7}" == "xshared:" ]]; then
             USE_CC=${USE_CC:7}
             PROJECT_ADDON_OPTIONS=(${PROJECT_ADDON_OPTIONS[@]} "-DBUILD_SHARED_LIBS=ON")
           fi
-          if [ "x${USE_CC:0:14}" == "xthread-unsafe:" ]; then
+          if [[ "x${USE_CC:0:14}" == "xthread-unsafe:" ]]; then
             USE_CC=${USE_CC:14}
             PROJECT_ADDON_OPTIONS=(${PROJECT_ADDON_OPTIONS[@]} "-DLIBCOPP_DISABLE_ATOMIC_LOCK=ON" "-DLIBCOPP_DISABLE_THIS_MT=ON")
           fi
@@ -55,6 +60,9 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE/build_jobs_dir_linux"
           ORIGIN_CC=${{ matrix.cc }}
+          if [ "x${ORIGIN_CC:0:14}" == "xno-exceptions:" ]; then
+            ORIGIN_CC=${ORIGIN_CC:14}
+          fi
           if [ "x${ORIGIN_CC:0:7}" == "xshared:" ]; then
             ORIGIN_CC=${ORIGIN_CC:7}
           fi
