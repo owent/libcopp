@@ -18,7 +18,12 @@
 #include <stdint.h>
 
 #include <libcopp/utils/uint64_id_allocator.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/future/std_coroutine_generator.h>
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+#include <exception>
+#endif
 
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
@@ -457,10 +462,10 @@ namespace cotask {
             id_alloc_.deallocate(id_);
         }
 
-        inline typename coroutine_t::ptr_t &      get_coroutine_context() UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
-        inline const typename coroutine_t::ptr_t &get_coroutine_context() const UTIL_CONFIG_NOEXCEPT { return coroutine_obj_; }
+        inline typename coroutine_t::ptr_t &      get_coroutine_context() LIBCOPP_MACRO_NOEXCEPT { return coroutine_obj_; }
+        inline const typename coroutine_t::ptr_t &get_coroutine_context() const LIBCOPP_MACRO_NOEXCEPT { return coroutine_obj_; }
 
-        inline id_t get_id() const UTIL_CONFIG_NOEXCEPT { return id_; }
+        inline id_t get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
 
     public:
         virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE {
@@ -471,7 +476,18 @@ namespace cotask {
             return coroutine_obj_->get_ret_code();
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) UTIL_CONFIG_OVERRIDE {
+            std::list<std::exception_ptr> eptrs;
+            int ret = start(eptrs, priv_data, expected_status);
+            maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        virtual int start(std::list<std::exception_ptr>& unhandled, void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) UTIL_CONFIG_OVERRIDE {
+#endif
             if (!coroutine_obj_) {
                 return copp::COPP_EC_NOT_INITED;
             }
@@ -495,7 +511,15 @@ namespace cotask {
             // use this smart ptr to avoid destroy of this
             // ptr_t protect_from_destroy(this);
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            std::exception_ptr eptr;
+            int ret = coroutine_obj_->start(eptr, priv_data);
+            if (eptr) {
+                unhandled.emplace_back(std::move(eptr));
+            }
+#else
             int ret = coroutine_obj_->start(priv_data);
+#endif
 
             from_status = EN_TS_RUNNING;
             if (is_completed()) { // Atomic.CAS here
@@ -506,13 +530,21 @@ namespace cotask {
                 }
 
                 finish_priv_data_ = priv_data;
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                _notify_finished(unhandled, priv_data);
+#else
                 _notify_finished(priv_data);
+#endif
                 return ret;
             }
 
             while (true) {
                 if (from_status >= EN_TS_DONE) { // canceled or killed
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                    _notify_finished(unhandled, finish_priv_data_);
+#else
                     _notify_finished(finish_priv_data_);
+#endif
                     break;
                 }
 
@@ -525,9 +557,19 @@ namespace cotask {
             return ret;
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) UTIL_CONFIG_OVERRIDE {
             return start(priv_data, expected_status);
         }
+
+        virtual int resume(std::list<std::exception_ptr>& unhandled, void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) LIBCOPP_MACRO_NOEXCEPT {
+            return start(unhandled, priv_data, expected_status);
+        }
+#else
+        virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) UTIL_CONFIG_OVERRIDE {
+            return start(priv_data, expected_status);
+        }
+#endif
 
         virtual int yield(void **priv_data) UTIL_CONFIG_OVERRIDE {
             if (!coroutine_obj_) {
@@ -537,7 +579,20 @@ namespace cotask {
             return coroutine_obj_->yield(priv_data);
         }
 
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         virtual int cancel(void *priv_data) UTIL_CONFIG_OVERRIDE {
+            std::list<std::exception_ptr> eptrs;
+            int ret = cancel(eptrs, priv_data);
+            maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        virtual int cancel(std::list<std::exception_ptr>& unhandled, void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        virtual int cancel(void *priv_data) UTIL_CONFIG_OVERRIDE {
+#endif
+        
             EN_TASK_STATUS from_status = get_status();
 
             do {
@@ -550,11 +605,26 @@ namespace cotask {
                 }
             } while (true);
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            _notify_finished(unhandled, priv_data);
+#else
             _notify_finished(priv_data);
+#endif
             return copp::COPP_EC_SUCCESS;
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         virtual int kill(enum EN_TASK_STATUS status, void *priv_data) UTIL_CONFIG_OVERRIDE {
+            std::list<std::exception_ptr> eptrs;
+            int ret = kill(eptrs, status, priv_data);
+            maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        virtual int kill(std::list<std::exception_ptr>& unhandled, enum EN_TASK_STATUS status, void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        virtual int kill(enum EN_TASK_STATUS status, void *priv_data) UTIL_CONFIG_OVERRIDE {
+#endif
             EN_TASK_STATUS from_status = get_status();
 
             do {
@@ -564,7 +634,11 @@ namespace cotask {
             } while (true);
 
             if (EN_TS_RUNNING != from_status) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                _notify_finished(unhandled, priv_data);
+#else
                 _notify_finished(priv_data);
+#endif
             } else {
                 finish_priv_data_ = priv_data;
             }
@@ -579,7 +653,7 @@ namespace cotask {
         using impl::task_impl::yield;
 
     public:
-        virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT UTIL_CONFIG_OVERRIDE {
+        virtual bool is_completed() const LIBCOPP_MACRO_NOEXCEPT UTIL_CONFIG_OVERRIDE {
             if (!coroutine_obj_) {
                 return false;
             }
@@ -614,10 +688,21 @@ namespace cotask {
 
         inline size_t use_count() const { return ref_count_.load(); }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        static UTIL_FORCEINLINE void maybe_rethrow(std::list<std::exception_ptr>& eptrs) { 
+            for (std::list<std::exception_ptr>::iterator iter = eptrs.begin(); iter != eptrs.end(); ++ iter) {
+                coroutine_t::maybe_rethrow(*iter);
+            }
+        }
+#endif
     private:
         task(const task &) UTIL_CONFIG_DELETED_FUNCTION;
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        void active_next_tasks(std::list<std::exception_ptr>& unhandled) LIBCOPP_MACRO_NOEXCEPT {
+#else
         void active_next_tasks() {
+#endif
             std::list<std::pair<ptr_t, void *> > next_list;
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
             void *manager_ptr;
@@ -643,11 +728,19 @@ namespace cotask {
                     continue;
                 }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                if (iter->first->get_status() < EN_TS_RUNNING) {
+                    iter->first->start(unhandled, iter->second);
+                } else {
+                    iter->first->resume(unhandled, iter->second);
+                }
+#else
                 if (iter->first->get_status() < EN_TS_RUNNING) {
                     iter->first->start(iter->second);
                 } else {
                     iter->first->resume(iter->second);
                 }
+#endif
             }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
@@ -675,19 +768,36 @@ namespace cotask {
 #endif
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        int _notify_finished(std::list<std::exception_ptr>& unhandled, void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
+#else
         int _notify_finished(void *priv_data) {
+#endif
             // first, make sure coroutine finished.
             if (coroutine_obj_ && false == coroutine_obj_->is_finished()) {
                 // make sure this task will not be destroyed when running
                 while (false == coroutine_obj_->is_finished()) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                    std::exception_ptr eptr;
+                    coroutine_obj_->resume(eptr, priv_data);
+                    if (eptr) {
+                        unhandled.emplace_back(std::move(eptr));
+                    }
+#else
                     coroutine_obj_->resume(priv_data);
+#endif
                 }
             }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            int ret = impl::task_impl::_notify_finished(unhandled, priv_data);
+            // next tasks
+            active_next_tasks(unhandled);
+#else
             int ret = impl::task_impl::_notify_finished(priv_data);
-
             // next tasks
             active_next_tasks();
+#endif
             return ret;
         }
 
@@ -784,15 +894,15 @@ namespace cotask {
                 }
             }
 
-            inline bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !refer_task_ || refer_task_->is_completed(); }
+            inline bool await_ready() const LIBCOPP_MACRO_NOEXCEPT { return !refer_task_ || refer_task_->is_completed(); }
 
-            inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
+            inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) LIBCOPP_MACRO_NOEXCEPT {
                 if (likely(refer_task_)) {
                     await_handle_iter_ = refer_task_->next_std_handles_.insert(refer_task_->next_std_handles_.end(), h);
                 }
             }
 
-            inline int await_resume() UTIL_CONFIG_NOEXCEPT {
+            inline int await_resume() LIBCOPP_MACRO_NOEXCEPT {
                 if (likely(refer_task_ && await_handle_iter_ != refer_task_->next_std_handles_.end())) {
                     refer_task_->next_std_handles_.erase(await_handle_iter_);
                     await_handle_iter_ = refer_task_->next_std_handles_.end();
@@ -810,7 +920,7 @@ namespace cotask {
             typename std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>::iterator await_handle_iter_;
         };
 
-        auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return awaitable_base_t{ptr_t(this)}; }
+        auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_t{ptr_t(this)}; }
 #endif
     private:
         id_t                        id_;
@@ -841,7 +951,7 @@ namespace cotask {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
     template <typename TCO_MACRO>
-    auto operator co_await(libcopp::util::intrusive_ptr<task<TCO_MACRO> > t) UTIL_CONFIG_NOEXCEPT {
+    auto operator co_await(libcopp::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
         typedef typename task<TCO_MACRO>::awaitable_base_t awaitable_t;
         return awaitable_t{t}; 
     }

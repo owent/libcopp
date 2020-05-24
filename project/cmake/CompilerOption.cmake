@@ -274,26 +274,37 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     endif()
     set(CMAKE_REQUIRED_FLAGS ${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS})
     unset(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS)
-    check_cxx_source_compiles("
-    #include <exception>
-    void handle_eptr(std::exception_ptr eptr) {
-        try {
-            if (eptr) {
-                std::rethrow_exception(eptr);
-            }
-        } catch(...) {}
-    }
- 
-    int main() {
-        std::exception_ptr eptr;
-        try {
-            throw 1;
-        } catch(...) {
-            eptr = std::current_exception(); // capture
+
+    # Check if exception enabled
+    check_cxx_source_compiles("int main () { try { throw 123; } catch (...) {} return 0; }" COMPILER_OPTIONS_TEST_EXCEPTION)
+    if (COMPILER_OPTIONS_TEST_EXCEPTION)
+        check_cxx_source_compiles("
+        #include <exception>
+        void handle_eptr(std::exception_ptr eptr) {
+            try {
+                if (eptr) {
+                    std::rethrow_exception(eptr);
+                }
+            } catch(...) {}
         }
-        handle_eptr(eptr);
-    }
-    " COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR)
+    
+        int main() {
+            std::exception_ptr eptr;
+            try {
+                throw 1;
+            } catch(...) {
+                eptr = std::current_exception(); // capture
+            }
+            handle_eptr(eptr);
+        }
+        " COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR)
+    else ()
+        unset(COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR CACHE)
+    endif ()
+    # Check if rtti enabled
+    check_cxx_source_compiles("#include <typeinfo>
+    #include <cstdio>
+    int main () { puts(typeid(int).name()); return 0; }" COMPILER_OPTIONS_TEST_RTTI)
 
     # list => string
     string(REPLACE ";" " " CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")

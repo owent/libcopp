@@ -16,7 +16,6 @@
 
 #include <libcopp/coroutine/coroutine_context_container.h>
 #include <libcopp/utils/errno.h>
-#include <libcopp/utils/features.h>
 
 #include <libcotask/core/standard_new_allocator.h>
 #include <libcotask/impl/task_impl.h>

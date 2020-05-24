@@ -62,8 +62,8 @@ namespace copp {
         inline const limit_t &get_limit() const { return limits_; }
 
         // configure
-        inline allocator_t &      get_origin_allocator() COPP_MACRO_NOEXCEPT { return alloc_; }
-        inline const allocator_t &get_origin_allocator() const COPP_MACRO_NOEXCEPT { return alloc_; }
+        inline allocator_t &      get_origin_allocator() LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
+        inline const allocator_t &get_origin_allocator() const LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
 
         size_t set_stack_size(size_t sz) {
             if (sz <= copp::stack_traits::minimum_size()) {
@@ -81,21 +81,21 @@ namespace copp {
         size_t get_stack_size() const { return conf_.stack_size; }
         size_t get_stack_size_offset() const { return conf_.stack_offset; }
 
-        inline void   set_max_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_size = sz; }
-        inline size_t get_max_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_size; }
-        inline void   set_max_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.max_stack_number = sz; }
-        inline size_t get_max_stack_number() const COPP_MACRO_NOEXCEPT { return conf_.max_stack_number; }
+        inline void   set_max_stack_size(size_t sz) LIBCOPP_MACRO_NOEXCEPT { conf_.max_stack_size = sz; }
+        inline size_t get_max_stack_size() const LIBCOPP_MACRO_NOEXCEPT { return conf_.max_stack_size; }
+        inline void   set_max_stack_number(size_t sz) LIBCOPP_MACRO_NOEXCEPT { conf_.max_stack_number = sz; }
+        inline size_t get_max_stack_number() const LIBCOPP_MACRO_NOEXCEPT { return conf_.max_stack_number; }
 
-        inline void   set_min_stack_size(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_size = sz; }
-        inline size_t get_min_stack_size() const COPP_MACRO_NOEXCEPT { return conf_.min_stack_size; }
-        inline void   set_min_stack_number(size_t sz) COPP_MACRO_NOEXCEPT { conf_.min_stack_number = sz; }
-        inline size_t get_min_stack_number() const COPP_MACRO_NOEXCEPT { return conf_.min_stack_number; }
+        inline void   set_min_stack_size(size_t sz) LIBCOPP_MACRO_NOEXCEPT { conf_.min_stack_size = sz; }
+        inline size_t get_min_stack_size() const LIBCOPP_MACRO_NOEXCEPT { return conf_.min_stack_size; }
+        inline void   set_min_stack_number(size_t sz) LIBCOPP_MACRO_NOEXCEPT { conf_.min_stack_number = sz; }
+        inline size_t get_min_stack_number() const LIBCOPP_MACRO_NOEXCEPT { return conf_.min_stack_number; }
 
-        inline void set_auto_gc(bool v) COPP_MACRO_NOEXCEPT { conf_.auto_gc = v; }
-        inline bool is_auto_gc() const COPP_MACRO_NOEXCEPT { return conf_.auto_gc; }
+        inline void set_auto_gc(bool v) LIBCOPP_MACRO_NOEXCEPT { conf_.auto_gc = v; }
+        inline bool is_auto_gc() const LIBCOPP_MACRO_NOEXCEPT { return conf_.auto_gc; }
 
-        inline void   set_gc_once_number(size_t v) COPP_MACRO_NOEXCEPT { conf_.gc_number = v; }
-        inline size_t get_gc_once_number() const COPP_MACRO_NOEXCEPT { return conf_.gc_number; }
+        inline void   set_gc_once_number(size_t v) LIBCOPP_MACRO_NOEXCEPT { conf_.gc_number = v; }
+        inline size_t get_gc_once_number() const LIBCOPP_MACRO_NOEXCEPT { return conf_.gc_number; }
 
         // actions
 
@@ -105,7 +105,7 @@ namespace copp {
          * @param size stack size
          * @note size must less or equal than attached
          */
-        void allocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        void allocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
             libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
@@ -170,7 +170,7 @@ namespace copp {
          * deallocate memory from stack context [standard function]
          * @param ctx stack context
          */
-        void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        void deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
             assert(ctx.sp && ctx.size > 0);
             do {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)

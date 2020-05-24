@@ -29,22 +29,22 @@ namespace copp {
             bool        is_used_;
 
         public:
-            stack_allocator_memory() UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_memory() LIBCOPP_MACRO_NOEXCEPT;
             /**
              * construct and attach to start_ptr with size of max_size
              * @param start_ptr buffer start address
              * @param max_size buffer size
              */
-            stack_allocator_memory(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT;
-            stack_allocator_memory(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_memory(void *start_ptr, std::size_t max_size) LIBCOPP_MACRO_NOEXCEPT;
+            stack_allocator_memory(stack_allocator_memory &other) LIBCOPP_MACRO_NOEXCEPT;
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-            stack_allocator_memory(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_memory(stack_allocator_memory &&other) LIBCOPP_MACRO_NOEXCEPT;
 #endif
             ~stack_allocator_memory();
 
-            stack_allocator_memory &operator=(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_memory &operator=(stack_allocator_memory &other) LIBCOPP_MACRO_NOEXCEPT;
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-            stack_allocator_memory &operator=(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT;
+            stack_allocator_memory &operator=(stack_allocator_memory &&other) LIBCOPP_MACRO_NOEXCEPT;
 #endif
             void swap(stack_allocator_memory &other);
 
@@ -54,7 +54,7 @@ namespace copp {
              * @param max_size buffer size
              * @note must be called before allocate operation
              */
-            void attach(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT;
+            void attach(void *start_ptr, std::size_t max_size) LIBCOPP_MACRO_NOEXCEPT;
 
             /**
              * allocate memory and attach to stack context [standard function]
@@ -62,13 +62,13 @@ namespace copp {
              * @param size stack size
              * @note size must less or equal than attached
              */
-            void allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT;
+            void allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT;
 
             /**
              * deallocate memory from stack context [standard function]
              * @param ctx stack context
              */
-            void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT;
+            void deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT;
         };
     } // namespace allocator
 } // namespace copp

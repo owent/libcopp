@@ -33,24 +33,24 @@ void __splitstack_block_signals_context(void * [COPP_MACRO_SEGMENTED_STACK_NUMBE
 namespace copp {
     namespace allocator {
 
-        LIBCOPP_COPP_API stack_allocator_split_segment::stack_allocator_split_segment() UTIL_CONFIG_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_split_segment::stack_allocator_split_segment() LIBCOPP_MACRO_NOEXCEPT {}
         LIBCOPP_COPP_API stack_allocator_split_segment::~stack_allocator_split_segment() {}
         LIBCOPP_COPP_API
-        stack_allocator_split_segment::stack_allocator_split_segment(const stack_allocator_split_segment &) UTIL_CONFIG_NOEXCEPT {}
+        stack_allocator_split_segment::stack_allocator_split_segment(const stack_allocator_split_segment &) LIBCOPP_MACRO_NOEXCEPT {}
         LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::
-                                                        operator=(const stack_allocator_split_segment &) UTIL_CONFIG_NOEXCEPT {
+                                                        operator=(const stack_allocator_split_segment &) LIBCOPP_MACRO_NOEXCEPT {
             return *this;
         }
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
         LIBCOPP_COPP_API
-        stack_allocator_split_segment::stack_allocator_split_segment(stack_allocator_split_segment &&) UTIL_CONFIG_NOEXCEPT {}
+        stack_allocator_split_segment::stack_allocator_split_segment(stack_allocator_split_segment &&) LIBCOPP_MACRO_NOEXCEPT {}
         LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::
-                                                        operator=(stack_allocator_split_segment &&) UTIL_CONFIG_NOEXCEPT {
+                                                        operator=(stack_allocator_split_segment &&) LIBCOPP_MACRO_NOEXCEPT {
             return *this;
         }
 #endif
 
-        LIBCOPP_COPP_API void stack_allocator_split_segment::allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_split_segment::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
             void *start_ptr = __splitstack_makecontext(size, ctx.segments_ctx, &ctx.size);
             assert(start_ptr);
             if (!start_ptr) {
@@ -64,7 +64,7 @@ namespace copp {
             __splitstack_block_signals_context(ctx.segments_ctx, &off, 0);
         }
 
-        LIBCOPP_COPP_API void stack_allocator_split_segment::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_split_segment::deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
             __splitstack_releasecontext(ctx.segments_ctx);
         }
     } // namespace allocator

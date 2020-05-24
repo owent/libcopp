@@ -81,9 +81,9 @@ namespace copp {
             future_t() {}
             ~future_t() { clear_ctx_waker(); }
 
-            UTIL_FORCEINLINE bool is_ready() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_ready(); }
+            UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_ready(); }
 
-            UTIL_FORCEINLINE bool is_pending() const UTIL_CONFIG_NOEXCEPT { return poll_data_.is_pending(); }
+            UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_pending(); }
 
             template <class TCONTEXT>
             UTIL_FORCEINLINE void poll(TCONTEXT &&ctx) {
@@ -95,7 +95,7 @@ namespace copp {
                 poll_as(*static_cast<typename std::decay<TSELF>::type*>(this), std::forward<TCONTEXT>(ctx));
             }
 
-            UTIL_FORCEINLINE const value_type *data() const UTIL_CONFIG_NOEXCEPT {
+            UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
                 if (!is_ready()) {
                     return NULL;
                 }
@@ -103,7 +103,7 @@ namespace copp {
                 return poll_data_.data();
             }
 
-            UTIL_FORCEINLINE value_type *data() UTIL_CONFIG_NOEXCEPT {
+            UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT {
                 if (!is_ready()) {
                     return NULL;
                 }
@@ -111,14 +111,14 @@ namespace copp {
                 return poll_data_.data();
             }
 
-            UTIL_FORCEINLINE const ptr_type & raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
-            UTIL_FORCEINLINE ptr_type &       raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_data_.raw_ptr(); }
-            UTIL_FORCEINLINE const poll_type &poll_data() const UTIL_CONFIG_NOEXCEPT { return poll_data_; }
-            UTIL_FORCEINLINE poll_type &      poll_data() UTIL_CONFIG_NOEXCEPT { return poll_data_; }
+            UTIL_FORCEINLINE const ptr_type & raw_ptr() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
+            UTIL_FORCEINLINE ptr_type &       raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
+            UTIL_FORCEINLINE const poll_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
+            UTIL_FORCEINLINE poll_type &      poll_data() LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
             UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
 
 
-            inline void clear_ctx_waker() UTIL_CONFIG_NOEXCEPT {
+            inline void clear_ctx_waker() LIBCOPP_MACRO_NOEXCEPT {
                 if (clear_ctx_waker_) {
                     clear_ctx_waker_();
                     clear_ctx_waker_ = NULL;
@@ -137,7 +137,7 @@ namespace copp {
                 TCONTEXT* context;
                 clear_context_waker_t(TCONTEXT& ctx): context(&ctx) {}
 
-                void operator()() UTIL_CONFIG_NOEXCEPT {
+                void operator()() LIBCOPP_MACRO_NOEXCEPT {
                     if (likely(context)) {
                         context->set_wake_fn(NULL);
                     }

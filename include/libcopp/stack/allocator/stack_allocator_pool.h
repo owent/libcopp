@@ -30,8 +30,8 @@ namespace copp {
             typedef TPool pool_t;
 
         public:
-            stack_allocator_pool() UTIL_CONFIG_NOEXCEPT {}
-            stack_allocator_pool(const std::shared_ptr<pool_t> &p) UTIL_CONFIG_NOEXCEPT : pool_(p) {}
+            stack_allocator_pool() LIBCOPP_MACRO_NOEXCEPT {}
+            stack_allocator_pool(const std::shared_ptr<pool_t> &p) LIBCOPP_MACRO_NOEXCEPT : pool_(p) {}
             ~stack_allocator_pool() {}
 
             /**
@@ -40,7 +40,7 @@ namespace copp {
              * @param max_size buffer size
              * @note must be called before allocate operation
              */
-            void attach(const std::shared_ptr<pool_t> &p) UTIL_CONFIG_NOEXCEPT { pool_ = p; }
+            void attach(const std::shared_ptr<pool_t> &p) LIBCOPP_MACRO_NOEXCEPT { pool_ = p; }
 
             /**
              * allocate memory and attach to stack context [standard function]
@@ -48,7 +48,7 @@ namespace copp {
              * @param size ignored
              * @note size must less or equal than attached
              */
-            void allocate(stack_context &ctx, std::size_t) UTIL_CONFIG_NOEXCEPT {
+            void allocate(stack_context &ctx, std::size_t) LIBCOPP_MACRO_NOEXCEPT {
                 assert(pool_);
                 if (pool_) {
                     pool_->allocate(ctx);
@@ -59,7 +59,7 @@ namespace copp {
              * deallocate memory from stack context [standard function]
              * @param ctx stack context
              */
-            void deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+            void deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
                 assert(pool_);
                 if (pool_) {
                     pool_->deallocate(ctx);

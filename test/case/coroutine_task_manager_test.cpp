@@ -417,4 +417,50 @@ CASE_TEST(coroutine_task_manager, auto_cleanup_for_manager) {
 }
 #endif
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+class test_context_task_manager_action_with_exception : public cotask::impl::task_action_impl {
+public:
+    int operator()(void *) {
+        ++g_test_coroutine_task_manager_status;
+
+        cotask::this_task::get_task()->yield();
+
+        ++g_test_coroutine_task_manager_status;
+
+        CASE_MSG_INFO()<< std::string().at(1)<< std::endl;
+
+        return 0;
+    }
+};
+
+
+CASE_TEST(coroutine_task_manager, exception_safe) {
+    typedef cotask::task<>::ptr_t task_ptr_type;
+    task_ptr_type                 co_task = cotask::task<>::create(test_context_task_manager_action_with_exception());
+
+    typedef cotask::task_manager<cotask::task<> > mgr_t;
+    mgr_t::ptr_t                                  task_mgr1 = mgr_t::create();
+    mgr_t::ptr_t                                  task_mgr2 = mgr_t::create();
+
+    CASE_EXPECT_EQ(0, task_mgr1->add_task(co_task, 5, 0));
+    CASE_EXPECT_EQ(copp::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER, task_mgr2->add_task(co_task, 5, 0));
+
+    CASE_EXPECT_EQ(1, task_mgr1->get_task_size());
+    CASE_EXPECT_EQ(1, task_mgr1->get_tick_checkpoint_size());
+
+    int check_status = g_test_coroutine_task_manager_status;
+    try {
+        co_task->start();
+        co_task->resume();
+    } catch (const std::exception& e) {
+        CASE_MSG_INFO()<< "Catch a exception: "<< e.what()<< std::endl;
+    }
+
+    CASE_EXPECT_EQ(check_status + 2, g_test_coroutine_task_manager_status);
+    CASE_EXPECT_EQ(0, task_mgr1->get_task_size());
+    CASE_EXPECT_EQ(0, task_mgr1->get_tick_checkpoint_size());
+    CASE_EXPECT_TRUE(co_task->is_completed());
+}
+#endif
+
 #endif

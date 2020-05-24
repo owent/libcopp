@@ -51,11 +51,6 @@
 // ---------------- select platform ----------------
 
 // ---------------- c extern ----------------
-#if defined(UTIL_CONFIG_NOEXCEPT)
-#define COPP_MACRO_NOEXCEPT UTIL_CONFIG_NOEXCEPT
-#else
-#define COPP_MACRO_NOEXCEPT
-#endif
 
 // ================ compiler abi headers ================
 #if defined(COPP_MACRO_COMPILER_MSVC)

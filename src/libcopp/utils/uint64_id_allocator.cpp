@@ -106,7 +106,7 @@ namespace copp {
 #endif
         }
 
-        LIBCOPP_COPP_API uint64_id_allocator::value_type uint64_id_allocator::allocate() UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API uint64_id_allocator::value_type uint64_id_allocator::allocate() LIBCOPP_MACRO_NOEXCEPT {
             // details::allocate_id_by_atomic() takes 56 bits, we use 5 bits here
             details::uint64_id_allocator_tls_cache_t * tls_cache = details::get_uint64_id_allocator_tls_cache();
             if (NULL == tls_cache) {
@@ -127,6 +127,6 @@ namespace copp {
             return (tls_cache->base << 5) + (tls_cache->inner_seq ++);
         }
 
-        LIBCOPP_COPP_API void uint64_id_allocator::deallocate(value_type) UTIL_CONFIG_NOEXCEPT {}
+        LIBCOPP_COPP_API void uint64_id_allocator::deallocate(value_type) LIBCOPP_MACRO_NOEXCEPT {}
     }
 }

@@ -25,20 +25,20 @@ extern "C" {
 namespace copp {
     namespace allocator {
 
-        LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows() UTIL_CONFIG_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows() LIBCOPP_MACRO_NOEXCEPT {}
         LIBCOPP_COPP_API stack_allocator_windows::~stack_allocator_windows() {}
-        LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows(const stack_allocator_windows &) UTIL_CONFIG_NOEXCEPT {}
-        LIBCOPP_COPP_API stack_allocator_windows &stack_allocator_windows::operator=(const stack_allocator_windows &) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows(const stack_allocator_windows &) LIBCOPP_MACRO_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_windows &stack_allocator_windows::operator=(const stack_allocator_windows &) LIBCOPP_MACRO_NOEXCEPT {
             return *this;
         }
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows(stack_allocator_windows &&) UTIL_CONFIG_NOEXCEPT {}
-        LIBCOPP_COPP_API stack_allocator_windows &stack_allocator_windows::operator=(stack_allocator_windows &&) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows(stack_allocator_windows &&) LIBCOPP_MACRO_NOEXCEPT {}
+        LIBCOPP_COPP_API stack_allocator_windows &stack_allocator_windows::operator=(stack_allocator_windows &&) LIBCOPP_MACRO_NOEXCEPT {
             return *this;
         }
 #endif
 
-        LIBCOPP_COPP_API void stack_allocator_windows::allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_windows::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
             size = (std::max)(size, stack_traits::minimum_size());
             size = stack_traits::is_unbounded() ? size : (std::min)(size, stack_traits::maximum_size());
 
@@ -59,7 +59,7 @@ namespace copp {
             ctx.sp   = static_cast<char *>(start_ptr) + ctx.size; // stack down
         }
 
-        LIBCOPP_COPP_API void stack_allocator_windows::deallocate(stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_windows::deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
             assert(ctx.sp);
             assert(stack_traits::minimum_size() <= ctx.size);
             assert(stack_traits::is_unbounded() || (stack_traits::maximum_size() >= ctx.size));

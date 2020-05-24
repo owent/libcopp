@@ -56,7 +56,7 @@ namespace copp {
                 }
             }
 
-            inline TFUNCTION& get() UTIL_CONFIG_NOEXCEPT {
+            inline TFUNCTION& get() LIBCOPP_MACRO_NOEXCEPT {
                 if (NULL != call_backup) {
                     return **call_backup;
                 }
@@ -64,7 +64,7 @@ namespace copp {
                 return func;
             }
 
-            inline const TFUNCTION& get() const UTIL_CONFIG_NOEXCEPT {
+            inline const TFUNCTION& get() const LIBCOPP_MACRO_NOEXCEPT {
                 if (NULL != call_backup) {
                     return **call_backup;
                 }
@@ -110,11 +110,11 @@ namespace copp {
             void wake() { wake_fn_.invoke(*this); }
 
             inline void             set_wake_fn(wake_fn_t fn) { wake_fn_.set(std::move(fn)); }
-            inline const wake_fn_t &get_wake_fn() const UTIL_CONFIG_NOEXCEPT { return wake_fn_.get(); }
-            inline wake_fn_t &      get_wake_fn() UTIL_CONFIG_NOEXCEPT { return wake_fn_.get(); }
+            inline const wake_fn_t &get_wake_fn() const LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
+            inline wake_fn_t &      get_wake_fn() LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
 
-            inline value_type &      get_private_data() UTIL_CONFIG_NOEXCEPT { return private_data_; }
-            inline const value_type &get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
+            inline value_type &      get_private_data() LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
+            inline const value_type &get_private_data() const LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
 
         private:
             value_type                          private_data_;
@@ -204,20 +204,20 @@ namespace copp {
             void wake() { wake_fn_.invoke(*this); }
 
             inline void             set_poll_fn(poll_fn_t fn) { poll_fn_.set(std::move(fn)); }
-            inline const poll_fn_t &get_poll_fn() const UTIL_CONFIG_NOEXCEPT { return poll_fn_.get(); }
-            inline poll_fn_t &      get_poll_fn() UTIL_CONFIG_NOEXCEPT { return poll_fn_.get(); }
+            inline const poll_fn_t &get_poll_fn() const LIBCOPP_MACRO_NOEXCEPT { return poll_fn_.get(); }
+            inline poll_fn_t &      get_poll_fn() LIBCOPP_MACRO_NOEXCEPT { return poll_fn_.get(); }
 
             inline void             set_wake_fn(wake_fn_t fn) { wake_fn_.set(std::move(fn)); }
-            inline const wake_fn_t &get_wake_fn() const UTIL_CONFIG_NOEXCEPT { return wake_fn_.get(); }
-            inline wake_fn_t &      get_wake_fn() UTIL_CONFIG_NOEXCEPT { return wake_fn_.get(); }
+            inline const wake_fn_t &get_wake_fn() const LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
+            inline wake_fn_t &      get_wake_fn() LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
 
             inline void             set_on_destroy(wake_fn_t fn) { on_destroy_fn_.set(std::move(fn)); }
-            inline const wake_fn_t &get_on_destroy() const UTIL_CONFIG_NOEXCEPT { return on_destroy_fn_.get(); }
-            inline wake_fn_t &      get_on_destroy() UTIL_CONFIG_NOEXCEPT { return on_destroy_fn_.get(); }
+            inline const wake_fn_t &get_on_destroy() const LIBCOPP_MACRO_NOEXCEPT { return on_destroy_fn_.get(); }
+            inline wake_fn_t &      get_on_destroy() LIBCOPP_MACRO_NOEXCEPT { return on_destroy_fn_.get(); }
 
             inline void        set_private_data(void *ptr) { private_data_ = ptr; }
-            inline void *      get_private_data() UTIL_CONFIG_NOEXCEPT { return private_data_; }
-            inline const void *get_private_data() const UTIL_CONFIG_NOEXCEPT { return private_data_; }
+            inline void *      get_private_data() LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
+            inline const void *get_private_data() const LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
 
         private:
             value_type                          private_data_;

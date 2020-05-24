@@ -141,7 +141,7 @@ namespace copp {
 #endif
 
     protected:
-        LIBCOPP_COPP_API coroutine_context() UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COPP_API coroutine_context() LIBCOPP_MACRO_NOEXCEPT;
 
     public:
         LIBCOPP_COPP_API ~coroutine_context();
@@ -165,11 +165,11 @@ namespace copp {
          * @return COPP_EC_SUCCESS or error code
          */
         static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
-                                           size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT;
+                                           size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT;
 
         template <typename TRunner>
         static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack,
-                                                     size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+                                                     size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
             return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
                           private_buffer_size);
         }
@@ -177,16 +177,38 @@ namespace copp {
         /**
          * @brief start coroutine
          * @param priv_data private data, will be passed to runner operator() or return to yield
+         * @exception if exception is enabled, it will throw all unhandled exception after resumed
          * @return COPP_EC_SUCCESS or error code
          */
         LIBCOPP_COPP_API int start(void *priv_data = UTIL_CONFIG_NULLPTR);
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         /**
-         * @brief resume coroutine
+         * @brief start coroutine
+         * @param unhandled set exception_ptr of unhandled exception if it's exists
          * @param priv_data private data, will be passed to runner operator() or return to yield
          * @return COPP_EC_SUCCESS or error code
          */
+        LIBCOPP_COPP_API int start(std::exception_ptr& unhandled, void *priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
+#endif
+
+        /**
+         * @brief resume coroutine
+         * @param priv_data private data, will be passed to runner operator() or return to yield
+         * @exception if exception is enabled, it will throw all unhandled exception after resumed
+         * @return COPP_EC_SUCCESS or error code
+         */
         LIBCOPP_COPP_API int resume(void *priv_data = UTIL_CONFIG_NULLPTR);
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        /**
+         * @brief resume coroutine
+         * @param unhandled set exception_ptr of unhandled exception if it's exists
+         * @param priv_data private data, will be passed to runner operator() or return to yield
+         * @return COPP_EC_SUCCESS or error code
+         */
+        LIBCOPP_COPP_API int resume(std::exception_ptr& unhandled, void *priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
+#endif
 
 
         /**
@@ -194,28 +216,28 @@ namespace copp {
          * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
          * @return COPP_EC_SUCCESS or error code
          */
-        LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
+        LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief set all flags to true
          * @param flags (flags & EN_CFT_MASK) must be 0
          * @return true if flags is available, or return false
          */
-        LIBCOPP_COPP_API bool set_flags(int flags);
+        LIBCOPP_COPP_API bool set_flags(int flags) LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief set all flags to false
          * @param flags (flags & EN_CFT_MASK) must be 0
          * @return true if flags is available, or return false
          */
-        LIBCOPP_COPP_API bool unset_flags(int flags);
+        LIBCOPP_COPP_API bool unset_flags(int flags) LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief check flags
          * @param flags flags to be checked
          * @return true if flags any flags is true
          */
-        LIBCOPP_COPP_API bool check_flags(int flags) const;
+        LIBCOPP_COPP_API bool check_flags(int flags) const LIBCOPP_MACRO_NOEXCEPT;
 
     protected:
         /**
@@ -243,29 +265,29 @@ namespace copp {
          * get runner of this coroutine context (const)
          * @return NULL of pointer of runner
          */
-        UTIL_FORCEINLINE const std::function<int(void *)> &get_runner() const UTIL_CONFIG_NOEXCEPT { return runner_; }
+        UTIL_FORCEINLINE const std::function<int(void *)> &get_runner() const LIBCOPP_MACRO_NOEXCEPT { return runner_; }
 
         /**
          * @brief get runner return code
          * @return
          */
-        UTIL_FORCEINLINE int get_ret_code() const UTIL_CONFIG_NOEXCEPT { return runner_ret_code_; }
+        UTIL_FORCEINLINE int get_ret_code() const LIBCOPP_MACRO_NOEXCEPT { return runner_ret_code_; }
 
         /**
          * @brief get runner return code
          * @return true if coroutine has run and finished
          */
-        LIBCOPP_COPP_API bool is_finished() const UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COPP_API bool is_finished() const LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief get private buffer(raw pointer)
          */
-        UTIL_FORCEINLINE void *get_private_buffer() const UTIL_CONFIG_NOEXCEPT { return priv_data_; }
+        UTIL_FORCEINLINE void *get_private_buffer() const LIBCOPP_MACRO_NOEXCEPT { return priv_data_; }
 
         /**
          * @brief get private buffer size
          */
-        UTIL_FORCEINLINE size_t get_private_buffer_size() const UTIL_CONFIG_NOEXCEPT { return private_buffer_size_; }
+        UTIL_FORCEINLINE size_t get_private_buffer_size() const LIBCOPP_MACRO_NOEXCEPT { return private_buffer_size_; }
 
     public:
         static UTIL_FORCEINLINE size_t align_private_data_size(size_t sz) {
@@ -293,13 +315,15 @@ namespace copp {
         }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-        inline void maybe_rethrow() {
-            if (unlikely(unhandle_exception_)) {
+        static inline void maybe_rethrow(std::exception_ptr& inout) {
+            if (unlikely(inout)) {
                 std::exception_ptr eptr;
-                std::swap(eptr, unhandle_exception_);
+                std::swap(eptr, inout);
                 std::rethrow_exception(eptr);
             }
         }
+
+        UTIL_FORCEINLINE void maybe_rethrow() { maybe_rethrow(unhandle_exception_); };
 #endif
     };
 
@@ -309,7 +333,7 @@ namespace copp {
          * @see detail::coroutine_context
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
-        LIBCOPP_COPP_API coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief get current coroutine and try to convert type

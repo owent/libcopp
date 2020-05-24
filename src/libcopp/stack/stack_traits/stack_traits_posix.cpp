@@ -47,11 +47,11 @@ namespace copp {
         }
     } // namespace detail
 
-    LIBCOPP_COPP_API bool stack_traits::is_unbounded() COPP_MACRO_NOEXCEPT { return RLIM_INFINITY == detail::stacksize_limit().rlim_max; }
+    LIBCOPP_COPP_API bool stack_traits::is_unbounded() LIBCOPP_MACRO_NOEXCEPT { return RLIM_INFINITY == detail::stacksize_limit().rlim_max; }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::page_size() COPP_MACRO_NOEXCEPT { return detail::pagesize(); }
+    LIBCOPP_COPP_API std::size_t stack_traits::page_size() LIBCOPP_MACRO_NOEXCEPT { return detail::pagesize(); }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::default_size() COPP_MACRO_NOEXCEPT {
+    LIBCOPP_COPP_API std::size_t stack_traits::default_size() LIBCOPP_MACRO_NOEXCEPT {
         std::size_t size = 8 * minimum_size(); // 64 KB
         if (is_unbounded()) return size;
 
@@ -59,14 +59,14 @@ namespace copp {
         return maximum_size() == size ? size : (std::min)(size, maximum_size());
     }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() COPP_MACRO_NOEXCEPT { return SIGSTKSZ; }
+    LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() LIBCOPP_MACRO_NOEXCEPT { return SIGSTKSZ; }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::maximum_size() COPP_MACRO_NOEXCEPT {
+    LIBCOPP_COPP_API std::size_t stack_traits::maximum_size() LIBCOPP_MACRO_NOEXCEPT {
         if (is_unbounded()) return std::numeric_limits<std::size_t>::max();
         return detail::stacksize_limit().rlim_max;
     }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacksize) COPP_MACRO_NOEXCEPT {
+    LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacksize) LIBCOPP_MACRO_NOEXCEPT {
         // page size must be 2^N
         return static_cast<std::size_t>((stacksize + detail::pagesize() - 1) & (~(detail::pagesize() - 1)));
     }

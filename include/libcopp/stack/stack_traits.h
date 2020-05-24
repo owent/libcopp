@@ -13,17 +13,17 @@
 
 namespace copp {
     struct stack_traits {
-        static LIBCOPP_COPP_API bool is_unbounded() COPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API bool is_unbounded() LIBCOPP_MACRO_NOEXCEPT;
 
-        static LIBCOPP_COPP_API std::size_t page_size() COPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API std::size_t page_size() LIBCOPP_MACRO_NOEXCEPT;
 
-        static LIBCOPP_COPP_API std::size_t default_size() COPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API std::size_t default_size() LIBCOPP_MACRO_NOEXCEPT;
 
-        static LIBCOPP_COPP_API std::size_t minimum_size() COPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API std::size_t minimum_size() LIBCOPP_MACRO_NOEXCEPT;
 
-        static LIBCOPP_COPP_API std::size_t maximum_size() COPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API std::size_t maximum_size() LIBCOPP_MACRO_NOEXCEPT;
 
-        static LIBCOPP_COPP_API std::size_t round_to_page_size(std::size_t stacksize) COPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API std::size_t round_to_page_size(std::size_t stacksize) LIBCOPP_MACRO_NOEXCEPT;
     };
 
 } // namespace copp

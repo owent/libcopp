@@ -29,8 +29,8 @@ namespace copp {
             static const value_type npos = 0; /** invalid key **/
 #endif
 
-            static value_type allocate() UTIL_CONFIG_NOEXCEPT;
-            static void       deallocate(value_type) UTIL_CONFIG_NOEXCEPT;
+            static value_type allocate() LIBCOPP_MACRO_NOEXCEPT;
+            static void       deallocate(value_type) LIBCOPP_MACRO_NOEXCEPT;
         };
     }
 }

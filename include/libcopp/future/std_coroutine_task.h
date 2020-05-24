@@ -45,7 +45,7 @@ namespace copp {
             template <class... TARGS>
             task_context_t(uint64_t tid, TARGS &&... args) : context_t<TPD>(std::forward<TARGS>(args)...), task_id_(tid) {}
 
-            inline uint64_t get_task_id() const UTIL_CONFIG_NOEXCEPT { return task_id_; }
+            inline uint64_t get_task_id() const LIBCOPP_MACRO_NOEXCEPT { return task_id_; }
         private:
             uint64_t task_id_;
         };
@@ -112,18 +112,18 @@ namespace copp {
             task_runtime_t() : task_id(0), status(task_status_t::CREATED), handle(NULL) {}
 
 #ifdef __cpp_impl_three_way_comparison
-            friend inline std::strong_ordering operator<=>(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT {
+            friend inline std::strong_ordering operator<=>(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
                 return l.task_id <=> r.task_id;
             }
 #else
-            friend inline bool operator!=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id != r.task_id; }
-            friend inline bool operator<(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id < r.task_id; }
-            friend inline bool operator<=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id <= r.task_id; }
-            friend inline bool operator>(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id > r.task_id; }
-            friend inline bool operator>=(const task_runtime_t &l, const task_runtime_t &r) UTIL_CONFIG_NOEXCEPT { return l.task_id >= r.task_id; }
+            friend inline bool operator!=(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.task_id != r.task_id; }
+            friend inline bool operator<(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.task_id < r.task_id; }
+            friend inline bool operator<=(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.task_id <= r.task_id; }
+            friend inline bool operator>(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.task_id > r.task_id; }
+            friend inline bool operator>=(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.task_id >= r.task_id; }
 #endif
 
-            inline bool done() const UTIL_CONFIG_NOEXCEPT {
+            inline bool done() const LIBCOPP_MACRO_NOEXCEPT {
                 return status == task_status_t::DONE || !handle || handle.done();
             }
 
@@ -202,7 +202,7 @@ namespace copp {
                 self_type *promise;
                 initial_awaitable(self_type &s) : promise(&s) {}
 
-                inline bool await_ready() const UTIL_CONFIG_NOEXCEPT {
+                inline bool await_ready() const LIBCOPP_MACRO_NOEXCEPT {
                     // only setup handle once
                     // return promise && promise->runtime_ && promise->runtime_->handle;
                     return false;
@@ -234,7 +234,7 @@ namespace copp {
                     }
                 }
 
-                inline void await_resume() UTIL_CONFIG_NOEXCEPT {
+                inline void await_resume() LIBCOPP_MACRO_NOEXCEPT {
                     if (likely(promise && promise->runtime_)) {
                         promise->runtime_->status = task_status_t::RUNNING;
                     }
@@ -245,12 +245,12 @@ namespace copp {
                 self_type *promise;
                 final_awaitable(self_type &s) : promise(&s) {}
 
-                inline bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
+                inline bool await_ready() const LIBCOPP_MACRO_NOEXCEPT { return true; }
 
                 template <typename U>
-                inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> /*handle*/) UTIL_CONFIG_NOEXCEPT {}
+                inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> /*handle*/) LIBCOPP_MACRO_NOEXCEPT {}
 
-                void await_resume() UTIL_CONFIG_NOEXCEPT {
+                void await_resume() LIBCOPP_MACRO_NOEXCEPT {
                     if (likely(promise)) {
                         if (likely(promise->runtime_)) {
                             promise->runtime_->status = task_status_t::DONE;
@@ -278,12 +278,12 @@ namespace copp {
                 U *data;
                 pick_pointer_awaitable() : data(nullptr) {}
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT { return true; }
+                bool await_ready() const LIBCOPP_MACRO_NOEXCEPT { return true; }
 
                 template <typename TPROMISE>
-                void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> /*handle*/) UTIL_CONFIG_NOEXCEPT {}
+                void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> /*handle*/) LIBCOPP_MACRO_NOEXCEPT {}
 
-                U *await_resume() UTIL_CONFIG_NOEXCEPT { return data; }
+                U *await_resume() LIBCOPP_MACRO_NOEXCEPT { return data; }
             };
 
         public:
@@ -307,10 +307,10 @@ namespace copp {
                 wake_all();
             }
 
-            auto initial_suspend() UTIL_CONFIG_NOEXCEPT { return initial_awaitable{*this}; }
-            auto final_suspend() UTIL_CONFIG_NOEXCEPT { return final_awaitable{*this}; }
+            auto initial_suspend() LIBCOPP_MACRO_NOEXCEPT { return initial_awaitable{*this}; }
+            auto final_suspend() LIBCOPP_MACRO_NOEXCEPT { return final_awaitable{*this}; }
 
-            void unhandled_exception() UTIL_CONFIG_NOEXCEPT {
+            void unhandled_exception() LIBCOPP_MACRO_NOEXCEPT {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
                 if (likely(runtime_)) {
                     runtime_->unhandle_exception = std::current_exception();
@@ -319,7 +319,7 @@ namespace copp {
             }
 
             // template <class... TARGS>
-            // auto await_transform(TARGS &&...) UTIL_CONFIG_NOEXCEPT;
+            // auto await_transform(TARGS &&...) LIBCOPP_MACRO_NOEXCEPT;
             template <class TARGS>
             auto yield_value(TARGS &&args) {
                 return std::forward<TARGS>(args);
@@ -342,13 +342,13 @@ namespace copp {
                 return std::move(args);
             }
 
-            inline const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
-            inline context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
-            inline const std::shared_ptr<runtime_type>& get_runtime() const UTIL_CONFIG_NOEXCEPT { return runtime_; }
-            inline std::shared_ptr<runtime_type>&       get_runtime() UTIL_CONFIG_NOEXCEPT { return runtime_; }
+            inline const context_type &get_context() const LIBCOPP_MACRO_NOEXCEPT { return context_; }
+            inline context_type &      get_context() LIBCOPP_MACRO_NOEXCEPT { return context_; }
+            inline const std::shared_ptr<runtime_type>& get_runtime() const LIBCOPP_MACRO_NOEXCEPT { return runtime_; }
+            inline std::shared_ptr<runtime_type>&       get_runtime() LIBCOPP_MACRO_NOEXCEPT { return runtime_; }
 
-            inline typename wake_list_type::iterator begin_wake_handles() UTIL_CONFIG_NOEXCEPT { return await_handles_.begin(); }
-            inline typename wake_list_type::iterator end_wake_handles() UTIL_CONFIG_NOEXCEPT { return await_handles_.end(); }
+            inline typename wake_list_type::iterator begin_wake_handles() LIBCOPP_MACRO_NOEXCEPT { return await_handles_.begin(); }
+            inline typename wake_list_type::iterator end_wake_handles() LIBCOPP_MACRO_NOEXCEPT { return await_handles_.end(); }
             inline typename wake_list_type::iterator add_wake_handle(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) {
                 if (h) {
                     return await_handles_.insert(await_handles_.end(), h);
@@ -393,11 +393,11 @@ namespace copp {
 #endif
 
         public:
-            task_t<T, TPD, TPTR, TMACRO> get_return_object() UTIL_CONFIG_NOEXCEPT;
+            task_t<T, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
             using task_promise_base_t<T, TPD, TPTR, TMACRO>::get_runtime;
 
             template <class U>
-            void return_value(U &&in) UTIL_CONFIG_NOEXCEPT {
+            void return_value(U &&in) LIBCOPP_MACRO_NOEXCEPT {
                 // Maybe set error data on custom poller, ignore co_return here.
                 if (get_runtime() && !get_runtime()->future.is_ready()) {
                     get_runtime()->future.poll_data() = std::forward<U>(in);
@@ -416,10 +416,10 @@ namespace copp {
 #endif
 
         public:
-            task_t<void, TPD, TPTR, TMACRO> get_return_object() UTIL_CONFIG_NOEXCEPT;
+            task_t<void, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
             using task_promise_base_t<void, TPD, TPTR, TMACRO>::get_runtime;
 
-            void return_void() UTIL_CONFIG_NOEXCEPT {
+            void return_void() LIBCOPP_MACRO_NOEXCEPT {
                 // Maybe set error data on custom poller, ignore co_return here.
                 if (get_runtime() && !get_runtime()->future.is_ready()) {
                     get_runtime()->future.poll_data() = true;
@@ -482,7 +482,7 @@ namespace copp {
                     }
                 }
 
-                bool await_ready() const UTIL_CONFIG_NOEXCEPT {
+                bool await_ready() const LIBCOPP_MACRO_NOEXCEPT {
                     return !refer_task_ || refer_task_->done();
                 }
 
@@ -495,7 +495,7 @@ namespace copp {
                     await_iterator_ = refer_task_->runtime_->handle.promise().add_wake_handle(h);
                 }
 
-                void await_resume() UTIL_CONFIG_NOEXCEPT {
+                void await_resume() LIBCOPP_MACRO_NOEXCEPT {
                     if (refer_task_ && refer_task_->runtime_ && refer_task_->runtime_->handle && !refer_task_->runtime_->handle.done() &&
                         await_iterator_ != refer_task_->runtime_->handle.promise().end_wake_handles()) {
                         refer_task_->runtime_->handle.promise().remove_wake_handle(await_iterator_);
@@ -512,19 +512,19 @@ namespace copp {
             task_t(std::shared_ptr<runtime_type> r) : runtime_(r) {}
 
 #ifdef __cpp_impl_three_way_comparison
-            friend inline std::strong_ordering operator<=>(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT {
+            friend inline std::strong_ordering operator<=>(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
                 return l.get_task_id() <=> r.get_task_id();
             }
 #else
-            friend inline bool operator!=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() != r.get_task_id(); }
-            friend inline bool operator<(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() < r.get_task_id(); }
-            friend inline bool operator<=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() <= r.get_task_id(); }
-            friend inline bool operator>(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() > r.get_task_id(); }
-            friend inline bool operator>=(const task_t &l, const task_t &r) UTIL_CONFIG_NOEXCEPT { return l.get_task_id() >= r.get_task_id(); }
+            friend inline bool operator!=(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.get_task_id() != r.get_task_id(); }
+            friend inline bool operator<(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.get_task_id() < r.get_task_id(); }
+            friend inline bool operator<=(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.get_task_id() <= r.get_task_id(); }
+            friend inline bool operator>(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.get_task_id() > r.get_task_id(); }
+            friend inline bool operator>=(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT { return l.get_task_id() >= r.get_task_id(); }
 #endif
 
             // co_await a temporary task_t in GCC 10.1.0 will destroy task_t first, which may cause all resources unavailable
-            // auto operator co_await() && UTIL_CONFIG_NOEXCEPT {
+            // auto operator co_await() && LIBCOPP_MACRO_NOEXCEPT {
             //     struct awaitable_t : awaitable_base_t {
             //         using awaitable_base_t::awaitable_base_t;
             //         using awaitable_base_t::refer_task_;
@@ -546,7 +546,7 @@ namespace copp {
             //     return awaitable_t{this};
             // }
 
-            auto operator co_await() & UTIL_CONFIG_NOEXCEPT {
+            auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT {
                 struct awaitable_t : awaitable_base_t {
                     using awaitable_base_t::awaitable_base_t;
                     using awaitable_base_t::refer_task_;
@@ -564,7 +564,7 @@ namespace copp {
                 return awaitable_t{this};
             }
 
-            inline bool done() const UTIL_CONFIG_NOEXCEPT {
+            inline bool done() const LIBCOPP_MACRO_NOEXCEPT {
                 if (likely(runtime_)) {
                     return runtime_->done();
                 }
@@ -575,7 +575,7 @@ namespace copp {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
             inline const value_type *data() const {
 #else
-            inline const value_type *data() const UTIL_CONFIG_NOEXCEPT {
+            inline const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
 #endif
                 if (likely(runtime_)) {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -590,7 +590,7 @@ namespace copp {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
             inline value_type *data() {
 #else
-            inline value_type *data() UTIL_CONFIG_NOEXCEPT {
+            inline value_type *data() LIBCOPP_MACRO_NOEXCEPT {
 #endif
                 if (likely(runtime_)) {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -602,7 +602,7 @@ namespace copp {
                 return nullptr;
             }
 
-            inline const poll_type *poll_data() const UTIL_CONFIG_NOEXCEPT {
+            inline const poll_type *poll_data() const LIBCOPP_MACRO_NOEXCEPT {
                 if (likely(runtime_)) {
                     return &runtime_->future.poll_data();
                 }
@@ -610,7 +610,7 @@ namespace copp {
                 return nullptr;
             }
 
-            inline poll_type *poll_data() UTIL_CONFIG_NOEXCEPT {
+            inline poll_type *poll_data() LIBCOPP_MACRO_NOEXCEPT {
                 if (likely(runtime_)) {
                     return &runtime_->future.poll_data();
                 }
@@ -618,7 +618,7 @@ namespace copp {
                 return nullptr;
             }
 
-            inline status_type get_status() const UTIL_CONFIG_NOEXCEPT {
+            inline status_type get_status() const LIBCOPP_MACRO_NOEXCEPT {
                 if (runtime_) {
                     return runtime_->status;
                 }
@@ -626,7 +626,7 @@ namespace copp {
                 return status_type::DONE;
             }
 
-            inline context_type *get_context() UTIL_CONFIG_NOEXCEPT {
+            inline context_type *get_context() LIBCOPP_MACRO_NOEXCEPT {
                 if (done()) {
                     return nullptr;
                 }
@@ -634,7 +634,7 @@ namespace copp {
                 return &runtime_->handle.promise().get_context();
             }
 
-            inline const context_type *get_context() const UTIL_CONFIG_NOEXCEPT {
+            inline const context_type *get_context() const LIBCOPP_MACRO_NOEXCEPT {
                 if (done()) {
                     return nullptr;
                 }
@@ -642,7 +642,7 @@ namespace copp {
                 return &runtime_->handle.promise().get_context();
             }
 
-            inline uint64_t get_task_id() const UTIL_CONFIG_NOEXCEPT {
+            inline uint64_t get_task_id() const LIBCOPP_MACRO_NOEXCEPT {
                 if (likely(runtime_)) {
                     return runtime_->task_id;
                 }
@@ -676,7 +676,7 @@ namespace copp {
         };
 
         template <typename T, class TPD, class TPTR, class TMACRO>
-        task_t<T, TPD, TPTR, TMACRO> task_promise_t<T, TPD, TPTR, TMACRO>::get_return_object() UTIL_CONFIG_NOEXCEPT {
+        task_t<T, TPD, TPTR, TMACRO> task_promise_t<T, TPD, TPTR, TMACRO>::get_return_object() LIBCOPP_MACRO_NOEXCEPT {
             // if (get_runtime() && !get_runtime()->handle) {
             //     get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
             //         coroutine_handle<typename task_t<T, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
@@ -685,7 +685,7 @@ namespace copp {
         }
 
         template <class TPD, class TPTR, class TMACRO>
-        task_t<void, TPD, TPTR, TMACRO> task_promise_t<void, TPD, TPTR, TMACRO>::get_return_object() UTIL_CONFIG_NOEXCEPT {
+        task_t<void, TPD, TPTR, TMACRO> task_promise_t<void, TPD, TPTR, TMACRO>::get_return_object() LIBCOPP_MACRO_NOEXCEPT {
             // if (get_runtime() && !get_runtime()->handle) {
             //     get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
             //     coroutine_handle<typename task_t<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);

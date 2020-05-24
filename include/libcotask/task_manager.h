@@ -18,6 +18,7 @@
 #include <set>
 #include <stdint.h>
 #include <vector>
+#include <list>
 
 #ifdef __cpp_impl_three_way_comparison
 #include <compare>
@@ -32,6 +33,9 @@
 
 #include <libcotask/task_macros.h>
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+#include <exception>
+#endif
 
 namespace cotask {
 
@@ -430,8 +434,18 @@ namespace cotask {
         // int add_scheduler();
         // int scheduling_once();
         // int scheduling_loop();
-
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         int start(id_t id, void *priv_data = NULL) {
+            std::list<std::exception_ptr> eptrs;
+            int ret = start(id, eptrs, priv_data);
+            task_t::maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        int start(id_t id, std::list<std::exception_ptr>& unhandled, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        int start(id_t id, void *priv_data = NULL) {
+#endif
             if (flags_ & flag_t::EN_TM_IN_RESET) {
                 return copp::COPP_EC_IN_RESET;
             }
@@ -451,7 +465,11 @@ namespace cotask {
 
             // unlock and then run start
             if (task_inst) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                int ret = task_inst->start(unhandled, priv_data);
+#else
                 int ret = task_inst->start(priv_data);
+#endif
 
                 // if task is finished, remove it
                 if (task_inst->get_status() >= EN_TS_DONE) {
@@ -464,7 +482,18 @@ namespace cotask {
             }
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         int resume(id_t id, void *priv_data = NULL) {
+            std::list<std::exception_ptr> eptrs;
+            int ret = resume(id, eptrs, priv_data);
+            task_t::maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        int resume(id_t id, std::list<std::exception_ptr>& unhandled, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        int resume(id_t id, void *priv_data = NULL) {
+#endif
             if (flags_ & flag_t::EN_TM_IN_RESET) {
                 return copp::COPP_EC_IN_RESET;
             }
@@ -484,7 +513,11 @@ namespace cotask {
 
             // unlock and then run resume
             if (task_inst) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                int ret = task_inst->resume(unhandled, priv_data);
+#else
                 int ret = task_inst->resume(priv_data);
+#endif
 
                 // if task is finished, remove it
                 if (task_inst->get_status() >= EN_TS_DONE) {
@@ -497,7 +530,18 @@ namespace cotask {
             }
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         int cancel(id_t id, void *priv_data = NULL) {
+            std::list<std::exception_ptr> eptrs;
+            int ret = cancel(id, eptrs, priv_data);
+            task_t::maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        int cancel(id_t id, std::list<std::exception_ptr>& unhandled, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        int cancel(id_t id, void *priv_data = NULL) {
+#endif
             if (flags_ & flag_t::EN_TM_IN_RESET) {
                 return copp::COPP_EC_IN_RESET;
             }
@@ -526,13 +570,28 @@ namespace cotask {
                 // already cleanup, there is no need to cleanup again
                 task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                return task_inst->cancel(unhandled, priv_data);
+#else
                 return task_inst->cancel(priv_data);
+#endif
             } else {
                 return copp::COPP_EC_NOT_FOUND;
             }
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = NULL) {
+            std::list<std::exception_ptr> eptrs;
+            int ret = kill(id, eptrs, status, priv_data);
+            task_t::maybe_rethrow(eptrs);
+            return ret;
+        }
+
+        int kill(id_t id, std::list<std::exception_ptr>& unhandled, enum EN_TASK_STATUS status, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+#else
+        int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = NULL) {
+#endif
             if (flags_ & flag_t::EN_TM_IN_RESET) {
                 return copp::COPP_EC_IN_RESET;
             }
@@ -561,7 +620,11 @@ namespace cotask {
                 // already cleanup, there is no need to cleanup again
                 task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                return task_inst->kill(unhandled, status, priv_data);
+#else
                 return task_inst->kill(status, priv_data);
+#endif
             } else {
                 return copp::COPP_EC_NOT_FOUND;
             }
@@ -618,6 +681,9 @@ namespace cotask {
                 return copp::COPP_EC_SUCCESS;
             }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            std::list<std::exception_ptr> eptrs;
+#endif
             // remove timeout tasks
             while (false == task_timeout_timer_.empty()) {
                 task_ptr_t task_inst;
@@ -654,11 +720,19 @@ namespace cotask {
                     // already cleanup, there is no need to cleanup again
                     task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                    task_inst->kill(eptrs, EN_TS_TIMEOUT, nullptr);
+#else
                     task_inst->kill(EN_TS_TIMEOUT);
+#endif
                 }
             }
 
             last_tick_time_ = now_tick_time;
+
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            task_t::maybe_rethrow(eptrs);
+#endif
             return copp::COPP_EC_SUCCESS;
         }
 
@@ -666,31 +740,31 @@ namespace cotask {
          * @brief get timeout checkpoint number in this manager
          * @return checkpoint number
          */
-        size_t get_tick_checkpoint_size() const UTIL_CONFIG_NOEXCEPT { return task_timeout_timer_.size(); }
+        size_t get_tick_checkpoint_size() const LIBCOPP_MACRO_NOEXCEPT { return task_timeout_timer_.size(); }
 
         /**
          * @brief get task number in this manager
          * @return task number
          */
-        size_t get_task_size() const UTIL_CONFIG_NOEXCEPT { return tasks_.size(); }
+        size_t get_task_size() const LIBCOPP_MACRO_NOEXCEPT { return tasks_.size(); }
 
         /**
          * @brief get last tick time
          * @return last tick time
          */
-        detail::tickspec_t get_last_tick_time() const UTIL_CONFIG_NOEXCEPT { return last_tick_time_; }
+        detail::tickspec_t get_last_tick_time() const LIBCOPP_MACRO_NOEXCEPT { return last_tick_time_; }
 
         /**
          * @brief task container, this api is just used for provide information to users
          * @return task container
          */
-        inline const container_t &get_container() const UTIL_CONFIG_NOEXCEPT { return tasks_; }
+        inline const container_t &get_container() const LIBCOPP_MACRO_NOEXCEPT { return tasks_; }
 
         /**
          * @brief get all task checkpoints, this api is just used for provide information to users
          * @return task checkpoints
          */
-        inline const std::set<detail::task_timer_node<task_t> > &get_checkpoints() const UTIL_CONFIG_NOEXCEPT {
+        inline const std::set<detail::task_timer_node<task_t> > &get_checkpoints() const LIBCOPP_MACRO_NOEXCEPT {
             return task_timeout_timer_;
         }
 

@@ -68,14 +68,14 @@ namespace cotask {
              * get task status
              * @return task status
              */
-            UTIL_FORCEINLINE EN_TASK_STATUS get_status() const UTIL_CONFIG_NOEXCEPT {
+            UTIL_FORCEINLINE EN_TASK_STATUS get_status() const LIBCOPP_MACRO_NOEXCEPT {
                 return static_cast<EN_TASK_STATUS>(status_.load(libcopp::util::lock::memory_order_acquire));
             }
 
-            LIBCOPP_COTASK_API virtual bool is_canceled() const UTIL_CONFIG_NOEXCEPT;
-            LIBCOPP_COTASK_API virtual bool is_completed() const UTIL_CONFIG_NOEXCEPT;
-            LIBCOPP_COTASK_API virtual bool is_faulted() const UTIL_CONFIG_NOEXCEPT;
-            LIBCOPP_COTASK_API virtual bool is_timeout() const UTIL_CONFIG_NOEXCEPT;
+            LIBCOPP_COTASK_API virtual bool is_canceled() const LIBCOPP_MACRO_NOEXCEPT;
+            LIBCOPP_COTASK_API virtual bool is_completed() const LIBCOPP_MACRO_NOEXCEPT;
+            LIBCOPP_COTASK_API virtual bool is_faulted() const LIBCOPP_MACRO_NOEXCEPT;
+            LIBCOPP_COTASK_API virtual bool is_timeout() const LIBCOPP_MACRO_NOEXCEPT;
             /**
              * @brief check if a cotask is exiting
              * @note cotask is exiting means the cotask is is_completed() or is killed.
@@ -83,7 +83,7 @@ namespace cotask {
              *       and after the cotask finished, is_completed() == true
              * @return return true if a cotask is exiting.
              */
-            LIBCOPP_COTASK_API bool is_exiting() const UTIL_CONFIG_NOEXCEPT;
+            LIBCOPP_COTASK_API bool is_exiting() const LIBCOPP_MACRO_NOEXCEPT;
 
         public:
             LIBCOPP_COTASK_API virtual int get_ret_code() const = 0;
@@ -115,7 +115,7 @@ namespace cotask {
              * @note this function is provided just for debug or show some information, it may return the inner type created by cotask
              * @return pointer to task_action instance
              */
-            UTIL_FORCEINLINE action_ptr_t get_raw_action() const UTIL_CONFIG_NOEXCEPT { return action_; }
+            UTIL_FORCEINLINE action_ptr_t get_raw_action() const LIBCOPP_MACRO_NOEXCEPT { return action_; }
 
         protected:
             LIBCOPP_COTASK_API void _set_action(action_ptr_t action);
@@ -123,7 +123,11 @@ namespace cotask {
 
             LIBCOPP_COTASK_API bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            LIBCOPP_COTASK_API int _notify_finished(std::list<std::exception_ptr>& unhandled, void *priv_data);
+#else
             LIBCOPP_COTASK_API int _notify_finished(void *priv_data);
+#endif
 
         private:
             action_ptr_t action_;

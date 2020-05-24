@@ -148,7 +148,7 @@ namespace copp {
      */
     static inline void jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
                                EXPLICIT_UNUSED_ATTR stack_context &       to_sctx,
-                               libcopp_inner_api_helper::jump_src_data_t &jump_transfer) UTIL_CONFIG_NOEXCEPT {
+                               libcopp_inner_api_helper::jump_src_data_t &jump_transfer) LIBCOPP_MACRO_NOEXCEPT {
 
         copp::fcontext::transfer_t                 res;
         libcopp_inner_api_helper::jump_src_data_t *jump_src;
@@ -199,7 +199,7 @@ namespace copp {
         detail::set_this_coroutine_context(jump_transfer.from_co);
     }
 
-    LIBCOPP_COPP_API coroutine_context::coroutine_context() UTIL_CONFIG_NOEXCEPT : runner_ret_code_(0),
+    LIBCOPP_COPP_API coroutine_context::coroutine_context() LIBCOPP_MACRO_NOEXCEPT : runner_ret_code_(0),
                                                                                    flags_(0),
                                                                                    runner_(UTIL_CONFIG_NULLPTR),
                                                                                    priv_data_(UTIL_CONFIG_NULLPTR),
@@ -216,7 +216,7 @@ namespace copp {
     LIBCOPP_COPP_API coroutine_context::~coroutine_context() {}
 
     LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
-                                                   size_t coroutine_size, size_t private_buffer_size) UTIL_CONFIG_NOEXCEPT {
+                                                   size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
         if (UTIL_CONFIG_NULLPTR == p) {
             return COPP_EC_ARGS_ERROR;
         }
@@ -267,7 +267,18 @@ namespace copp {
         return COPP_EC_SUCCESS;
     }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
     LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
+        std::exception_ptr eptr;
+        int ret = start(eptr, priv_data);
+        maybe_rethrow(eptr);
+        return ret;
+    }
+
+    LIBCOPP_COPP_API int coroutine_context::start(std::exception_ptr& unhandled, void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
+#else
+    LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
+#endif
         if (UTIL_CONFIG_NULLPTR == callee_) {
             return COPP_EC_NOT_INITED;
         }
@@ -312,15 +323,20 @@ namespace copp {
         }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-        maybe_rethrow();
+        if (unlikely(unhandle_exception_)) {
+            std::swap(unhandled, unhandle_exception_);
+        }
 #endif
 
         return COPP_EC_SUCCESS;
     } // namespace copp
 
     LIBCOPP_COPP_API int coroutine_context::resume(void *priv_data) { return start(priv_data); }
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    LIBCOPP_COPP_API int coroutine_context::resume(std::exception_ptr& unhandled, void *priv_data) LIBCOPP_MACRO_NOEXCEPT { return start(unhandled, priv_data); }
+#endif
 
-    LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) {
+    LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
         if (UTIL_CONFIG_NULLPTR == callee_) {
             return COPP_EC_NOT_INITED;
         }
@@ -364,7 +380,7 @@ namespace copp {
         return COPP_EC_SUCCESS;
     }
 
-    LIBCOPP_COPP_API bool coroutine_context::set_flags(int flags) {
+    LIBCOPP_COPP_API bool coroutine_context::set_flags(int flags) LIBCOPP_MACRO_NOEXCEPT {
         if (flags & flag_t::EN_CFT_MASK) {
             return false;
         }
@@ -373,7 +389,7 @@ namespace copp {
         return true;
     }
 
-    LIBCOPP_COPP_API bool coroutine_context::unset_flags(int flags) {
+    LIBCOPP_COPP_API bool coroutine_context::unset_flags(int flags) LIBCOPP_MACRO_NOEXCEPT {
         if (flags & flag_t::EN_CFT_MASK) {
             return false;
         }
@@ -382,7 +398,7 @@ namespace copp {
         return true;
     }
 
-    LIBCOPP_COPP_API bool coroutine_context::check_flags(int flags) const { return 0 != (flags_ & flags); }
+    LIBCOPP_COPP_API bool coroutine_context::check_flags(int flags) const LIBCOPP_MACRO_NOEXCEPT { return 0 != (flags_ & flags); }
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
     LIBCOPP_COPP_API int coroutine_context::set_runner(callback_t &&runner) {
@@ -403,13 +419,13 @@ namespace copp {
         return COPP_EC_SUCCESS;
     } // namespace copp
 
-    LIBCOPP_COPP_API bool coroutine_context::is_finished() const UTIL_CONFIG_NOEXCEPT {
+    LIBCOPP_COPP_API bool coroutine_context::is_finished() const LIBCOPP_MACRO_NOEXCEPT {
         // return !!(flags_ & flag_t::EN_CFT_FINISHED);
         return status_.load(libcopp::util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
     }
 
     namespace this_coroutine {
-        LIBCOPP_COPP_API coroutine_context *get_coroutine() UTIL_CONFIG_NOEXCEPT { return detail::get_this_coroutine_context(); }
+        LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT { return detail::get_this_coroutine_context(); }
 
         LIBCOPP_COPP_API int yield(void **priv_data) {
             coroutine_context *pco = get_coroutine();

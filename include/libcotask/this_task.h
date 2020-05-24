@@ -21,7 +21,7 @@ namespace cotask {
          * @brief get current running task
          * @return current running task or empty pointer when not in task
          */
-        LIBCOPP_COTASK_API impl::task_impl *get_task() UTIL_CONFIG_NOEXCEPT;
+        LIBCOPP_COTASK_API impl::task_impl *get_task() LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief get current running task and try to convert type

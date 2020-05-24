@@ -24,19 +24,19 @@ namespace copp {
         unsigned valgrind_stack_id;
 #endif
 
-        stack_context() UTIL_CONFIG_NOEXCEPT;
-        ~stack_context() UTIL_CONFIG_NOEXCEPT;
+        stack_context() LIBCOPP_MACRO_NOEXCEPT;
+        ~stack_context() LIBCOPP_MACRO_NOEXCEPT;
 
-        stack_context(const stack_context &other) UTIL_CONFIG_NOEXCEPT;
-        stack_context &operator=(const stack_context &other) UTIL_CONFIG_NOEXCEPT;
+        stack_context(const stack_context &other) LIBCOPP_MACRO_NOEXCEPT;
+        stack_context &operator=(const stack_context &other) LIBCOPP_MACRO_NOEXCEPT;
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        stack_context(stack_context &&other) UTIL_CONFIG_NOEXCEPT;
-        stack_context &operator=(stack_context &&other) UTIL_CONFIG_NOEXCEPT;
+        stack_context(stack_context &&other) LIBCOPP_MACRO_NOEXCEPT;
+        stack_context &operator=(stack_context &&other) LIBCOPP_MACRO_NOEXCEPT;
 #endif
 
-        void reset() UTIL_CONFIG_NOEXCEPT;
+        void reset() LIBCOPP_MACRO_NOEXCEPT;
 
-        void copy_from(const stack_context &other) UTIL_CONFIG_NOEXCEPT;
+        void copy_from(const stack_context &other) LIBCOPP_MACRO_NOEXCEPT;
     };
 } // namespace copp
 

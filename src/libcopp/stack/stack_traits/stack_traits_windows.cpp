@@ -80,11 +80,11 @@ namespace copp {
 
     // Windows seams not to provide a limit for the stacksize
     // libcoco uses 32k+4k bytes as minimum
-    LIBCOPP_COPP_API bool stack_traits::is_unbounded() COPP_MACRO_NOEXCEPT { return true; }
+    LIBCOPP_COPP_API bool stack_traits::is_unbounded() LIBCOPP_MACRO_NOEXCEPT { return true; }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::page_size() COPP_MACRO_NOEXCEPT { return detail::pagesize(); }
+    LIBCOPP_COPP_API std::size_t stack_traits::page_size() LIBCOPP_MACRO_NOEXCEPT { return detail::pagesize(); }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::default_size() COPP_MACRO_NOEXCEPT {
+    LIBCOPP_COPP_API std::size_t stack_traits::default_size() LIBCOPP_MACRO_NOEXCEPT {
         std::size_t size = 64 * 1024; // 64 KB
         if (is_unbounded()) return (std::max)(size, minimum_size());
 
@@ -93,16 +93,16 @@ namespace copp {
     }
 
     // because Windows seams not to provide a limit for minimum stacksize
-    LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() COPP_MACRO_NOEXCEPT { return MIN_STACKSIZE; }
+    LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() LIBCOPP_MACRO_NOEXCEPT { return MIN_STACKSIZE; }
 
     // because Windows seams not to provide a limit for maximum stacksize
     // maximum_size() can never be called (pre-condition ! is_unbounded() )
-    LIBCOPP_COPP_API std::size_t stack_traits::maximum_size() COPP_MACRO_NOEXCEPT {
+    LIBCOPP_COPP_API std::size_t stack_traits::maximum_size() LIBCOPP_MACRO_NOEXCEPT {
         assert(is_unbounded());
         return SIZE_MAX;
     }
 
-    LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacksize) COPP_MACRO_NOEXCEPT {
+    LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacksize) LIBCOPP_MACRO_NOEXCEPT {
         // page size must be 2^N
         return static_cast<std::size_t>((stacksize + stack_traits::page_size() - 1) & (~(stack_traits::page_size() - 1)));
     }

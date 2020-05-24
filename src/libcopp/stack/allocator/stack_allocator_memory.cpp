@@ -23,16 +23,16 @@
 namespace copp {
     namespace allocator {
 
-        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory() UTIL_CONFIG_NOEXCEPT : start_ptr_(UTIL_CONFIG_NULLPTR),
+        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory() LIBCOPP_MACRO_NOEXCEPT : start_ptr_(UTIL_CONFIG_NULLPTR),
                                                                                             memory_size_(0),
                                                                                             is_used_(false) {}
 
-        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT
+        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(void *start_ptr, std::size_t max_size) LIBCOPP_MACRO_NOEXCEPT
             : start_ptr_(start_ptr),
               memory_size_(max_size),
               is_used_(false) {}
 
-        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT
+        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &other) LIBCOPP_MACRO_NOEXCEPT
             : start_ptr_(UTIL_CONFIG_NULLPTR),
               memory_size_(0),
               is_used_(false) {
@@ -42,7 +42,7 @@ namespace copp {
         }
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT
+        LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &&other) LIBCOPP_MACRO_NOEXCEPT
             : start_ptr_(UTIL_CONFIG_NULLPTR),
               memory_size_(0),
               is_used_(false) {
@@ -54,14 +54,14 @@ namespace copp {
 
         LIBCOPP_COPP_API stack_allocator_memory::~stack_allocator_memory() {}
 
-        LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &other) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &other) LIBCOPP_MACRO_NOEXCEPT {
             if (!other.is_used_) {
                 swap(other);
             }
             return *this;
         }
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &&other) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &&other) LIBCOPP_MACRO_NOEXCEPT {
             if (!other.is_used_) {
                 swap(other);
             }
@@ -76,13 +76,13 @@ namespace copp {
             swap(is_used_, other.is_used_);
         }
 
-        LIBCOPP_COPP_API void stack_allocator_memory::attach(void *start_ptr, std::size_t max_size) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_memory::attach(void *start_ptr, std::size_t max_size) LIBCOPP_MACRO_NOEXCEPT {
             start_ptr_   = start_ptr;
             memory_size_ = max_size;
             is_used_     = false;
         }
 
-        LIBCOPP_COPP_API void stack_allocator_memory::allocate(stack_context &ctx, std::size_t size) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_memory::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
             if (UTIL_CONFIG_NULLPTR == start_ptr_ || is_used_) {
                 ctx.sp = UTIL_CONFIG_NULLPTR;
                 return;
@@ -104,7 +104,7 @@ namespace copp {
             is_used_ = true;
         }
 
-        LIBCOPP_COPP_API void stack_allocator_memory::deallocate(EXPLICIT_UNUSED_ATTR stack_context &ctx) UTIL_CONFIG_NOEXCEPT {
+        LIBCOPP_COPP_API void stack_allocator_memory::deallocate(EXPLICIT_UNUSED_ATTR stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
             assert(ctx.sp);
             assert(stack_traits::minimum_size() <= ctx.size);
             assert(stack_traits::is_unbounded() || (stack_traits::maximum_size() >= ctx.size));

@@ -24,15 +24,15 @@ namespace cotask {
 
         LIBCOPP_COTASK_API task_impl::~task_impl() { assert(status_ <= EN_TS_CREATED || status_ >= EN_TS_DONE); }
 
-        LIBCOPP_COTASK_API bool task_impl::is_canceled() const UTIL_CONFIG_NOEXCEPT { return EN_TS_CANCELED == get_status(); }
+        LIBCOPP_COTASK_API bool task_impl::is_canceled() const LIBCOPP_MACRO_NOEXCEPT { return EN_TS_CANCELED == get_status(); }
 
-        LIBCOPP_COTASK_API bool task_impl::is_completed() const UTIL_CONFIG_NOEXCEPT { return is_exiting(); }
+        LIBCOPP_COTASK_API bool task_impl::is_completed() const LIBCOPP_MACRO_NOEXCEPT { return is_exiting(); }
 
-        LIBCOPP_COTASK_API bool task_impl::is_faulted() const UTIL_CONFIG_NOEXCEPT { return EN_TS_KILLED <= get_status(); }
+        LIBCOPP_COTASK_API bool task_impl::is_faulted() const LIBCOPP_MACRO_NOEXCEPT { return EN_TS_KILLED <= get_status(); }
 
-        LIBCOPP_COTASK_API bool task_impl::is_timeout() const UTIL_CONFIG_NOEXCEPT { return EN_TS_TIMEOUT == get_status(); }
+        LIBCOPP_COTASK_API bool task_impl::is_timeout() const LIBCOPP_MACRO_NOEXCEPT { return EN_TS_TIMEOUT == get_status(); }
 
-        LIBCOPP_COTASK_API bool task_impl::is_exiting() const UTIL_CONFIG_NOEXCEPT { return EN_TS_DONE <= get_status(); }
+        LIBCOPP_COTASK_API bool task_impl::is_exiting() const LIBCOPP_MACRO_NOEXCEPT { return EN_TS_DONE <= get_status(); }
 
         LIBCOPP_COTASK_API int task_impl::on_finished() { return 0; }
 
@@ -61,13 +61,27 @@ namespace cotask {
             return ret;
         }
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        LIBCOPP_COTASK_API int task_impl::_notify_finished(std::list<std::exception_ptr>& unhandled, void *priv_data) {
+#else
         LIBCOPP_COTASK_API int task_impl::_notify_finished(void *priv_data) {
+#endif
             finish_priv_data_ = priv_data;
 
-            _get_action()->on_finished(*this);
-            int ret = on_finished();
-
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+            try {
+#endif
+                _get_action()->on_finished(*this);
+                int ret = on_finished();
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+                return ret;
+            } catch(...) {
+                unhandled.emplace_back(std::current_exception());
+                return copp::COPP_EC_HAS_UNHANDLE_EXCEPTION;
+            }
+#else
             return ret;
+#endif
         }
     } // namespace impl
 } // namespace cotask

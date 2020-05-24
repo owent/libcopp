@@ -91,9 +91,9 @@ namespace copp {
                     other.context_ = nullptr;
                 }
 
-                inline bool await_ready() const UTIL_CONFIG_NOEXCEPT { return !future_ || future_->is_ready(); }
+                inline bool await_ready() const LIBCOPP_MACRO_NOEXCEPT { return !future_ || future_->is_ready(); }
 
-                inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) UTIL_CONFIG_NOEXCEPT {
+                inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) LIBCOPP_MACRO_NOEXCEPT {
                     if (future_) {
                         // This should never triggered, because a generator can only be co_await once
                         if (future_->get_handle() && !future_->get_handle().done()) {
@@ -104,7 +104,7 @@ namespace copp {
                     }
                 }
 
-                inline future_type *await_resume() UTIL_CONFIG_NOEXCEPT {
+                inline future_type *await_resume() LIBCOPP_MACRO_NOEXCEPT {
                     if (likely(future_)) {
                         future_->set_handle(nullptr);
 
@@ -128,7 +128,7 @@ namespace copp {
             public:
                 using awaitable_base_t::awaitable_base_t;
 
-                value_type *await_resume() UTIL_CONFIG_NOEXCEPT {
+                value_type *await_resume() LIBCOPP_MACRO_NOEXCEPT {
                     future_type *fut = awaitable_base_t::await_resume();
                     if (nullptr != fut) {
                         return fut->data();
@@ -141,7 +141,7 @@ namespace copp {
             public:
                 using awaitable_base_t::awaitable_base_t;
 
-                poll_type await_resume() UTIL_CONFIG_NOEXCEPT {
+                poll_type await_resume() LIBCOPP_MACRO_NOEXCEPT {
                     future_type *fut = awaitable_base_t::await_resume();
                     if (nullptr != fut) {
                         return std::move(fut->poll_data());
@@ -183,20 +183,20 @@ namespace copp {
             }
             ~generator_t() { context_.set_wake_fn(NULL); }
 
-            auto operator co_await() & UTIL_CONFIG_NOEXCEPT { return reference_awaitable_t{future_, context_}; }
+            auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return reference_awaitable_t{future_, context_}; }
 
             // co_await a temporary generator_t in GCC 10.1.0 will destroy generator_t first, which will cause all resources unavailable
-            // auto operator co_await() && UTIL_CONFIG_NOEXCEPT { return rvalue_awaitable_t{future_, context_}; }
+            // auto operator co_await() && LIBCOPP_MACRO_NOEXCEPT { return rvalue_awaitable_t{future_, context_}; }
 
-            UTIL_FORCEINLINE value_type *        data() UTIL_CONFIG_NOEXCEPT { return future_.data(); }
-            UTIL_FORCEINLINE const value_type *  data() const UTIL_CONFIG_NOEXCEPT { return future_.data(); }
-            UTIL_FORCEINLINE poll_type &         poll_data() UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
-            UTIL_FORCEINLINE const poll_type &   poll_data() const UTIL_CONFIG_NOEXCEPT { return future_.poll_data(); }
-            UTIL_FORCEINLINE context_type &      get_context() UTIL_CONFIG_NOEXCEPT { return context_; }
-            UTIL_FORCEINLINE const context_type &get_context() const UTIL_CONFIG_NOEXCEPT { return context_; }
+            UTIL_FORCEINLINE value_type *        data() LIBCOPP_MACRO_NOEXCEPT { return future_.data(); }
+            UTIL_FORCEINLINE const value_type *  data() const LIBCOPP_MACRO_NOEXCEPT { return future_.data(); }
+            UTIL_FORCEINLINE poll_type &         poll_data() LIBCOPP_MACRO_NOEXCEPT { return future_.poll_data(); }
+            UTIL_FORCEINLINE const poll_type &   poll_data() const LIBCOPP_MACRO_NOEXCEPT { return future_.poll_data(); }
+            UTIL_FORCEINLINE context_type &      get_context() LIBCOPP_MACRO_NOEXCEPT { return context_; }
+            UTIL_FORCEINLINE const context_type &get_context() const LIBCOPP_MACRO_NOEXCEPT { return context_; }
 
-            UTIL_FORCEINLINE operator bool() const UTIL_CONFIG_NOEXCEPT { return has_data(); }
-            UTIL_FORCEINLINE bool has_data() const UTIL_CONFIG_NOEXCEPT { return future_.is_ready(); }
+            UTIL_FORCEINLINE operator bool() const LIBCOPP_MACRO_NOEXCEPT { return has_data(); }
+            UTIL_FORCEINLINE bool has_data() const LIBCOPP_MACRO_NOEXCEPT { return future_.is_ready(); }
             UTIL_FORCEINLINE void reset_data() { future_.reset_data(); }
         private:
             // generator can not be copy or moved.

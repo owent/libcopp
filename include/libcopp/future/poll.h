@@ -18,35 +18,35 @@ namespace copp {
             typedef typename poll_storage_t::value_type   value_type;
 
         public:
-            poll_t() UTIL_CONFIG_NOEXCEPT { poll_storage_t::construct_default_storage(storage_data_); }
+            poll_t() LIBCOPP_MACRO_NOEXCEPT { poll_storage_t::construct_default_storage(storage_data_); }
 
             template <class U>
-            poll_t(U &&in) UTIL_CONFIG_NOEXCEPT {
+            poll_t(U &&in) LIBCOPP_MACRO_NOEXCEPT {
                 setup_from(std::forward<U>(in));
             }
 
-            poll_t(self_type &&other) UTIL_CONFIG_NOEXCEPT { setup_from(std::move(other)); }
+            poll_t(self_type &&other) LIBCOPP_MACRO_NOEXCEPT { setup_from(std::move(other)); }
 
-            poll_t &operator=(self_type &&other) UTIL_CONFIG_NOEXCEPT {
+            poll_t &operator=(self_type &&other) LIBCOPP_MACRO_NOEXCEPT {
                 setup_from(std::move(other));
                 return *this;
             }
 
-            UTIL_FORCEINLINE bool is_ready() const UTIL_CONFIG_NOEXCEPT { return !!poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT { return !!poll_storage_t::unwrap(storage_data_); }
 
-            UTIL_FORCEINLINE bool is_pending() const UTIL_CONFIG_NOEXCEPT { return !poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT { return !poll_storage_t::unwrap(storage_data_); }
 
-            UTIL_FORCEINLINE const value_type *data() const UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
-            UTIL_FORCEINLINE value_type *      data() UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
+            UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
+            UTIL_FORCEINLINE value_type *      data() LIBCOPP_MACRO_NOEXCEPT { return poll_storage_t::unwrap(storage_data_).get(); }
 
-            UTIL_FORCEINLINE const ptr_type &raw_ptr() const UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
-            UTIL_FORCEINLINE ptr_type &      raw_ptr() UTIL_CONFIG_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE const ptr_type &raw_ptr() const LIBCOPP_MACRO_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
+            UTIL_FORCEINLINE ptr_type &      raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_storage_t::unwrap(storage_data_); }
 
             UTIL_FORCEINLINE void reset() { poll_storage_t::reset(storage_data_); }
-            UTIL_FORCEINLINE void swap(self_type& other) UTIL_CONFIG_NOEXCEPT {
+            UTIL_FORCEINLINE void swap(self_type& other) LIBCOPP_MACRO_NOEXCEPT {
                 poll_storage_t::swap(storage_data_, other.storage_data_);
             }
-            friend UTIL_FORCEINLINE void swap(self_type& l, self_type& r) UTIL_CONFIG_NOEXCEPT { l.swap(r); }
+            friend UTIL_FORCEINLINE void swap(self_type& l, self_type& r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
         private:
             template <class U, class UDELETER,
                       typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
