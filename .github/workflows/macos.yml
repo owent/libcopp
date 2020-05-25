@@ -22,7 +22,7 @@ jobs:
         os: [macos-latest]
         cc:
           - clang
-          - shared:clang
+          # - shared:clang
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout

@@ -64,7 +64,7 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         endforeach()
     endmacro(add_linker_flags_for_all)
 
-    # 编译器选项 (仅做了GCC、VC和Clang兼容)
+    # Auto compiler options, support gcc,MSVC,Clang,AppleClang
     if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         # add_compile_options(-Wall -Werror)
         list(APPEND COMPILER_STRICT_EXTRA_CFLAGS -Wextra)
@@ -79,11 +79,11 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
             message(STATUS "Check Flag: -rdynamic -- no")
         endif()
 
-        # gcc 4.9 编译输出颜色支持
+        # gcc 4.9 or upper add colorful output
         if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "4.9.0")
             add_compile_options(-fdiagnostics-color=auto)
         endif()
-        # 检测GCC版本大于等于4.8时，默认-Wno-unused-local-typedefs (普片用于type_traits，故而关闭该警告)
+        # disable -Wno-unused-local-typedefs (which is often used in type_traits)
         if ( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "4.8.0")
             # GCC < 4.8 doesn't support the address sanitizer
             # -fsanitize=address require -lasan be placed before -lstdc++, every target shoud add this
@@ -221,13 +221,13 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         else()
             set(CMAKE_CXX_STANDARD 14)
         endif()
-        # 设置 __cplusplus 宏为标准值, @see https://docs.microsoft.com/zh-cn/cpp/build/reference/zc-cplusplus
+        # set __cplusplus to standard value, @see https://docs.microsoft.com/zh-cn/cpp/build/reference/zc-cplusplus
         if (MSVC_VERSION GREATER_EQUAL 1914 AND COMPILER_OPTION_MSVC_ZC_CPP)
             add_compiler_flags_to_var(CMAKE_CXX_FLAGS /Zc:__cplusplus)
         endif()
     endif()
 
-    # 配置公共编译选项
+    # check c++20 coroutine
     set(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
     if ( NOT MSVC )
         if (NOT EMSCRIPTEN)
@@ -321,16 +321,4 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     check_cxx_source_compiles("#include <typeinfo>
     #include <cstdio>
     int main () { puts(typeid(int).name()); return 0; }" COMPILER_OPTIONS_TEST_RTTI)
-
-    # list => string
-    string(REPLACE ";" " " CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    string(REPLACE ";" " " CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-    string(REPLACE ";" " " CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-    string(REPLACE ";" " " CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL}")
-    string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    string(REPLACE ";" " " CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-    string(REPLACE ";" " " CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    string(REPLACE ";" " " CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-    string(REPLACE ";" " " CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
-    string(REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 endif()
