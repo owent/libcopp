@@ -148,13 +148,7 @@ namespace copp {
          * @see detail::coroutine_context_fiber
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
-        UTIL_FORCEINLINE coroutine_context_fiber *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
-            coroutine_context_base* ret = coroutine_context_base::get_this_coroutine_base();
-            if (ret && !ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
-                ret = UTIL_CONFIG_NULLPTR;
-            }
-            return static_cast<coroutine_context_fiber *>(ret);
-        }
+        LIBCOPP_COPP_API coroutine_context_fiber *get_coroutine() LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief get current coroutine and try to convert type
@@ -172,7 +166,7 @@ namespace copp {
          * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
          * @return 0 or error code
          */
-        LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
+        LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
     } // namespace this_coroutine
 } // namespace copp
 

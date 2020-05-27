@@ -26,6 +26,19 @@ endif ()
 
 foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     get_filename_component(SAMPLE_SRC_BIN_NAME ${SAMPLE_SRC_FILE} NAME_WE)
+    if (WIN32)
+        # Patch for windows path limit
+        string(REGEX REPLACE "([^_])[A-Za-z]*_?" "\\1" SAMPLE_SRC_BIN_NAME "${SAMPLE_SRC_BIN_NAME}")
+        set (SAMPLE_BIN_NAME_RUN_SAMPLE_PREFIX "rs_")
+        set (SAMPLE_BIN_NAME_RUN_MEMCHECK_PREFIX "rm_")
+        set (SAMPLE_BIN_NAME_RUN_TEST_PREFIX "rt_")
+        set (SAMPLE_BIN_NAME_RUN_CALLGRIND_PREFIX "rc_")
+    else ()
+        set (SAMPLE_BIN_NAME_RUN_SAMPLE_PREFIX "run_sample_")
+        set (SAMPLE_BIN_NAME_RUN_MEMCHECK_PREFIX "run_memcheck_")
+        set (SAMPLE_BIN_NAME_RUN_TEST_PREFIX "run_test_")
+        set (SAMPLE_BIN_NAME_RUN_CALLGRIND_PREFIX "run_callgrind_")
+    endif ()
     set(SAMPLE_SRC_BIN_NAME "libcopp_${SAMPLE_SRC_BIN_NAME}")
     
     add_executable(${SAMPLE_SRC_BIN_NAME} ${SAMPLE_SRC_FILE})
@@ -40,51 +53,51 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     string(FIND ${SAMPLE_SRC_BIN_NAME} "_benchmark_" SAMPLE_SRC_IS_BENCHMARK)
 
     if (${SAMPLE_SRC_IS_BENCHMARK} LESS 0)
-        add_custom_target("run_sample_${SAMPLE_SRC_BIN_NAME}"
+        add_custom_target("${SAMPLE_BIN_NAME_RUN_SAMPLE_PREFIX}${SAMPLE_SRC_BIN_NAME}"
             ${SAMPLE_SRC_BIN_NAME}
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
-        add_dependencies(run_sample "run_sample_${SAMPLE_SRC_BIN_NAME}")
-        add_dependencies("run_sample_${SAMPLE_SRC_BIN_NAME}" ${SAMPLE_SRC_BIN_NAME})
+        add_dependencies(run_sample "${SAMPLE_BIN_NAME_RUN_SAMPLE_PREFIX}${SAMPLE_SRC_BIN_NAME}")
+        add_dependencies("${SAMPLE_BIN_NAME_RUN_SAMPLE_PREFIX}${SAMPLE_SRC_BIN_NAME}" ${SAMPLE_SRC_BIN_NAME})
 
         if (_VALGRIND_EXECUTABLE)
-            add_custom_target("run_memcheck_${SAMPLE_SRC_BIN_NAME}"
+            add_custom_target("${SAMPLE_BIN_NAME_RUN_MEMCHECK_PREFIX}${SAMPLE_SRC_BIN_NAME}"
                 ${_VALGRIND_EXECUTABLE} "--tool=memcheck" "--log-file=${SAMPLE_SRC_BIN_NAME}.memcheck.log" --leak-check=full --show-leak-kinds=all --malloc-fill=ef --free-fill=e5 $<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}>
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             )
-            add_dependencies(memcheck "run_memcheck_${SAMPLE_SRC_BIN_NAME}")
-            add_dependencies("run_memcheck_${SAMPLE_SRC_BIN_NAME}" ${SAMPLE_SRC_BIN_NAME})
+            add_dependencies(memcheck "${SAMPLE_BIN_NAME_RUN_MEMCHECK_PREFIX}${SAMPLE_SRC_BIN_NAME}")
+            add_dependencies("${SAMPLE_BIN_NAME_RUN_MEMCHECK_PREFIX}${SAMPLE_SRC_BIN_NAME}" ${SAMPLE_SRC_BIN_NAME})
         endif()
     else()
-        add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_30000"
+        add_custom_target("${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_30000"
             ${SAMPLE_SRC_BIN_NAME} 30000 100 64
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
-        add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_30000")
-        add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_30000" ${SAMPLE_SRC_BIN_NAME})
+        add_dependencies(benchmark "${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_30000")
+        add_dependencies("${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_30000" ${SAMPLE_SRC_BIN_NAME})
 
-        add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1000"
+        add_custom_target("${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_1000"
             ${SAMPLE_SRC_BIN_NAME} 1000 1000 2048
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
-        add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1000")
-        add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1000" ${SAMPLE_SRC_BIN_NAME})
+        add_dependencies(benchmark "${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_1000")
+        add_dependencies("${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_1000" ${SAMPLE_SRC_BIN_NAME})
 
-        add_custom_target("run_test_${SAMPLE_SRC_BIN_NAME}_1"
+        add_custom_target("${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_1"
             ${SAMPLE_SRC_BIN_NAME} 1 3000000 16
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         )
-        add_dependencies(benchmark "run_test_${SAMPLE_SRC_BIN_NAME}_1")
-        add_dependencies("run_test_${SAMPLE_SRC_BIN_NAME}_1" ${SAMPLE_SRC_BIN_NAME})
+        add_dependencies(benchmark "${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_1")
+        add_dependencies("${SAMPLE_BIN_NAME_RUN_TEST_PREFIX}${SAMPLE_SRC_BIN_NAME}_1" ${SAMPLE_SRC_BIN_NAME})
 
         # for valgrind callgrind
         if (_VALGRIND_EXECUTABLE)
-            add_custom_target("run_callgrind_${SAMPLE_SRC_BIN_NAME}_10000"
+            add_custom_target("${SAMPLE_BIN_NAME_RUN_CALLGRIND_PREFIX}${SAMPLE_SRC_BIN_NAME}_10000"
                 ${_VALGRIND_EXECUTABLE} "--tool=callgrind" "--log-file=${SAMPLE_SRC_BIN_NAME}.callgrind.log" "--callgrind-out-file=callgrind.out.${SAMPLE_SRC_BIN_NAME}" --cache-sim=yes --branch-sim=yes --dump-instr=yes --collect-jumps=yes $<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}> 10000 1000 64
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             )
-            add_dependencies(callgrind "run_callgrind_${SAMPLE_SRC_BIN_NAME}_10000")
-            add_dependencies("run_callgrind_${SAMPLE_SRC_BIN_NAME}_10000" ${SAMPLE_SRC_BIN_NAME})
+            add_dependencies(callgrind "${SAMPLE_BIN_NAME_RUN_CALLGRIND_PREFIX}${SAMPLE_SRC_BIN_NAME}_10000")
+            add_dependencies("${SAMPLE_BIN_NAME_RUN_CALLGRIND_PREFIX}${SAMPLE_SRC_BIN_NAME}_10000" ${SAMPLE_SRC_BIN_NAME})
         endif()
     endif()
 endforeach()

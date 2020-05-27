@@ -354,7 +354,17 @@ namespace copp {
     }
 
     namespace this_coroutine {
-        LIBCOPP_COPP_API int yield(void **priv_data) {
+        LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
+            coroutine_context_base* ret = coroutine_context_base::get_this_coroutine_base();
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
+            if (ret && ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
+                ret = UTIL_CONFIG_NULLPTR;
+            }
+#endif
+            return static_cast<coroutine_context *>(ret);
+        }
+        
+        LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
             coroutine_context *pco = get_coroutine();
             if (UTIL_CONFIG_NULLPTR != pco) {
                 return pco->yield(priv_data);
