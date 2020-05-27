@@ -104,6 +104,10 @@ namespace cotask {
 
             LIBCOPP_COTASK_API virtual int on_finished();
 
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
+            virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT = 0;
+#endif
+
             /**
              * get current running task
              * @return current running task or empty pointer

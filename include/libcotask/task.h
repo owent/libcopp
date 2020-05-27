@@ -25,6 +25,10 @@
 #include <exception>
 #endif
 
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
+#include <type_traits>
+#endif
+
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 #include <libcotask/task_macros.h>
@@ -660,6 +664,12 @@ namespace cotask {
 
             return coroutine_obj_->is_finished();
         }
+
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
+        virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT {
+            return std::is_base_of<copp::coroutine_context_fiber, coroutine_t>::value;
+        }
+#endif
 
         static inline void *add_buffer_offset(void *in, size_t off) {
             return reinterpret_cast<void *>(reinterpret_cast<unsigned char *>(in) + off);

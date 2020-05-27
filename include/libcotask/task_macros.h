@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 #include <libcopp/coroutine/coroutine_context_container.h>
+#include <libcopp/coroutine/coroutine_context_fiber_container.h>
 #include <libcopp/utils/errno.h>
 
 #include <libcotask/core/standard_new_allocator.h>

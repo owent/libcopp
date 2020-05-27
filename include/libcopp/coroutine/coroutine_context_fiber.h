@@ -1,30 +1,27 @@
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_H
+#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_BASE_H
+#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_BASE_H
 
 #pragma once
 
-#include "coroutine_context_base.h"
+#include <cstddef>
 
-#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-#define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type) using base_type::caller_stack_;
-#else
-#define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
+#include "coroutine_context.h"
+
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #endif
 
-#define COROUTINE_CONTEXT_BASE_USING_BASE(base_type) \
-protected:                                           \
-    using base_type::caller_;                        \
-    using base_type::callee_;                        \
-    using base_type::callee_stack_;                  \
-    COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
+#include <Windows.h>
 
 namespace copp {
     /**
-     * @brief base type of all coroutine context
+     * @brief base type of all coroutine context of windows fiber
      */
-    class coroutine_context : public coroutine_context_base {
+    class coroutine_context_fiber : public coroutine_context_base {
     public:
-        typedef libcopp::util::intrusive_ptr<coroutine_context> ptr_t;
+        typedef libcopp::util::intrusive_ptr<coroutine_context_fiber> ptr_t;
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
         using callback_t = coroutine_context_base::callback_t;
@@ -48,35 +45,35 @@ namespace copp {
 #endif
 
         struct jump_src_data_t {
-            coroutine_context *from_co;
-            coroutine_context *to_co;
-            void *             priv_data;
+            coroutine_context_fiber *from_co;
+            LPVOID                   from_fiber;
+            coroutine_context_fiber *to_co;
+            LPVOID                   to_fiber;
+            void                    *priv_data;
         };
 
-        friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_inner_api_helper;
+        friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_fiber_inner_api_helper;
+        friend struct LIBCOPP_COPP_API_HEAD_ONLY fiber_context_tls_data_t;
 
     protected:
-        fcontext::fcontext_t caller_; /** caller runtime context **/
-        fcontext::fcontext_t callee_; /** callee runtime context **/
+        LPVOID caller_; /** caller runtime context **/
+        LPVOID callee_; /** callee runtime context **/
 
         stack_context callee_stack_; /** callee stack context **/
-#ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-        stack_context caller_stack_; /** caller stack context **/
-#endif
 
     protected:
-        LIBCOPP_COPP_API coroutine_context() LIBCOPP_MACRO_NOEXCEPT;
+        LIBCOPP_COPP_API coroutine_context_fiber() LIBCOPP_MACRO_NOEXCEPT;
 
     public:
-        LIBCOPP_COPP_API ~coroutine_context();
+        LIBCOPP_COPP_API ~coroutine_context_fiber();
 
     private:
-        coroutine_context(const coroutine_context &) UTIL_CONFIG_DELETED_FUNCTION;
-        coroutine_context &operator=(const coroutine_context &) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context_fiber(const coroutine_context_fiber &) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context_fiber &operator=(const coroutine_context_fiber &) UTIL_CONFIG_DELETED_FUNCTION;
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        coroutine_context(const coroutine_context &&) UTIL_CONFIG_DELETED_FUNCTION;
-        coroutine_context &operator=(const coroutine_context &&) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context_fiber(const coroutine_context_fiber &&) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context_fiber &operator=(const coroutine_context_fiber &&) UTIL_CONFIG_DELETED_FUNCTION;
 #endif
 
     public:
@@ -88,14 +85,16 @@ namespace copp {
          * @param private_buffer_size size of private buffer
          * @return COPP_EC_SUCCESS or error code
          */
-        static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
-                                           size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API int create(coroutine_context_fiber *p, callback_t &runner, const stack_context &callee_stack,
+                                           size_t coroutine_size, size_t private_buffer_size,
+                                           size_t stack_reserve_size_of_fiber = 0) LIBCOPP_MACRO_NOEXCEPT;
 
         template <typename TRunner>
-        static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack,
-                                                     size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
+        static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context_fiber *p, TRunner *runner, const stack_context &callee_stack,
+                                                     size_t coroutine_size, size_t private_buffer_size,
+                                                     size_t stack_reserve_size_of_fiber = 0) LIBCOPP_MACRO_NOEXCEPT {
             return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
-                          private_buffer_size);
+                          private_buffer_size, stack_reserve_size_of_fiber);
         }
 
         /**
@@ -143,26 +142,24 @@ namespace copp {
         LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
     };
 
-    namespace this_coroutine {
+    namespace this_fiber {
         /**
          * @brief get current coroutine
-         * @see detail::coroutine_context
+         * @see detail::coroutine_context_fiber
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
-        UTIL_FORCEINLINE coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
+        UTIL_FORCEINLINE coroutine_context_fiber *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
             coroutine_context_base* ret = coroutine_context_base::get_this_coroutine_base();
-#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
-            if (ret && ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
+            if (ret && !ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
                 ret = UTIL_CONFIG_NULLPTR;
             }
-#endif
-            return static_cast<coroutine_context *>(ret);
+            return static_cast<coroutine_context_fiber *>(ret);
         }
 
         /**
          * @brief get current coroutine and try to convert type
          * @see get_coroutine
-         * @see detail::coroutine_context
+         * @see detail::coroutine_context_fiber
          * @return pointer of current coroutine, if not in coroutine or fail to convert type, return NULL
          */
         template <typename Tc>
@@ -178,5 +175,7 @@ namespace copp {
         LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR);
     } // namespace this_coroutine
 } // namespace copp
+
+#endif
 
 #endif

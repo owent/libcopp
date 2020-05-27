@@ -13,6 +13,8 @@
 #include <assert.h>
 
 #include <libcopp/coroutine/coroutine_context.h>
+#include <libcopp/coroutine/coroutine_context_fiber.h>
+
 #include <libcotask/impl/task_action_impl.h>
 #include <libcotask/impl/task_impl.h>
 
@@ -37,7 +39,7 @@ namespace cotask {
         LIBCOPP_COTASK_API int task_impl::on_finished() { return 0; }
 
         LIBCOPP_COTASK_API task_impl *task_impl::this_task() {
-            copp::coroutine_context *this_co = copp::this_coroutine::get_coroutine();
+            copp::coroutine_context_base *this_co = copp::coroutine_context_base::get_this_coroutine_base();
             if (UTIL_CONFIG_NULLPTR == this_co) {
                 return UTIL_CONFIG_NULLPTR;
             }

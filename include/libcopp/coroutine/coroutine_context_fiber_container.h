@@ -1,53 +1,56 @@
 /**
- * coroutine context container
+ * coroutine context fiber container
  */
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_CONTAINER_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_CONTAINER_H
+#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_CONTAINER_H
+#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_CONTAINER_H
 
 
 #pragma once
 
 #include <cstddef>
 
-#include <libcopp/coroutine/coroutine_context.h>
+#include <libcopp/coroutine/coroutine_context_fiber.h>
 #include <libcopp/stack/stack_allocator.h>
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 namespace copp {
     /**
      * @brief coroutine container
      * contain stack context, stack allocator and runtime fcontext
      */
     template <typename TALLOC>
-    class coroutine_context_container : public coroutine_context {
+    class coroutine_context_fiber_container : public coroutine_context_fiber {
     public:
+
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-        using coroutine_context_type = coroutine_context;
-        using base_type              = coroutine_context;
+        using coroutine_context_type = coroutine_context_fiber;
+        using base_type              = coroutine_context_fiber;
         using allocator_type         = TALLOC;
-        using this_type              = coroutine_context_container<allocator_type>;
+        using this_type              = coroutine_context_fiber_container<allocator_type>;
         using ptr_t                  = libcopp::util::intrusive_ptr<this_type>;
-        using callback_t             = coroutine_context::callback_t;
+        using callback_t             = coroutine_context_fiber::callback_t;
 #else
-        typedef coroutine_context                           coroutine_context_type;
-        typedef coroutine_context                           base_type;
-        typedef TALLOC                                      allocator_type;
-        typedef coroutine_context_container<allocator_type> this_type;
-        typedef libcopp::util::intrusive_ptr<this_type>     ptr_t;
-        typedef coroutine_context::callback_t               callback_t;
+        typedef coroutine_context_fiber                           coroutine_context_type;
+        typedef coroutine_context_fiber                           base_type;
+        typedef TALLOC                                            allocator_type;
+        typedef coroutine_context_fiber_container<allocator_type> this_type;
+        typedef libcopp::util::intrusive_ptr<this_type>           ptr_t;
+        typedef coroutine_context_fiber::callback_t               callback_t;
 #endif
+
         COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
 
     private:
-        coroutine_context_container(const allocator_type &alloc) LIBCOPP_MACRO_NOEXCEPT : alloc_(alloc), ref_count_(0) {}
+        coroutine_context_fiber_container(const allocator_type &alloc) LIBCOPP_MACRO_NOEXCEPT : alloc_(alloc), ref_count_(0) {}
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        coroutine_context_container(allocator_type &&alloc) LIBCOPP_MACRO_NOEXCEPT : alloc_(std::move(alloc)), ref_count_(0) {}
+        coroutine_context_fiber_container(allocator_type &&alloc) LIBCOPP_MACRO_NOEXCEPT : alloc_(std::move(alloc)), ref_count_(0) {}
 #endif
 
     public:
-        ~coroutine_context_container() {}
+        ~coroutine_context_fiber_container() {}
 
         /**
          * @brief get stack allocator
@@ -86,14 +89,12 @@ namespace copp {
             coroutine_size               = align_address_size(coroutine_size);
             const size_t this_align_size = align_address_size(sizeof(this_type));
             coroutine_size += this_align_size;
-            private_buffer_size = coroutine_context::align_private_data_size(private_buffer_size);
+            private_buffer_size = coroutine_context_fiber::align_private_data_size(private_buffer_size);
 
-            if (stack_sz <= coroutine_size + private_buffer_size) {
-                return ret;
-            }
 
+            // stack allocator is just used for allocate coroutine and private data
             stack_context callee_stack;
-            alloc.allocate(callee_stack, stack_sz);
+            alloc.allocate(callee_stack, coroutine_size + private_buffer_size);
 
             if (NULL == callee_stack.sp) {
                 return ret;
@@ -114,8 +115,11 @@ namespace copp {
             }
 
             // after this call runner will be unavailable
+            // stack_sz is used for stack reserve size of fiber
             callback_t callback(std::move(runner));
-            if (coroutine_context::create(ret.get(), callback, ret->callee_stack_, coroutine_size, private_buffer_size) < 0) {
+            if (coroutine_context_fiber::create(ret.get(), callback, ret->callee_stack_, 
+                coroutine_size, private_buffer_size, stack_sz) <
+                0) {
                 ret.reset();
             }
 
@@ -170,7 +174,7 @@ namespace copp {
         inline size_t use_count() const LIBCOPP_MACRO_NOEXCEPT { return ref_count_.load(); }
 
     private:
-        coroutine_context_container(const coroutine_context_container &) UTIL_CONFIG_DELETED_FUNCTION;
+        coroutine_context_fiber_container(const coroutine_context_fiber_container &) UTIL_CONFIG_DELETED_FUNCTION;
 
     private:
         friend void intrusive_ptr_add_ref(this_type *p) {
@@ -192,7 +196,7 @@ namespace copp {
                 stack_context  copy_stack(std::move(p->callee_stack_));
 
                 // then destruct object and reset data
-                p->~coroutine_context_container();
+                p->~coroutine_context_fiber_container();
 
                 // final, recycle stack buffer
                 copy_alloc.deallocate(copy_stack);
@@ -208,7 +212,9 @@ namespace copp {
 #endif
     };
 
-    typedef coroutine_context_container<allocator::default_statck_allocator> coroutine_context_default;
+    typedef coroutine_context_fiber_container<allocator::stack_allocator_malloc> coroutine_fiber_context_default;
 } // namespace copp
+
+#endif
 
 #endif
