@@ -39,10 +39,9 @@ typedef copp::coroutine_context_container<copp::allocator::stack_allocator_mallo
 static int my_runner(void *) {
     // ... your code here ...
     int             count = switch_count; // 每个协程N次切换
-    my_cotoutine_t *addr  = copp::this_coroutine::get<my_cotoutine_t>();
 
     while (count-- > 0) {
-        addr->yield();
+        copp::this_coroutine::yield();
     }
 
     return 1;

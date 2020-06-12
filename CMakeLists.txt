@@ -19,7 +19,6 @@ include("${PROJECT_CMAKE_MODULE_DIR}/ProjectBuildOption.cmake")
 include("${PROJECT_CMAKE_MODULE_DIR}/IncludeDirectoryRecurse.cmake")
 include("${PROJECT_CMAKE_MODULE_DIR}/EchoWithColor.cmake")
 include("${PROJECT_CMAKE_MODULE_DIR}/FindPlatform.cmake")
-include("${PROJECT_CMAKE_MODULE_DIR}/ProjectTools.cmake")
 
 
 #####################################################################

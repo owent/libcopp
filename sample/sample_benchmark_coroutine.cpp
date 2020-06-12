@@ -37,10 +37,9 @@ int switch_count = 100;
 static int my_runner(void *) {
     // ... your code here ...
     int                              count = switch_count; // 每个协程N次切换
-    copp::coroutine_context_default *addr  = copp::this_coroutine::get<copp::coroutine_context_default>();
 
     while (count-- > 0)
-        addr->yield();
+        copp::this_coroutine::yield();
 
     return 1;
 }

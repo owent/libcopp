@@ -279,7 +279,11 @@ namespace copp {
         } while (true);
 
         jump_src_data_t jump_data;
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
         jump_data.from_co   = ::copp::this_coroutine::get_coroutine();
+#else
+        jump_data.from_co   = static_cast<coroutine_context *>(coroutine_context_base::get_this_coroutine_base());
+#endif
         jump_data.to_co     = this;
         jump_data.priv_data = priv_data;
 
@@ -365,8 +369,12 @@ namespace copp {
         }
         
         LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
             coroutine_context *pco = get_coroutine();
-            if (UTIL_CONFIG_NULLPTR != pco) {
+#else
+            coroutine_context *pco = static_cast<coroutine_context *>(coroutine_context_base::get_this_coroutine_base());
+#endif
+            if (likely(UTIL_CONFIG_NULLPTR != pco)) {
                 return pco->yield(priv_data);
             }
 
