@@ -29,7 +29,7 @@ namespace copp {
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using TELEM = typename std::remove_extent<T>::type;
 #else
-            typename typename std::remove_extent<T>::type TELEM;
+            typedef typename std::remove_extent<T>::type TELEM;
 #endif
             return std::unique_ptr<T>(new TELEM[sz]());
         }
