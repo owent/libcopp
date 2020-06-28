@@ -16,7 +16,7 @@ FAQ
 
 Q: How to enable c++20 coroutine
 
-> ANS: Add ```/std:c++latest /await``` for MSVC or add ```-std=c++20 -fcoroutines-ts -stdlib=libc++``` for clang or add ```-std=c++20 -fcoroutines``` for gcc.
+> ANS: Add ```/std:c++latest /await``` for MSVC or ```-std=c++20 -fcoroutines-ts -stdlib=libc++``` for clang or ```-std=c++20 -fcoroutines``` for gcc.
 
 Q: Will libcopp handle exception?
 
@@ -24,7 +24,7 @@ Q: Will libcopp handle exception?
 
 Q: Why ```SetUnhandledExceptionFilter``` can not catch the unhandled exception in a coroutine?
 
-> ANS: Please use ```AddVectoredExceptionHandler``` for tempolary, we will implement WinFiber in the future, and then ```SetUnhandledExceptionFilter``` will work.
+> ANS: ANS: ```SetUnhandledExceptionFilter``` only works with **Windows Fiber**, please see [sample/sample_readme_11.cpp](sample/sample_readme_11.cpp) for details.
 
 FEEDBACK
 ----------------
