@@ -271,21 +271,23 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         add_compiler_flags_to_var(CMAKE_CXX_FLAGS_MINSIZEREL /Ox /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
 
         # Try add coroutine
-        set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} /await")
-        check_cxx_source_compiles("#include <coroutine>
-        int main() {
-            return std::suspend_always().await_ready()? 0: 1;
-        }" COMPILER_OPTIONS_TEST_STD_COROUTINE)
-        if (NOT COMPILER_OPTIONS_TEST_STD_COROUTINE)
-            check_cxx_source_compiles("
-            #include <experimental/coroutine>
+        if (MSVC_VERSION GREATER_EQUAL 1920)
+            set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} /await")
+            check_cxx_source_compiles("#include <coroutine>
             int main() {
-                return std::experimental::suspend_always().await_ready()? 0: 1;
-            }
-            " COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-        endif()
-        if (COMPILER_OPTIONS_TEST_STD_COROUTINE OR COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-            add_compiler_flags_to_var(CMAKE_CXX_FLAGS /await)
+                return std::suspend_always().await_ready()? 0: 1;
+            }" COMPILER_OPTIONS_TEST_STD_COROUTINE)
+            if (NOT COMPILER_OPTIONS_TEST_STD_COROUTINE)
+                check_cxx_source_compiles("
+                #include <experimental/coroutine>
+                int main() {
+                    return std::experimental::suspend_always().await_ready()? 0: 1;
+                }
+                " COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+            endif()
+            if (COMPILER_OPTIONS_TEST_STD_COROUTINE OR COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+                add_compiler_flags_to_var(CMAKE_CXX_FLAGS /await)
+            endif()
         endif()
     endif()
     set(CMAKE_REQUIRED_FLAGS ${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS})
