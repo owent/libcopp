@@ -22,7 +22,7 @@ namespace copp {
 #if (defined(__cplusplus) && __cplusplus >= 201703L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L))
 #define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<std::invoke_result_t<F, ARG> >::type
 #elif (defined(__cplusplus) && __cplusplus >= 201103L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
-#define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<std::result_of<F, ARG> >::type
+#define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<typename std::result_of<F(ARG)>::type>::type
 #endif
 
         template <class T>

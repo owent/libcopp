@@ -33,16 +33,16 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
-      env: USE_CC=gcc-4.9 USE_CXX=g++-4.9 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-4.8 USE_CXX=g++-4.8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-4.9
-            - gcc-4.9-multilib
-            - g++-4.9
-            - g++-4.9-multilib
+            - gcc-4.8
+            - gcc-4.8-multilib
+            - g++-4.8
+            - g++-4.8-multilib
     - os: linux
       dist: xenial
       sudo: required
