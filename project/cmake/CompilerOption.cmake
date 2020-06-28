@@ -271,7 +271,7 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         add_compiler_flags_to_var(CMAKE_CXX_FLAGS_MINSIZEREL /Ox /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
 
         # Try add coroutine
-        if (MSVC_VERSION GREATER_EQUAL 1920)
+        if (MSVC_VERSION GREATER_EQUAL 1910)
             set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} /await")
             check_cxx_source_compiles("#include <coroutine>
             int main() {

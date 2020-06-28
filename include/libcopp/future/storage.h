@@ -53,7 +53,7 @@ namespace copp {
 
         template <>
         struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t<void> {
-            typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
+            typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
         };
 
         template <class T>
@@ -68,7 +68,7 @@ namespace copp {
 
         template <>
         struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t<void> {
-            typedef typename std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
+            typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
         };
 
 

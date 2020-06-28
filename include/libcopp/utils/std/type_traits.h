@@ -21,7 +21,7 @@
 namespace copp {
     namespace type_traits {
 #if (defined(__cplusplus) && __cplusplus >= 201703L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L))
-#define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<typename std::invoke_result<F, ARG>::type>::type
+#define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<decltype(std::invoke(std::declval<F>(), std::declval<ARG>()))>::type
 #elif (defined(__cplusplus) && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__) ) ) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
 #define COPP_RETURN_VALUE_DECAY(F, ARG) typename std::decay<typename std::result_of<F(ARG)>::type>::type
 #endif
