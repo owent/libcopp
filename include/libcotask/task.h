@@ -69,6 +69,7 @@ namespace cotask {
 #endif
         {
             id_allocator_t id_alloc_;
+            ((void)id_alloc_);
             id_ = id_alloc_.allocate();
             ref_count_.store(0);
         }
@@ -463,6 +464,7 @@ namespace cotask {
 
             // free resource
             id_allocator_t id_alloc_;
+            ((void)id_alloc_);
             id_alloc_.deallocate(id_);
         }
 

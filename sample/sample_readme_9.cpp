@@ -127,12 +127,12 @@ static sample_task_t call_for_await_generator_and_timeout(int32_t await_times) {
 
     auto          gen = copp::future::make_generator<sample_generator_t>(200, await_times);
     sample_poll_t ret;
-    co_await      gen;
+    auto await_fut = co_await gen;
 
     ret = std::move(gen.poll_data());
 
     // the return is still pending, because it's resumed by timeout waker
-    std::cout<< "\tret.is_pending() :"<< ret.is_pending() << std::endl;
+    std::cout<< "\tret.is_pending() :"<< ret.is_pending()<< ", await_fut:"<< await_fut<< std::endl;
     sample_task_context_t *context = co_yield sample_task_t::current_context();
     if (context) {
         std::cout<< "\texpected code: "<< SAMPLE_TIMEOUT_ERROR_CODE<< ", real is: "<< context->get_private_data().code<< std::endl;;
@@ -181,10 +181,10 @@ static sample_task_t call_for_await_task_and_timeout(int32_t await_times) {
     std::cout<< "ready to co_await task." << std::endl;
 
     auto t_dep = call_for_await_generator_and_timeout(await_times);
-    co_await t_dep;
+    auto t_fut = co_await t_dep;
 
     // the return is still pending, because it's resumed by timeout waker
-    std::cout<< "\tt_dep.done() :"<< t_dep.done() << std::endl;
+    std::cout<< "\tt_dep.done() :"<< t_dep.done() << ", t_fut: "<< t_fut<<std::endl;
     sample_task_context_t *context = co_yield sample_task_t::current_context();
     if (context) {
         std::cout<< "\texpected code: "<< SAMPLE_TIMEOUT_ERROR_CODE<< ", real is: "<< context->get_private_data().code<< std::endl;;

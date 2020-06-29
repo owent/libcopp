@@ -19,6 +19,7 @@
 
 CASE_TEST(coroutine_task, id_allocator_st) {
     copp::util::uint64_id_allocator alloc;
+    ((void)alloc);
 
     size_t id_num = 3 * (1 << 8) + 100;
     std::set<uint64_t> s;
@@ -37,6 +38,7 @@ CASE_TEST(coroutine_task, id_allocator_st) {
 
 CASE_TEST(coroutine_task, id_allocator_mt) {
     copp::util::uint64_id_allocator alloc;
+    ((void)alloc);
 
     std::unique_ptr<std::thread> thds[40];
     std::set<uint64_t> s[40];
