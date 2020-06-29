@@ -17,6 +17,8 @@ HISTORY
 + Rename ```cotask::task::await``` into ```cotask::task::await_task```
 + Replace ```cotask::task<TCO_MACRO, TTASK_MACRO>``` with ```cotask::task<TCO_MACRO>``` , we don't allow to custom id allocator now.
 + Replace ```cotask::core::standard_int_id_allocator<uint64_t>``` with ```copp::util::uint64_id_allocator``` , we don't allow to custom id allocator now.
++ Require gcc 4.7+, MSVC 14+(Visual Studio 2015)>)
++ Require cmake 3.12.0 or upper
 
 ### 1.2.1 (2019-10-04)
 

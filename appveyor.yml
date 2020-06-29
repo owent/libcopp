@@ -28,9 +28,6 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       platform: x64
       CMAKE_GEN: Visual Studio 14 2015 Win64
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      platform: x64
-      CMAKE_GEN: Visual Studio 12 2013 Win64
     - os: MinGW
       CMAKE_GEN: MinGW64
       BUILD_SHARED_LIBS: ON

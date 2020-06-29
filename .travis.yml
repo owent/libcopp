@@ -4,11 +4,11 @@ env:
   global:
     - LANG="zh_CN.UTF-8"
     - CMAKE_PREFIX=$HOME/prebuilt/cmake ;
-    - CMAKE_LINUX_URL=https://github.com/Kitware/CMake/releases/download/v3.16.1/cmake-3.16.1-Linux-x86_64.sh
+    - CMAKE_LINUX_URL=https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3-Linux-x86_64.sh
     - PANDOC_PREFIX=$HOME/prebuilt/pandoc ;
-    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.8.1/pandoc-2.8.1-linux-amd64.tar.gz
+    - PANDOC_LINUX_URL=https://github.com/jgm/pandoc/releases/download/2.9.2.1/pandoc-2.9.2.1-linux-amd64.tar.gz
     - DOXYGEN_PREFIX=$HOME/prebuilt/doxygen
-    - DOXYGEN_LINUX_URL=http://doxygen.nl/files/doxygen-1.8.16.linux.bin.tar.gz
+    - DOXYGEN_LINUX_URL=http://doxygen.nl/files/doxygen-1.8.18.linux.bin.tar.gz
 matrix:
   include:
     - os: osx
@@ -20,16 +20,16 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
-      env: USE_CC=gcc-4.4 USE_CXX=g++-4.4 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-4.7 USE_CXX=g++-4.7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-4.4
-            - g++-4.4-multilib
-            - gcc-4.4
-            - gcc-4.4-multilib
+            - g++-4.7
+            - g++-4.7-multilib
+            - gcc-4.7
+            - gcc-4.7-multilib
     - os: linux
       dist: xenial
       sudo: required
@@ -46,29 +46,29 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
-      env: USE_CC=gcc-9 USE_CXX=g++-9 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-10 USE_CXX=g++-10 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-9
-            - gcc-9-multilib
-            - g++-9
-            - g++-9-multilib
+            - gcc-10
+            - gcc-10-multilib
+            - g++-10
+            - g++-10-multilib
     - os: linux
       dist: xenial
       sudo: required
-      env: USE_CC=gcc-9 USE_CXX=g++-9 BUILD_SHARED_LIBS=ON CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
+      env: USE_CC=gcc-10 USE_CXX=g++-10 BUILD_SHARED_LIBS=ON CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-9
-            - gcc-9-multilib
-            - g++-9
-            - g++-9-multilib
+            - gcc-10
+            - gcc-10-multilib
+            - g++-10
+            - g++-10-multilib
     - os: linux
       dist: xenial
       sudo: required

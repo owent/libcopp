@@ -70,7 +70,7 @@ struct sample_task_waker_t {
 
 static sample_task_t call_for_coroutine_task_with_custom_waker() {
     // suspend and wait custom waker
-    co_await LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_always();
+    (void)co_await LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_always();
     // ... any code
     // We can get the pointer to the future and th context of current task by co_yield current_future and current_context
     sample_future_t* future = co_yield sample_task_t::current_future();

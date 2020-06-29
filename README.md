@@ -6,7 +6,7 @@ Cross-platform coroutine library in C++ .
 |                   |                                       [Linux+OSX(Clang+GCC)][linux-link]                                       |                                          [Windows(VC+MinGW)][windows-link]                                           | [Coveralls][coverage-link] |
 | :---------------: | :------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: | :------------------------: |
 | Build & Unit Test |                                                 ![linux-badge]                                                 |                                                   ![windows-badge]                                                   |     ![coverage-badge]      |
-|     Compilers     | linux-gcc-4.4 <br /> linux-gcc-4.6 <br /> linux-gcc-4.9 <br /> linux-gcc-9 <br /> macos-apple-clang-9.0 <br /> | MSVC 12(Visual Studio 2013) <br /> MSVC 14(Visual Studio 2015) <br /> MSVC 15(Visual Studio 2017) <br />MSVC 16(Visual Studio 2019) <br /> MinGW64-gcc |                            |
+|     Compilers     | linux-gcc-4.7 <br /> linux-gcc-4.8 <br /> linux-gcc-10 <br /> macos-apple-clang-9.0 <br /> | MSVC 14(Visual Studio 2015) <br /> MSVC 15(Visual Studio 2017) <br />MSVC 16(Visual Studio 2019) <br /> MinGW64-gcc |                            |
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/owt5008137/libcopp)](https://github.com/owt5008137/libcopp/releases)
 
@@ -41,8 +41,8 @@ INSTALL
 
 ### Prerequisites
 
--   **[required]** GCC or Clang or MSVC or clang-cl support ISO C++ 03 and upper
--   **[required]** [cmake](www.cmake.org) 3.7.0 and upper
+-   **[required]** GCC or Clang or MSVC or clang-cl support ISO C++ 11 and upper
+-   **[required]** [cmake](www.cmake.org) 3.12.0 and upper
 -   **[optional]** [gtest](https://code.google.com/p/googletest/) 1.6.0 and upper (Better unit test supported)
 -   **[optional]** [Boost.Test](http://www.boost.org/doc/libs/release/libs/test/) (Boost.Test supported)
 

@@ -570,7 +570,7 @@ static test_trivial_task_t call_for_coroutine_fn_runtime_with_code(int32_t await
     test_trivial_poll_t ret;
     for (int32_t i = 0; i < await_times; ++i) {
         auto     gen = copp::future::make_generator<test_trivial_generator_t>(code, 1);
-        co_await gen;
+        (void)co_await gen;
         ret = std::move(gen.poll_data());
         if (nullptr != ret.data()) {
             if (ret.data()->is_success()) {
@@ -782,7 +782,7 @@ typedef copp::future::generator_t<test_no_trivial_result_t, test_future_for_std_
 static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code(int32_t await_times, int32_t code) {
     // refer to auto task_t::operator co_await() &&
     auto     t_void = call_for_coroutine_fn_runtime_void();
-    co_await t_void;
+    (void)co_await t_void;
     // refer to auto task_t::operator co_await() &
 
     copp::future::task_t<int> t123 = call_for_coroutine_fn_runtime_trivial();
@@ -797,7 +797,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
     test_no_trivial_poll_t ret;
     for (int32_t i = 0; i < await_times; ++i) {
         auto     gen = copp::future::make_generator<test_no_trivial_generator_t>(code, 1);
-        co_await gen;
+        (void)co_await gen;
         ret = std::move(gen.poll_data());
         if (nullptr != ret.data()) {
             if (ret.data()->is_success()) {
@@ -862,7 +862,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_await_generator_and_
     CASE_MSG_INFO() << "ready to co_await generator." << std::endl;
     auto                   gen = copp::future::make_generator<test_no_trivial_generator_t>(200, await_times);
     test_no_trivial_poll_t ret;
-    co_await               gen;
+    (void)co_await               gen;
 
     ret = std::move(gen.poll_data());
 

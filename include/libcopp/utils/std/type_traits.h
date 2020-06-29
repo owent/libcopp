@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <type_traits>
 #include <functional>
+#include <type_traits>
 
 namespace copp {
     namespace type_traits {
@@ -32,6 +32,8 @@ namespace copp {
         struct is_shared_ptr<std::shared_ptr<T> > : public std::true_type {};
     } // namespace type_traits
 } // namespace copp
+
+
 
 
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201402L))

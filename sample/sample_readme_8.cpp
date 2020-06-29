@@ -82,7 +82,7 @@ static copp::future::task_t<void> call_for_noop_task() {
 static copp::future::task_t<int> call_for_coroutine_task() {
     // We can start a subtask and await it
     copp::future::task_t<void> t = call_for_noop_task();
-    co_await t;
+    (void)co_await t;
 
     sample_generator_t generator = copp::future::make_generator<sample_generator_t>(200);
     auto result = co_await generator;
