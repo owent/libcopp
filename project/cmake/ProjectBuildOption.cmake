@@ -48,10 +48,10 @@ set(LIBCOPP_FCONTEXT_AS_TOOL "" CACHE STRING "set as toolset. gas/armasm/masm an
 # transaction. For instance if a transaction modifies 9 cache-lines at a
 # processor with a 8-way set associative cache, the transaction will always be
 # aborted.
-option(LIBCOPP_FCONTEXT_USE_TSX "Enable Intel Transactional Synchronisation Extensions (TSX)." OFF)
+option(LIBCOPP_FCONTEXT_USE_TSX "Enable Intel Transactional Synchronisation Extensions (TSX)." ON)
 # [note A TSX-transaction will be aborted if the floating point state is modified
 # inside a critical region. As a consequence floating point operations, e.g.
-# tore/load of floating point related registers during a fiber (context) switch
+# store/load of floating point related registers during a fiber (context) switch
 # are disabled.]
 
 # libcotask configure

@@ -121,8 +121,21 @@
 #if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD)
 #include <chrono>
 #include <thread>
+
+#if defined(__GNUC__) && !defined(__clang__)
+    #if (__GNUC__ * 100 + __GNUC_MINOR__) <= 407
+        #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
+        #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
+    #endif
+#endif
+
+#ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD
 #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() ::std::this_thread::yield()
+#endif
+#ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP
 #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() ::std::this_thread::sleep_for(::std::chrono::milliseconds(1))
+#endif
+
 #elif defined(_MSC_VER)
 #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() Sleep(0)
 #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() Sleep(1)

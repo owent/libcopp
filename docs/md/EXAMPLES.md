@@ -1,55 +1,9 @@
 
-USAGE
+EXAMPLES
 ----------------
 
-### Using with cmake
+### coroutine_context example
 
-1. Add <WHERE TO INSTALL libcopp>/lib(64)/cmake to any of **CMAKE_PREFIX_PATH** 、 **CMAKE_FRAMEWORK_PATH** 、 **CMAKE_SYSTEM_PREFIX_PATH** 、 **CMAKE_SYSTEM_FRAMEWORK_PATH**
-2. Just add [find_package(Libcopp)](https://cmake.org/cmake/help/latest/command/find_package.html) to use libcopp module.
-~~~~~~~~~~cmake
-find_package(Libcopp CONFIG REQUIRED)
-target_include_directories(main PRIVATE ${Libcopp_INCLUDE_DIRS})
-target_link_libraries(main PRIVATE ${Libcotask_LIBRARIES} ${Libcopp_LIBRARIES})
-~~~~~~~~~~
-
-See more detail on https://github.com/Microsoft/vcpkg/tree/master/ports/libcopp .
-
-### Directly use headers and libraries
-
-Just include headers and linking library file of your platform to use libcopp.
-
-~~~~~~~~~~bash
-LIBCOPP_PREFIX=<WHERE TO INSTALL libcopp>
-
-# Example command for build sample with gcc 4.9 or upper on Linux
-for source in sample_readme_*.cpp; do
-    g++ -std=c++14 -O2 -g -ggdb -Wall -Werror -fPIC -rdynamic -fdiagnostics-color=auto -Wno-unused-local-typedefs \
-        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib64 -lcopp -lcotask $source -o $source.exe;
-done
-
-# Example command for build sample with clang 3.9 or upper and libc++ on Linux
-for source in sample_readme_*.cpp; do
-    clang++ -std=c++17 -stdlib=libc++ -O2 -g -ggdb -Wall -Werror -fPIC -rdynamic        \
-        -I$LIBCOPP_PREFIX/include -L$LIBCOPP_PREFIX/lib64 -lcopp -lcotask -lc++ -lc++abi  \
-        $source -o $source.exe;
-done
-
-# AppleClang on macOS just like those scripts upper.
-# If you are using MinGW on Windows, it's better to add -static-libstdc++ -static-libgcc to 
-#     use static linking and other scripts are just like those on Linux.
-
-~~~~~~~~~~
-
-~~~~~~~~~~powershell
-# Example command for build sample with MSVC 1914 or upper on Windows & powershell(Debug Mode /MDd)
-foreach ($source in Get-ChildItem -File -Name .\sample_readme_*.cpp) {
-    cl /nologo /MP /W4 /wd"4100" /wd"4125" /EHsc /std:c++17 /Zc:__cplusplus /O2 /MDd /I$LIBCOPP_PREFIX/include $LIBCOPP_PREFIX/lib64/copp.lib $LIBCOPP_PREFIX/lib64/cotask.lib $source
-}
-~~~~~~~~~~
-
-### Get Start & Example
-
-#### coroutine_context example
 This is a simple example of using basic coroutine context below:
 
 ~~~~~~~~~~cpp
@@ -97,7 +51,8 @@ int main() {
 
 Also, you can use copp::coroutine_context_container<ALLOCATOR> instead of copp::coroutine_context_default to use a different stack allocator.
 
-#### coroutine task example
+### coroutine task example
+
 This is a simple example of using coroutine task with lambda expression:
 
 ~~~~~~~~~~cpp
@@ -134,7 +89,8 @@ int main(int argc, char *argv[]) {
 ~~~~~~~~~~
 Also, you can your stack allocator or id allocator by setting different parameters in template class **cotask::task<TCO_MACRO>**
 
-#### using coroutine task manager
+### using coroutine task manager
+
 This is a simple example of using task manager:
 
 ~~~~~~~~~~cpp
@@ -221,7 +177,8 @@ int main() {
 }
 ~~~~~~~~~~
 
-#### using stack pool
+### using stack pool
+
 This is a simple example of using stack pool for cotask:
 
 ~~~~~~~~~~cpp
@@ -320,7 +277,8 @@ int main() {
 }
 ~~~~~~~~~~
 
-#### using then or await_task
+### using then or await_task
+
 This is a simple example of using ```then``` and ```await_task``` for cotask:
 
 ~~~~~~~~~~cpp
@@ -400,7 +358,7 @@ int main() {
 #endif
 ~~~~~~~~~~
 
-#### using copp::future::future_t and prepare for c++20 coroutine
+### using copp::future::future_t and prepare for c++20 coroutine
 
 This is a simple example of using copp::future::future_t<RESULT> and using copp::future::context<RESULT>:
 
@@ -553,7 +511,7 @@ int main() {
 }
 ~~~~~~~~~~
 
-#### using c++20 coroutine
+### using c++20 coroutine
 
 ~~~~~~~~~~cpp
 #include <iostream>
@@ -654,7 +612,7 @@ int main() {
 #endif
 ~~~~~~~~~~
 
-#### using c++20 coroutine with custom generator
+### using c++20 coroutine with custom generator
 
 ~~~~~~~~~~cpp
 /*
@@ -777,7 +735,7 @@ int main() {
 #endif
 ~~~~~~~~~~
 
-#### custom error (timeout for example) when polling c++20 coroutine task or generator
+### custom error (timeout for example) when polling c++20 coroutine task or generator
 
 By add context into custom executor or manager and remove it when destroyed, we can add more flexible error handling or procedure.
 
@@ -1022,7 +980,7 @@ int main() {
 #endif
 ~~~~~~~~~~
 
-#### let c++20 coroutine work with cotask::task<MACRO>
+### let c++20 coroutine work with cotask::task<MACRO>
 
 This is a simple example to let c++20 coroutine await cotask::task
 
@@ -1077,7 +1035,7 @@ int main() {
 #endif
 ~~~~~~~~~~
 
-#### using ```SetUnhandledExceptionFilter``` on Windows with cotask::task<MACRO>
+### using ```SetUnhandledExceptionFilter``` on Windows with cotask::task<MACRO>
 
 Some applications will use ```SetUnhandledExceptionFilter``` to catch unhandled exception and analysis crash problem. But ```SetUnhandledExceptionFilter``` is only works with [coroutine context of windows fiber](include/libcopp/coroutine/coroutine_context_fiber_container.h) . This is a sample of using **windows fiber** as coroutine context in ```cotask::task<MACRO>``` .
 

@@ -49,6 +49,12 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
         ${COMPILER_OPTION_EXTERN_CXX_LIBS}
     )
 
+    if (MSVC AND MSVC_VERSION LESS 1910)
+        target_compile_options(${SAMPLE_SRC_BIN_NAME}
+            PRIVATE /wd4503
+        )
+    endif ()
+
     # add benchmark script
     string(FIND ${SAMPLE_SRC_BIN_NAME} "_benchmark_" SAMPLE_SRC_IS_BENCHMARK)
 

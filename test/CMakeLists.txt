@@ -77,6 +77,12 @@ target_link_libraries(libcopp_unit_test
     ${COMPILER_OPTION_EXTERN_CXX_LIBS}
 )
 
+if (MSVC AND MSVC_VERSION LESS 1910)
+    target_compile_options(libcopp_unit_test
+        PRIVATE /wd4503
+    )
+endif ()
+
 add_custom_target(run_test_libcopp_unit_test
     libcopp_unit_test
     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}

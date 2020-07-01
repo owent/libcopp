@@ -168,6 +168,15 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
             endif()
         endif()
 
+        # C++20 coroutine precondition
+        if (CMAKE_CXX_COMPILER_VERSION LESS "8.0")
+            # @see https://en.cppreference.com/w/cpp/compiler_support
+            # Clang 6 and older will crash when visit local variable of a c++20 coroutine stack
+            #   It will use movaps of SSE to initialize local variables of a c++20 coroutine stack but doesn't aligned to 16,
+            #   which will cause crash. @see https://github.com/HJLebbink/asm-dude/wiki/MOVAPS for details
+            set(COMPILER_OPTIONS_TEST_STD_COROUTINE FALSE)
+            set(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS FALSE)
+        endif ()
     elseif( ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
         # add_compile_options(-Wall -Werror)
         list(APPEND COMPILER_STRICT_EXTRA_CFLAGS -Wextra -Wno-implicit-fallthrough)
@@ -209,6 +218,16 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         else()
             message(STATUS "AppleClang use stdlib=default(libstdc++)")
         endif()
+
+        # C++20 coroutine precondition
+        if (CMAKE_CXX_COMPILER_VERSION LESS "10.0.1")
+            # @see https://en.cppreference.com/w/cpp/compiler_support
+            # Apple clang 9 and older will crash when visit local variable of a c++20 coroutine stack.
+            #   It will use movaps of SSE to initialize local variables of a c++20 coroutine stack but doesn't aligned to 16,
+            #   which will cause crash. @see https://github.com/HJLebbink/asm-dude/wiki/MOVAPS for details
+            set(COMPILER_OPTIONS_TEST_STD_COROUTINE FALSE)
+            set(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS FALSE)
+        endif ()
     elseif(MSVC)
         list(APPEND COMPILER_STRICT_CFLAGS /W4 /wd4100 /wd4125 /wd4566 /wd4127 /wd4512 /WX)
         add_compiler_flags_to_var(CMAKE_CXX_FLAGS /MP /EHsc)
@@ -225,53 +244,61 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         if (MSVC_VERSION GREATER_EQUAL 1914 AND COMPILER_OPTION_MSVC_ZC_CPP)
             add_compiler_flags_to_var(CMAKE_CXX_FLAGS /Zc:__cplusplus)
         endif()
+
+        # C++20 coroutine precondition
+        if (MSVC_VERSION LESS 1910)
+            # VS2015 is the first version to support coroutine API, but it defines macro of yield,resume and etc. 
+            #   Which is conflict with our old coroutine context and task. So we disable c++20 coroutine support for it.
+            set(COMPILER_OPTIONS_TEST_STD_COROUTINE FALSE)
+            set(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS FALSE)
+        endif ()
     endif()
 
     # check c++20 coroutine
-    set(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
-    if ( NOT MSVC )
-        if (NOT EMSCRIPTEN)
-            add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG -ggdb)
-            add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELWITHDEBINFO -ggdb)
-        endif()
-        # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG -ggdb)
-        # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELEASE)
-        # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELWITHDEBINFO -ggdb)
-        # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_MINSIZEREL)
-
-        # Try add coroutine
-        set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} -fcoroutines")
-        check_cxx_source_compiles("
-        #include <coroutine>
-        int main() {
-            return std::suspend_always().await_ready()? 0: 1;
-        }
-        " COMPILER_OPTIONS_TEST_STD_COROUTINE)
-        if (COMPILER_OPTIONS_TEST_STD_COROUTINE)
-            add_compiler_flags_to_var(CMAKE_CXX_FLAGS -fcoroutines)
-        else()
-            set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} -fcoroutines-ts")
-            check_cxx_source_compiles("
-            #include <experimental/coroutine>
-            int main() {
-                return std::experimental::suspend_always().await_ready()? 0: 1;
-            }
-            " COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-            if (COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-                add_compiler_flags_to_var(CMAKE_CXX_FLAGS -fcoroutines-ts)
+    if (NOT DEFINED COMPILER_OPTIONS_TEST_STD_COROUTINE)
+        set(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+        if ( NOT MSVC )
+            if (NOT EMSCRIPTEN)
+                add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG -ggdb)
+                add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELWITHDEBINFO -ggdb)
             endif()
-        endif()
-    else()
-        if(NOT CMAKE_MSVC_RUNTIME)
-            set(CMAKE_MSVC_RUNTIME "MD")
-        endif()
-        add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG /Od /${CMAKE_MSVC_RUNTIME}d)
-        add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELEASE /O2 /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
-        add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELWITHDEBINFO /O2 /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
-        add_compiler_flags_to_var(CMAKE_CXX_FLAGS_MINSIZEREL /Ox /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
+            # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG -ggdb)
+            # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELEASE)
+            # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELWITHDEBINFO -ggdb)
+            # add_compiler_flags_to_var(CMAKE_CXX_FLAGS_MINSIZEREL)
 
-        # Try add coroutine
-        if (MSVC_VERSION GREATER_EQUAL 1910)
+            # Try add coroutine
+            set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} -fcoroutines")
+            check_cxx_source_compiles("
+            #include <coroutine>
+            int main() {
+                return std::suspend_always().await_ready()? 0: 1;
+            }
+            " COMPILER_OPTIONS_TEST_STD_COROUTINE)
+            if (COMPILER_OPTIONS_TEST_STD_COROUTINE)
+                add_compiler_flags_to_var(CMAKE_CXX_FLAGS -fcoroutines)
+            else()
+                set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} -fcoroutines-ts")
+                check_cxx_source_compiles("
+                #include <experimental/coroutine>
+                int main() {
+                    return std::experimental::suspend_always().await_ready()? 0: 1;
+                }
+                " COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+                if (COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
+                    add_compiler_flags_to_var(CMAKE_CXX_FLAGS -fcoroutines-ts)
+                endif()
+            endif()
+        else()
+            if(NOT CMAKE_MSVC_RUNTIME)
+                set(CMAKE_MSVC_RUNTIME "MD")
+            endif()
+            add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG /Od /${CMAKE_MSVC_RUNTIME}d)
+            add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELEASE /O2 /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
+            add_compiler_flags_to_var(CMAKE_CXX_FLAGS_RELWITHDEBINFO /O2 /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
+            add_compiler_flags_to_var(CMAKE_CXX_FLAGS_MINSIZEREL /Ox /${CMAKE_MSVC_RUNTIME} /D NDEBUG)
+
+            # Try add coroutine
             set(CMAKE_REQUIRED_FLAGS "${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS} /await")
             check_cxx_source_compiles("#include <coroutine>
             int main() {
@@ -289,9 +316,9 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
                 add_compiler_flags_to_var(CMAKE_CXX_FLAGS /await)
             endif()
         endif()
+        set(CMAKE_REQUIRED_FLAGS ${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS})
+        unset(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS)
     endif()
-    set(CMAKE_REQUIRED_FLAGS ${COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS})
-    unset(COMPILER_OPTIONS_BAKCUP_CMAKE_REQUIRED_FLAGS)
 
     # Check if exception enabled
     check_cxx_source_compiles("int main () { try { throw 123; } catch (...) {} return 0; }" COMPILER_OPTIONS_TEST_EXCEPTION)
