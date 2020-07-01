@@ -289,7 +289,7 @@ namespace copp {
             return COPP_EC_ARGS_ERROR;
         }
 
-        size_t stack_offset = private_buffer_size + coroutine_size;
+        size_t stack_offset = align_stack_size(private_buffer_size + coroutine_size);
         if (UTIL_CONFIG_NULLPTR == callee_stack.sp || callee_stack.size <= stack_offset) {
             return COPP_EC_ARGS_ERROR;
         }

@@ -22,45 +22,52 @@
 namespace copp {
 
     namespace details {
-        template <size_t N, bool BIGGER_THAN_16>
+        template <size_t N1, size_t N2, bool BIGGER_THAN_16>
         struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner;
 
-        template <size_t N>
-        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N, true> {
+        template <size_t N1, size_t N2>
+        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N1, N2, true> {
 #if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-            static constexpr size_t value = N;
+            static constexpr size_t value = N1;
 #else
-            static const size_t value = N;
+            static const size_t value = N1;
 #endif
         };
 
-        template <size_t N>
-        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N, false> {
+        template <size_t N1, size_t N2>
+        struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N1, N2, false> {
 #if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-            static constexpr size_t value = 16;
+            static constexpr size_t value = N2;
 #else
-            static const size_t value = 16;
+            static const size_t value = N2;
 #endif
         };
 
-        template <size_t N>
+        template <size_t N, size_t COMPARE_TO>
         struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
 #if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-            static constexpr size_t value = align_helper_inner<N, N >= 16>::value;
+            static constexpr size_t value = align_helper_inner<N, COMPARE_TO, N >= COMPARE_TO>::value;
 #else
-            static const size_t value = align_helper_inner<N, N >= 16>::value;
+            static const size_t value = align_helper_inner<N, COMPARE_TO, N >= COMPARE_TO>::value;
 #endif
         };
 
         // We should align to at least 16 bytes, @see https://wiki.osdev.org/System_V_ABI for more details
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
     (defined(_MSC_VER) && _MSC_VER >= 1900)
-#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<sizeof(max_align_t)>::value
+#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<sizeof(max_align_t), 16>::value
 #else
-#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(size_t)>::value
+#define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(size_t), 16>::value
 #endif
 
+
+        // Some architecture may require stack to be aligned to 64
+        // @see "3.2.2 The Stack Frame" of https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf
+        // More documents about x86/x86_64 canbe found at https://stackoverflow.com/tags/x86/info
+#define COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE ::copp::details::align_helper<COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE, 64>::value
+
         UTIL_CONFIG_STATIC_ASSERT(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16);
+        UTIL_CONFIG_STATIC_ASSERT(COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE % 16);
     } // namespace details
 
     /**
@@ -215,6 +222,14 @@ namespace copp {
 
         static inline size_t align_address_size(size_t sz) {
             UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
+
+            sz += align_mask;
+            sz &= ~align_mask;
+            return sz;
+        }
+
+        static inline size_t align_stack_size(size_t sz) {
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE;
 
             sz += align_mask;
             sz &= ~align_mask;

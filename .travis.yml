@@ -24,19 +24,6 @@ matrix:
     - os: linux
       dist: bionic
       sudo: required
-      env: USE_CC=gcc-4.7 USE_CXX=g++-4.7 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.7
-            - g++-4.7-multilib
-            - gcc-4.7
-            - gcc-4.7-multilib
-    - os: linux
-      dist: bionic
-      sudo: required
       env: USE_CC=gcc-4.8 USE_CXX=g++-4.8 CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
