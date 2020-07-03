@@ -72,13 +72,14 @@ matrix:
           packages:
             - graphviz
             - doxygen
+            - python3
       script: |
-        sudo apt-get install -f ;
         REPO_DIR=$PWD ;
         mkdir -p $REPO_DIR/build_for_doxygen && cd $REPO_DIR/build_for_doxygen ;
         echo "$CMAKE_BIN .. -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON" ;
         $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
         cd "$REPO_DIR/docs";
+        export PATH="$HOME/.local/bin:$PATH" ;
         which pwsh > /dev/null; 2>&1;
         python3 -m pip install --user --upgrade pip;
         python3 -m pip install --user --upgrade -r requirements.txt;
@@ -93,7 +94,7 @@ matrix:
           rm -rf doxygen/html;
         fi
         $DOXYGEN_BIN libcopp.doxyfile;
-        python3 -m sphinx -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
+        sphinx-build -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
         if [[ -e "output/doxygen/html" ]]; then
             rm -rf "output/doxygen/html";
         fi
