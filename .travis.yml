@@ -92,12 +92,14 @@ matrix:
           DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
           cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
         fi
+        mkdir -p sphinx/doxygen ;
         doxygen libcopp.doxyfile;
+        ls -d sphinx/doxygen/* ;
         sphinx-build -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
         if [[ -e "output/doxygen/html" ]]; then
             rm -rf "output/doxygen/html";
         fi
-        mkdir -p sphinx/doxygen/ ;
+        mkdir -p output/doxygen/ ;
         mv -f "sphinx/doxygen/html" "output/doxygen/html";
       after_success: |
         if [[ -e output ]]; then
