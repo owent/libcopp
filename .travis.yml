@@ -74,6 +74,8 @@ matrix:
             - doxygen
             - python3
             - python3-pip
+            - python3-setuptools
+            - python3-six
       script: |
         REPO_DIR=$PWD ;
         mkdir -p $REPO_DIR/build_for_doxygen && cd $REPO_DIR/build_for_doxygen ;
