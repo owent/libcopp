@@ -72,50 +72,40 @@ matrix:
           packages:
             - graphviz
             - doxygen
-      script:
-        - sudo apt-get install -f ;
-        - REPO_DIR=$PWD ;
-        - mkdir -p $REPO_DIR/build_for_doxygen && cd $REPO_DIR/build_for_doxygen ;
-        - echo "$CMAKE_BIN .. -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON" ;
-        - $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
-        - cd "$REPO_DIR/docs";
-        - if [ "doxygen" != "$DOXYGEN_BIN" ] && [ ! -e "$DOXYGEN_BIN" ]; then
-
+      script: |
+        sudo apt-get install -f ;
+        REPO_DIR=$PWD ;
+        mkdir -p $REPO_DIR/build_for_doxygen && cd $REPO_DIR/build_for_doxygen ;
+        echo "$CMAKE_BIN .. -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON" ;
+        $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
+        cd "$REPO_DIR/docs";
+        which pwsh > /dev/null; 2>&1;
+        bash setup-sphinx.sh;
+        if [[ "doxygen" != "$DOXYGEN_BIN" ]] && [[ ! -e "$DOXYGEN_BIN" ]]; then
           mkdir -p "$DOXYGEN_PREFIX";
-
           curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
-
           tar -axvf doxygen.linux.bin.tar.gz ;
-
           DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
-
           cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
-
-          fi
-
-          if [ -e doxygen/html ]; then
-
+        fi
+        if [[ -e doxygen/html ]]; then
           rm -rf doxygen/html;
-
-          fi
-
-          $DOXYGEN_BIN libcopp.doxyfile;
-      after_success:
-        - if [ -e doxygen/html ]; then
-
+        fi
+        $DOXYGEN_BIN libcopp.doxyfile;
+        python3 -m sphinx -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
+        if [[ -e "output/doxygen/html" ]]; then
+            rm -rf "output/doxygen/html";
+        fi
+        mv -f "sphinx/doxygen/html" "output/doxygen/html";
+      after_success: |
+        if [ -e doxygen/html ]; then
           cd doxygen/html ;
-
           echo "libcopp.atframe.work" > CNAME ;
-
           git init ;
-
           git add . ;
-
           git -c user.name='travis' -c user.email='deploy@travis-ci.org' commit -m "Delpoy document for $TRAVIS_BRANCH($TRAVIS_COMMIT)";
-
           git push -f -q https://owt5008137:$GITHUB_API_KEY@github.com/owt5008137/libcopp-doc HEAD:master ;
-
-          fi
+        fi
     # - os: linux
     #   dist: bionic
     #   sudo: required
@@ -145,22 +135,15 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ulimit -a; sysctl -a; sudo apt-get -qq update; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
 
-install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
-
+install: |
+  if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
     if [ ! -e "$CMAKE_BIN" ]; then
-
-    mkdir -p "$CMAKE_PREFIX";
-
-    curl --insecure -L "$CMAKE_LINUX_URL" -o cmake-linux.sh ;
-
-    bash cmake-linux.sh --skip-license --prefix=$CMAKE_PREFIX ;
-
+      mkdir -p "$CMAKE_PREFIX";
+      curl --insecure -L "$CMAKE_LINUX_URL" -o cmake-linux.sh ;
+      bash cmake-linux.sh --skip-license --prefix=$CMAKE_PREFIX ;
     fi
-
-    fi
-
-  - if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew upgrade cmake; fi
+  fi
+  if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew upgrade cmake; fi
 
 script:
   - export CC=$USE_CC

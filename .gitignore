@@ -17,8 +17,9 @@
 /build_*
 
 # generated docs
-doc/doxygen/*
-docs/doxygen/*
+docs/output
+docs/sphinx/doxygen
+docs/sphinx/_build
 docs/libcopp.doxyfile
 
 # IDE & Editors

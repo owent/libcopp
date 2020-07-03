@@ -1,7 +1,7 @@
 HISTORY
 ----------------
 
-### 1.3.0 (2020-05-27)
+### 1.3.0 (2020-07-02)
 
 1. [OPTIMIZE] Using cmake export to generate module files
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.

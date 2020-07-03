@@ -1,0 +1,9 @@
+pydocstyle>=4.0.1
+pep8>=1.7.1
+autopep8>=1.4.4
+yapf>=0.27.0
+pylint>=2.3.1
+flake8>=3.7.8
+doc8>=0.8.0
+
+# PATH for editor ${workspaceFolder}/py3env/bin/

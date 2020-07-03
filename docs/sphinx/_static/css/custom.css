@@ -1,0 +1,95 @@
+body li,
+body dd,
+body p {
+  text-align: left !important;
+}
+
+body ul li {
+  padding: 0;
+}
+body ul li p {
+  padding: 0;
+  margin: auto;
+}
+
+table.highlighttable td.linenos {
+  padding: 0 0 0 0;
+  min-width: 2em;
+  text-align: right;
+}
+
+table.highlighttable td.code {
+  padding: 0 0 0 0;
+}
+
+/*
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap');
+*/
+
+pre,
+tt,
+code {
+  font-family: "Noto Sans Mono CJK SC", "Noto Sans Mono", "DejaVu Sans Mono",
+    "Noto Mono", "Fira Code", "YaHei Consolas Hybrid", "Source Code Pro",
+    Consolas, Arial, sans-serif;
+}
+
+body {
+  font-family: "Noto Sans CJK SC", "Noto Sans", "DejaVu Sans Mono", "Noto Mono",
+    "Fira Code", "YaHei Consolas Hybrid", "Source Code Pro", Consolas, Arial,
+    sans-serif;
+}
+
+/************ patch readable.css for hihger resolution **************/
+td.linenos pre {
+  padding: 10px 0 10px 0;
+}
+
+div.wy-nav-content {
+  max-width: 100%;
+}
+
+/*
+div.document {
+  max-width: 1440px;
+}
+
+div.body {
+  max-width: 1210px;
+}
+*/
+
+div.sphinxsidebar {
+  width: 320px;
+}
+
+div.bodywrapper {
+  margin: 0 0 0 320px;
+}
+
+/* copy from readable.css */
+
+@media screen and (max-width: 870px) {
+  div.document {
+    width: auto;
+  }
+
+  div.bodywrapper {
+    margin: 0;
+  }
+
+  div.sphinxsidebar {
+    width: auto;
+  }
+}
+
+span.add-pointer::before {
+  content: "->";
+  background-color: Pink;
+  font-weight: bolder;
+}
+
+span.add-pointer {
+  background-color: Pink;
+  font-weight: bolder;
+}
