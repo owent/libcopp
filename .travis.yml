@@ -82,16 +82,16 @@ matrix:
         echo "$CMAKE_BIN .. -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON" ;
         $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
         cd "$REPO_DIR/docs";
-        export PATH="$HOME/.local/bin:$DOXYGEN_PREFIX/bin:$PATH" ;
+        export PATH="$HOME/.local/bin:$PATH" ;
         python3 -m pip install --user --upgrade pip;
         python3 -m pip install --user --upgrade -r requirements.txt;
-        if [[ ! -e "$DOXYGEN_PREFIX/bin/doxygen" ]]; then
-          mkdir -p "$DOXYGEN_PREFIX";
-          curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
-          tar -axvf doxygen.linux.bin.tar.gz ;
-          DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
-          cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
-        fi
+        # if [[ ! -e "$DOXYGEN_PREFIX/bin/doxygen" ]]; then
+        #   mkdir -p "$DOXYGEN_PREFIX";
+        #   curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
+        #   tar -axvf doxygen.linux.bin.tar.gz ;
+        #   DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
+        #   cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
+        # fi
         mkdir -p sphinx/doxygen ;
         doxygen libcopp.doxyfile;
         du -sh sphinx/doxygen/* ;
