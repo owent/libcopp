@@ -63,7 +63,7 @@ matrix:
     - os: linux
       dist: bionic
       sudo: required
-      env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc DOXYGEN_BIN=doxygen CMAKE_BIN=$CMAKE_PREFIX/bin/cmake # DOXYGEN_BIN=$DOXYGEN_PREFIX/bin/doxygen
+      env: USE_CC=doxygen USE_CXX=doxygen PANDOC_BIN=$PANDOC_PREFIX/bin/pandoc CMAKE_BIN=$CMAKE_PREFIX/bin/cmake
       addons:
         apt:
           sources:
@@ -82,20 +82,17 @@ matrix:
         echo "$CMAKE_BIN .. -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON" ;
         $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
         cd "$REPO_DIR/docs";
-        export PATH="$HOME/.local/bin:$PATH" ;
+        export PATH="$HOME/.local/bin:$DOXYGEN_PREFIX/bin:$PATH" ;
         python3 -m pip install --user --upgrade pip;
         python3 -m pip install --user --upgrade -r requirements.txt;
-        if [[ "doxygen" != "$DOXYGEN_BIN" ]] && [[ ! -e "$DOXYGEN_BIN" ]]; then
+        if [[ ! -e "$DOXYGEN_PREFIX/bin/doxygen" ]]; then
           mkdir -p "$DOXYGEN_PREFIX";
           curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
           tar -axvf doxygen.linux.bin.tar.gz ;
           DOXYGEN_DIR=$(ls -d doxygen-* | grep -v grep | grep -v ".tar.gz");
           cp -rf $DOXYGEN_DIR/* "$DOXYGEN_PREFIX";
         fi
-        if [[ -e doxygen/html ]]; then
-          rm -rf doxygen/html;
-        fi
-        $DOXYGEN_BIN libcopp.doxyfile;
+        doxygen libcopp.doxyfile;
         sphinx-build -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
         if [[ -e "output/doxygen/html" ]]; then
             rm -rf "output/doxygen/html";
