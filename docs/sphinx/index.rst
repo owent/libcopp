@@ -1,5 +1,5 @@
 
-.. include:: ../../README.rst
+.. include:: README.rst
 
 Indices and tables
 ==================
@@ -12,7 +12,7 @@ Indices and tables
     :maxdepth: 2
     :caption: Reference
 
-    `reference <>`_
+    reference/index
 
 .. toctree::
     :maxdepth: 2

@@ -98,18 +98,16 @@ Windows
 Install with vcpkg
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. clone and setup `vcpkg`_(See more detail on https://github.com/Microsoft/vcpkg)
+1. clone and setup `vcpkg`_ (See more detail on https://github.com/Microsoft/vcpkg)
     .. code-block:: shell
 
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
-        
-        .\bootstrap-vcpkg.bat
-        ./bootstrap-vcpkg.sh
+        PS> bootstrap-vcpkg.bootstrap
+        Linux:~/$ ./bootstrap-vcpkg.sh
 
 2. install libcopp
     .. code-block:: shell
-
 
         PS> .\vcpkg install libcopp
         Linux:~/$ ./vcpkg install libcopp
@@ -251,7 +249,7 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 10. Let c++20 coroutine work with ``cotask::task``
 11. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
 
-All sample codes can be found on :doc:`./example/index` and `sample <https://github.com/owt5008137/libcopp/tree/v2/sample>`_ .
+All sample codes can be found on :doc:`./docs/sphinx/example/index` and `sample <https://github.com/owt5008137/libcopp/tree/v2/sample>`_ .
 
 NOTICE
 ------------

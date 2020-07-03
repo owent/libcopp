@@ -41,6 +41,14 @@ if LIBCOPP_VERSION_MAJOR is not None and LIBCOPP_VERSION_MINOR is not None and L
         LIBCOPP_VERSION_PATCH.group('VERSION')
     )
 
+README_FILE_CONTENT = codecs.open(os.path.join(os.path.dirname(__file__), '..', '..', 'README.rst'), "r", "utf-8").read()
+README_FILE_STREAM = codecs.open(os.path.join(os.path.dirname(__file__), 'README.rst'), "w", "utf-8")
+README_FILE_STREAM.write(
+    re.sub('docs[\\/\\\\]sphinx[\\/\\\\]', '', README_FILE_CONTENT)
+)
+README_FILE_STREAM.close()
+
+
 # -- General configuration ---------------------------------------------------
 # see http://www.sphinx-doc.org/en/master/usage/configuration.html
 
