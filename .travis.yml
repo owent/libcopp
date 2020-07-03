@@ -94,7 +94,7 @@ matrix:
         fi
         mkdir -p sphinx/doxygen ;
         doxygen libcopp.doxyfile;
-        ls -d sphinx/doxygen/* ;
+        du -sh sphinx/doxygen/* ;
         sphinx-build -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
         if [[ -e "output/doxygen/html" ]]; then
             rm -rf "output/doxygen/html";
