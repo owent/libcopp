@@ -98,8 +98,8 @@ matrix:
         fi
         mv -f "sphinx/doxygen/html" "output/doxygen/html";
       after_success: |
-        if [ -e doxygen/html ]; then
-          cd doxygen/html ;
+        if [[ -e output ]]; then
+          cd output ;
           echo "libcopp.atframe.work" > CNAME ;
           git init ;
           git add . ;
