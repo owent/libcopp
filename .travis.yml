@@ -80,7 +80,8 @@ matrix:
         $CMAKE_BIN .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
         cd "$REPO_DIR/docs";
         which pwsh > /dev/null; 2>&1;
-        bash setup-sphinx.sh;
+        python3 -m pip install --user --upgrade pip;
+        python3 -m pip install --user --upgrade -r requirements.txt;
         if [[ "doxygen" != "$DOXYGEN_BIN" ]] && [[ ! -e "$DOXYGEN_BIN" ]]; then
           mkdir -p "$DOXYGEN_PREFIX";
           curl --insecure -L "$DOXYGEN_LINUX_URL" -o doxygen.linux.bin.tar.gz ;
@@ -96,6 +97,7 @@ matrix:
         if [[ -e "output/doxygen/html" ]]; then
             rm -rf "output/doxygen/html";
         fi
+        mkdir -p sphinx/doxygen/ ;
         mv -f "sphinx/doxygen/html" "output/doxygen/html";
       after_success: |
         if [[ -e output ]]; then
