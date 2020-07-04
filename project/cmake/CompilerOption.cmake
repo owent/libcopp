@@ -169,7 +169,7 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         endif()
 
         # C++20 coroutine precondition
-        if (CMAKE_CXX_COMPILER_VERSION LESS "8.0")
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0")
             # @see https://en.cppreference.com/w/cpp/compiler_support
             # Clang 6 and older will crash when visit local variable of a c++20 coroutine stack
             #   It will use movaps of SSE to initialize local variables of a c++20 coroutine stack but doesn't aligned to 16,
@@ -220,7 +220,7 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
         endif()
 
         # C++20 coroutine precondition
-        if (CMAKE_CXX_COMPILER_VERSION LESS "10.0.1")
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "10.0.1")
             # @see https://en.cppreference.com/w/cpp/compiler_support
             # Apple clang 9 and older will crash when visit local variable of a c++20 coroutine stack.
             #   It will use movaps of SSE to initialize local variables of a c++20 coroutine stack but doesn't aligned to 16,

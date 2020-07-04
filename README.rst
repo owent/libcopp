@@ -98,7 +98,7 @@ Windows
 Install with vcpkg
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. clone and setup `vcpkg`_ (See more detail on https://github.com/Microsoft/vcpkg)
+1. Clone and setup `vcpkg`_ (See more detail on https://github.com/Microsoft/vcpkg)
     .. code-block:: shell
 
         git clone https://github.com/Microsoft/vcpkg.git
@@ -106,34 +106,35 @@ Install with vcpkg
         PS> bootstrap-vcpkg.bootstrap
         Linux:~/$ ./bootstrap-vcpkg.sh
 
-2. install libcopp
+2. Install libcopp
     .. code-block:: shell
 
-        PS> .\vcpkg install libcopp
+        PS> .\vcpkg install libcopp [--triplet x64-windows-static/x64-windows/x64-windows-static-md and etc...]
         Linux:~/$ ./vcpkg install libcopp
 
+3. See :ref:`usage-using with-cmake` for cmake below.
 
 Custom Build
 ^^^^^^^^^^^^^^^^
 
-1. clone and make a build directory
+1. Clone and make a build directory
     .. code-block:: shell
 
         git clone --single-branch --depth=1 -b master https://github.com/owt5008137/libcopp.git 
         mkdir libcopp/build && cd libcopp/build
 
-2. run cmake command
+2. Run cmake command
     .. code-block:: shell
 
         # cmake <libcopp dir> [options...]
-        cmake .. -DLIBCOPP_FCONTEXT_USE_TSX=YES -DPROJECT_ENABLE_UNITTEST=YES -DPROJECT_ENABLE_SAMPLE=YES
+        cmake .. -DPROJECT_ENABLE_UNITTEST=YES -DPROJECT_ENABLE_SAMPLE=YES
 
-3. make libcopp
+3. Make libcopp
     .. code-block:: shell
 
         cmake --build . --config RelWithDebInfo # or make [options] when using Makefile
 
-4. run ``test/sample/benchmark`` *[optional]*
+4. Run ``test/sample/benchmark`` *[optional]*
     .. code-block:: shell
 
         # Run test => Required: PROJECT_ENABLE_UNITTEST=YES
@@ -143,12 +144,12 @@ Custom Build
         # Run benchmark => Required: PROJECT_ENABLE_SAMPLE=YES
         cmake --build . --config RelWithDebInfo --target benchmark # or make benchmark when using Makefile
 
-5. install *[optional]*
+5. Install *[optional]*
     .. code-block:: shell
 
         cmake --build . --config RelWithDebInfo --target install # or make install when using Makefile
 
-    | Or you can just copy include directory and libcopp.a in lib or lib64 into your project to use it.
+6. Then just include and link ``libcopp.*/libcotask.*``, or see :ref:`usage-using with-cmake` for cmake below.
 
 CMake Options
 ----------------
@@ -182,18 +183,74 @@ Options can be cmake options. such as set compile toolchains, source directory o
 USAGE
 ------------
 
+.. _usage-using with-cmake:
+
 Using with cmake
 ^^^^^^^^^^^^^^^^
 
-1. Add ``<WHERE TO INSTALL libcopp>/lib(64)/cmake`` to any of **CMAKE_PREFIX_PATH** 、 **CMAKE_FRAMEWORK_PATH** 、 **CMAKE_SYSTEM_PREFIX_PATH** 、 **CMAKE_SYSTEM_FRAMEWORK_PATH**
-2. Just using `find_package(libcopp) <https://cmake.org/cmake/help/latest/command/find_package.html>`_ to use libcopp module.
-3. Example:
+1. Using ``set(Libcopp_ROOT <where to find libcopp/INSTALL_PREFIX>)``
+2. Just using `find_package(Libcopp) <https://cmake.org/cmake/help/latest/command/find_package.html>`_ to use libcopp module.
+3. Example:(we assume the target name is stored in ``${CUSTOM_TARGET_NAME}``)
 
 .. code-block:: cmake
 
-    find_package(libcopp CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE libcopp::cotask)
+    find_package(Libcopp CONFIG REQUIRED)
+    target_link_libraries(${CUSTOM_TARGET_NAME} PUBLIC libcopp::cotask)
+    # Or just using copp by target_link_libraries(${CUSTOM_TARGET_NAME} PUBLIC libcopp::copp)
 
+If using modern compilers, it's required to open **C++20 coroutine** support.These codes below may be helpful:
+
+.. code-block:: cmake
+
+    set_target_properties(
+        ${CUSTOM_TARGET_NAME}
+        PROPERTIES CXX_STANDARD 20
+    )
+    include(CheckCXXCompilerFlag)
+    if (MSVC AND MSVC_VERSION GREATER_EQUAL 1910)
+        check_cxx_compiler_flag("/await" CHECK_CXX_FLAGS_AWAIT)
+        if (CHECK_CXX_FLAGS_AWAIT)
+            target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE /await)
+        endif()
+    elseif (
+        (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0.1") OR
+        (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8.0")
+        )
+        check_cxx_compiler_flag("-fcoroutine" CHECK_CXX_FLAGS_FCONTEXT)
+        if (CHECK_CXX_FLAGS_FCONTEXT)
+            target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE -fcoroutine)
+        else ()
+            check_cxx_compiler_flag("-fcoroutine-ts" CHECK_CXX_FLAGS_FCONTEXT_TS)
+            if (CHECK_CXX_FLAGS_FCONTEXT_TS)
+                target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE -fcoroutine-ts)
+            endif()
+        endif()
+    elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0")
+        check_cxx_compiler_flag("-fcoroutine" CHECK_CXX_FLAGS_FCONTEXT)
+        if (CHECK_CXX_FLAGS_FCONTEXT)
+            target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE -fcoroutine)
+        endif ()
+    endif ()
+
+If using MSVC, CRT must match the triplet of vcpkg, these codes below may be helpful:
+
+.. code-block:: cmake
+
+    if (MSVC AND VCPKG_TOOLCHAIN)
+        string(REGEX MATCH "^.*windows-static$" CHECK_VCPKG_TARGET_TRIPLET_RUNTIME ${VCPKG_TARGET_TRIPLET})
+        message(STATUS "CHECK_VCPKG_TARGET_TRIPLET_RUNTIME=${CHECK_VCPKG_TARGET_TRIPLET_RUNTIME}")
+        if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
+            set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
+        endif()
+        if (CHECK_VCPKG_TARGET_TRIPLET_RUNTIME)
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
+            set(CMAKE_MSVC_RUNTIME "/MT$<$<CONFIG:Debug>:d>")
+        else ()
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "")
+            set(CMAKE_MSVC_RUNTIME "/MD$<$<CONFIG:Debug>:d>")
+        endif ()
+        target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE ${CMAKE_MSVC_RUNTIME})
+    endif ()
 
 See more detail on https://github.com/Microsoft/vcpkg/tree/master/ports/libcopp .
 
