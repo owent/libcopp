@@ -1,3 +1,5 @@
+.. _examples_doc_anchor:
+
 EXAMPLES
 ------------
 

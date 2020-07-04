@@ -20,6 +20,7 @@ import datetime
 import codecs
 import os
 import re
+import shutil
 
 project = 'libcopp'
 copyright = '{0}, libcopp'.format(datetime.datetime.now().year)
@@ -41,12 +42,20 @@ if LIBCOPP_VERSION_MAJOR is not None and LIBCOPP_VERSION_MINOR is not None and L
         LIBCOPP_VERSION_PATCH.group('VERSION')
     )
 
-README_FILE_CONTENT = codecs.open(os.path.join(os.path.dirname(__file__), '..', '..', 'README.rst'), "r", "utf-8").read()
-README_FILE_STREAM = codecs.open(os.path.join(os.path.dirname(__file__), 'README.rst'), "w", "utf-8")
-README_FILE_STREAM.write(
-    re.sub('docs[\\/\\\\]sphinx[\\/\\\\]', '', README_FILE_CONTENT)
-)
-README_FILE_STREAM.close()
+# README_FILE_CONTENT = codecs.open(os.path.join(os.path.dirname(__file__), '..', '..', 'README.rst'), "r", "utf-8").read()
+# README_FILE_STREAM = codecs.open(os.path.join(os.path.dirname(__file__), 'README.rst'), "w", "utf-8")
+# README_FILE_STREAM.write(
+#     # README_FILE_CONTENT
+#     re.sub('docs[\\/\\\\]sphinx[\\/\\\\]', '', README_FILE_CONTENT)
+# )
+# README_FILE_STREAM.close()
+
+for COPY_FILE_NAME in ['README.rst', 'CHANGELOG.md']:
+    SRC_FILE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', COPY_FILE_NAME)
+    DST_FILE_PATH = os.path.join(os.path.dirname(__file__), COPY_FILE_NAME)
+    if os.path.exists(DST_FILE_PATH):
+        os.remove(DST_FILE_PATH)
+    shutil.copy2(SRC_FILE_PATH, DST_FILE_PATH, follow_symlinks=True)
 
 
 # -- General configuration ---------------------------------------------------

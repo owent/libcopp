@@ -13,6 +13,7 @@ Indices and tables
     :caption: Reference
 
     reference/index
+    CHANGELOG
 
 .. toctree::
     :maxdepth: 2

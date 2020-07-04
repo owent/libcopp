@@ -17,11 +17,12 @@
 /build_*
 
 # generated docs
-docs/output
-docs/sphinx/doxygen
-docs/sphinx/_build
-docs/libcopp.doxyfile
-docs/sphinx/README.rst
+/docs/output
+/docs/sphinx/doxygen
+/docs/sphinx/_build
+/docs/libcopp.doxyfile
+/docs/sphinx/README.rst
+/docs/sphinx/CHANGELOG.md
 
 
 # IDE & Editors

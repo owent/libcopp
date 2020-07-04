@@ -112,7 +112,7 @@ Install with vcpkg
         PS> .\vcpkg install libcopp [--triplet x64-windows-static/x64-windows/x64-windows-static-md and etc...]
         Linux:~/$ ./vcpkg install libcopp
 
-3. See :ref:`usage-using with-cmake` for cmake below.
+3. See :ref:`using with cmake <usage-using with-cmake>` for cmake below.
 
 Custom Build
 ^^^^^^^^^^^^^^^^
@@ -149,7 +149,7 @@ Custom Build
 
         cmake --build . --config RelWithDebInfo --target install # or make install when using Makefile
 
-6. Then just include and link ``libcopp.*/libcotask.*``, or see :ref:`usage-using with-cmake` for cmake below.
+6. Then just include and link ``libcopp.*/libcotask.*``, or see :ref:`using with cmake <usage-using with-cmake>` for cmake below.
 
 CMake Options
 ----------------
@@ -306,7 +306,7 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 10. Let c++20 coroutine work with ``cotask::task``
 11. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
 
-All sample codes can be found on :doc:`./docs/sphinx/example/index` and `sample <https://github.com/owt5008137/libcopp/tree/v2/sample>`_ .
+All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owt5008137/libcopp/tree/v2/sample>`_ .
 
 NOTICE
 ------------
