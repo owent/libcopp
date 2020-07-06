@@ -1,6 +1,12 @@
 HISTORY
 ----------------
 
+### 1.3.1 (2020-07-06)
+
+1. Fix compiler version checker for C++20 coroutine
+2. Add cmake interface option and features for targets
+3. Update documents
+
 ### 1.3.0 (2020-07-02)
 
 1. [OPTIMIZE] Using cmake export to generate module files

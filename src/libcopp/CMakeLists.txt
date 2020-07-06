@@ -35,10 +35,10 @@ else ()
     )
 endif()
 
-target_include_directories(${PROJECT_LIBCOPP_LIB_LINK} 
+target_include_directories(${PROJECT_LIBCOPP_LIB_LINK}
+    INTERFACE "$<INSTALL_INTERFACE:include>"
     PUBLIC 
         "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_ROOT_INC_DIR}>"
-        "$<INSTALL_INTERFACE:include>"
 )
 if (PROJECT_LIBCOPP_DEP_INC_DIR)
     target_include_directories(${PROJECT_LIBCOPP_LIB_LINK} 
@@ -46,6 +46,20 @@ if (PROJECT_LIBCOPP_DEP_INC_DIR)
             "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_DEP_INC_DIR}>"
     )
 endif()
+
+if (LIBCOPP_MACRO_ENABLE_STD_COROUTINE)
+    add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_FEATURES cxx_std_20)
+    if (MSVC)
+        add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS "/await")
+    else ()
+        string(FIND "${CMAKE_CXX_FLAGS}" "-fcoroutines-ts" LIBCOPP_FIND_COROUTINE_OPTION)
+        if (LIBCOPP_FIND_COROUTINE_OPTION GREATER_EQUAL 0)
+            add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS "-fcoroutines-ts")
+        else ()
+            add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS "-fcoroutines")
+        endif ()
+    endif ()
+endif ()
 
 install(TARGETS ${PROJECT_LIBCOPP_LIB_LINK}
     EXPORT ${PROJECT_LIBCOPP_EXPORT_NAME}

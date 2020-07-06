@@ -195,44 +195,10 @@ Using with cmake
 .. code-block:: cmake
 
     find_package(Libcopp CONFIG REQUIRED)
-    target_link_libraries(${CUSTOM_TARGET_NAME} PUBLIC libcopp::cotask)
-    # Or just using copp by target_link_libraries(${CUSTOM_TARGET_NAME} PUBLIC libcopp::copp)
+    target_link_libraries(${CUSTOM_TARGET_NAME} libcopp::cotask)
+    # Or just using copp by target_link_libraries(${CUSTOM_TARGET_NAME} libcopp::copp)
 
-If using modern compilers, it's required to open **C++20 coroutine** support.These codes below may be helpful:
-
-.. code-block:: cmake
-
-    set_target_properties(
-        ${CUSTOM_TARGET_NAME}
-        PROPERTIES CXX_STANDARD 20
-    )
-    include(CheckCXXCompilerFlag)
-    if (MSVC AND MSVC_VERSION GREATER_EQUAL 1910)
-        check_cxx_compiler_flag("/await" CHECK_CXX_FLAGS_AWAIT)
-        if (CHECK_CXX_FLAGS_AWAIT)
-            target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE /await)
-        endif()
-    elseif (
-        (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0.1") OR
-        (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8.0")
-        )
-        check_cxx_compiler_flag("-fcoroutine" CHECK_CXX_FLAGS_FCONTEXT)
-        if (CHECK_CXX_FLAGS_FCONTEXT)
-            target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE -fcoroutine)
-        else ()
-            check_cxx_compiler_flag("-fcoroutine-ts" CHECK_CXX_FLAGS_FCONTEXT_TS)
-            if (CHECK_CXX_FLAGS_FCONTEXT_TS)
-                target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE -fcoroutine-ts)
-            endif()
-        endif()
-    elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0")
-        check_cxx_compiler_flag("-fcoroutine" CHECK_CXX_FLAGS_FCONTEXT)
-        if (CHECK_CXX_FLAGS_FCONTEXT)
-            target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE -fcoroutine)
-        endif ()
-    endif ()
-
-If using MSVC, CRT must match the triplet of vcpkg, these codes below may be helpful:
+If using MSVC and vcpkg, CRT must match the triplet of vcpkg, these codes below may be helpful:
 
 .. code-block:: cmake
 

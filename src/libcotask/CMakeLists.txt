@@ -40,6 +40,23 @@ else ()
 endif()
 
 target_link_libraries(${PROJECT_LIBCOTASK_LIB_LINK} PUBLIC ${PROJECT_LIBCOPP_LIB_LINK})
+target_include_directories(${PROJECT_LIBCOPP_LIB_LINK}
+    INTERFACE "$<INSTALL_INTERFACE:include>"
+)
+
+if (LIBCOPP_MACRO_ENABLE_STD_COROUTINE)
+    add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_FEATURES cxx_std_20)
+    if (MSVC)
+        add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS "/await")
+    else ()
+        string(FIND "${CMAKE_CXX_FLAGS}" "-fcoroutines-ts" LIBCOPP_FIND_COROUTINE_OPTION)
+        if (LIBCOPP_FIND_COROUTINE_OPTION GREATER_EQUAL 0)
+            add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS "-fcoroutines-ts")
+        else ()
+            add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS "-fcoroutines")
+        endif ()
+    endif ()
+endif ()
 
 install(TARGETS ${PROJECT_LIBCOTASK_LIB_LINK}
     EXPORT ${PROJECT_LIBCOTASK_EXPORT_NAME}
