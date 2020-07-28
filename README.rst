@@ -34,6 +34,7 @@ Cross-platform coroutine library in C++ .
 .. image:: https://img.shields.io/github/repo-size/owt5008137/libcopp
 .. image:: https://img.shields.io/github/forks/owt5008137/libcopp?style=social
 .. image:: https://img.shields.io/github/stars/owt5008137/libcopp?style=social
+|lgtm-quality|
 
 .. |linux-ci|  image:: https://travis-ci.org/owt5008137/libcopp.svg?branch=v2
                :alt: Travis build status
@@ -50,6 +51,10 @@ Cross-platform coroutine library in C++ .
 .. |github-action-ci|  image:: https://github.com/owt5008137/libcopp/workflows/Linux%20Building/badge.svg
                :alt: Coveralls coverage
                :target: https://github.com/owt5008137/libcopp/actions                       
+
+.. |lgtm-quality|  image:: https://img.shields.io/lgtm/grade/cpp/g/owt5008137/libcopp.svg?logo=lgtm&logoWidth=18
+               :alt: Language grade: C/C++
+               :target: https://lgtm.com/projects/g/owt5008137/libcopp/context:cpp
 
 LICENSE
 ------------
