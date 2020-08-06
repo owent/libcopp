@@ -20,6 +20,8 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/std/smart_ptr.h>
 
+#include <libcopp/utils/uint64_id_allocator.h>
+
 #include <libcopp/utils/lock_holder.h>
 #include <libcopp/utils/spin_lock.h>
 
@@ -39,9 +41,22 @@ namespace cotask {
 
     namespace impl {
 
-        class UTIL_SYMBOL_VISIBLE task_impl {
+        class UTIL_SYMBOL_VISIBLE task_impl {       
+#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
+        public:
+            using id_t = copp::util::uint64_id_allocator::value_type;
+            using id_allocator_t = copp::util::uint64_id_allocator;
+
         protected:
-            typedef task_action_impl *action_ptr_t;
+            using action_ptr_t = task_action_impl *;
+#else
+        public:
+            typedef copp::util::uint64_id_allocator::value_type id_t;
+            typedef copp::util::uint64_id_allocator id_allocator_t;
+
+        protected:
+            typedef action_ptr_t;
+#endif
 
             struct LIBCOPP_COTASK_API ext_coroutine_flag_t {
                 enum type {
@@ -63,6 +78,8 @@ namespace cotask {
         public:
             LIBCOPP_COTASK_API task_impl();
             LIBCOPP_COTASK_API virtual ~task_impl() = 0;
+
+            UTIL_FORCEINLINE id_t get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
 
             /**
              * get task status
@@ -108,6 +125,10 @@ namespace cotask {
             virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT = 0;
 #endif
 
+            LIBCOPP_COTASK_API friend void intrusive_ptr_add_ref(task_impl *p);
+
+            LIBCOPP_COTASK_API friend void intrusive_ptr_release(task_impl *p);
+
             /**
              * get current running task
              * @return current running task or empty pointer
@@ -135,6 +156,7 @@ namespace cotask {
 
         private:
             action_ptr_t action_;
+            id_t         id_;
 
         protected:
             void *finish_priv_data_;
