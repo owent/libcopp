@@ -22,9 +22,21 @@
 namespace cotask {
     namespace impl {
         LIBCOPP_COTASK_API task_impl::task_impl()
-            : action_(UTIL_CONFIG_NULLPTR), finish_priv_data_(UTIL_CONFIG_NULLPTR), status_(EN_TS_CREATED) {}
+            : action_(UTIL_CONFIG_NULLPTR), id_(0), finish_priv_data_(UTIL_CONFIG_NULLPTR), status_(EN_TS_CREATED) {
 
-        LIBCOPP_COTASK_API task_impl::~task_impl() { assert(status_ <= EN_TS_CREATED || status_ >= EN_TS_DONE); }
+            id_allocator_t id_alloc_;
+            ((void)id_alloc_);
+            id_ = id_alloc_.allocate();
+        }
+
+        LIBCOPP_COTASK_API task_impl::~task_impl() { 
+            assert(status_ <= EN_TS_CREATED || status_ >= EN_TS_DONE);
+
+            // free resource
+            id_allocator_t id_alloc_;
+            ((void)id_alloc_);
+            id_alloc_.deallocate(id_);
+        }
 
         LIBCOPP_COTASK_API bool task_impl::is_canceled() const LIBCOPP_MACRO_NOEXCEPT { return EN_TS_CANCELED == get_status(); }
 

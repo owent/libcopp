@@ -57,7 +57,7 @@ div.document {
 div.body {
   max-width: 1210px;
 }
-*/
+
 
 div.sphinxsidebar {
   width: 320px;
@@ -66,9 +66,9 @@ div.sphinxsidebar {
 div.bodywrapper {
   margin: 0 0 0 320px;
 }
-
+*/
 /* copy from readable.css */
-
+/*
 @media screen and (max-width: 870px) {
   div.document {
     width: auto;
@@ -93,3 +93,4 @@ span.add-pointer {
   background-color: Pink;
   font-weight: bolder;
 }
+*/

@@ -217,12 +217,9 @@ If using MSVC and vcpkg, CRT must match the triplet of vcpkg, these codes below 
         endif()
         if (CHECK_VCPKG_TARGET_TRIPLET_RUNTIME)
             set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
-            set(CMAKE_MSVC_RUNTIME "/MT$<$<CONFIG:Debug>:d>")
         else ()
             set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "")
-            set(CMAKE_MSVC_RUNTIME "/MD$<$<CONFIG:Debug>:d>")
         endif ()
-        target_compile_options(${CUSTOM_TARGET_NAME} PRIVATE ${CMAKE_MSVC_RUNTIME})
     endif ()
 
 See more detail on https://github.com/Microsoft/vcpkg/tree/master/ports/libcopp .

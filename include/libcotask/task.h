@@ -17,7 +17,6 @@
 #include <list>
 #include <stdint.h>
 
-#include <libcopp/utils/uint64_id_allocator.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/future/std_coroutine_generator.h>
 
@@ -38,6 +37,22 @@ namespace cotask {
 
     template <typename TCO_MACRO = macro_coroutine>
     class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
+#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
+    public:
+        using self_t            = task<TCO_MACRO>;
+        using ptr_t             = libcopp::util::intrusive_ptr<self_t>;
+        using macro_coroutine_t = TCO_MACRO;
+
+        using coroutine_t       = typename macro_coroutine_t::coroutine_t;
+        using stack_allocator_t = typename macro_coroutine_t::stack_allocator_t;
+
+        using id_t = typename impl::task_impl::id_t;
+        using id_allocator_t = typename impl::task_impl::id_allocator_t;
+
+
+    private:
+        using action_ptr_t = impl::task_impl::action_ptr_t;
+#else
     public:
         typedef task<TCO_MACRO>                      self_t;
         typedef libcopp::util::intrusive_ptr<self_t> ptr_t;
@@ -46,15 +61,15 @@ namespace cotask {
         typedef typename macro_coroutine_t::coroutine_t       coroutine_t;
         typedef typename macro_coroutine_t::stack_allocator_t stack_allocator_t;
 
-        typedef typename copp::util::uint64_id_allocator::value_type id_t;
-        typedef typename copp::util::uint64_id_allocator id_allocator_t;
-
-        struct task_group {
-            std::list<std::pair<ptr_t, void *> > member_list_;
-        };
+        typedef typename impl::task_impl::id_t id_t;
+        typedef typename impl::task_impl::id_allocator_t id_allocator_t;
 
     private:
         typedef impl::task_impl::action_ptr_t action_ptr_t;
+#endif
+        struct task_group {
+            std::list<std::pair<ptr_t, void *> > member_list_;
+        };
 
     public:
         /**
@@ -62,17 +77,12 @@ namespace cotask {
          * @note should not be called directly
          */
         task(size_t stack_sz)
-            : id_(0), stack_size_(stack_sz), action_destroy_fn_(UTIL_CONFIG_NULLPTR)
+            : stack_size_(stack_sz), action_destroy_fn_(UTIL_CONFIG_NULLPTR)
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
               ,
               binding_manager_ptr_(UTIL_CONFIG_NULLPTR), binding_manager_fn_(UTIL_CONFIG_NULLPTR)
 #endif
-        {
-            id_allocator_t id_alloc_;
-            ((void)id_alloc_);
-            id_ = id_alloc_.allocate();
-            ref_count_.store(0);
-        }
+        { }
 
 
 /**
@@ -461,17 +471,10 @@ namespace cotask {
             if (status < EN_TS_DONE && status > EN_TS_CREATED) {
                 kill(EN_TS_TIMEOUT);
             }
-
-            // free resource
-            id_allocator_t id_alloc_;
-            ((void)id_alloc_);
-            id_alloc_.deallocate(id_);
         }
 
         inline typename coroutine_t::ptr_t &      get_coroutine_context() LIBCOPP_MACRO_NOEXCEPT { return coroutine_obj_; }
         inline const typename coroutine_t::ptr_t &get_coroutine_context() const LIBCOPP_MACRO_NOEXCEPT { return coroutine_obj_; }
-
-        inline id_t get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
 
     public:
         virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE {
@@ -935,7 +938,6 @@ namespace cotask {
         auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_t{ptr_t(this)}; }
 #endif
     private:
-        id_t                        id_;
         size_t                      stack_size_;
         typename coroutine_t::ptr_t coroutine_obj_;
         task_group                  next_list_;
