@@ -18,11 +18,13 @@ endif()
 # ========== build library ==========
 source_group_by_dir(COTASK_SRC_LIST)
 
-if(BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS OR LIBCOPP_USE_DYNAMIC_LIBRARY)
     add_library(${PROJECT_LIBCOTASK_LIB_LINK} SHARED ${COTASK_SRC_LIST})
     set_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} PROPERTIES 
         C_VISIBILITY_PRESET "hidden"
         CXX_VISIBILITY_PRESET "hidden"
+        VERSION ${LIBCOPP_VERSION}
+        SOVERSION ${LIBCOPP_VERSION}
     )
     target_compile_definitions(${PROJECT_LIBCOTASK_LIB_LINK}
         PRIVATE LIBCOPP_API_COTASK_NATIVE=1 LIBCOPP_API_DLL=1
@@ -33,6 +35,7 @@ else ()
     set_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} PROPERTIES 
         C_VISIBILITY_PRESET "hidden"
         CXX_VISIBILITY_PRESET "hidden"
+        VERSION ${LIBCOPP_VERSION}
     )
     target_compile_definitions(${PROJECT_LIBCOTASK_LIB_LINK}
         PRIVATE LIBCOPP_API_COTASK_NATIVE=1

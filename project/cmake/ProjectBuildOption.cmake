@@ -21,6 +21,7 @@ option(PROJECT_ENABLE_UNITTEST "Build unit test." OFF)
 option(PROJECT_ENABLE_SAMPLE "Build samples." OFF)
 
 # If you do not call libcopp's API on multi-thread at the same time
+option(LIBCOPP_USE_DYNAMIC_LIBRARY "Build dynamic libraries." OFF)
 # You can set LIBCOPP_DISABLE_ATOMIC_LOCK=ON to reduce cache miss slightly
 option(LIBCOPP_DISABLE_ATOMIC_LOCK "Do not use atomic API and lock to keep thread-safe for libcopp." OFF)
 if (LIBCOPP_DISABLE_ATOMIC_LOCK)

@@ -64,11 +64,17 @@ endif()
 
 # ============ test - coroutine test frame ============
 set(CMAKE_BUILD_RPATH "$ORIGIN/../lib" "$ORIGIN/../lib64")
-if (NOT (WIN32 AND BUILD_SHARED_LIBS))
+if (NOT (WIN32 AND (BUILD_SHARED_LIBS OR LIBCOPP_USE_DYNAMIC_LIBRARY)))
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/test")
 endif ()
 
 add_executable(libcopp_unit_test ${COPP_TEST_SRC_LIST})
+set_target_properties(libcopp_unit_test PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH YES
+    BUILD_WITH_INSTALL_RPATH NO
+    BUILD_RPATH_USE_ORIGIN YES
+)
+
 target_link_libraries(libcopp_unit_test 
     ${PROJECT_LIBCOTASK_LIB_LINK}
     ${PROJECT_LIBCOPP_LIB_LINK} 
