@@ -7,6 +7,9 @@ endif()
 if(NOT DEFINED __COMPILER_OPTION_LOADED)
     include(CheckCXXSourceCompiles)
     set(__COMPILER_OPTION_LOADED 1)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0067 NEW)
+
     option(COMPILER_OPTION_MSVC_ZC_CPP "Add /Zc:__cplusplus for MSVC (let __cplusplus be equal to _MSVC_LANG) when it support." ON)
     option(COMPILER_OPTION_CLANG_ENABLE_LIBCXX "Try to use libc++ when using clang." ON)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Enable IndependentCode")
@@ -380,4 +383,7 @@ if(NOT DEFINED __COMPILER_OPTION_LOADED)
     check_cxx_source_compiles("#include <typeinfo>
     #include <cstdio>
     int main () { puts(typeid(int).name()); return 0; }" COMPILER_OPTIONS_TEST_RTTI)
+
+    # Features test finished
+    cmake_policy(POP)
 endif()
