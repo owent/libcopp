@@ -6,6 +6,7 @@ HISTORY
 1. [FIX] [#16](https://github.com/owt5008137/libcopp/issues/16) : document of  ```LIBCOPP_DISABLE_ATOMIC_LOCK``` and ```LIBCOPP_DISABLE_THIS_MT``` .
 2. [FIX] [#18](https://github.com/owt5008137/libcopp/issues/18) : ```'xx' is not a member of 'xxx {aka xxx}'``` .
 3. [OPTIMIZE] ```cotask::task``` can capture all integer type of return value now.
+4. [FIX] Remove warning of c++20 coroutine options when project use both languages of cxx and not cxx
 
 ### 1.3.1 (2020-07-06)
 
