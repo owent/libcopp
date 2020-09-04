@@ -1,6 +1,12 @@
 HISTORY
 ----------------
 
+### 1.3.2
+
+1. [FIX] [#16](https://github.com/owt5008137/libcopp/issues/16) : document of  ```LIBCOPP_DISABLE_ATOMIC_LOCK``` and ```LIBCOPP_DISABLE_THIS_MT``` .
+2. [FIX] [#18](https://github.com/owt5008137/libcopp/issues/18) : ```'xx' is not a member of 'xxx {aka xxx}'``` .
+3. [OPTIMIZE] ```cotask::task``` can capture all integer type of return value now.
+
 ### 1.3.1 (2020-07-06)
 
 1. Fix compiler version checker for C++20 coroutine

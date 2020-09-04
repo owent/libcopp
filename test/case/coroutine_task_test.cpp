@@ -627,6 +627,36 @@ CASE_TEST(coroutine_task, then_with_stack_pool) {
 }
 
 
+// Issue #18: https://github.com/owt5008137/libcopp/issues/18
+
+class task_action_of_issue18 {
+public:
+    task_action_of_issue18() {}
+    int operator()(void *) { return 0; }
+};
+
+CASE_TEST(coroutine_task, github_issues_18) {
+#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
+    using simple_task_t = cotask::task<>;
+#else
+    typedef cotask::task<> simple_task_t;
+#endif
+    {
+        simple_task_t::ptr_t co_task = simple_task_t::create(task_action_of_issue18());
+        if (co_task) {
+            co_task->then(task_action_of_issue18());
+        }
+    }
+
+    {
+        task_action_of_issue18 copy_action;
+        simple_task_t::ptr_t   co_task = simple_task_t::create(copy_action);
+        if (co_task) {
+            co_task->then(copy_action);
+        }
+    }
+}
+
 #if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
     defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 

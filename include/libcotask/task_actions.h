@@ -74,10 +74,15 @@ namespace cotask {
     class LIBCOPP_COTASK_API_HEAD_ONLY task_action_functor : public impl::task_action_impl {
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
     public:
-        typedef typename std::remove_cv<Ty>::type value_type;
+        typedef typename std::decay<Ty>::type value_type;
 
-        task_action_functor(value_type &&functor) : functor_(functor) {}
-
+#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
+        template <typename... TARG>
+        task_action_functor(TARG &&... arg) : functor_(std::forward<TARG>(arg)...) {}
+#else
+        template <typename TARG>
+        task_action_functor(TARG &&arg) : functor_(std::forward<TARG>(arg)) {}
+#endif
         task_action_functor(task_action_functor &&other) : functor_(std::move(other.functor_)) {}
         inline task_action_functor &operator=(task_action_functor &&other) { functor_ = std::move(other.functor_); }
 
@@ -110,13 +115,32 @@ namespace cotask {
     public:
         typedef Ty (*value_type)(void *);
 
+
+    private:
+        template <class Tz, bool IS_INTEGRAL>
+        struct invoker;
+
+        template <class Tz>
+        struct invoker<Tz, true> {
+            static UTIL_FORCEINLINE int invoke(task_action_function &in, void *priv_data) {
+                return static_cast<int>((*in.func_)(priv_data));
+            }
+        };
+
+        template <class Tz>
+        struct invoker<Tz, false> {
+            static UTIL_FORCEINLINE int invoke(task_action_function &in, void *priv_data) {
+                (*in.func_)(priv_data);
+                return 0;
+            }
+        };
+
     public:
         task_action_function(value_type func) : func_(func) {}
         ~task_action_function() {}
 
         virtual int operator()(void *priv_data) {
-            (*func_)(priv_data);
-            return 0;
+            return invoker<Ty, std::is_integral<typename std::decay<Ty>::type>::value>::invoke(*this, priv_data);
         }
 
         static void placement_destroy(void *selfp) {
@@ -132,43 +156,37 @@ namespace cotask {
         value_type func_;
     };
 
-    template <>
-    class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function<int> : public impl::task_action_impl {
-    public:
-        typedef int (*value_type)(void *);
-
-    public:
-        task_action_function(value_type func) : func_(func) {}
-        ~task_action_function() {}
-
-        virtual int operator()(void *priv_data) { return (*func_)(priv_data); }
-
-        static void placement_destroy(void *selfp) {
-            if (UTIL_CONFIG_NULLPTR == selfp) {
-                return;
-            }
-
-            task_action_function<int> *self = reinterpret_cast<task_action_function<int> *>(selfp);
-            self->~task_action_function();
-        }
-
-    private:
-        value_type func_;
-    };
-
     // mem function
     template <typename Ty, typename Tc>
     class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_action_impl {
     public:
         typedef Ty Tc::*value_type;
 
+    private:
+        template <class Tz, bool IS_INTEGRAL>
+        struct invoker;
+
+        template <class Tz>
+        struct invoker<Tz, true> {
+            static UTIL_FORCEINLINE int invoke(task_action_mem_function &in, void *priv_data) {
+                return static_cast<int>((in.instacne_->*in.func_)(priv_data));
+            }
+        };
+
+        template <class Tz>
+        struct invoker<Tz, false> {
+            static UTIL_FORCEINLINE int invoke(task_action_mem_function &in, void *priv_data) {
+                (in.instacne_->*in.func_)(priv_data);
+                return 0;
+            }
+        };
+
     public:
         task_action_mem_function(value_type func, Tc *inst) : instacne_(inst), func_(func) {}
         ~task_action_mem_function() {}
 
         virtual int operator()(void *priv_data) {
-            (instacne_->*func_)(priv_data);
-            return 0;
+            return invoker<Ty, std::is_integral<typename std::decay<Ty>::type>::value>::invoke(*this, priv_data);
         }
 
         static void placement_destroy(void *selfp) {
@@ -177,31 +195,6 @@ namespace cotask {
             }
 
             task_action_mem_function<Ty, Tc> *self = reinterpret_cast<task_action_mem_function<Ty, Tc> *>(selfp);
-            self->~task_action_mem_function();
-        }
-
-    private:
-        Tc *       instacne_;
-        value_type func_;
-    };
-
-    template <typename Tc>
-    class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function<int, Tc> : public impl::task_action_impl {
-    public:
-        typedef int Tc::*value_type;
-
-    public:
-        task_action_mem_function(value_type func, Tc *inst) : instacne_(inst), func_(func) {}
-        ~task_action_mem_function() {}
-
-        virtual int operator()(void *priv_data) { return (instacne_->*func_)(priv_data); }
-
-        static void placement_destroy(void *selfp) {
-            if (UTIL_CONFIG_NULLPTR == selfp) {
-                return;
-            }
-
-            task_action_mem_function<int, Tc> *self = reinterpret_cast<task_action_mem_function<int, Tc> *>(selfp);
             self->~task_action_mem_function();
         }
 
