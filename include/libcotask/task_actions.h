@@ -79,12 +79,23 @@ namespace cotask {
 #if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
         template <typename... TARG>
         task_action_functor(TARG &&... arg) : functor_(std::forward<TARG>(arg)...) {}
+
+        template <typename... TARG>
+        task_action_functor(task_action_functor &&other, TARG &&...) : functor_(std::move(other.functor_)) {}
+
+        template <typename... TARG>
+        task_action_functor(const task_action_functor &other, TARG &&...) : functor_(other.functor_) {}
+
 #else
-        template <typename TARG>
+        template <int TH = 0>
+        task_action_functor(task_action_functor &&other) : functor_(std::move(other.functor_)) {}
+
+        template <int TH = 0>
+        task_action_functor(const task_action_functor &other) : functor_(other.functor_) {}
+
+        template <typename TARG, int TH = 0>
         task_action_functor(TARG &&arg) : functor_(std::forward<TARG>(arg)) {}
 #endif
-        task_action_functor(task_action_functor &&other) : functor_(std::move(other.functor_)) {}
-        inline task_action_functor &operator=(task_action_functor &&other) { functor_ = std::move(other.functor_); }
 
 #else
     public:
