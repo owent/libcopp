@@ -36,9 +36,9 @@ Cross-platform coroutine library in C++ .
 .. image:: https://img.shields.io/github/stars/owt5008137/libcopp?style=social
 |lgtm-quality|
 
-.. |linux-ci|  image:: https://travis-ci.org/owt5008137/libcopp.svg?branch=v2
+.. |linux-ci|  image:: https://travis-ci.com/owt5008137/libcopp.svg?branch=v2
                :alt: Travis build status
-               :target: https://travis-ci.org/owt5008137/libcopp
+               :target: https://travis-ci.com/github/owt5008137/libcopp
 
 .. |windows-ci|  image:: https://ci.appveyor.com/api/projects/status/7w6dfnpeahfmgaqj/branch/v2?svg=true
                :alt: AppVeyor build status
@@ -288,7 +288,7 @@ It's recommanded to use stack pool instead of gcc splited stack.
 BENCHMARK
 ------------
 
-Please see CI output for latest benchmark report. Click to visit `benchmark on Linux and macOS <https://travis-ci.org/owt5008137/libcopp>`_ and `benchmark on Windows <https://ci.appveyor.com/project/owt5008137/libcopp>`_ . `benchmark on Linux,macOS and Windows of dev branch <https://github.com/owt5008137/libcopp/actions>`_ can be found on `Github Actions <https://github.com/owt5008137/libcopp/actions>`_ .
+Please see CI output for latest benchmark report. Click to visit `benchmark on Linux and macOS <https://travis-ci.com/github/owt5008137/libcopp>`_ and `benchmark on Windows <https://ci.appveyor.com/project/owt5008137/libcopp>`_ . `benchmark on Linux,macOS and Windows of dev branch <https://github.com/owt5008137/libcopp/actions>`_ can be found on `Github Actions <https://github.com/owt5008137/libcopp/actions>`_ .
 
 FAQ
 ------------

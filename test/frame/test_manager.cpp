@@ -40,9 +40,10 @@ namespace detail {
 #endif
 #endif
 
+    static test_manager_tls_block_t g_global_counter_cache = {0, 0};
     test_manager_tls_block_t *get_test_manager_tls_block() {
-        static thread_local unsigned char ret[sizeof(test_manager_tls_block_t)] = {0};
-        return reinterpret_cast<test_manager_tls_block_t *>(ret);
+        static thread_local test_manager_tls_block_t ret = g_global_counter_cache;
+        return &ret;
     }
 #else
 
@@ -67,11 +68,12 @@ namespace detail {
         (void)pthread_key_create(&gt_test_manager_tls_block_key, dtor_pthread_test_manager_tls_block);
     }
 
+    static test_manager_tls_block_t g_global_counter_cache;
     test_manager_tls_block_t *get_test_manager_tls_block() {
         (void)pthread_once(&gt_test_manager_tls_block_once, init_pthread_test_manager_tls_block);
         test_manager_tls_block_t *block = reinterpret_cast<test_manager_tls_block_t *>(pthread_getspecific(gt_test_manager_tls_block_key));
         if (NULL == block) {
-            block = new test_manager_tls_block_t();
+            block = new test_manager_tls_block_t(g_global_counter_cache);
             pthread_setspecific(gt_test_manager_tls_block_key, block);
         }
         return block;
@@ -424,12 +426,14 @@ void test_manager::set_counter_ptr(int *success_counter_ptr, int *failed_counter
         block->success_counter_ptr = success_counter_ptr;
         block->failed_counter_ptr  = failed_counter_ptr;
     }
+    detail::g_global_counter_cache.success_counter_ptr = success_counter_ptr;
+    detail::g_global_counter_cache.failed_counter_ptr = failed_counter_ptr;
 }
 
 void test_manager::inc_success_counter() {
     detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-    if (likely(NULL != block)) {
-        ++block->success_counter_ptr;
+    if (likely(NULL != block && NULL != block->success_counter_ptr)) {
+        ++(*block->success_counter_ptr);
         return;
     }
 
@@ -440,8 +444,8 @@ void test_manager::inc_success_counter() {
 
 void test_manager::inc_failed_counter() {
     detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-    if (likely(NULL != block)) {
-        ++block->failed_counter_ptr;
+    if (likely(NULL != block && NULL != block->failed_counter_ptr)) {
+        ++(*block->failed_counter_ptr);
         return;
     }
 
