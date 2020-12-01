@@ -24,10 +24,10 @@ jobs:
           # - clang-6.0
           # - clang-9
           - gcc
-          - gcc-9
-          - shared:gcc-9
-          - no-exceptions:gcc-9
-          - thread-unsafe:gcc-9
+          - gcc-10
+          - shared:gcc-10
+          - no-exceptions:gcc-10
+          - thread-unsafe:gcc-10
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout

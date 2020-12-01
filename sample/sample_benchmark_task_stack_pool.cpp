@@ -57,9 +57,9 @@ std::vector<my_task_t::ptr_t> task_arr;
 int my_task_action(void *) {
     // ... your code here ...
     int count = switch_count; // 每个task地切换次数
-
+    cotask::impl::task_impl* self = cotask::this_task::get_task();
     while (count-- > 0) {
-        cotask::this_task::get_task()->yield();
+        self->yield();
     }
 
     return 0;
