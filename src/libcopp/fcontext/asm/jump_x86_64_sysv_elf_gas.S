@@ -67,10 +67,20 @@ copp_jump_fcontext:
     leaq  0x40(%rsp), %rsp /* prepare stack */
 
     /* return transfer_t from jump */
+#if !defined(_ILP32)
     /* RAX == fctx, RDX == data */
     movq  %rsi, %rdx
+#else
+    /* RAX == data:fctx */
+    salq  $32, %rsi
+    orq   %rsi, %rax
+#endif
     /* pass transfer_t as first arg in context function */
+#if !defined(_ILP32)
     /* RDI == fctx, RSI == data */
+#else
+    /* RDI == data:fctx */
+#endif
     movq  %rax, %rdi
 
     /* indirect jump to context */
