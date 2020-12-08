@@ -1,6 +1,10 @@
 HISTORY
 ----------------
 
+### 1.3.4
+
+1. [FIX] Fix version tag.
+
 ### 1.3.3
 
 1. [BOOST] Merge boost.context 1.74.0(Support The 32-bit Solaris C language data model, called ILP32).
