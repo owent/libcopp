@@ -229,7 +229,7 @@ namespace copp {
         }
 
         static inline size_t align_stack_size(size_t sz) {
-            UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE;
+            UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE - 1;
 
             sz += align_mask;
             sz &= ~align_mask;

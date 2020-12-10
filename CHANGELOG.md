@@ -1,6 +1,10 @@
 HISTORY
 ----------------
 
+### 1.3.5
+
+1. [FIX] Fix stack alignment.
+
 ### 1.3.4
 
 1. [FIX] Fix version tag.

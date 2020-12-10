@@ -210,12 +210,10 @@ If using MSVC and vcpkg, CRT must match the triplet of vcpkg, these codes below 
 .. code-block:: cmake
 
     if (MSVC AND VCPKG_TOOLCHAIN)
-        string(REGEX MATCH "^.*windows-static$" CHECK_VCPKG_TARGET_TRIPLET_RUNTIME ${VCPKG_TARGET_TRIPLET})
-        message(STATUS "CHECK_VCPKG_TARGET_TRIPLET_RUNTIME=${CHECK_VCPKG_TARGET_TRIPLET_RUNTIME}")
         if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
             set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
         endif()
-        if (CHECK_VCPKG_TARGET_TRIPLET_RUNTIME)
+        if (VCPKG_TARGET_TRIPLET MATCHES "^.*windows-static$")
             set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
         else ()
             set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "")
