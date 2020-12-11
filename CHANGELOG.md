@@ -4,6 +4,7 @@ HISTORY
 ### 1.3.5
 
 1. [FIX] Fix stack alignment.
+2. [OPTIMIZE] Prefer to use python3 on cmake scripts.
 
 ### 1.3.4
 
