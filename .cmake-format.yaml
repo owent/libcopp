@@ -1,0 +1,10 @@
+# @see https://cmake-format.readthedocs.io/en/latest/configuration.html for more details
+
+format:
+  line_width: 140
+  tab_size: 2
+  use_tabchars: false
+  line_ending: unix
+
+markup:
+  first_comment_is_literal: True

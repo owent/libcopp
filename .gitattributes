@@ -1,4 +1,12 @@
 *.sh eol=lf
 *.py eol=lf
+*.ps1 eol=crlf
+*.bat eol=crlf
+*.md eol=crlf
+*.rst eol=lf
+*.cmake eol=lf
+*.cmake.in eol=lf
+CMakeLists.txt eol=lf
+
 /src/libcopp/fcontext/asm/*.S eol=crlf
 /src/libcopp/fcontext/asm/*.asm eol=crlf

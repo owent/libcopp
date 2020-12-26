@@ -24,24 +24,21 @@
 #   libcopp::cotask         - Imported target of libcotask if available
 #
 
-#=============================================================================
+# =============================================================================
 # Copyright 2020 OWenT.
 #
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
+# Distributed under the OSI-approved BSD License (the "License"); see accompanying file Copyright.txt for details.
 #
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
+# This software is distributed WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE. See the License for more information.
+# =============================================================================
+# (To distribute this file outside of CMake, substitute the full License text for the above reference.)
 
 set(Libcopp_VERSION "@LIBCOPP_VERSION@")
 
 @PACKAGE_INIT@
 
-################################################################################
+# ##########################################################################################################################################
 # libcopp source dir
 set(Libcopp_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 
@@ -49,24 +46,24 @@ set_and_check(Libcopp_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
 set_and_check(Libcopp_LIBRARY_DIRS "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOPP_EXPORT_NAME@.cmake")
-if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOTASK_EXPORT_NAME@.cmake")
-    include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOTASK_EXPORT_NAME@.cmake")
-endif ()
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOTASK_EXPORT_NAME@.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_LIBCOTASK_EXPORT_NAME@.cmake")
+endif()
 # Normal search.
 set(Libcopp_LIBRARIES libcopp::copp)
-if (TARGET libcopp::cotask)
-    set(Libcotask_LIBRARIES libcopp::cotask)
-endif ()
+if(TARGET libcopp::cotask)
+  set(Libcotask_LIBRARIES libcopp::cotask)
+endif()
 
-# handle the QUIETLY and REQUIRED arguments and set LIBCOPP_FOUND to TRUE if
-# all listed variables are TRUE
+# handle the QUIETLY and REQUIRED arguments and set LIBCOPP_FOUND to TRUE if all listed variables are TRUE
 include("FindPackageHandleStandardArgs")
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libcopp 
-    FOUND_VAR Libcopp_FOUND
-    REQUIRED_VARS Libcopp_INCLUDE_DIRS Libcopp_LIBRARIES)
+find_package_handle_standard_args(
+  Libcopp
+  FOUND_VAR Libcopp_FOUND
+  REQUIRED_VARS Libcopp_INCLUDE_DIRS Libcopp_LIBRARIES)
 
-if (Libcopp_FOUND)
-    set(LIBCOPP_FOUND ${Libcopp_FOUND})
+if(Libcopp_FOUND)
+  set(LIBCOPP_FOUND ${Libcopp_FOUND})
 endif()
 
 # check_required_components(Libcopp)
