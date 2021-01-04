@@ -265,10 +265,10 @@ CASE_TEST(coroutine_task_manager, update_timeout) {
 class test_context_task_manager_action_protect_this_task : public cotask::impl::task_action_impl {
 public:
     int operator()(void *) {
-        int use_count = (int)cotask::this_task::get<cotask::task<> >()->use_count();
+        int use_count = static_cast<int>(cotask::this_task::get<cotask::task<> >()->use_count());
         CASE_EXPECT_EQ(2, use_count);
         cotask::this_task::get_task()->yield();
-        use_count = (int)cotask::this_task::get<cotask::task<> >()->use_count();
+        use_count = static_cast<int>(cotask::this_task::get<cotask::task<> >()->use_count());
         // if we support rvalue-reference, reference may be smaller.
         // remove action will be 3, resume and destroy will be 1 or 2
         // CASE_EXPECT_TRUE(use_count >= 1 && use_count <= 3);

@@ -119,8 +119,9 @@ namespace cotask {
                 return ptr_t();
             }
 
-            typename coroutine_t::ptr_t coroutine = coroutine_t::create(
-                (a_t *)(UTIL_CONFIG_NULLPTR), alloc, stack_size, sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
+            typename coroutine_t::ptr_t coroutine =
+                coroutine_t::create(reinterpret_cast<a_t *>(UTIL_CONFIG_NULLPTR), alloc, stack_size,
+                                    sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
             if (!coroutine) {
                 return ptr_t();
             }
@@ -224,7 +225,7 @@ namespace cotask {
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using a_t = task_action_function<Ty>;
 #else
-            typedef task_action_function<Ty>            a_t;
+            typedef task_action_function<Ty> a_t;
 #endif
 
             return create_with_delegate<a_t>(func, alloc, stack_size, private_buffer_size);
@@ -269,11 +270,11 @@ namespace cotask {
          */
         template <typename Ty, typename... TParams>
         static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with(typename coroutine_t::allocator_type &alloc, size_t stack_size,
-                                                              size_t private_buffer_size, TParams &&... args) {
+                                                              size_t private_buffer_size, TParams &&...args) {
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
             using a_t = Ty;
 #else
-            typedef Ty                                                                a_t;
+            typedef Ty a_t;
 #endif
 
             return create(a_t(std::forward<TParams>(args)...), alloc, stack_size, private_buffer_size);

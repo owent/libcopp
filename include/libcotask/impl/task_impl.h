@@ -41,10 +41,10 @@ namespace cotask {
 
     namespace impl {
 
-        class UTIL_SYMBOL_VISIBLE task_impl {       
+        class UTIL_SYMBOL_VISIBLE task_impl {
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
         public:
-            using id_t = copp::util::uint64_id_allocator::value_type;
+            using id_t           = copp::util::uint64_id_allocator::value_type;
             using id_allocator_t = copp::util::uint64_id_allocator;
 
         protected:
@@ -52,7 +52,7 @@ namespace cotask {
 #else
         public:
             typedef copp::util::uint64_id_allocator::value_type id_t;
-            typedef copp::util::uint64_id_allocator id_allocator_t;
+            typedef copp::util::uint64_id_allocator             id_allocator_t;
 
         protected:
             typedef action_ptr_t;
@@ -112,12 +112,12 @@ namespace cotask {
             virtual int          kill(enum EN_TASK_STATUS status, void *priv_data)                       = 0;
             UTIL_FORCEINLINE int kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
 
-            UTIL_FORCEINLINE int start() { return start(UTIL_CONFIG_NULLPTR); };
-            UTIL_FORCEINLINE int resume() { return resume(UTIL_CONFIG_NULLPTR); };
-            UTIL_FORCEINLINE int yield() { return yield(UTIL_CONFIG_NULLPTR); };
-            UTIL_FORCEINLINE int cancel() { return cancel(UTIL_CONFIG_NULLPTR); };
-            UTIL_FORCEINLINE int kill(enum EN_TASK_STATUS status) { return kill(status, UTIL_CONFIG_NULLPTR); };
-            UTIL_FORCEINLINE int kill() { return kill(UTIL_CONFIG_NULLPTR); };
+            UTIL_FORCEINLINE int start() { return start(UTIL_CONFIG_NULLPTR); }
+            UTIL_FORCEINLINE int resume() { return resume(UTIL_CONFIG_NULLPTR); }
+            UTIL_FORCEINLINE int yield() { return yield(UTIL_CONFIG_NULLPTR); }
+            UTIL_FORCEINLINE int cancel() { return cancel(UTIL_CONFIG_NULLPTR); }
+            UTIL_FORCEINLINE int kill(enum EN_TASK_STATUS status) { return kill(status, UTIL_CONFIG_NULLPTR); }
+            UTIL_FORCEINLINE int kill() { return kill(UTIL_CONFIG_NULLPTR); }
 
             LIBCOPP_COTASK_API virtual int on_finished();
 
@@ -143,13 +143,13 @@ namespace cotask {
             UTIL_FORCEINLINE action_ptr_t get_raw_action() const LIBCOPP_MACRO_NOEXCEPT { return action_; }
 
         protected:
-            LIBCOPP_COTASK_API void _set_action(action_ptr_t action);
+            LIBCOPP_COTASK_API void         _set_action(action_ptr_t action);
             LIBCOPP_COTASK_API action_ptr_t _get_action();
 
             LIBCOPP_COTASK_API bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-            LIBCOPP_COTASK_API int _notify_finished(std::list<std::exception_ptr>& unhandled, void *priv_data);
+            LIBCOPP_COTASK_API int _notify_finished(std::list<std::exception_ptr> &unhandled, void *priv_data);
 #else
             LIBCOPP_COTASK_API int _notify_finished(void *priv_data);
 #endif

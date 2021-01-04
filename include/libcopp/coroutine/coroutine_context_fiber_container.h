@@ -23,7 +23,6 @@ namespace copp {
     template <typename TALLOC>
     class coroutine_context_fiber_container : public coroutine_context_fiber {
     public:
-
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
         using coroutine_context_type = coroutine_context_fiber;
         using base_type              = coroutine_context_fiber;
@@ -104,7 +103,7 @@ namespace copp {
             unsigned char *this_addr = reinterpret_cast<unsigned char *>(callee_stack.sp);
             // stack down
             this_addr -= private_buffer_size + this_align_size;
-            ret.reset(new ((void *)this_addr) this_type(std::move(alloc)));
+            ret.reset(new (reinterpret_cast<void *>(this_addr)) this_type(std::move(alloc)));
 
             // callee_stack and alloc unavailable any more.
             if (ret) {
@@ -117,8 +116,7 @@ namespace copp {
             // after this call runner will be unavailable
             // stack_sz is used for stack reserve size of fiber
             callback_t callback(std::move(runner));
-            if (coroutine_context_fiber::create(ret.get(), callback, ret->callee_stack_, 
-                coroutine_size, private_buffer_size, stack_sz) <
+            if (coroutine_context_fiber::create(ret.get(), callback, ret->callee_stack_, coroutine_size, private_buffer_size, stack_sz) <
                 0) {
                 ret.reset();
             }
