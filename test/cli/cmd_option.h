@@ -444,7 +444,7 @@ namespace util {
             inline void start(int argv, char *argc[], bool is_single_cmd = false, void *ext_param = NULL) const {
                 typedef const char *conv_char_t;
 
-                start(argv, reinterpret_cast<conv_char_t *>(argc), is_single_cmd, ext_param);
+                start(argv, const_cast<conv_char_t *>(argc), is_single_cmd, ext_param);
             }
 
             /**

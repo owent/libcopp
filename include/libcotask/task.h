@@ -119,9 +119,8 @@ namespace cotask {
                 return ptr_t();
             }
 
-            typename coroutine_t::ptr_t coroutine =
-                coroutine_t::create(reinterpret_cast<a_t *>(UTIL_CONFIG_NULLPTR), alloc, stack_size,
-                                    sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
+            typename coroutine_t::ptr_t coroutine = coroutine_t::create(
+                reinterpret_cast<a_t *>(NULL), alloc, stack_size, sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
             if (!coroutine) {
                 return ptr_t();
             }
