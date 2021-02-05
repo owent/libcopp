@@ -55,30 +55,48 @@ int main() {
 endif()
 # Import options
 if(COMPILER_OPTIONS_TEST_STD_COROUTINE)
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE 1)
+  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+      ON
+      CACHE BOOL "Enable C++20 coroutine support for libcopp")
   unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
 elseif(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE 1)
+  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+      ON
+      CACHE BOOL "Enable C++20 coroutine support for libcopp")
   set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE 1)
 else()
-  unset(LIBCOPP_MACRO_ENABLE_STD_COROUTINE)
+  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+      OFF
+      CACHE BOOL "Enable C++20 coroutine support for libcopp")
   unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
 endif()
 
 if(COMPILER_OPTIONS_TEST_EXCEPTION)
-  set(LIBCOPP_MACRO_ENABLE_EXCEPTION 1)
+  set(LIBCOPP_MACRO_ENABLE_EXCEPTION
+      ON
+      CACHE BOOL "Enable exception support for libcopp")
 else()
-  unset(LIBCOPP_MACRO_ENABLE_EXCEPTION)
+  set(LIBCOPP_MACRO_ENABLE_EXCEPTION
+      OFF
+      CACHE BOOL "Enable exception support for libcopp")
 endif()
 if(COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR)
-  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR 1)
+  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+      ON
+      CACHE BOOL "Enable C++11 std::exception_ptr support for libcopp")
 else()
-  unset(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR)
+  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+      OFF
+      CACHE BOOL "Enable C++11 std::exception_ptr support for libcopp")
 endif()
 if(COMPILER_OPTIONS_TEST_RTTI)
-  set(LIBCOPP_MACRO_ENABLE_RTTI 1)
+  set(LIBCOPP_MACRO_ENABLE_RTTI
+      ON
+      CACHE BOOL "Enable RTTI support for libcopp")
 else()
-  unset(LIBCOPP_MACRO_ENABLE_RTTI)
+  set(LIBCOPP_MACRO_ENABLE_RTTI
+      OFF
+      CACHE BOOL "Enable RTTI support for libcopp")
 endif()
 
 unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
