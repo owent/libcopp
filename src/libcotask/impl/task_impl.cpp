@@ -60,7 +60,7 @@ namespace cotask {
                 return UTIL_CONFIG_NULLPTR;
             }
 
-            return *((task_impl **)this_co->get_private_buffer());
+            return *reinterpret_cast<task_impl **>(this_co->get_private_buffer());
         }
 
         LIBCOPP_COTASK_API void task_impl::_set_action(action_ptr_t action) { action_ = action; }

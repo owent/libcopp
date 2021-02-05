@@ -216,9 +216,7 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
 }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-static int test_context_base_foo_runner_throw_exception(void *) {
-    return (int)std::string().at(1);
-}
+static int test_context_base_foo_runner_throw_exception(void *) { return static_cast<int>(std::string().at(1)); }
 
 CASE_TEST(coroutine, coroutine_context_throw_exception) {
     unsigned char *stack_buff = new unsigned char[128 * 1024];
@@ -234,14 +232,14 @@ CASE_TEST(coroutine, coroutine_context_throw_exception) {
 
         test_context_base_coroutine_context_test_type::ptr_t co =
             test_context_base_coroutine_context_test_type::create(test_context_base_foo_runner_throw_exception, alloc);
-        
+
         CASE_EXPECT_TRUE(!!co);
 
         CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
 
         co->start();
-    } catch (const std::exception& e) {
-        CASE_MSG_INFO() << "Caught exception \"" << e.what() << "\""<<std::endl;
+    } catch (const std::exception &e) {
+        CASE_MSG_INFO() << "Caught exception \"" << e.what() << "\"" << std::endl;
     }
 
     delete[] stack_buff;

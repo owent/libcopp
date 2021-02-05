@@ -75,7 +75,7 @@ namespace copp {
      */
     class coroutine_context_base {
     public:
-        typedef std::function<int(void *)>                      callback_t;
+        typedef std::function<int(void *)> callback_t;
 
         /**
          * @brief status of safe coroutine context base
@@ -237,7 +237,7 @@ namespace copp {
         }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-        static inline void maybe_rethrow(std::exception_ptr& inout) {
+        static inline void maybe_rethrow(std::exception_ptr &inout) {
             if (unlikely(inout)) {
                 std::exception_ptr eptr;
                 std::swap(eptr, inout);
@@ -245,7 +245,7 @@ namespace copp {
             }
         }
 
-        UTIL_FORCEINLINE void maybe_rethrow() { maybe_rethrow(unhandle_exception_); };
+        UTIL_FORCEINLINE void maybe_rethrow() { maybe_rethrow(unhandle_exception_); }
 #endif
 
         /**
@@ -253,14 +253,14 @@ namespace copp {
          * @see detail::coroutine_context_base
          * @return pointer of current coroutine, if not in coroutine, return NULL
          */
-        static LIBCOPP_COPP_API coroutine_context_base * get_this_coroutine_base() LIBCOPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API coroutine_context_base *get_this_coroutine_base() LIBCOPP_MACRO_NOEXCEPT;
 
         /**
          * @brief set current coroutine
          * @see detail::coroutine_context_base
          * @param ctx pointer of current coroutine, if not in coroutine, set NULL
          */
-        static LIBCOPP_COPP_API void set_this_coroutine_base(coroutine_context_base * ctx) LIBCOPP_MACRO_NOEXCEPT;
+        static LIBCOPP_COPP_API void set_this_coroutine_base(coroutine_context_base *ctx) LIBCOPP_MACRO_NOEXCEPT;
     };
 } // namespace copp
 

@@ -109,7 +109,7 @@ CASE_TEST(coroutine_fiber, shared_runner) {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 static int test_context_fiber_foo_runner_throw_exception(void *) {
-    return (int)std::string().at(1);
+    return static_cast<int>(std::string().at(1));
 }
 
 CASE_TEST(coroutine_fiber, coroutine_context_throw_exception) {

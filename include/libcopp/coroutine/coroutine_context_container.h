@@ -103,7 +103,7 @@ namespace copp {
             unsigned char *this_addr = reinterpret_cast<unsigned char *>(callee_stack.sp);
             // stack down
             this_addr -= private_buffer_size + this_align_size;
-            ret.reset(new ((void *)this_addr) this_type(std::move(alloc)));
+            ret.reset(new (reinterpret_cast<void *>(this_addr)) this_type(std::move(alloc)));
 
             // callee_stack and alloc unavailable any more.
             if (ret) {
