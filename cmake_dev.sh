@@ -76,8 +76,8 @@ while getopts "ab:c:d:e:htusp:-" OPTION; do
         ;;
         c)
             CC="$OPTARG";
-            CXX="${CC/clang/clang++}";
-            CXX="${CXX/gcc/g++}";
+            CXX="$(echo "$CC" | sed 's/\(.*\)clang/\1clang++/')";
+            CXX="$(echo "$CXX" | sed 's/\(.*\)gcc/\1g++/')";
         ;;
         d)
             DISTCC="$OPTARG";
