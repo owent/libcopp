@@ -112,50 +112,51 @@ if(NOT EXISTS "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
 endif()
 
 # generate check header
-write_compiler_detection_header(
-  FILE "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h" PREFIX UTIL_CONFIG
-  COMPILERS GNU Clang AppleClang MSVC
-  FEATURES c_std_90
-           c_std_99
-           c_std_11
-           c_restrict
-           c_static_assert
-           c_variadic_macros
-           cxx_std_98
-           cxx_std_11
-           cxx_std_14
-           cxx_std_17
-           cxx_std_20
-           cxx_alias_templates
-           cxx_attributes
-           cxx_attribute_deprecated
-           cxx_auto_type
-           cxx_constexpr
-           cxx_decltype
-           cxx_decltype_auto
-           cxx_default_function_template_args
-           cxx_defaulted_functions
-           cxx_delegating_constructors
-           cxx_deleted_functions
-           cxx_final
-           cxx_generic_lambdas
-           cxx_inheriting_constructors
-           cxx_lambdas
-           cxx_long_long_type
-           cxx_noexcept
-           cxx_nonstatic_member_init
-           cxx_nullptr
-           cxx_override
-           cxx_range_for
-           cxx_raw_string_literals
-           cxx_relaxed_constexpr
-           cxx_return_type_deduction
-           cxx_rvalue_references
-           cxx_sizeof_member
-           cxx_static_assert
-           cxx_thread_local
-           cxx_variadic_templates)
-
+if(CMAKE_VERSION VERSION_LESS "3.20.0")
+  write_compiler_detection_header(
+    FILE "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h" PREFIX UTIL_CONFIG
+    COMPILERS GNU Clang AppleClang MSVC
+    FEATURES c_std_90
+             c_std_99
+             c_std_11
+             c_restrict
+             c_static_assert
+             c_variadic_macros
+             cxx_std_98
+             cxx_std_11
+             cxx_std_14
+             cxx_std_17
+             cxx_std_20
+             cxx_alias_templates
+             cxx_attributes
+             cxx_attribute_deprecated
+             cxx_auto_type
+             cxx_constexpr
+             cxx_decltype
+             cxx_decltype_auto
+             cxx_default_function_template_args
+             cxx_defaulted_functions
+             cxx_delegating_constructors
+             cxx_deleted_functions
+             cxx_final
+             cxx_generic_lambdas
+             cxx_inheriting_constructors
+             cxx_lambdas
+             cxx_long_long_type
+             cxx_noexcept
+             cxx_nonstatic_member_init
+             cxx_nullptr
+             cxx_override
+             cxx_range_for
+             cxx_raw_string_literals
+             cxx_relaxed_constexpr
+             cxx_return_type_deduction
+             cxx_rvalue_references
+             cxx_sizeof_member
+             cxx_static_assert
+             cxx_thread_local
+             cxx_variadic_templates)
+endif()
 if(LIBCOTASK_ENABLE)
   set(LIBCOTASK_MACRO_ENABLED 1)
 endif()
