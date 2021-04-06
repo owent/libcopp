@@ -104,15 +104,13 @@ unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 include("${CMAKE_CURRENT_LIST_DIR}/include/include.macro.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/src/libcopp.macro.cmake")
 
-# feature detect
-include(WriteCompilerDetectionHeader)
-
 if(NOT EXISTS "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
   file(MAKE_DIRECTORY "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
 endif()
 
 # generate check header
 if(CMAKE_VERSION VERSION_LESS "3.20.0")
+  include(WriteCompilerDetectionHeader)
   write_compiler_detection_header(
     FILE "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h" PREFIX UTIL_CONFIG
     COMPILERS GNU Clang AppleClang MSVC
