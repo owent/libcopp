@@ -5,12 +5,12 @@ endif()
 
 enable_testing()
 
-project(libcopp C CXX ASM)
-
-set(LIBCOPP_VERSION_MAJOR "1")
-set(LIBCOPP_VERSION_MINOR "3")
-set(LIBCOPP_VERSION_PATCH "5")
-set(LIBCOPP_VERSION "${LIBCOPP_VERSION_MAJOR}.${LIBCOPP_VERSION_MINOR}.${LIBCOPP_VERSION_PATCH}")
+project(
+  libcopp
+  VERSION "1.3.5"
+  DESCRIPTION "Cross-platform coroutine library in C++ ."
+  HOMEPAGE_URL "https://libcopp.atframe.work"
+  LANGUAGES C CXX ASM)
 
 # ##########################################################################################################################################
 # CMake 模块 (递归包含模块, 带颜色输出模块, 平台检测模块)
@@ -228,7 +228,7 @@ endif()
 
 # Install configuration
 set(CMAKE_INSTALL_CMAKEDIR
-    "${CMAKE_INSTALL_LIBDIR}/cmake"
+    "${CMAKE_INSTALL_LIBDIR}/cmake/libcopp"
     CACHE STRING "Directory relative to CMAKE_INSTALL to install the cmake configuration files")
 
 configure_file("${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile.in" "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile" @ONLY
@@ -237,27 +237,27 @@ configure_file("${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile.in" "${CMAKE_CUR
 include(CMakePackageConfigHelpers)
 set(INCLUDE_INSTALL_DIR include)
 
-file(MAKE_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake")
+file(MAKE_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp")
 
 configure_package_config_file(
-  "${CMAKE_CURRENT_LIST_DIR}/libcopp-config.cmake.in" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config.cmake"
-  INSTALL_DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
-  PATH_VARS LIBCOPP_VERSION INCLUDE_INSTALL_DIR CMAKE_INSTALL_LIBDIR PROJECT_SOURCE_DIR
+  "${CMAKE_CURRENT_LIST_DIR}/libcopp-config.cmake.in" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_CMAKEDIR}"
+  PATH_VARS PROJECT_VERSION INCLUDE_INSTALL_DIR CMAKE_INSTALL_LIBDIR PROJECT_SOURCE_DIR
   NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 write_basic_package_version_file(
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config-version.cmake"
-  VERSION ${LIBCOPP_VERSION}
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config-version.cmake"
+  VERSION ${PROJECT_VERSION}
   COMPATIBILITY SameMajorVersion)
 
-install(FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config.cmake"
-              "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp-config-version.cmake" DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
+install(FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config.cmake"
+              "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config-version.cmake" DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
 
 set(CPACK_PACKAGE_VENDOR "libcopp")
-set(CPACK_PACKAGE_VERSION_MAJOR "${LIBCOPP_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${LIBCOPP_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${LIBCOPP_VERSION_PATCH}")
-set(CPACK_PACKAGE_DESCRIPTION "libcopp ${LIBCOPP_VERSION_MAJOR}.${LIBCOPP_VERSION_MINOR}.${LIBCOPP_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+set(CPACK_PACKAGE_DESCRIPTION "libcopp ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${CPACK_PACKAGE_DESCRIPTION}")
 set(CPACK_PACKAGE_CONTACT "admin@owent.net")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://libcopp.atframe.work/")

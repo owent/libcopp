@@ -34,7 +34,7 @@
 # =============================================================================
 # (To distribute this file outside of CMake, substitute the full License text for the above reference.)
 
-set(Libcopp_VERSION "@LIBCOPP_VERSION@")
+set(Libcopp_VERSION "@PROJECT_VERSION@")
 
 @PACKAGE_INIT@
 
