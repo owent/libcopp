@@ -175,6 +175,11 @@ if(CMAKE_USE_PTHREADS_INIT)
   endif()
 endif()
 
+set(LIBCOPP_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(LIBCOPP_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(LIBCOPP_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(LIBCOPP_VERSION "${PROJECT_VERSION}")
+
 configure_file("${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/libcopp_build_features.h.in"
                "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/libcopp_build_features.h" @ONLY)
 
