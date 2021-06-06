@@ -6,7 +6,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/sample.custom-macro.cmake")
 file(
   GLOB SAMPLE_SRC_LIST
   RELATIVE "${PROJECT_SAMPLE_SRC_DIR}"
-  ${PROJECT_SAMPLE_SRC_DIR}/*.cpp ${PROJECT_SAMPLE_SRC_DIR}/*.cc ${PROJECT_SAMPLE_SRC_DIR}/*.c ${PROJECT_SAMPLE_SRC_DIR}/*.cxx)
+  ${PROJECT_SAMPLE_SRC_DIR}/*.cpp ${PROJECT_SAMPLE_SRC_DIR}/*.cc ${PROJECT_SAMPLE_SRC_DIR}/*.c
+  ${PROJECT_SAMPLE_SRC_DIR}/*.cxx)
 
 # find if chrono exists
 include(CheckIncludeFileCXX)

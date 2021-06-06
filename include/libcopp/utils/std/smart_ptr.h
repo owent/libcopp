@@ -34,52 +34,52 @@
  */
 
 #if defined(_MSC_VER) && _MSC_VER >= 1500
-#include <memory>
+#  include <memory>
 #endif
 
 // VC9.0 SP1以上分支判断
 #if defined(_MSC_VER) && ((_MSC_VER == 1500 && defined(_HAS_TR1)) || _MSC_VER > 1500)
 // 采用VC std::tr1库
-#include <memory>
+#  include <memory>
 #elif defined(__clang__) && __clang_major__ >= 3
 // 采用Clang c++11库
-#include <memory>
+#  include <memory>
 #elif defined(__GNUC__) && __GNUC__ >= 4
 // 采用G++ std::tr1库
-#if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
-#include <memory>
-#else
-#include <tr1/memory>
+#  if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
+#    include <memory>
+#  else
+#    include <tr1/memory>
 namespace std {
-    using tr1::bad_weak_ptr;
-    using tr1::const_pointer_cast;
-    using tr1::dynamic_pointer_cast;
-    using tr1::enable_shared_from_this;
-    using tr1::get_deleter;
-    using tr1::make_shared;
-    using tr1::shared_ptr;
-    using tr1::static_pointer_cast;
-    using tr1::swap;
-    using tr1::unique_ptr;
-    using tr1::weak_ptr;
-} // namespace std
-#endif
+using tr1::bad_weak_ptr;
+using tr1::const_pointer_cast;
+using tr1::dynamic_pointer_cast;
+using tr1::enable_shared_from_this;
+using tr1::get_deleter;
+using tr1::make_shared;
+using tr1::shared_ptr;
+using tr1::static_pointer_cast;
+using tr1::swap;
+using tr1::unique_ptr;
+using tr1::weak_ptr;
+}  // namespace std
+#  endif
 #else
 // 采用boost tr1库
-#include <boost/tr1/memory.hpp>
+#  include <boost/tr1/memory.hpp>
 namespace std {
-    using tr1::bad_weak_ptr;
-    using tr1::const_pointer_cast;
-    using tr1::dynamic_pointer_cast;
-    using tr1::enable_shared_from_this;
-    using tr1::get_deleter;
-    using tr1::make_shared;
-    using tr1::shared_ptr;
-    using tr1::static_pointer_cast;
-    using tr1::swap;
-    using tr1::unique_ptr;
-    using tr1::weak_ptr;
-} // namespace std
+using tr1::bad_weak_ptr;
+using tr1::const_pointer_cast;
+using tr1::dynamic_pointer_cast;
+using tr1::enable_shared_from_this;
+using tr1::get_deleter;
+using tr1::make_shared;
+using tr1::shared_ptr;
+using tr1::static_pointer_cast;
+using tr1::swap;
+using tr1::unique_ptr;
+using tr1::weak_ptr;
+}  // namespace std
 #endif
 
 #endif

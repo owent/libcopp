@@ -9,4 +9,4 @@
 
 #include "libcopp/fcontext/fcontext.hpp"
 
-#endif // _COPP_BOOST_CONTEXT_ALL_H
+#endif  // _COPP_BOOST_CONTEXT_ALL_H

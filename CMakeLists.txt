@@ -53,17 +53,23 @@ if(COMPILER_OPTIONS_TEST_STD_COROUTINE)
   set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
       ON
       CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
+  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
+      OFF
+      CACHE BOOL "Enable C++20 coroutine with experimental mode")
 elseif(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
   set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
       ON
       CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE 1)
+  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
+      ON
+      CACHE BOOL "Enable C++20 coroutine with experimental mode")
 else()
   set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
       OFF
       CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  unset(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE)
+  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
+      OFF
+      CACHE BOOL "Enable C++20 coroutine with experimental mode")
 endif()
 
 if(COMPILER_OPTIONS_TEST_EXCEPTION)

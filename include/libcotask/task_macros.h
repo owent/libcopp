@@ -21,12 +21,11 @@
 #include <libcotask/core/standard_new_allocator.h>
 #include <libcotask/impl/task_impl.h>
 
-
 namespace cotask {
-    struct LIBCOPP_COTASK_API_HEAD_ONLY macro_coroutine {
-        typedef copp::allocator::default_statck_allocator            stack_allocator_t;
-        typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
-    };
-} // namespace cotask
+struct LIBCOPP_COTASK_API_HEAD_ONLY macro_coroutine {
+  typedef copp::allocator::default_statck_allocator stack_allocator_t;
+  typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
+};
+}  // namespace cotask
 
 #endif /* _COTASK_THIS_TASK_H_ */

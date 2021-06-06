@@ -18,21 +18,21 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-#if defined(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE) && LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-#include <experimental/coroutine>
-#define LIBCOPP_MACRO_FUTURE_COROUTINE_VOID std::experimental::coroutine_handle<>
-#define LIBCOPP_MACRO_FUTURE_COROUTINE_TYPE(T) std::experimental::coroutine_handle<T>
-#else
-#include <coroutine>
-#define LIBCOPP_MACRO_FUTURE_COROUTINE_VOID std::coroutine_handle<>
-#define LIBCOPP_MACRO_FUTURE_COROUTINE_TYPE(T) std::coroutine_handle<T>
-#endif
+#  if defined(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE) && LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
+#    include <experimental/coroutine>
+#    define LIBCOPP_MACRO_FUTURE_COROUTINE_VOID std::experimental::coroutine_handle<>
+#    define LIBCOPP_MACRO_FUTURE_COROUTINE_TYPE(T) std::experimental::coroutine_handle<T>
+#  else
+#    include <coroutine>
+#    define LIBCOPP_MACRO_FUTURE_COROUTINE_VOID std::coroutine_handle<>
+#    define LIBCOPP_MACRO_FUTURE_COROUTINE_TYPE(T) std::coroutine_handle<T>
+#  endif
 #endif
 
 #if defined(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE) && LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-#define LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE std::experimental::
+#  define LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE std::experimental::
 #else
-#define LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE std::
+#  define LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE std::
 #endif
 
 #endif

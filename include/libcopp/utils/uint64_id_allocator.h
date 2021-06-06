@@ -14,29 +14,29 @@
 
 #include <stdint.h>
 
-#include "config/libcopp_build_features.h"
 #include "config/compiler_features.h"
+#include "config/libcopp_build_features.h"
 
 namespace copp {
-    namespace util {
-        class LIBCOPP_COPP_API uint64_id_allocator {
-        public:
+namespace util {
+class LIBCOPP_COPP_API uint64_id_allocator {
+ public:
 #if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-            using value_type = uint64_t;
+  using value_type = uint64_t;
 #else
-            typedef uint64_t value_type;
+  typedef uint64_t value_type;
 #endif
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-            static constexpr value_type npos = 0; /** invalid key **/
+  static constexpr value_type npos = 0; /** invalid key **/
 #else
-            static const value_type npos = 0; /** invalid key **/
+  static const value_type npos = 0; /** invalid key **/
 #endif
 
-            static value_type allocate() LIBCOPP_MACRO_NOEXCEPT;
-            static void       deallocate(value_type) LIBCOPP_MACRO_NOEXCEPT;
-        };
-    }
-}
+  static value_type allocate() LIBCOPP_MACRO_NOEXCEPT;
+  static void deallocate(value_type) LIBCOPP_MACRO_NOEXCEPT;
+};
+}  // namespace util
+}  // namespace copp
 
 #endif

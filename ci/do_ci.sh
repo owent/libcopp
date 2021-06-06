@@ -97,7 +97,8 @@ elif [[ "$1" == "msys2.mingw.test" ]]; then
   git config --global http.sslBackend openssl ;
   mkdir -p build_jobs_ci ;
   cd build_jobs_ci ;
-  cmake .. -G 'MinGW Makefiles' ${PROJECT_ADDON_OPTIONS[@]} ;
+  cmake .. -G 'MinGW Makefiles' ${PROJECT_ADDON_OPTIONS[@]}                                       \
+    -DLIBCOPP_MACRO_ENABLE_STD_COROUTINE=OFF -DLIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE=OFF ;
   cmake --build . -j2 || cmake --build . ;
 else
   echo "Bad configure";
@@ -106,8 +107,10 @@ fi
 
 if [[ "x$THREAD_UNSAFE" != "x" ]]; then
   echo "============================== run benchmark =============================="
-  cmake --build . -- benchmark
+  cmake --build . --config $Env:CONFIGURATION --target benchmark
 else
   echo "============================== run sample,test,benchmark =============================="
-  cmake --build . -- run_sample run_test benchmark
+  cmake --build . --config $Env:CONFIGURATION --target run_sample
+  cmake --build . --config $Env:CONFIGURATION --target run_test
+  cmake --build . --config $Env:CONFIGURATION --target benchmark
 fi

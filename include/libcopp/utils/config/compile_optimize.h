@@ -1,43 +1,42 @@
 ﻿#pragma once
 
-
 // ================ branch prediction information ================
 #ifndef likely
-#ifdef __GNUC__
-#define likely(x) __builtin_expect(!!(x), 1)
-#else
-#define likely(x) !!(x)
-#endif
+#  ifdef __GNUC__
+#    define likely(x) __builtin_expect(!!(x), 1)
+#  else
+#    define likely(x) !!(x)
+#  endif
 #endif
 // C++20 [[likely]]
 
 #ifndef unlikely
-#ifdef __GNUC__
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#else
-#define unlikely(x) !!(x)
-#endif
+#  ifdef __GNUC__
+#    define unlikely(x) __builtin_expect(!!(x), 0)
+#  else
+#    define unlikely(x) !!(x)
+#  endif
 #endif
 // C++20 [[unlikely]]
 
 #ifndef unreachable
-#ifdef __GNUC__
-#ifdef __clang__
-#if __has_builtin(__builtin_unreachable)
-#define unreachable() __builtin_unreachable()
-#else
-#define unreachable() abort()
-#endif
-#else
-#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-#define unreachable() __builtin_unreachable()
-#else
-#define unreachable() abort()
-#endif
-#endif
-#else
-#define unreachable() abort()
-#endif
+#  ifdef __GNUC__
+#    ifdef __clang__
+#      if __has_builtin(__builtin_unreachable)
+#        define unreachable() __builtin_unreachable()
+#      else
+#        define unreachable() abort()
+#      endif
+#    else
+#      if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#        define unreachable() __builtin_unreachable()
+#      else
+#        define unreachable() abort()
+#      endif
+#    endif
+#  else
+#    define unreachable() abort()
+#  endif
 #endif
 // ---------------- branch prediction information ----------------
 
@@ -52,51 +51,51 @@
 //
 // Dynamic shared object (DSO) and dynamic-link library (DLL) support
 //
-#if __GNUC__ >= 4
-#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__CYGWIN__)
+#  if __GNUC__ >= 4
+#    if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__CYGWIN__)
 // All Win32 development environments, including 64-bit Windows and MinGW, define
 // _WIN32 or one of its variant spellings. Note that Cygwin is a POSIX environment,
 // so does not define _WIN32 or its variants.
-#ifndef UTIL_SYMBOL_EXPORT
-#define UTIL_SYMBOL_EXPORT __attribute__((__dllexport__))
-#endif
-#ifndef UTIL_SYMBOL_IMPORT
-#define UTIL_SYMBOL_IMPORT __attribute__((__dllimport__))
-#endif
+#      ifndef UTIL_SYMBOL_EXPORT
+#        define UTIL_SYMBOL_EXPORT __attribute__((__dllexport__))
+#      endif
+#      ifndef UTIL_SYMBOL_IMPORT
+#        define UTIL_SYMBOL_IMPORT __attribute__((__dllimport__))
+#      endif
 
-#else
+#    else
 
-#ifndef UTIL_SYMBOL_EXPORT
-#define UTIL_SYMBOL_EXPORT  __attribute__((visibility("default")))
-#endif
-#ifndef UTIL_SYMBOL_IMPORT
-#define UTIL_SYMBOL_IMPORT  __attribute__((visibility("default")))
-#endif
-#ifndef UTIL_SYMBOL_VISIBLE
-#define UTIL_SYMBOL_VISIBLE __attribute__((visibility("default")))
-#endif
-#ifndef UTIL_SYMBOL_LOCAL
-#define UTIL_SYMBOL_LOCAL   __attribute__((visibility("hidden")))
-#endif
+#      ifndef UTIL_SYMBOL_EXPORT
+#        define UTIL_SYMBOL_EXPORT __attribute__((visibility("default")))
+#      endif
+#      ifndef UTIL_SYMBOL_IMPORT
+#        define UTIL_SYMBOL_IMPORT __attribute__((visibility("default")))
+#      endif
+#      ifndef UTIL_SYMBOL_VISIBLE
+#        define UTIL_SYMBOL_VISIBLE __attribute__((visibility("default")))
+#      endif
+#      ifndef UTIL_SYMBOL_LOCAL
+#        define UTIL_SYMBOL_LOCAL __attribute__((visibility("hidden")))
+#      endif
 
-#endif
+#    endif
 
-#else
+#  else
 // config/platform/win32.hpp will define UTIL_SYMBOL_EXPORT, etc., unless already defined
-#ifndef UTIL_SYMBOL_EXPORT
-#define UTIL_SYMBOL_EXPORT
-#endif
-#ifndef UTIL_SYMBOL_IMPORT
-#define UTIL_SYMBOL_IMPORT
-#endif
-#ifndef UTIL_SYMBOL_VISIBLE
-#define UTIL_SYMBOL_VISIBLE
-#endif
-#ifndef UTIL_SYMBOL_LOCAL
-#define UTIL_SYMBOL_LOCAL
-#endif
+#    ifndef UTIL_SYMBOL_EXPORT
+#      define UTIL_SYMBOL_EXPORT
+#    endif
+#    ifndef UTIL_SYMBOL_IMPORT
+#      define UTIL_SYMBOL_IMPORT
+#    endif
+#    ifndef UTIL_SYMBOL_VISIBLE
+#      define UTIL_SYMBOL_VISIBLE
+#    endif
+#    ifndef UTIL_SYMBOL_LOCAL
+#      define UTIL_SYMBOL_LOCAL
+#    endif
 
-#endif
+#  endif
 
 #elif defined(_MSC_VER)
 //  Microsoft Visual C++
@@ -113,78 +112,78 @@
 //  its boost/config/compiler/ file must define UTIL_SYMBOL_EXPORT and
 //  UTIL_SYMBOL_IMPORT
 #if !defined(UTIL_SYMBOL_EXPORT) && (defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__CYGWIN__))
-#ifndef UTIL_SYMBOL_EXPORT
-#define UTIL_SYMBOL_EXPORT __declspec(dllexport)
-#endif
-#ifndef UTIL_SYMBOL_IMPORT
-#define UTIL_SYMBOL_IMPORT __declspec(dllimport)
-#endif
+#  ifndef UTIL_SYMBOL_EXPORT
+#    define UTIL_SYMBOL_EXPORT __declspec(dllexport)
+#  endif
+#  ifndef UTIL_SYMBOL_IMPORT
+#    define UTIL_SYMBOL_IMPORT __declspec(dllimport)
+#  endif
 #endif
 // ---------------- import/export: for platform ----------------
 
 #ifndef UTIL_SYMBOL_EXPORT
-#define UTIL_SYMBOL_EXPORT
+#  define UTIL_SYMBOL_EXPORT
 #endif
 #ifndef UTIL_SYMBOL_IMPORT
-#define UTIL_SYMBOL_IMPORT
+#  define UTIL_SYMBOL_IMPORT
 #endif
 #ifndef UTIL_SYMBOL_LOCAL
-#define UTIL_SYMBOL_LOCAL
+#  define UTIL_SYMBOL_LOCAL
 #endif
 #ifndef UTIL_SYMBOL_VISIBLE
-#define UTIL_SYMBOL_VISIBLE
+#  define UTIL_SYMBOL_VISIBLE
 #endif
 
 // ---------------- import/export ----------------
 
 // ================ __cdecl ================
 #if defined(__GNUC__) || defined(__GNUG__)
-#ifndef __cdecl
+#  ifndef __cdecl
 // see https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Function-Attributes.html
 // Intel x86 architecture specific calling conventions
-#ifdef _M_IX86
-#define __cdecl __attribute__((__cdecl__))
-#else
-#define __cdecl
-#endif
-#endif
+#    ifdef _M_IX86
+#      define __cdecl __attribute__((__cdecl__))
+#    else
+#      define __cdecl
+#    endif
+#  endif
 #endif
 // ---------------- __cdecl ----------------
 
 // ================ always inline ================
 
 #ifndef UTIL_FORCEINLINE
-#if defined(__clang__)
-#if __has_attribute(always_inline)
-#define UTIL_FORCEINLINE __attribute__((always_inline))
-#else
-#define UTIL_FORCEINLINE inline
-#endif
+#  if defined(__clang__)
+#    if __has_attribute(always_inline)
+#      define UTIL_FORCEINLINE __attribute__((always_inline))
+#    else
+#      define UTIL_FORCEINLINE inline
+#    endif
 
-#elif defined(__GNUC__) && __GNUC__ > 3
-#define UTIL_FORCEINLINE __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define UTIL_FORCEINLINE __forceinline
-#else
-#define UTIL_FORCEINLINE inline
-#endif
+#  elif defined(__GNUC__) && __GNUC__ > 3
+#    define UTIL_FORCEINLINE __attribute__((always_inline))
+#  elif defined(_MSC_VER)
+#    define UTIL_FORCEINLINE __forceinline
+#  else
+#    define UTIL_FORCEINLINE inline
+#  endif
 #endif
 
 #ifndef UTIL_NOINLINE
-#if defined(_MSC_VER)
-#define UTIL_NOINLINE __declspec(noinline)
-#elif defined(__GNUC__) && __GNUC__ > 3
+#  if defined(_MSC_VER)
+#    define UTIL_NOINLINE __declspec(noinline)
+#  elif defined(__GNUC__) && __GNUC__ > 3
 // Clang also defines __GNUC__ (as 4)
-#if defined(__CUDACC__)
+#    if defined(__CUDACC__)
 // nvcc doesn't always parse __noinline__,
 // see: https://svn.boost.org/trac/boost/ticket/9392
-#define UTIL_NOINLINE __attribute__((noinline))
-#else
-#define UTIL_NOINLINE __attribute__((__noinline__))
-#endif
-#else
-#define UTIL_NOINLINE
-#endif
+#      define UTIL_NOINLINE __attribute__((noinline))
+#    else
+#      define UTIL_NOINLINE __attribute__((__noinline__))
+#    endif
+#  else
+#    define UTIL_NOINLINE
+#  endif
 #endif
 
 //#ifndef UTIL_TRIVIAL_ABI

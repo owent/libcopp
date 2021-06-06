@@ -21,7 +21,8 @@ if(PROJECT_LIBCOPP_STACK_ALLOC_WINDOWS)
   set(LIBCOPP_MACRO_SYS_WIN 1)
 endif()
 
-check_include_files("sys/resource.h;sys/time.h;unistd.h;sys/types.h;fcntl.h;sys/mman.h" PROJECT_LIBCOPP_STACK_ALLOC_POSIX)
+check_include_files("sys/resource.h;sys/time.h;unistd.h;sys/types.h;fcntl.h;sys/mman.h"
+                    PROJECT_LIBCOPP_STACK_ALLOC_POSIX)
 
 if(PROJECT_LIBCOPP_STACK_ALLOC_POSIX)
   echowithcolor(COLOR GREEN "-- stack allocator: enable posix allocator")
@@ -35,10 +36,12 @@ if(LIBCOPP_ENABLE_SEGMENTED_STACKS)
     echowithcolor(COLOR YELLOW "-- set LIBCOPP_ENABLE_SEGMENTED_STACKS but only gcc and clang support segmented stacks")
     unset(LIBCOPP_ENABLE_SEGMENTED_STACKS)
   elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.7.0")
-    echowithcolor(COLOR YELLOW "-- set LIBCOPP_ENABLE_SEGMENTED_STACKS but gcc 4.7.0 and upper support segmented stacks")
+    echowithcolor(COLOR YELLOW
+                  "-- set LIBCOPP_ENABLE_SEGMENTED_STACKS but gcc 4.7.0 and upper support segmented stacks")
     unset(LIBCOPP_ENABLE_SEGMENTED_STACKS)
   elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0.0")
-    echowithcolor(COLOR YELLOW "-- set LIBCOPP_ENABLE_SEGMENTED_STACKS but clang 5.0.0 and upper support segmented stacks")
+    echowithcolor(COLOR YELLOW
+                  "-- set LIBCOPP_ENABLE_SEGMENTED_STACKS but clang 5.0.0 and upper support segmented stacks")
     unset(LIBCOPP_ENABLE_SEGMENTED_STACKS)
   else()
     echowithcolor(COLOR GREEN "-- Enable segmented stacks")
@@ -48,7 +51,8 @@ if(LIBCOPP_ENABLE_SEGMENTED_STACKS)
 
   if(LIBCOPP_ENABLE_SEGMENTED_STACKS)
     echowithcolor(COLOR GREEN "-- gcc ${CMAKE_CXX_COMPILER_VERSION} found in unix like system.")
-    echowithcolor(COLOR GREEN "-- stack allocator: enable segment allocator, add -fsplit-stack to all program use this library")
+    echowithcolor(COLOR GREEN
+                  "-- stack allocator: enable segment allocator, add -fsplit-stack to all program use this library")
     list(APPEND COPP_SRC_LIST "${PROJECT_LIBCOPP_STACK_ALLOC_SRC_DIR}/stack_allocator_split_segment.cpp")
   endif()
 endif()

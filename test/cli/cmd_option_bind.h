@@ -17,17 +17,17 @@
 #include "cli/cmd_option_bindt_mf_cc.h"
 
 namespace util {
-    namespace cli {
-        // 标准指令处理函数(无返回值，参数为选项的映射表)
-        // void function_name (cmd_option_list&, [参数]); // 函数参数可选
-        // void function_name (callback_param, [参数]); // 函数参数可选
+namespace cli {
+// 标准指令处理函数(无返回值，参数为选项的映射表)
+// void function_name (cmd_option_list&, [参数]); // 函数参数可选
+// void function_name (callback_param, [参数]); // 函数参数可选
 
-        enum cmd_option_char {
-            SPLITCHAR = 0x0001, // (第一位)分隔符
-            STRINGSYM = 0x0002, // (第二位)字符串开闭符
-            TRANSLATE = 0x0004, // (第三位)转义字符
-            CMDSPLIT = 0x0008,  // (第四位)指令分隔符
-        };
-    } // namespace cli
-} // namespace util
+enum cmd_option_char {
+  SPLITCHAR = 0x0001,  // (第一位)分隔符
+  STRINGSYM = 0x0002,  // (第二位)字符串开闭符
+  TRANSLATE = 0x0004,  // (第三位)转义字符
+  CMDSPLIT = 0x0008,   // (第四位)指令分隔符
+};
+}  // namespace cli
+}  // namespace util
 #endif /* _CMDOPTIONBIND_H_ */

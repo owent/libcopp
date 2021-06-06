@@ -9,53 +9,53 @@
 
 #include <cstddef>
 
-#include <cstddef>
 #include <stdint.h>
+#include <cstddef>
 
 #include "libcopp/fcontext/detail/config.hpp"
 #include "libcopp/utils/features.h"
 
 #ifdef COPP_HAS_ABI_HEADERS
-#include COPP_ABI_PREFIX
+#  include COPP_ABI_PREFIX
 #endif
 
 namespace copp {
-    namespace fcontext {
+namespace fcontext {
 
-        extern "C" {
+extern "C" {
 
 #define COPP_BOOST_CONTEXT_CALLDECL
 
-        struct stack_t {
-            void *sp;
-            std::size_t size;
+struct stack_t {
+  void *sp;
+  std::size_t size;
 
-            stack_t() : sp(0), size(0) {}
-        };
+  stack_t() : sp(0), size(0) {}
+};
 
-        struct fp_t {
-            uint64_t fc_freg[19];
+struct fp_t {
+  uint64_t fc_freg[19];
 
-            fp_t() : fc_freg() {}
-        };
+  fp_t() : fc_freg() {}
+};
 
-        struct fcontext_t {
+struct fcontext_t {
 #if defined(__powerpc64__)
-            uint64_t fc_greg[23];
+  uint64_t fc_greg[23];
 #else
-            uint32_t fc_greg[23];
+  uint32_t fc_greg[23];
 #endif
-            stack_t fc_stack;
-            fp_t fc_fp;
+  stack_t fc_stack;
+  fp_t fc_fp;
 
-            fcontext_t() : fc_greg(), fc_stack(), fc_fp() {}
-        };
-        }
-    }
+  fcontext_t() : fc_greg(), fc_stack(), fc_fp() {}
+};
 }
+}  // namespace fcontext
+}  // namespace copp
 
 #ifdef COPP_HAS_ABI_HEADERS
-#include COPP_ABI_SUFFIX
+#  include COPP_ABI_SUFFIX
 #endif
 
-#endif // BOOST_CONTEXT_DETAIL_FCONTEXT_PPC_H
+#endif  // BOOST_CONTEXT_DETAIL_FCONTEXT_PPC_H

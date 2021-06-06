@@ -43,9 +43,11 @@ if(LIBCOPP_MACRO_ENABLE_STD_COROUTINE)
   else()
     string(FIND "${CMAKE_CXX_FLAGS}" "-fcoroutines-ts" LIBCOPP_FIND_COROUTINE_OPTION)
     if(LIBCOPP_FIND_COROUTINE_OPTION GREATER_EQUAL 0)
-      add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines-ts>")
+      add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS
+                            "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines-ts>")
     else()
-      add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines>")
+      add_target_properties(${PROJECT_LIBCOPP_LIB_LINK} INTERFACE_COMPILE_OPTIONS
+                            "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines>")
     endif()
   endif()
 endif()

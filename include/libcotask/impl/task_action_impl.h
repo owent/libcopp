@@ -17,29 +17,27 @@
 
 namespace cotask {
 
-    namespace impl {
+namespace impl {
 
-        class task_impl;
+class task_impl;
 
-        class LIBCOPP_COTASK_API task_action_impl {
-        public:
-            task_action_impl();
-            virtual ~task_action_impl();
+class LIBCOPP_COTASK_API task_action_impl {
+ public:
+  task_action_impl();
+  virtual ~task_action_impl();
 
-            task_action_impl(const task_action_impl &);
-            task_action_impl &operator=(const task_action_impl &);
+  task_action_impl(const task_action_impl &);
+  task_action_impl &operator=(const task_action_impl &);
 
 #if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-            task_action_impl(const task_action_impl &&);
-            task_action_impl &operator=(const task_action_impl &&);
+  task_action_impl(const task_action_impl &&);
+  task_action_impl &operator=(const task_action_impl &&);
 #endif
 
-
-            virtual int operator()(void *) = 0;
-            virtual int on_finished(task_impl &) { return 0; }
-        };
-    } // namespace impl
-} // namespace cotask
-
+  virtual int operator()(void *) = 0;
+  virtual int on_finished(task_impl &) { return 0; }
+};
+}  // namespace impl
+}  // namespace cotask
 
 #endif /* _COTASK_IMPL_TASK_ACTION_IMPL_H_ */

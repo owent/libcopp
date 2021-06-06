@@ -17,24 +17,23 @@
 #include <libcopp/utils/std/smart_ptr.h>
 
 namespace cotask {
-    namespace core {
-        class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
-        public:
-            /**
-             * @brief allocate a object
-             * @param args construct parameters
-             * @return pointer of new object
-             */
-            template <class Ty, class... TARGS>
-            static std::shared_ptr<Ty> allocate(Ty *, TARGS &&... args) {
-                return std::make_shared<Ty>(std::forward<TARGS>(args)...);
-            }
+namespace core {
+class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
+ public:
+  /**
+   * @brief allocate a object
+   * @param args construct parameters
+   * @return pointer of new object
+   */
+  template <class Ty, class... TARGS>
+  static std::shared_ptr<Ty> allocate(Ty *, TARGS &&...args) {
+    return std::make_shared<Ty>(std::forward<TARGS>(args)...);
+  }
 
-            template <class Ty>
-            static void deallocate(std::shared_ptr<Ty> &) {}
-        };
-    } // namespace core
-} // namespace cotask
-
+  template <class Ty>
+  static void deallocate(std::shared_ptr<Ty> &) {}
+};
+}  // namespace core
+}  // namespace cotask
 
 #endif /* STANDARD_NEW_ALLOCATOR_H_ */

@@ -30,15 +30,15 @@
 
 #if defined(_MSC_VER)
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 
-#include <Windows.h> // YieldProcessor
+#  include <Windows.h>  // YieldProcessor
 
-#include <Processthreadsapi.h>
-#include <Synchapi.h> // Windows server
-#include <intrin.h>
+#  include <Processthreadsapi.h>
+#  include <Synchapi.h>  // Windows server
+#  include <intrin.h>
 
 #endif
 
@@ -58,40 +58,39 @@
  * Not for intel c++ compiler, so ignore http://software.intel.com/en-us/forums/topic/296168
  */
 
-#ifdef YieldProcessor
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() YieldProcessor()
-#endif
+#  ifdef YieldProcessor
+#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() YieldProcessor()
+#  endif
 
 #elif defined(__GNUC__) || defined(__clang__)
-#if defined(__i386__) || defined(__x86_64__)
+#  if defined(__i386__) || defined(__x86_64__)
 /**
  * See: Intel(R) 64 and IA-32 Architectures Software Developer's Manual V2
  * PAUSE-Spin Loop Hint, 4-57
  * http://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.html?wapkw=instruction+set+reference
  */
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("pause")
-#elif defined(__ia64__) || defined(__ia64)
+#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("pause")
+#  elif defined(__ia64__) || defined(__ia64)
 /**
  * See: Intel(R) Itanium(R) Architecture Developer's Manual, Vol.3
  * hint - Performance Hint, 3:145
  * http://www.intel.com/content/www/us/en/processors/itanium/itanium-architecture-vol-3-manual.html
  */
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("hint @pause")
-#elif defined(__arm__) && !defined(__ANDROID__)
+#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("hint @pause")
+#  elif defined(__arm__) && !defined(__ANDROID__)
 /**
  * See: ARM Architecture Reference Manuals (YIELD)
  * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.subset.architecture.reference/index.html
  */
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("yield")
-#endif
+#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("yield")
+#  endif
 
 #endif /*compilers*/
 
 // set pause do nothing
 #if !defined(__LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE)
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE()
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE()
 #endif /*!defined(CAPO_SPIN_LOCK_PAUSE)*/
-
 
 /**
  * ==============================================
@@ -102,15 +101,15 @@
 
 // SwitchToThread only can be used in desktop system
 
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD() SwitchToThread()
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD() SwitchToThread()
 
 #elif defined(__linux__) || defined(__unix__)
-#include <sched.h>
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD() sched_yield()
+#  include <sched.h>
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD() sched_yield()
 #endif
 
 #ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE()
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE()
 #endif
 
 /**
@@ -119,31 +118,31 @@
  * ==============================================
  */
 #if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD)
-#include <chrono>
-#include <thread>
+#  include <chrono>
+#  include <thread>
 
-#if defined(__GNUC__) && !defined(__clang__)
-    #if (__GNUC__ * 100 + __GNUC_MINOR__) <= 407
-        #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
-        #define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
-    #endif
-#endif
+#  if defined(__GNUC__) && !defined(__clang__)
+#    if (__GNUC__ * 100 + __GNUC_MINOR__) <= 407
+#      define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
+#      define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
+#    endif
+#  endif
 
-#ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() ::std::this_thread::yield()
-#endif
-#ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() ::std::this_thread::sleep_for(::std::chrono::milliseconds(1))
-#endif
+#  ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD
+#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() ::std::this_thread::yield()
+#  endif
+#  ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP
+#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() ::std::this_thread::sleep_for(::std::chrono::milliseconds(1))
+#  endif
 
 #elif defined(_MSC_VER)
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() Sleep(0)
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() Sleep(1)
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD() Sleep(0)
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() Sleep(1)
 #endif
 
 #ifndef __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD()
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD()
+#  define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP() __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD()
 #endif
 
 /**
@@ -158,65 +157,69 @@
  *   5. sleep (will switch to another process when necessary)
  */
 
-#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_WAIT(x)                         \
-    {                                                                 \
-        unsigned char try_lock_times = static_cast<unsigned char>(x); \
-        if (try_lock_times < 4) {                                     \
-        } else if (try_lock_times < 16) {                             \
-            __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE();                    \
-        } else if (try_lock_times < 32) {                             \
-            __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD();             \
-        } else if (try_lock_times < 64) {                             \
-            __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD();                \
-        } else {                                                      \
-            __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP();             \
-        }                                                             \
-    }
+#define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_WAIT(x)                     \
+  {                                                               \
+    unsigned char try_lock_times = static_cast<unsigned char>(x); \
+    if (try_lock_times < 4) {                                     \
+    } else if (try_lock_times < 16) {                             \
+      __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE();                      \
+    } else if (try_lock_times < 32) {                             \
+      __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_YIELD();               \
+    } else if (try_lock_times < 64) {                             \
+      __LIBCOPP_UTIL_LOCK_SPIN_LOCK_CPU_YIELD();                  \
+    } else {                                                      \
+      __LIBCOPP_UTIL_LOCK_SPIN_LOCK_THREAD_SLEEP();               \
+    }                                                             \
+  }
 
 namespace libcopp {
-    namespace util {
-        namespace lock {
-            /**
-             * @brief 自旋锁
-             * @see http://www.boost.org/doc/libs/1_61_0/doc/html/atomic/usage_examples.html#boost_atomic.usage_examples.example_spinlock
-             */
-            class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
-            private:
-                typedef enum { UNLOCKED = 0, LOCKED = 1 } lock_state_t;
-                ::libcopp::util::lock::atomic_int_type<
+namespace util {
+namespace lock {
+/**
+ * @brief 自旋锁
+ * @see
+ * http://www.boost.org/doc/libs/1_61_0/doc/html/atomic/usage_examples.html#boost_atomic.usage_examples.example_spinlock
+ */
+class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
+ private:
+  typedef enum { UNLOCKED = 0, LOCKED = 1 } lock_state_t;
+  ::libcopp::util::lock::atomic_int_type<
 #if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
-                    ::libcopp::util::lock::unsafe_int_type<unsigned int>
+      ::libcopp::util::lock::unsafe_int_type<unsigned int>
 #else
-                    unsigned int
+      unsigned int
 #endif
-                    >
-                    lock_status_;
+      >
+      lock_status_;
 
-            public:
-                spin_lock() { lock_status_.store(UNLOCKED); }
+ public:
+  spin_lock() { lock_status_.store(UNLOCKED); }
 
-                void lock() {
-                    unsigned char try_times = 0;
-                    while (lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::libcopp::util::lock::memory_order_acq_rel) == LOCKED)
-                        __LIBCOPP_UTIL_LOCK_SPIN_LOCK_WAIT(try_times++); /* busy-wait */
-                }
+  void lock() {
+    unsigned char try_times = 0;
+    while (lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
+           LOCKED)
+      __LIBCOPP_UTIL_LOCK_SPIN_LOCK_WAIT(try_times++); /* busy-wait */
+  }
 
-                void unlock() { lock_status_.store(static_cast<unsigned int>(UNLOCKED), ::libcopp::util::lock::memory_order_release); }
+  void unlock() {
+    lock_status_.store(static_cast<unsigned int>(UNLOCKED), ::libcopp::util::lock::memory_order_release);
+  }
 
-                bool is_locked() { return lock_status_.load(::libcopp::util::lock::memory_order_acquire) == LOCKED; }
+  bool is_locked() { return lock_status_.load(::libcopp::util::lock::memory_order_acquire) == LOCKED; }
 
-                bool try_lock() {
-                    return lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
-                           UNLOCKED;
-                }
+  bool try_lock() {
+    return lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
+           UNLOCKED;
+  }
 
-                bool try_unlock() {
-                    return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
-                           LOCKED;
-                }
-            };
-        } // namespace lock
-    }     // namespace util
-} // namespace libcopp
+  bool try_unlock() {
+    return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
+           LOCKED;
+  }
+};
+}  // namespace lock
+}  // namespace util
+}  // namespace libcopp
 
 #endif /* SPINLOCK_H_ */

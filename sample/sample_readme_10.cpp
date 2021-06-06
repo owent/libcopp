@@ -18,40 +18,40 @@
 typedef cotask::task<> my_task_t;
 
 static copp::future::task_t<int> call_for_await_cotask(my_task_t::ptr_t t) {
-    if (t) {
-        co_return co_await t;
-    }
+  if (t) {
+    co_return co_await t;
+  }
 
-    co_return 0;
+  co_return 0;
 }
 
-static int cotask_action_callback(void *) {
-    int ret = 234;
-    void* ptr = nullptr;
-    cotask::this_task::get_task()->yield(&ptr);
-    if (ptr != nullptr) {
-        ret = *reinterpret_cast<int*>(ptr);
-    }
-    return ret;
+static int cotask_action_callback(void*) {
+  int ret = 234;
+  void* ptr = nullptr;
+  cotask::this_task::get_task()->yield(&ptr);
+  if (ptr != nullptr) {
+    ret = *reinterpret_cast<int*>(ptr);
+  }
+  return ret;
 }
 
 int main() {
-    my_task_t::ptr_t co_task = my_task_t::create(cotask_action_callback);
+  my_task_t::ptr_t co_task = my_task_t::create(cotask_action_callback);
 
-    auto t = call_for_await_cotask(co_task);
-    co_task->start();
+  auto t = call_for_await_cotask(co_task);
+  co_task->start();
 
-    int res = 345;
-    co_task->resume(reinterpret_cast<void*>(&res));
+  int res = 345;
+  co_task->resume(reinterpret_cast<void*>(&res));
 
-    if (nullptr != t.data()) {
-        std::cout<< "co_await a cotask::task and get result: "<< *t.data()<< std::endl;
-    }
-    return 0;
+  if (nullptr != t.data()) {
+    std::cout << "co_await a cotask::task and get result: " << *t.data() << std::endl;
+  }
+  return 0;
 }
 #else
 int main() {
-    puts("this sample require cotask enabled and compiler support c++20 coroutine");
-    return 0;
+  puts("this sample require cotask enabled and compiler support c++20 coroutine");
+  return 0;
 }
 #endif
