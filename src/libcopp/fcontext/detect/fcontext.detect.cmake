@@ -104,5 +104,8 @@ if(NOT LIBCOPP_FCONTEXT_AS_TOOL)
     else()
       set(LIBCOPP_FCONTEXT_AS_TOOL "masm")
     endif()
+  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND LIBCOPP_FCONTEXT_BIN_FORMAT STREQUAL "pe")
+    set(LIBCOPP_FCONTEXT_AS_TOOL "clang_gas")
   endif()
+
 endif()

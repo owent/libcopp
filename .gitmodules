@@ -1,0 +1,3 @@
+[submodule "atframework/cmake-toolset"]
+	path = atframework/cmake-toolset
+	url = https://github.com/atframework/cmake-toolset.git

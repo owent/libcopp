@@ -1,7 +1,7 @@
 # @see https://cmake-format.readthedocs.io/en/latest/configuration.html for more details
 
 format:
-  line_width: 140
+  line_width: 120
   tab_size: 2
   use_tabchars: false
   line_ending: unix

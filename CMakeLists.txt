@@ -1,32 +1,27 @@
-cmake_minimum_required(VERSION 3.12.0)
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
-  cmake_policy(SET CMP0074 NEW)
-endif()
+cmake_minimum_required(VERSION 3.16.0)
+cmake_policy(SET CMP0054 NEW)
+cmake_policy(SET CMP0022 NEW)
+cmake_policy(SET CMP0067 NEW)
+cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0091 NEW)
 
 enable_testing()
 
 project(
   libcopp
-  VERSION "1.3.5"
+  VERSION "1.4.0"
   DESCRIPTION "Cross-platform coroutine library in C++ ."
   HOMEPAGE_URL "https://libcopp.atframe.work"
   LANGUAGES C CXX ASM)
 
-# ##########################################################################################################################################
-# CMake 模块 (递归包含模块, 带颜色输出模块, 平台检测模块)
-set(PROJECT_CMAKE_MODULE_DIR "${CMAKE_CURRENT_LIST_DIR}/project/cmake")
+# ######################################################################################################################
 include("${PROJECT_CMAKE_MODULE_DIR}/ProjectBuildOption.cmake")
-include("${PROJECT_CMAKE_MODULE_DIR}/IncludeDirectoryRecurse.cmake")
-include("${PROJECT_CMAKE_MODULE_DIR}/EchoWithColor.cmake")
-include("${PROJECT_CMAKE_MODULE_DIR}/FindPlatform.cmake")
 
-# ##########################################################################################################################################
-# 导入编译器和编译选项配置
-include("${PROJECT_CMAKE_MODULE_DIR}/CompilerOption.cmake")
-include("${PROJECT_CMAKE_MODULE_DIR}/TargetOption.cmake")
+# # #############################################################################
 echowithcolor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")
 
-# ##########################################################################################################################################
+# # #############################################################################
+
 # Check Fiber API for Win32
 if(WIN32)
   check_cxx_source_compiles(
@@ -236,8 +231,8 @@ set(CMAKE_INSTALL_CMAKEDIR
     "${CMAKE_INSTALL_LIBDIR}/cmake/libcopp"
     CACHE STRING "Directory relative to CMAKE_INSTALL to install the cmake configuration files")
 
-configure_file("${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile.in" "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile" @ONLY
-               NEWLINE_STYLE CRLF)
+configure_file("${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile.in" "${CMAKE_CURRENT_LIST_DIR}/docs/libcopp.doxyfile"
+               @ONLY NEWLINE_STYLE CRLF)
 
 include(CMakePackageConfigHelpers)
 set(INCLUDE_INSTALL_DIR include)
@@ -245,7 +240,8 @@ set(INCLUDE_INSTALL_DIR include)
 file(MAKE_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp")
 
 configure_package_config_file(
-  "${CMAKE_CURRENT_LIST_DIR}/libcopp-config.cmake.in" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config.cmake"
+  "${CMAKE_CURRENT_LIST_DIR}/libcopp-config.cmake.in"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config.cmake"
   INSTALL_DESTINATION "${CMAKE_INSTALL_CMAKEDIR}"
   PATH_VARS PROJECT_VERSION INCLUDE_INSTALL_DIR CMAKE_INSTALL_LIBDIR PROJECT_SOURCE_DIR
   NO_CHECK_REQUIRED_COMPONENTS_MACRO)
@@ -256,7 +252,8 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion)
 
 install(FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config.cmake"
-              "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config-version.cmake" DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
+              "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/libcopp/libcopp-config-version.cmake"
+        DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
 
 set(CPACK_PACKAGE_VENDOR "libcopp")
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")

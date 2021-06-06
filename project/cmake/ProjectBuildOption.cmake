@@ -31,8 +31,10 @@ else()
 endif()
 
 # This option can be set to ON only if the user do not use multi-thread at all. it can reduce the cache miss slightly.
-option(LIBCOPP_DISABLE_THIS_MT
-       "Do not use multi-thread for this_coroutine/this_task, this options can only be set to ON on single thread process." OFF)
+option(
+  LIBCOPP_DISABLE_THIS_MT
+  "Do not use multi-thread for this_coroutine/this_task, this options can only be set to ON on single thread process."
+  OFF)
 
 set(LIBCOPP_FCONTEXT_OS_PLATFORM
     ""
@@ -50,18 +52,21 @@ set(LIBCOPP_FCONTEXT_AS_TOOL
 # [heading Intel Transactional Synchronisation Extensions (TSX)]
 #
 # TSX is Intel's implementation of hardware transactional memory in modern Intel processors[footnote intel.com:
-# [@https://software.intel.com/en-us/node/695149 Intel Transactional Synchronization Extensions]].[br] In TSX the hardware keeps track of
-# which cachelines have been read from and which have been written to in a transaction. The cache-line size (64-byte) and the n-way set
-# associative cache determine the maximum size of memory in a transaction. For instance if a transaction modifies 9 cache-lines at a
-# processor with a 8-way set associative cache, the transaction will always be aborted.
+# [@https://software.intel.com/en-us/node/695149 Intel Transactional Synchronization Extensions]].[br] In TSX the
+# hardware keeps track of which cachelines have been read from and which have been written to in a transaction. The
+# cache-line size (64-byte) and the n-way set associative cache determine the maximum size of memory in a transaction.
+# For instance if a transaction modifies 9 cache-lines at a processor with a 8-way set associative cache, the
+# transaction will always be aborted.
 option(LIBCOPP_FCONTEXT_USE_TSX "Enable Intel Transactional Synchronisation Extensions (TSX)." ON)
-# [note A TSX-transaction will be aborted if the floating point state is modified inside a critical region. As a consequence floating point
-# operations, e.g. store/load of floating point related registers during a fiber (context) switch are disabled.]
+# [note A TSX-transaction will be aborted if the floating point state is modified inside a critical region. As a
+# consequence floating point operations, e.g. store/load of floating point related registers during a fiber (context)
+# switch are disabled.]
 
 # libcotask configure
 option(LIBCOTASK_ENABLE "Enable libcotask." ON)
 # libcotask configure
-option(LIBCOTASK_AUTO_CLEANUP_MANAGER "Auto cleanup task manager after cotask finished(No need to call task_manager.start/resume())." ON)
+option(LIBCOTASK_AUTO_CLEANUP_MANAGER
+       "Auto cleanup task manager after cotask finished(No need to call task_manager.start/resume())." ON)
 
 # unit test framework
 set(GTEST_ROOT
@@ -71,3 +76,9 @@ set(BOOST_ROOT
     ""
     CACHE STRING "Boost root directory")
 option(LIBCOPP_TEST_ENABLE_BOOST_UNIT_TEST "Enable boost unit test." OFF)
+
+# Import cmake-toolset
+
+include("${CMAKE_CURRENT_LIST_DIR}/FetchDependeny.cmake")
+include(IncludeDirectoryRecurse)
+include(EchoWithColor)

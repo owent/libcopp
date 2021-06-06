@@ -150,4 +150,4 @@ finish:
 .def	__exit;	.scl	2;	.type	32;	.endef  /* standard C library function */
 
 .section .drectve
-.ascii " -export:\"_copp_make_fcontext\""
+.ascii " -export:\"copp_make_fcontext\""

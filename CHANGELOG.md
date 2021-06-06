@@ -1,16 +1,26 @@
-HISTORY
-----------------
+# HISTORY
 
-### 1.3.5
+## 1.4.0
+
+1. [OPTIMIZE] Switch build system to to [cmake-toolset][1]
+2. [FIX] Fix output names of `find_package(<PackageName>)`
+3. [OPTIMIZE] Support auto detection of ios/android toolchains
+4. [OPTIMIZE] Fix warnings when using cmake 3.20.0 or upper
+5. [OPTIMIZE] Optimize cmake config PATH for `<PackageName>_DIR`
+6. [BREAK] Upgrade cmake requirement to 3.16.0+
+7. [CI] Move to github action
+8. [BOOST] Merge boost.context 1.76.0.
+
+## 1.3.5
 
 1. [FIX] Fix stack alignment.
 2. [OPTIMIZE] Prefer to use python3 on cmake scripts.
 
-### 1.3.4
+## 1.3.4
 
 1. [FIX] Fix version tag.
 
-### 1.3.3
+## 1.3.3
 
 1. [BOOST] Merge boost.context 1.74.0(Support The 32-bit Solaris C language data model, called ILP32).
 2. [FIX] Fix mixed some headers with [atframe_utils][1] .
@@ -19,20 +29,20 @@ HISTORY
 5. [OPTIMIZE] Support cpack to generate rpm or deb package.
 6. [FIX] Fix c++20 coroutine flags when reimport CompilerOption.cmake.
 
-### 1.3.2
+## 1.3.2
 
 1. [FIX] [#16](https://github.com/owt5008137/libcopp/issues/16) : document of  ```LIBCOPP_DISABLE_ATOMIC_LOCK``` and ```LIBCOPP_DISABLE_THIS_MT``` .
 2. [FIX] [#18](https://github.com/owt5008137/libcopp/issues/18) : ```'xx' is not a member of 'xxx {aka xxx}'``` .
 3. [OPTIMIZE] ```cotask::task``` can capture all integer type of return value now.
 4. [FIX] Remove warning of c++20 coroutine options when project use both languages of cxx and not cxx
 
-### 1.3.1 (2020-07-06)
+## 1.3.1 (2020-07-06)
 
 1. Fix compiler version checker for C++20 coroutine
 2. Add cmake interface option and features for targets
 3. Update documents
 
-### 1.3.0 (2020-07-02)
+## 1.3.0 (2020-07-02)
 
 1. [OPTIMIZE] Using cmake export to generate module files
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
@@ -44,7 +54,7 @@ HISTORY
 8. [OPTIMIZE] Fix ```Warning: client switching stacks?``` in unit test when enable valgrind support.
 9. [FEATURE] Enable ```-DLIBCOPP_FCONTEXT_USE_TSX=ON``` for default.
 
-#### BREAK CHANGES & UPGRADE GUIDE FROM 1.2.X
+### BREAK CHANGES & UPGRADE GUIDE FROM 1.2.X
 
 + Rename ```cotask::task::await``` into ```cotask::task::await_task```
 + Replace ```cotask::task<TCO_MACRO, TTASK_MACRO>``` with ```cotask::task<TCO_MACRO>``` , we don't allow to custom id allocator now.
@@ -52,13 +62,13 @@ HISTORY
 + Require gcc 4.7+, MSVC 14+(Visual Studio 2015)>)
 + Require cmake 3.12.0 or upper
 
-### 1.2.1 (2019-10-04)
+## 1.2.1 (2019-10-04)
 
 1. [OPTIMIZE] Add options to disable TLS usage for *this_task* and *this_coroutine* to reduce cache miss on single thread situation.
 2. [OPTIMIZE] Implement **jump_to(...)** as static inline to reduce code cache miss.
 3. [OPTIMIZE] Implement **coroutine_context_callback(...)** as static local symbol to reduce code cache miss.
 
-### 1.2.0 (2019-08-20)
+## 1.2.0 (2019-08-20)
 
 1. [OPTIMIZE] Add more unit test.Increase coverage to 90%+.
 2. [OPTIMIZE] Rewrite toolchain detection scripts, support clang-cl now.
@@ -70,7 +80,7 @@ HISTORY
 8. [OPTIMIZE] Use pthread  for TLS when both c++11 thead_local and pthread are available. It will reduce the minimal stack size.
 9. [OPTIMIZE] Fix and add some example codes and documents.
 
-### 2018-12-07
+## 2018-12-07
 
 1. [OPTIMIZE] add adaptor for [vcpkg](https://github.com/Microsoft/vcpkg)
 2. [OPTIMIZE] using [GNUInstallDirs](https://cmake.org/cmake/help/v3.13/module/GNUInstallDirs.html) for all directories
@@ -84,7 +94,7 @@ HISTORY
 10. [OPTIMIZE] merge the latest unit test framework, now we will support more readable output when test failed.
 11. [CI] We use xenial to build in linux now.
 
-### 2018-01-01
+## 2018-01-01
 
 1. [BOOST] merge boost.context 1.66.0
 2. [OPTIMIZE] add support for [Intel Transactional Synchronisation Extensions (TSX)](https://software.intel.com/en-us/node/695149)
@@ -95,27 +105,27 @@ HISTORY
 7. [OPTIMIZE] using the new script to run clang-analyzer.
 8. [OPTIMIZE] optimize the doxygen output and fix some markdown synax not supported by doxygen.
 
-### 2017-10-01
+## 2017-10-01
 
 1. [OPTIMIZE] optimize cmake files for all target
 2. [OPTIMIZE] update samples and readme(fix sample for stack pool in README.md)
 3. [CI] add gcc 7
 4. [OPTIMIZE] using -std=c++17 for gcc/clang and /std:c++17 for MSVC 15(2015) and upper
 
-### 2017-06-11
+## 2017-06-11
 
 1. [OPTIMIZE] V2 framework and APIs completed, all reports in clang-analysis and cppcheck are fixed.
 2. [CI] benchmark and samples enabled in v2 branch
 3. [CI] add sample code in README.md into CI 
 
-### 2017-05-10
+## 2017-05-10
 
 1. [BOOST] merge boost.context 1.64.0
 2. [OPTIMIZE] add stack pool manager and unit test
 3. [OPTIMIZE] reduce memory fragment when allocate coroutine task and task action
 4. [CI] benchmark and sample will always be run in [Travis CI](https://travis-ci.org/owt5008137/libcopp) and [Appveyor CI](https://ci.appveyor.com/project/owt5008137/libcopp)
 
-### 2016-06-16
+## 2016-06-16
 
 1. [BOOST] merge boost.context 1.61.0 and use the new jump progress(see https://owent.net/2016/1270.html for detail)
 2. [BOOST] enable valgrind support if valgrind/valgrind.h exists
@@ -127,11 +137,11 @@ HISTORY
 8. [CI] CI use build matrix to test more compiler
 9. [BUILD] use RelWithDebInfo for default
 
-### 2016-02-27
+## 2016-02-27
 
 1. v0.2.0, this version is used in our server for about one year.
 
-### 2015-12-29
+## 2015-12-29
 
 1. add support for valgrind
 2. add ci configure
@@ -139,8 +149,10 @@ HISTORY
 4. add -fPIC, fix spin lock
 5. some environment do not support TLS, make these environment can compile success
 
-### 2014-07-25
+## 2014-07-25
 
 v0.1.0
 
 [1]: https://github.com/atframework/atframe_utils
+
+[1]: https://github.com/atframework/cmake-toolset
