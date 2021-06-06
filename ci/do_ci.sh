@@ -100,6 +100,25 @@ elif [[ "$1" == "msys2.mingw.test" ]]; then
   cmake .. -G 'MinGW Makefiles' ${PROJECT_ADDON_OPTIONS[@]}                                       \
     -DLIBCOPP_MACRO_ENABLE_STD_COROUTINE=OFF -DLIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE=OFF ;
   cmake --build . -j2 || cmake --build . ;
+elif [[ "$1" == "document" ]]; then
+  mkdir -p build_for_doxygen ;
+  cd build_for_doxygen ;
+  export PATH="$HOME/.local/bin:$PATH" ;
+  cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON ;
+  cd ../docs ;
+  python3 -m pip install --user --upgrade pip;
+  python3 -m pip install --user --upgrade -r requirements.txt;
+  mkdir -p sphinx/doxygen ;
+  doxygen libcopp.doxyfile;
+  du -sh sphinx/doxygen/* ;
+  sphinx-build -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output;
+  if [[ -e "output/doxygen/html" ]]; then
+      rm -rf "output/doxygen/html";
+  fi
+  mkdir -p output/doxygen/ ;
+  mv -f "sphinx/doxygen/html" "output/doxygen/html";
+  echo "libcopp.atframe.work" > output/CNAME ;
+  exit 0;
 else
   echo "Bad configure";
   exit 1;

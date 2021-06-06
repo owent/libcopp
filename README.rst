@@ -13,59 +13,73 @@ libcopp
 
 Cross-platform coroutine library in C++ .
 
-.. image:: https://img.shields.io/github/v/release/owent/libcopp
-
-.. image:: https://img.shields.io/github/languages/code-size/owent/libcopp
-.. image:: https://img.shields.io/github/repo-size/owent/libcopp
 .. image:: https://img.shields.io/github/forks/owent/libcopp?style=social
 .. image:: https://img.shields.io/github/stars/owent/libcopp?style=social
 
-|ci-badge|
-|codecov-badge|
-|lgtm-badge|
+.. |release-badge| image:: https://img.shields.io/github/v/release/owent/libcopp
+               :alt: Release
+               :target: https://github.com/owent/libcopp/releases
+
+.. |code-size-badge| image:: https://img.shields.io/github/languages/code-size/owent/libcopp
+                     :alt: Code size
+                     :target: https://github.com/owent/libcopp
+
+.. |repo-size-badge| image:: https://img.shields.io/github/repo-size/owent/libcopp
+                     :alt: Repo size
+                     :target: https://github.com/owent/libcopp
+
+.. |forks-badge| image:: https://img.shields.io/github/forks/owent/libcopp?style=social
+                  :alt: Forks
+                  :target: https://github.com/owent/libcopp
+
+.. |stars-badge| image:: https://img.shields.io/github/stars/owent/libcopp?style=social
+                 :alt: Stars
+                 :target: https://github.com/owent/libcopp
 
 .. |ci-badge|  image:: https://github.com/owent/libcopp/actions/workflows/main.yml/badge.svg
-               :alt: Travis build status
+               :alt: CI build status
                :target: https://github.com/owent/libcopp/actions/workflows/main.yml
 
 .. |codecov-badge|  image:: https://codecov.io/gh/owent/libcopp/branch/v2/graph/badge.svg
-               :alt: Coveralls coverage
-               :target: https://codecov.io/gh/owent/libcopp
+                    :alt: Coveralls coverage
+                    :target: https://codecov.io/gh/owent/libcopp
 
 .. |lgtm-badge|  image:: https://img.shields.io/lgtm/grade/cpp/g/owent/libcopp.svg?logo=lgtm&logoWidth=18
-               :alt: Language grade: C/C++
-               :target: https://lgtm.com/projects/g/owent/libcopp/context:cpp
+                 :alt: Language grade: C/C++
+                 :target: https://lgtm.com/projects/g/owent/libcopp/context:cpp
+
+|release-badge| |code-size-badge| |repo-size-badge| |ci-badge| |codecov-badge| |lgtm-badge| |forks-badge| |stars-badge|
 
 CI Job Matrix
 ----------------
 
-|+++++++++++++++|++++++++++++++++++++|+++++++++++++++++++++++|
++---------------+--------------------+-----------------------+
 | Target System | Toolchain          | Note                  |
-|===============|====================|=======================|
++===============+====================+=======================+
 | Linux         | GCC                | Static linking        |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Linux         | GCC                | Dynamic linking       |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Linux         | GCC-latest         |                       |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Linux         | GCC-latest         | No Exception          |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Linux         | GCC-latest         | Thread Unsafe         |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Linux         | GCC 4.8            | Legacy                |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Linux         | Clang-latest       | With libc++           |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | MinGW64       | GCC                | Dynamic linking       |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Windows       | Visual Studio 2019 | Static linking        |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Windows       | Visual Studio 2019 | Dynamic linking       |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | Windows       | Visual Studio 2017 | Legacy,Static linking |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 | macOS         | AppleClang         | With libc++           |
-|---------------|--------------------|-----------------------|
++---------------+--------------------+-----------------------+
 
 LICENSE
 ------------

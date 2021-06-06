@@ -18,6 +18,43 @@ jobs:
         shell: bash
         run: |
           bash ci/do_ci.sh format ;
+  document: # job id, can be any string
+    name: Document
+    # This job runs on Linux
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build & Test
+        shell: bash
+        run: |
+          sudo apt-get update ;
+          sudo apt-get install --no-install-recommends --no-install-suggests -y doxygen graphviz ;
+          bash ci/do_ci.sh document ;
+      - name: Deploy
+        if: ${{ github.event_name == 'push' }}
+        env:
+          COMMIT_REF: ${{ github.ref }}
+          DOCUMENT_DEPLOY_KEY: ${{ secrets.DOCUMENT_DEPLOY_KEY }}
+        shell: bash
+        run: |
+          cd docs/output ;
+          git config --global init.defaultBranch main ;
+          git init ;
+          git add . ;
+          mkdir -p $HOME/.ssh ;
+          chmod 700 $HOME/.ssh ;
+          echo "$DOCUMENT_DEPLOY_KEY" > $HOME/.ssh/deploy.key ;
+          chmod 600 $HOME/.ssh/deploy.key ;
+          export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentityFile=$HOME/.ssh/deploy.key" ;
+          git -c user.name='owent' -c user.email='admin@owent.net' commit -m "Delpoy document for $COMMIT_REF";
+          git push -f -q git@github.com:owent/libcopp-doc.git HEAD:main ;
   unix_build: # job id, can be any string
     name: Unix Build
     # This job runs on Linux
