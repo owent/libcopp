@@ -15,7 +15,7 @@ project(
   LANGUAGES C CXX ASM)
 
 # ######################################################################################################################
-include("${PROJECT_CMAKE_MODULE_DIR}/ProjectBuildOption.cmake")
+include("${PROJECT_SOURCE_DIR}/project/cmake/ProjectBuildOption.cmake")
 
 # # #############################################################################
 echowithcolor(COLOR GREEN "-- Build Type: ${CMAKE_BUILD_TYPE}")

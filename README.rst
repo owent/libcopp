@@ -1,9 +1,9 @@
 libcopp
 ============
 
-.. _MIT LICENSE: https://github.com/owt5008137/libcopp/blob/v2/LICENSE
-.. _`docs/libcopp.doxyfile.in`: https://github.com/owt5008137/libcopp/blob/v2/docs/libcopp.doxyfile.in
-.. _`docs/sphinx`: https://github.com/owt5008137/libcopp/blob/v2/docs/sphinx
+.. _MIT LICENSE: https://github.com/owent/libcopp/blob/v2/LICENSE
+.. _`docs/libcopp.doxyfile.in`: https://github.com/owent/libcopp/blob/v2/docs/libcopp.doxyfile.in
+.. _`docs/sphinx`: https://github.com/owent/libcopp/blob/v2/docs/sphinx
 .. _cmake: https://cmake.org/
 .. _binutils: http://www.gnu.org/software/binutils/
 .. _llvm: http://llvm.org/
@@ -13,48 +13,59 @@ libcopp
 
 Cross-platform coroutine library in C++ .
 
-+-------------------+------------------------------------+---------------------------------+-------------------------+-------------------------+
-|                   |        Linux+OSX(Clang+GCC)        |        Windows(VC+MinGW)        |        Coveralls        |        Dev branch       |
-+===================+====================================+=================================+=========================+=========================+
-| Build & Unit Test | |linux-ci|                         | |windows-ci|                    | |coverage-ci|           | |github-action-ci|      |
-+-------------------+------------------------------------+---------------------------------+-------------------------+-------------------------+
-|     Compilers     | linux-gcc-4.8                      | MSVC 14(Visual Studio 2015)     |                         |                         |
-+-------------------+------------------------------------+---------------------------------+-------------------------+-------------------------+
-|                   | linux-gcc-10                       | MSVC 15(Visual Studio 2017)     |                         |                         |
-+-------------------+------------------------------------+---------------------------------+-------------------------+-------------------------+
-|                   | macos-apple-clang-9                | MSVC 16(Visual Studio 2019)     |                         |                         |
-+-------------------+------------------------------------+---------------------------------+-------------------------+-------------------------+
-|                   | macos-apple-clang-12               | MinGW64-gcc                     |                         |                         |
-+-------------------+------------------------------------+---------------------------------+-------------------------+-------------------------+
+.. image:: https://img.shields.io/github/v/release/owent/libcopp
 
+.. image:: https://img.shields.io/github/languages/code-size/owent/libcopp
+.. image:: https://img.shields.io/github/repo-size/owent/libcopp
+.. image:: https://img.shields.io/github/forks/owent/libcopp?style=social
+.. image:: https://img.shields.io/github/stars/owent/libcopp?style=social
 
-.. image:: https://img.shields.io/github/v/release/owt5008137/libcopp
+|ci-badge|
+|codecov-badge|
+|lgtm-badge|
 
-.. image:: https://img.shields.io/github/languages/code-size/owt5008137/libcopp
-.. image:: https://img.shields.io/github/repo-size/owt5008137/libcopp
-.. image:: https://img.shields.io/github/forks/owt5008137/libcopp?style=social
-.. image:: https://img.shields.io/github/stars/owt5008137/libcopp?style=social
-|lgtm-quality|
-
-.. |linux-ci|  image:: https://travis-ci.com/owt5008137/libcopp.svg?branch=v2
+.. |ci-badge|  image:: https://github.com/owent/libcopp/actions/workflows/main.yml/badge.svg
                :alt: Travis build status
-               :target: https://travis-ci.com/github/owt5008137/libcopp
+               :target: https://github.com/owent/libcopp/actions/workflows/main.yml
 
-.. |windows-ci|  image:: https://ci.appveyor.com/api/projects/status/7w6dfnpeahfmgaqj/branch/v2?svg=true
-               :alt: AppVeyor build status
-               :target: https://ci.appveyor.com/project/owt5008137/libcopp
-
-.. |coverage-ci|  image:: https://coveralls.io/repos/github/owt5008137/libcopp/badge.svg?branch=v2
+.. |codecov-badge|  image:: https://codecov.io/gh/owent/libcopp/branch/v2/graph/badge.svg
                :alt: Coveralls coverage
-               :target: https://coveralls.io/github/owt5008137/libcopp?branch=v2
+               :target: https://codecov.io/gh/owent/libcopp
 
-.. |github-action-ci|  image:: https://github.com/owt5008137/libcopp/workflows/Linux%20Building/badge.svg
-               :alt: Coveralls coverage
-               :target: https://github.com/owt5008137/libcopp/actions                       
-
-.. |lgtm-quality|  image:: https://img.shields.io/lgtm/grade/cpp/g/owt5008137/libcopp.svg?logo=lgtm&logoWidth=18
+.. |lgtm-badge|  image:: https://img.shields.io/lgtm/grade/cpp/g/owent/libcopp.svg?logo=lgtm&logoWidth=18
                :alt: Language grade: C/C++
-               :target: https://lgtm.com/projects/g/owt5008137/libcopp/context:cpp
+               :target: https://lgtm.com/projects/g/owent/libcopp/context:cpp
+
+CI Job Matrix
+----------------
+
+|+++++++++++++++|++++++++++++++++++++|+++++++++++++++++++++++|
+| Target System | Toolchain          | Note                  |
+|===============|====================|=======================|
+| Linux         | GCC                | Static linking        |
+|---------------|--------------------|-----------------------|
+| Linux         | GCC                | Dynamic linking       |
+|---------------|--------------------|-----------------------|
+| Linux         | GCC-latest         |                       |
+|---------------|--------------------|-----------------------|
+| Linux         | GCC-latest         | No Exception          |
+|---------------|--------------------|-----------------------|
+| Linux         | GCC-latest         | Thread Unsafe         |
+|---------------|--------------------|-----------------------|
+| Linux         | GCC 4.8            | Legacy                |
+|---------------|--------------------|-----------------------|
+| Linux         | Clang-latest       | With libc++           |
+|---------------|--------------------|-----------------------|
+| MinGW64       | GCC                | Dynamic linking       |
+|---------------|--------------------|-----------------------|
+| Windows       | Visual Studio 2019 | Static linking        |
+|---------------|--------------------|-----------------------|
+| Windows       | Visual Studio 2019 | Dynamic linking       |
+|---------------|--------------------|-----------------------|
+| Windows       | Visual Studio 2017 | Legacy,Static linking |
+|---------------|--------------------|-----------------------|
+| macOS         | AppleClang         | With libc++           |
+|---------------|--------------------|-----------------------|
 
 LICENSE
 ------------
@@ -125,7 +136,7 @@ Custom Build
 1. Clone and make a build directory
     .. code-block:: shell
 
-        git clone --single-branch --depth=1 -b master https://github.com/owt5008137/libcopp.git 
+        git clone --single-branch --depth=1 -b master https://github.com/owent/libcopp.git 
         mkdir libcopp/build && cd libcopp/build
 
 2. Run cmake command
@@ -274,7 +285,7 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 10. Let c++20 coroutine work with ``cotask::task``
 11. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
 
-All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owt5008137/libcopp/tree/v2/sample>`_ .
+All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owent/libcopp/tree/v2/sample>`_ .
 
 NOTICE
 ------------
@@ -286,7 +297,7 @@ It's recommanded to use stack pool instead of gcc splited stack.
 BENCHMARK
 ------------
 
-Please see CI output for latest benchmark report. Click to visit `benchmark on Linux and macOS <https://travis-ci.com/github/owt5008137/libcopp>`_ and `benchmark on Windows <https://ci.appveyor.com/project/owt5008137/libcopp>`_ . `benchmark on Linux,macOS and Windows of dev branch <https://github.com/owt5008137/libcopp/actions>`_ can be found on `Github Actions <https://github.com/owt5008137/libcopp/actions>`_ .
+Please see CI output for latest benchmark report. Click to visit `benchmark on Linux and macOS <https://travis-ci.com/github/owt5008137/libcopp>`_ and `benchmark on Windows <https://ci.appveyor.com/project/owt5008137/libcopp>`_ . `benchmark on Linux,macOS and Windows of dev branch <https://github.com/owent/libcopp/actions>`_ can be found on `Github Actions <https://github.com/owent/libcopp/actions>`_ .
 
 FAQ
 ------------
@@ -301,7 +312,7 @@ Q: Will libcopp handle exception?
 
 Q: Why ``SetUnhandledExceptionFilter`` can not catch the unhandled exception in a coroutine?
 
-| ANS: ``SetUnhandledExceptionFilter`` only works with **Windows Fiber**, please see `sample/sample_readme_11.cpp <https://github.com/owt5008137/libcopp/blob/v2/sample/sample_readme_11.cpp>`_ for details.
+| ANS: ``SetUnhandledExceptionFilter`` only works with **Windows Fiber**, please see `sample/sample_readme_11.cpp <https://github.com/owent/libcopp/blob/v2/sample/sample_readme_11.cpp>`_ for details.
 
 FEEDBACK
 ------------

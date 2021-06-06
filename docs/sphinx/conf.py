@@ -31,16 +31,10 @@ release = '1.0.0'
 
 CMAKELISTS_FILE_CONTENT = codecs.open(os.path.join(os.path.dirname(__file__), '..', '..', 'CMakeLists.txt'), "r", "utf-8").read()
 
-LIBCOPP_VERSION_MAJOR = re.search('LIBCOPP_VERSION_MAJOR\\s*"?(?P<VERSION>[\\d]+)', CMAKELISTS_FILE_CONTENT)
-LIBCOPP_VERSION_MINOR = re.search('LIBCOPP_VERSION_MINOR\\s*"?(?P<VERSION>[\\d]+)', CMAKELISTS_FILE_CONTENT)
-LIBCOPP_VERSION_PATCH = re.search('LIBCOPP_VERSION_PATCH\\s*"?(?P<VERSION>[\\d]+)', CMAKELISTS_FILE_CONTENT)
+LIBCOPP_VERSION = re.search('VERSION\\s*"?(?P<VERSION>[\\d\\.]+)', CMAKELISTS_FILE_CONTENT)
 
-if LIBCOPP_VERSION_MAJOR is not None and LIBCOPP_VERSION_MINOR is not None and LIBCOPP_VERSION_PATCH is not None:
-    release = '{0}.{1}.{2}'.format(
-        LIBCOPP_VERSION_MAJOR.group('VERSION'),
-        LIBCOPP_VERSION_MINOR.group('VERSION'),
-        LIBCOPP_VERSION_PATCH.group('VERSION')
-    )
+if LIBCOPP_VERSION is not None:
+    release = LIBCOPP_VERSION.group('VERSION')
 
 # README_FILE_CONTENT = codecs.open(os.path.join(os.path.dirname(__file__), '..', '..', 'README.rst'), "r", "utf-8").read()
 # README_FILE_STREAM = codecs.open(os.path.join(os.path.dirname(__file__), 'README.rst'), "w", "utf-8")

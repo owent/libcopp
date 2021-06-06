@@ -1,0 +1,166 @@
+name: "main"
+
+on: # @see https://help.github.com/en/articles/events-that-trigger-workflows#webhook-events
+  push:
+    branches: # Array of patterns that match refs/heads
+      - v2
+  pull_request:
+    branches: [ v2 ]
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: CI Job
+        shell: bash
+        run: |
+          bash ci/do_ci.sh format ;
+  unix_build: # job id, can be any string
+    name: Unix Build
+    # This job runs on Linux
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc
+            build_shared_libs: "ON"
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc
+            build_shared_libs: "OFF"
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc-latest
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc-latest
+            no_exception: 1
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc-latest
+            thread_unsafe: 1
+          - os: ubuntu-18.04
+            triplet: x64-linux
+            cc: gcc-4.8
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: clang-latest
+          - os: macos-latest
+            triplet: x64-osx
+            cc: clang-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build & Test
+        shell: bash
+        env:
+          USE_CC: ${{ matrix.cc }}
+          BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
+          NO_EXCEPTION: ${{ matrix.no_exception }}
+          THREAD_UNSAFE: ${{ matrix.thread_unsafe }}
+        run: |
+          if [[ "xgcc-4.8" == "x$USE_CC" ]]; then
+            sudo apt-get update ;
+            sudo apt-get install --no-install-recommends --no-install-suggests -y g++-4.8 ;
+            bash ci/do_ci.sh gcc.legacy.test ;
+          elif [[ "x$USE_CC" =~ xclang.* ]]; then
+            bash ci/do_ci.sh clang.test ;
+          else
+            bash ci/do_ci.sh gcc.test ;
+          fi
+  vs2019_build: # job id, can be any string
+    name: Visual Studio 2019 Build
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            generator: "Visual Studio 16 2019"
+            build_shared_libs: "ON"
+            platform: x64
+          - os: windows-latest
+            generator: "Visual Studio 16 2019"
+            build_shared_libs: "OFF"
+            platform: x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build & Test
+        shell: pwsh
+        env:
+          CMAKE_GENERATOR: ${{ matrix.generator }}
+          CMAKE_PLATFORM: ${{ matrix.platform }}
+          BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
+          CONFIGURATION: RelWithDebInfo
+        run: |
+          pwsh ci/do_ci.ps1 msvc.2019.test ;
+  vs2017_build: # job id, can be any string
+    name: Visual Studio 2017 Build
+    strategy:
+      matrix:
+        include:
+          - os: windows-2016
+            generator: "Visual Studio 15 2017 Win64"
+            build_shared_libs: "OFF"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build & Test
+        shell: pwsh
+        env:
+          CMAKE_GENERATOR: ${{ matrix.generator }}
+          BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
+          CONFIGURATION: RelWithDebInfo
+        run: |
+          pwsh ci/do_ci.ps1 msvc.2017.test ;
+  mingw_build: # job id, can be any string
+    name: MinGW Build
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            build_shared_libs: "ON"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build & Test
+        shell: bash
+        env:
+          BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
+        run: |
+          C:/msys64/msys2_shell.cmd -mingw64 -defterm -no-start -here -lc "ci/do_ci.sh msys2.mingw.test"
+  coverage: # job id, can be any string
+    name: Coverage
+    # This job runs on Linux
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc
+            gcov_flags: "--coverage -fprofile-arcs -ftest-coverage"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Generate coverage
+        shell: bash
+        env:
+          USE_CC: ${{ matrix.cc }}
+          USE_SSL: ${{ matrix.ssl }}
+          GCOV_FLAGS: "${{ matrix.gcov_flags }}"
+        run: |
+          bash ci/do_ci.sh coverage ;
+      - name: Uploaded code coverage
+        uses: codecov/codecov-action@v1
+        with:
+          # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
+          fail_ci_if_error: true
+          gcov_args: '-lp'

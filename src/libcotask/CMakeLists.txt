@@ -1,10 +1,7 @@
 echowithcolor(COLOR GREEN "-- Configure libcotask")
 
 # ========== filter sources files ==========
-file(
-  GLOB_RECURSE COTASK_SRC_LIST
-  RELATIVE "${PROJECT_LIBCOTASK_SRC_DIR}"
-  ${PROJECT_LIBCOTASK_INC_DIR}/*.h ${PROJECT_LIBCOTASK_INC_DIR}/*.hpp)
+file(GLOB_RECURSE COTASK_SRC_LIST ${PROJECT_LIBCOTASK_INC_DIR}/*.h ${PROJECT_LIBCOTASK_INC_DIR}/*.hpp)
 
 file(GLOB_RECURSE SRC_LIST ${PROJECT_LIBCOTASK_SRC_DIR}/*.c ${PROJECT_LIBCOTASK_SRC_DIR}/*.cpp)
 list(LENGTH SRC_LIST SRC_LIST_LENGTH)
@@ -45,9 +42,11 @@ if(LIBCOPP_MACRO_ENABLE_STD_COROUTINE)
   else()
     string(FIND "${CMAKE_CXX_FLAGS}" "-fcoroutines-ts" LIBCOPP_FIND_COROUTINE_OPTION)
     if(LIBCOPP_FIND_COROUTINE_OPTION GREATER_EQUAL 0)
-      add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines-ts>")
+      add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS
+                            "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines-ts>")
     else()
-      add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines>")
+      add_target_properties(${PROJECT_LIBCOTASK_LIB_LINK} INTERFACE_COMPILE_OPTIONS
+                            "$<$<COMPILE_LANGUAGE:CXX>:-fcoroutines>")
     endif()
   endif()
 endif()
