@@ -1,6 +1,6 @@
 ignore:
-  - "**/third_party/**"
-  - "**/sample/*"
-  - "**/test/**/*"
-  - "**/tools/**"
-  - "**/build_jobs_coverage/CMakeFiles/**"
+  - "third_party/**"
+  - "sample/*"
+  - "test/**/*"
+  - "tools/*"
+  - "build_jobs_coverage/CMakeFiles/**"
