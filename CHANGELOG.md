@@ -1,4 +1,8 @@
-# HISTORY
+# CHANGELOG
+
+## 1.4.1
+
+1. [OPTIMIZE] Allow to download submodule by external tool and do not depend `git`.
 
 ## 1.4.0
 
