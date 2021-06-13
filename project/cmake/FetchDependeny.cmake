@@ -1,7 +1,5 @@
 include_guard(GLOBAL)
 
-find_package(Git REQUIRED)
-
 set(ATFRAMEWORK_CMAKE_TOOLSET_DIR
     "${PROJECT_SOURCE_DIR}/atframework/cmake-toolset"
     CACHE PATH "PATH to cmake-toolset")
@@ -17,6 +15,9 @@ if(NOT ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS)
 endif()
 
 if(NOT EXISTS "${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/Import.cmake")
+  # Patch for `FindGit.cmake` on windows
+  find_program(GIT_EXECUTABLE NAMES git git.cmd)
+  find_package(Git REQUIRED)
   execute_process(
     COMMAND ${GIT_EXECUTABLE} submodule update --depth 100 --recommend-shallow -f --init -- atframework/cmake-toolset
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" ${ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS})
