@@ -4,7 +4,6 @@
 #include <limits>
 #include <numeric>
 
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
 #include <libcopp/stack/allocator/stack_allocator_memory.h>
@@ -23,7 +22,7 @@ namespace copp {
 namespace allocator {
 
 LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory() LIBCOPP_MACRO_NOEXCEPT
-    : start_ptr_(UTIL_CONFIG_NULLPTR),
+    : start_ptr_(nullptr),
       memory_size_(0),
       is_used_(false) {}
 
@@ -34,7 +33,7 @@ LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(void *start_ptr,
       is_used_(false) {}
 
 LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &other) LIBCOPP_MACRO_NOEXCEPT
-    : start_ptr_(UTIL_CONFIG_NULLPTR),
+    : start_ptr_(nullptr),
       memory_size_(0),
       is_used_(false) {
   if (!other.is_used_) {
@@ -42,16 +41,14 @@ LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_
   }
 }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
 LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(stack_allocator_memory &&other) LIBCOPP_MACRO_NOEXCEPT
-    : start_ptr_(UTIL_CONFIG_NULLPTR),
+    : start_ptr_(nullptr),
       memory_size_(0),
       is_used_(false) {
   if (!other.is_used_) {
     swap(other);
   }
 }
-#endif
 
 LIBCOPP_COPP_API stack_allocator_memory::~stack_allocator_memory() {}
 
@@ -62,7 +59,7 @@ LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack
   }
   return *this;
 }
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+
 LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack_allocator_memory &&other)
     LIBCOPP_MACRO_NOEXCEPT {
   if (!other.is_used_) {
@@ -70,7 +67,6 @@ LIBCOPP_COPP_API stack_allocator_memory &stack_allocator_memory::operator=(stack
   }
   return *this;
 }
-#endif
 
 LIBCOPP_COPP_API void stack_allocator_memory::swap(stack_allocator_memory &other) {
   using std::swap;
@@ -86,8 +82,8 @@ LIBCOPP_COPP_API void stack_allocator_memory::attach(void *start_ptr, std::size_
 }
 
 LIBCOPP_COPP_API void stack_allocator_memory::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
-  if (UTIL_CONFIG_NULLPTR == start_ptr_ || is_used_) {
-    ctx.sp = UTIL_CONFIG_NULLPTR;
+  if (nullptr == start_ptr_ || is_used_) {
+    ctx.sp = nullptr;
     return;
   }
 

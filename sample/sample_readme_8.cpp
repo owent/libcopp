@@ -93,7 +93,7 @@ static copp::future::task_t<int> call_for_coroutine_task() {
 int main() {
   copp::future::task_t<int> t = call_for_coroutine_task();
   assert(false == t.done());
-  assert(NULL == t.data());  // Task isn't finished and has no data
+  assert(nullptr == t.data());  // Task isn't finished and has no data
 
   while (!g_sample_executor.empty()) {
     // async jobs finished and wake coroutine here

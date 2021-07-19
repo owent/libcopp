@@ -28,8 +28,8 @@
 #include <ostream>
 #include <sstream>
 #include <vector>
+#include <memory>
 
-#include "libcopp/utils/std/smart_ptr.h"
 #include "std/ref.h"
 
 // 载入绑定器
@@ -131,7 +131,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
 
       help_list_t::iterator iter_m;
       help_msg_t *obj;
-      for (iter_m = msg.begin(), obj = NULL; iter_m != msg.end(); ++iter_m) {
+      for (iter_m = msg.begin(), obj = nullptr; iter_m != msg.end(); ++iter_m) {
         if ((*iter_m).binded_obj == iter->second) {
           obj = &(*iter_m);
           break;
@@ -146,7 +146,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
         continue;
       }
 
-      if (NULL == obj) {
+      if (nullptr == obj) {
         msg.push_back(help_msg_t());
         obj = &msg.back();
         assert(obj);
@@ -419,7 +419,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    * @param is_single_cmd 是否强制单指令, 如果不强制, 则指令名称不能重复
    * @param ext_param 透传参数
    */
-  inline void start(int argv, const char *argc[], bool is_single_cmd = false, void *ext_param = NULL) const {
+  inline void start(int argv, const char *argc[], bool is_single_cmd = false, void *ext_param = nullptr) const {
     cmd_option_list copt_list(argv, argc);
     copt_list.set_ext_param(ext_param);
 
@@ -433,7 +433,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    * @param is_single_cmd 是否强制单指令, 如果不强制, 则指令名称不能重复
    * @param ext_param 透传参数
    */
-  inline void start(int argv, char *argc[], bool is_single_cmd = false, void *ext_param = NULL) const {
+  inline void start(int argv, char *argc[], bool is_single_cmd = false, void *ext_param = nullptr) const {
     typedef const char *conv_char_t;
 
     start(argv, const_cast<conv_char_t *>(argc), is_single_cmd, ext_param);
@@ -445,7 +445,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    * @param is_single_cmd 是否强制单指令, 如果不强制, 则指令名称不能重复
    * @param ext_param 透传参数
    */
-  inline void start(const std::vector<std::string> &cmds, bool is_single_cmd = false, void *ext_param = NULL) const {
+  inline void start(const std::vector<std::string> &cmds, bool is_single_cmd = false, void *ext_param = nullptr) const {
     cmd_option_list copt_list(cmds);
     copt_list.set_ext_param(ext_param);
 
@@ -457,7 +457,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    * @param cmd_content 指令
    * @param is_single_cmd 是否强制单指令, 如果不强制, 则指令名称不能重复
    */
-  void start(const char *cmd_content, bool is_single_cmd = false, void *ext_param = NULL) const {
+  void start(const char *cmd_content, bool is_single_cmd = false, void *ext_param = nullptr) const {
     cmd_option_list cmds;
     std::string seg;
 
@@ -477,7 +477,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    * @param cmd_content 指令
    * @param is_single_cmd 是否强制单指令, 如果不强制, 则指令名称不能重复
    */
-  inline void start(const std::string &cmd_content, bool is_single_cmd = false, void *ext_param = NULL) const {
+  inline void start(const std::string &cmd_content, bool is_single_cmd = false, void *ext_param = nullptr) const {
     start(cmd_content.c_str(), is_single_cmd, ext_param);
   }
 
@@ -505,12 +505,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    */
   inline std::shared_ptr<binder::cmd_option_bindt<
       typename binder::maybe_wrap_member_pointer<void (cmd_option_bind<TCmdStr>::*)(callback_param)>::caller_type,
-#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
-      binder::cmd_option_bind_param_list<cmd_option_bind<TCmdStr> *>
-#else
-      binder::cmd_option_bind_param_list1<cmd_option_bind<TCmdStr> *>
-#endif
-      > >
+      binder::cmd_option_bind_param_list<cmd_option_bind<TCmdStr> *> > >
   bind_help_cmd(const char *help_cmd_content) {
     return bind_cmd(help_cmd_content, &cmd_option_bind<TCmdStr>::on_help, this);
   }
@@ -570,7 +565,6 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
  *      *.bind_cmd<传入类型>(命令名称, 函数对象/函数/成员函数, 参数)
  *      *.bind_cmd<传入类型, 参数类型>(命令名称, 函数对象/函数/成员函数, 参数)
  */
-#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
   template <typename _F,
             typename... _Args>  // 绑定函数(_Arg:参数[注意值的复制发生在本函数执行时], _R: 绑定函数返回值类型)
   std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,
@@ -591,108 +585,6 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
 
     return fn;
   }
-#else
-  template <typename _F>  // 绑定函数(_F: 函数对象类型)
-  std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,
-                                           binder::cmd_option_bind_param_list0> >
-  bind_cmd(const std::string &cmd_content, _F raw_fn) {
-    typedef binder::cmd_option_bind_param_list0 list_type;
-    typedef typename binder::maybe_wrap_member_pointer<_F>::caller_type caller_type;
-    typedef std::shared_ptr<binder::cmd_option_bindt<caller_type, list_type> > obj_type;
-
-    obj_type fn = obj_type(new binder::cmd_option_bindt<caller_type, list_type>(caller_type(raw_fn), list_type()));
-
-    std::vector<std::string> cmds = split_cmd(cmd_content.c_str());
-    for (std::vector<std::string>::size_type index = 0; index < cmds.size(); ++index) {
-      TCmdStr cmd_obj = TCmdStr(cmds[index].c_str(), cmds[index].size());
-      callback_funcs_[cmd_obj] = fn;
-    }
-
-    return fn;
-  }
-
-  template <typename _F, typename _Arg0>  // 绑定函数(_Arg:参数[注意值的复制发生在本函数执行时], _R: 绑定函数返回值类型)
-  std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,
-                                           binder::cmd_option_bind_param_list1<_Arg0> > >
-  bind_cmd(const std::string &cmd_content, _F raw_fn, _Arg0 arg0) {
-    typedef binder::cmd_option_bind_param_list1<_Arg0> list_type;
-    typedef typename binder::maybe_wrap_member_pointer<_F>::caller_type caller_type;
-    typedef std::shared_ptr<binder::cmd_option_bindt<caller_type, list_type> > obj_type;
-
-    obj_type fn = obj_type(new binder::cmd_option_bindt<caller_type, list_type>(caller_type(raw_fn), list_type(arg0)));
-
-    std::vector<std::string> cmds = split_cmd(cmd_content.c_str());
-    for (std::vector<std::string>::size_type index = 0; index < cmds.size(); ++index) {
-      TCmdStr cmd_obj = TCmdStr(cmds[index].c_str(), cmds[index].size());
-      callback_funcs_[cmd_obj] = fn;
-    }
-
-    return fn;
-  }
-
-  template <typename _F, typename _Arg0,
-            typename _Arg1>  // 绑定函数(_Arg:参数[注意值的复制发生在本函数执行时], _R: 绑定函数返回值类型)
-  std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,
-                                           binder::cmd_option_bind_param_list2<_Arg0, _Arg1> > >
-  bind_cmd(const std::string &cmd_content, _F raw_fn, _Arg0 arg0, _Arg1 arg1) {
-    typedef binder::cmd_option_bind_param_list2<_Arg0, _Arg1> list_type;
-    typedef typename binder::maybe_wrap_member_pointer<_F>::caller_type caller_type;
-    typedef std::shared_ptr<binder::cmd_option_bindt<caller_type, list_type> > obj_type;
-
-    obj_type fn =
-        obj_type(new binder::cmd_option_bindt<caller_type, list_type>(caller_type(raw_fn), list_type(arg0, arg1)));
-
-    std::vector<std::string> cmds = split_cmd(cmd_content.c_str());
-    for (std::vector<std::string>::size_type index = 0; index < cmds.size(); ++index) {
-      TCmdStr cmd_obj = TCmdStr(cmds[index].c_str(), cmds[index].size());
-      callback_funcs_[cmd_obj] = fn;
-    }
-
-    return fn;
-  }
-
-  template <typename _F, typename _Arg0, typename _Arg1,
-            typename _Arg2>  // 绑定函数(_Arg:参数[注意值的复制发生在本函数执行时], _R: 绑定函数返回值类型)
-  std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,
-                                           binder::cmd_option_bind_param_list3<_Arg0, _Arg1, _Arg2> > >
-  bind_cmd(const std::string &cmd_content, _F raw_fn, _Arg0 arg0, _Arg1 arg1, _Arg2 arg2) {
-    typedef binder::cmd_option_bind_param_list3<_Arg0, _Arg1, _Arg2> list_type;
-    typedef typename binder::maybe_wrap_member_pointer<_F>::caller_type caller_type;
-    typedef std::shared_ptr<binder::cmd_option_bindt<caller_type, list_type> > obj_type;
-
-    obj_type fn = obj_type(
-        new binder::cmd_option_bindt<caller_type, list_type>(caller_type(raw_fn), list_type(arg0, arg1, arg2)));
-
-    std::vector<std::string> cmds = split_cmd(cmd_content.c_str());
-    for (std::vector<std::string>::size_type index = 0; index < cmds.size(); ++index) {
-      TCmdStr cmd_obj = TCmdStr(cmds[index].c_str(), cmds[index].size());
-      callback_funcs_[cmd_obj] = fn;
-    }
-
-    return fn;
-  }
-
-  template <typename _F, typename _Arg0, typename _Arg1, typename _Arg2,
-            typename _Arg3>  // 绑定函数(_Arg:参数[注意值的复制发生在本函数执行时], _R: 绑定函数返回值类型)
-  std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,
-                                           binder::cmd_option_bind_param_list4<_Arg0, _Arg1, _Arg2, _Arg3> > >
-  bind_cmd(const std::string &cmd_content, _F raw_fn, _Arg0 arg0, _Arg1 arg1, _Arg2 arg2, _Arg3 arg3) {
-    typedef binder::cmd_option_bind_param_list4<_Arg0, _Arg1, _Arg2, _Arg3> list_type;
-    typedef typename binder::maybe_wrap_member_pointer<_F>::caller_type caller_type;
-    typedef std::shared_ptr<binder::cmd_option_bindt<caller_type, list_type> > obj_type;
-
-    obj_type fn = obj_type(
-        new binder::cmd_option_bindt<caller_type, list_type>(caller_type(raw_fn), list_type(arg0, arg1, arg2, arg3)));
-
-    std::vector<std::string> cmds = split_cmd(cmd_content.c_str());
-    for (std::vector<std::string>::size_type index = 0; index < cmds.size(); ++index) {
-      TCmdStr cmd_obj = TCmdStr(cmds[index].c_str(), cmds[index].size());
-      callback_funcs_[cmd_obj] = fn;
-    }
-
-    return fn;
-  }
-#endif
 
   /**
    * 绑定指令(通用)

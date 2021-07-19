@@ -16,9 +16,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "cli/cmd_option_value.h"
-#include "libcopp/utils/std/smart_ptr.h"
 
 namespace util {
 namespace cli {

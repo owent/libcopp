@@ -7,8 +7,6 @@
  *  Released under the MIT license
  */
 
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-
 #  include <assert.h>
 #  include <algorithm>
 #  include <cstdio>
@@ -33,7 +31,7 @@ class test_this_context_get_cotoutine_runner {
   typedef value_type *value_ptr_type;
 
  public:
-  test_this_context_get_cotoutine_runner() : addr_(NULL), run_(false) {}
+  test_this_context_get_cotoutine_runner() : addr_(nullptr), run_(false) {}
   int operator()(void *passed) {
     CASE_EXPECT_EQ(this, passed);
 
@@ -42,7 +40,7 @@ class test_this_context_get_cotoutine_runner {
     value_ptr_type this_co = static_cast<value_ptr_type>(copp::this_coroutine::get_coroutine());
     CASE_EXPECT_EQ(addr_, this_co);
 #  ifdef LIBCOTASK_MACRO_ENABLED
-    CASE_EXPECT_EQ(NULL, cotask::this_task::get_task());
+    CASE_EXPECT_EQ(nullptr, cotask::this_task::get_task());
 #  endif
     run_ = true;
 
@@ -77,9 +75,9 @@ static void test_this_context_thread_func(copp::coroutine_context_default::ptr_t
 
   CASE_EXPECT_FALSE(runner->is_run());
 
-  CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+  CASE_EXPECT_EQ(nullptr, copp::this_coroutine::get_coroutine());
   co->start(runner);
-  CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+  CASE_EXPECT_EQ(nullptr, copp::this_coroutine::get_coroutine());
 
   CASE_EXPECT_TRUE(runner->is_run());
 }
@@ -135,9 +133,9 @@ CASE_TEST(this_context, yield_) {
   {
     co_type::ptr_t co = co_type::create(&runner, 128 * 1024);
 
-    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+    CASE_EXPECT_EQ(nullptr, copp::this_coroutine::get_coroutine());
     co->start();
-    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+    CASE_EXPECT_EQ(nullptr, copp::this_coroutine::get_coroutine());
 
     CASE_EXPECT_TRUE(runner.is_run());
     CASE_EXPECT_FALSE(runner.is_finished());
@@ -148,12 +146,12 @@ struct test_this_context_rec_runner {
   typedef copp::coroutine_context_default value_type;
   typedef value_type *value_ptr_type;
 
-  test_this_context_rec_runner() : jump_to(NULL), owner(NULL), has_yield(false), has_resume(false) {}
+  test_this_context_rec_runner() : jump_to(nullptr), owner(nullptr), has_yield(false), has_resume(false) {}
   int operator()(void *co_startup_raw) {
     copp::coroutine_context *ptr = copp::this_coroutine::get_coroutine();
 
     value_ptr_type *co_startup = reinterpret_cast<value_ptr_type *>(co_startup_raw);
-    if (NULL == co_startup[0]) {
+    if (nullptr == co_startup[0]) {
       co_startup[0] = static_cast<value_ptr_type>(ptr);
     } else {
       co_startup[1] = static_cast<value_ptr_type>(ptr);
@@ -161,7 +159,7 @@ struct test_this_context_rec_runner {
 
     CASE_EXPECT_EQ(ptr, owner);
 
-    if (NULL != jump_to && NULL != jump_to->owner) {
+    if (nullptr != jump_to && nullptr != jump_to->owner) {
       CASE_EXPECT_EQ(false, jump_to->has_yield);
       CASE_EXPECT_EQ(false, jump_to->has_resume);
       int res = jump_to->owner->start(co_startup_raw);
@@ -196,7 +194,7 @@ struct test_this_context_rec_runner {
 CASE_TEST(this_context, start_in_co) {
   typedef test_this_context_rec_runner::value_type co_type;
 
-  co_type *co_startup[2] = {NULL};
+  co_type *co_startup[2] = {nullptr};
 
   test_this_context_rec_runner cor1, cor2;
 
@@ -207,7 +205,7 @@ CASE_TEST(this_context, start_in_co) {
     cor1.owner = co1.get();
     cor2.owner = co2.get();
 
-    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+    CASE_EXPECT_EQ(nullptr, copp::this_coroutine::get_coroutine());
     cor1.jump_to = &cor2;
 
     CASE_EXPECT_EQ(false, cor1.has_yield);
@@ -218,7 +216,7 @@ CASE_TEST(this_context, start_in_co) {
     cor1.has_resume = true;
     co1->resume(co_startup);
 
-    CASE_EXPECT_EQ(NULL, copp::this_coroutine::get_coroutine());
+    CASE_EXPECT_EQ(nullptr, copp::this_coroutine::get_coroutine());
 
     CASE_EXPECT_EQ(co1.get(), co_startup[0]);
     CASE_EXPECT_EQ(co2.get(), co_startup[1]);
@@ -235,10 +233,10 @@ struct test_this_context_start_failed_when_running {
     value_type *co_jump = reinterpret_cast<value_type *>(pco2);
 
     if (is_start) {
-      CASE_EXPECT_NE(NULL, co_jump);
+      CASE_EXPECT_NE(nullptr, co_jump);
       co_jump->start(ptr);
     } else {
-      CASE_EXPECT_NE(NULL, co_jump);
+      CASE_EXPECT_NE(nullptr, co_jump);
       int res = co_jump->start(ptr);  // this should be COPP_EC_IS_RUNNING
       CASE_EXPECT_EQ(copp::COPP_EC_IS_RUNNING, res);
     }
@@ -264,5 +262,3 @@ CASE_TEST(this_context, start_failed_when_running) {
     co1->start(co2.get());
   }
 }
-
-#endif

@@ -18,10 +18,10 @@
 // ============================ types for task and generator ============================
 class sample_message_t {
  private:
-  sample_message_t(const sample_message_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  sample_message_t &operator=(const sample_message_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  sample_message_t(sample_message_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  sample_message_t &operator=(sample_message_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  sample_message_t(const sample_message_t &) = delete;
+  sample_message_t &operator=(const sample_message_t &) = delete;
+  sample_message_t(sample_message_t &&) = delete;
+  sample_message_t &operator=(sample_message_t &&) = delete;
 
  public:
   int ret_code;

@@ -14,10 +14,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
   TFUNCTION func;
   TFUNCTION **call_backup;
 
-  context_event_function_t() : call_backup(NULL) {}
+  context_event_function_t() : call_backup(nullptr) {}
   ~context_event_function_t() {
     if (call_backup) {
-      *call_backup = NULL;
+      *call_backup = nullptr;
     }
   }
 
@@ -37,12 +37,12 @@ struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
 
       move_to_stack(std::forward<TARGS>(args)...);
 
-      // restore functor, if move_to_stack_ptr is still not NULL, this object must still exists
+      // restore functor, if move_to_stack_ptr is still not nullptr, this object must still exists
       //   and not call context_event_function_t::set(arg)
       // FIXME: Maybe there is visibillity problem?
       if (move_to_stack_ptr) {
         move_to_stack_ptr->swap(func);
-        call_backup = NULL;
+        call_backup = nullptr;
       }
     }
   }
@@ -51,13 +51,13 @@ struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
   inline void set(TARG &&arg) {
     func = std::forward<TARG>(arg);
     if (call_backup) {
-      *call_backup = NULL;
-      call_backup = NULL;
+      *call_backup = nullptr;
+      call_backup = nullptr;
     }
   }
 
   inline TFUNCTION &get() LIBCOPP_MACRO_NOEXCEPT {
-    if (NULL != call_backup) {
+    if (nullptr != call_backup) {
       return **call_backup;
     }
 
@@ -65,7 +65,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
   }
 
   inline const TFUNCTION &get() const LIBCOPP_MACRO_NOEXCEPT {
-    if (NULL != call_backup) {
+    if (nullptr != call_backup) {
       return **call_backup;
     }
 
@@ -89,10 +89,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t {
 
  private:
   // context can not be copy or moved.
-  context_t(const context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  context_t &operator=(const context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  context_t(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  context_t &operator=(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  context_t(const context_t &) = delete;
+  context_t &operator=(const context_t &) = delete;
+  context_t(context_t &&) = delete;
+  context_t &operator=(context_t &&) = delete;
 
  public:
   template <class... TARGS>
@@ -100,10 +100,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t {
 
   template <class TCONTEXT, class TFUTURE>
   void poll_as(TFUTURE &&fut) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
     static_assert(std::is_base_of<self_type, typename std::decay<TCONTEXT>::type>::value,
                   "The context type must be drive of context_t<TPD>");
-#endif
+
     private_data_(std::forward<TFUTURE>(fut), *static_cast<typename std::decay<TCONTEXT>::type *>(this));
   }
 
@@ -159,28 +158,28 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t<void> {
 
  private:
   // context can not be copy or moved.
-  context_t(const context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  context_t &operator=(const context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  context_t(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  context_t &operator=(context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  context_t(const context_t &) = delete;
+  context_t &operator=(const context_t &) = delete;
+  context_t(context_t &&) = delete;
+  context_t &operator=(context_t &&) = delete;
 
   struct construct_helper_t {
     poll_fn_t pool_fn;
     void *private_data;
 
     template <class U>
-    inline construct_helper_t(U &&fn, void *ptr = NULL) : pool_fn(std::forward<U>(fn)), private_data(ptr) {}
+    inline construct_helper_t(U &&fn, void *ptr = nullptr) : pool_fn(std::forward<U>(fn)), private_data(ptr) {}
   };
 
  public:
   template <class U>
-  static inline construct_helper_t construct(U &&fn, void *ptr = NULL) {
+  static inline construct_helper_t construct(U &&fn, void *ptr = nullptr) {
     return construct_helper_t(std::forward<U>(fn), ptr);
   }
 
-  context_t() : private_data_(NULL) {}
+  context_t() : private_data_(nullptr) {}
   template <class TFIRST, class... TARGS>
-  context_t(TFIRST &&helper, TARGS &&...) : private_data_(NULL) {
+  context_t(TFIRST &&helper, TARGS &&...) : private_data_(nullptr) {
     context_construct_helper_assign_t<
         std::is_same<construct_helper_t, typename std::decay<TFIRST>::type>::value>::assign(*this,
                                                                                             std::forward<TFIRST>(
@@ -191,10 +190,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t<void> {
 
   template <class TCONTEXT, class TFUTURE>
   void poll_as(TFUTURE &&fut) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
     static_assert(std::is_base_of<self_type, typename std::decay<TCONTEXT>::type>::value,
                   "The context type must be drive of context_t<TPD>");
-#endif
+
     poll_event_data_t data;
     data.future_ptr = reinterpret_cast<void *>(&fut);
     data.private_data = private_data_;

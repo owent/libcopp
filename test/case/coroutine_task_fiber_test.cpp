@@ -3,8 +3,7 @@
 #include <iostream>
 #include <set>
 #include <vector>
-
-#include <libcopp/utils/std/smart_ptr.h>
+#include <memory>
 
 #include <libcopp/stack/stack_pool.h>
 #include <libcotask/task.h>
@@ -218,7 +217,7 @@ CASE_TEST(coroutine_task_fiber, cancel) {
   CASE_EXPECT_EQ(g_test_coroutine_task_fiber_status, 2);
 
   CASE_EXPECT_FALSE(co_task->is_completed());
-  CASE_EXPECT_EQ(0, co_task->cancel(UTIL_CONFIG_NULLPTR));
+  CASE_EXPECT_EQ(0, co_task->cancel(nullptr));
 
   CASE_EXPECT_TRUE(co_task->is_completed());
 }
@@ -386,7 +385,6 @@ CASE_TEST(coroutine_task_fiber, next) {
   }
 }
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
 
 struct test_context_task_fiber_functor_drived : public cotask::impl::task_action_impl {
  public:
@@ -410,8 +408,6 @@ CASE_TEST(coroutine_task_fiber, functor_drived_action) {
           alloc, 0, 0, 1, 3);
   CASE_EXPECT_EQ(0, co_task->start());
 }
-
-#  endif
 
 static int test_context_task_fiber_priavte_buffer(void *) {
   void *priv_data = cotask::task<test_context_task_fiber_default_test_macro>::this_task()->get_private_buffer();
@@ -466,11 +462,11 @@ CASE_TEST(coroutine_task_fiber, kill_and_timeout) {
   CASE_EXPECT_FALSE(co_task->is_completed());
   CASE_EXPECT_FALSE(co_task->is_exiting());
 
-  CASE_EXPECT_EQ(0, co_task->kill(cotask::EN_TS_TIMEOUT, NULL));
+  CASE_EXPECT_EQ(0, co_task->kill(cotask::EN_TS_TIMEOUT, nullptr));
 
   CASE_EXPECT_TRUE(co_task->is_completed());
 
-  CASE_EXPECT_NE(NULL, co_task->get_raw_action());
+  CASE_EXPECT_NE(nullptr, co_task->get_raw_action());
 }
 
 static int test_context_task_fiber_await_1(void *) {
@@ -478,7 +474,7 @@ static int test_context_task_fiber_await_1(void *) {
 
   task_ptr_type self = cotask::task<test_context_task_fiber_default_test_macro>::this_task();
 
-  CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, self->await_task(NULL));
+  CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, self->await_task(nullptr));
   CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, self->await_task(self));
 
   void *priv_data = self->get_private_buffer();
@@ -538,7 +534,7 @@ CASE_TEST(coroutine_task_fiber, await_task) {
 
     void *priv_data = co_task_1->get_private_buffer();
 
-    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, co_task_1->await_task(UTIL_CONFIG_NULLPTR));
+    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, co_task_1->await_task(nullptr));
     CASE_EXPECT_EQ(copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF, co_task_1->await_task(co_task_1));
 
     *reinterpret_cast<cotask::task<test_context_task_fiber_default_test_macro>::self_t **>(priv_data) = co_task_2.get();
@@ -651,11 +647,8 @@ CASE_TEST(coroutine_task_fiber, then_with_stack_pool) {
   CASE_EXPECT_EQ(g_test_coroutine_task_fiber_on_finished, 5);
 }
 
-#  if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
-      defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
-
 static libcopp::util::lock::atomic_int_type<int> g_test_context_task_fiber_test_atomic;
-static const int g_test_context_task_fiber_test_mt_run_times = 10000;
+static constexpr const int g_test_context_task_fiber_test_mt_run_times = 10000;
 static size_t g_test_context_task_fiber_test_mt_max_run_thread_number = 0;
 enum {
   test_context_task_fiber_test_mt_thread_num = 100,
@@ -735,7 +728,5 @@ CASE_TEST(coroutine_task_fiber, mt_run_competition) {
   CASE_MSG_INFO() << "Fiber tasks are run on " << g_test_context_task_fiber_test_mt_max_run_thread_number
                   << " threads at most." << std::endl;
 }
-
-#  endif
 
 #endif

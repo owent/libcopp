@@ -99,7 +99,7 @@ static TCH toupper(TCH c) {
 template <typename T>
 void str2int(T &out, const char *str) {
   out = static_cast<T>(0);
-  if (NULL == str || !(*str)) {
+  if (nullptr == str || !(*str)) {
     return;
   }
 

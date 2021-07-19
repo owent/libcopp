@@ -3,18 +3,16 @@
 
 #pragma once
 
-#include <cstddef>
-
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/intrusive_ptr.h>
-#include <libcopp/utils/std/functional.h>
-#include <libcopp/utils/std/smart_ptr.h>
 #include <libcopp/fcontext/all.hpp>
 
+#include <cstddef>
+#include <functional>
+#include <memory>
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
@@ -27,29 +25,17 @@ struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner;
 
 template <size_t N1, size_t N2>
 struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N1, N2, true> {
-#if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-  static constexpr size_t value = N1;
-#else
-  static const size_t value = N1;
-#endif
+  static constexpr const size_t value = N1;
 };
 
 template <size_t N1, size_t N2>
 struct LIBCOPP_COPP_API_HEAD_ONLY align_helper_inner<N1, N2, false> {
-#if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-  static constexpr size_t value = N2;
-#else
-  static const size_t value = N2;
-#endif
+  static constexpr const size_t value = N2;
 };
 
 template <size_t N, size_t COMPARE_TO>
 struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
-#if defined(UTIL_CONFIG_COMPILER_CXX_CONSTEXPR) && UTIL_CONFIG_COMPILER_CXX_CONSTEXPR
-  static constexpr size_t value = align_helper_inner<N, COMPARE_TO, N >= COMPARE_TO>::value;
-#else
-  static const size_t value = align_helper_inner<N, COMPARE_TO, N >= COMPARE_TO>::value;
-#endif
+  static constexpr const size_t value = align_helper_inner<N, COMPARE_TO, N >= COMPARE_TO>::value;
 };
 
 // We should align to at least 16 bytes, @see https://wiki.osdev.org/System_V_ABI for more details
@@ -66,10 +52,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
 #define COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE \
   ::copp::details::align_helper<COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE, 64>::value
 
-UTIL_CONFIG_STATIC_ASSERT(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 &&
-                          0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16);
-UTIL_CONFIG_STATIC_ASSERT(COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE >= 16 &&
-                          0 == COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE % 16);
+static_assert(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16,
+              "COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE");
+static_assert(COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE % 16,
+              "COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE");
 }  // namespace details
 
 /**
@@ -125,13 +111,11 @@ class coroutine_context_base {
   LIBCOPP_COPP_API ~coroutine_context_base();
 
  private:
-  coroutine_context_base(const coroutine_context_base &) UTIL_CONFIG_DELETED_FUNCTION;
-  coroutine_context_base &operator=(const coroutine_context_base &) UTIL_CONFIG_DELETED_FUNCTION;
+  coroutine_context_base(const coroutine_context_base &) = delete;
+  coroutine_context_base &operator=(const coroutine_context_base &) = delete;
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-  coroutine_context_base(const coroutine_context_base &&) UTIL_CONFIG_DELETED_FUNCTION;
-  coroutine_context_base &operator=(const coroutine_context_base &&) UTIL_CONFIG_DELETED_FUNCTION;
-#endif
+  coroutine_context_base(const coroutine_context_base &&) = delete;
+  coroutine_context_base &operator=(const coroutine_context_base &&) = delete;
 
  public:
   /**
@@ -171,15 +155,11 @@ class coroutine_context_base {
    * @param runner
    * @return COPP_EC_SUCCESS or error code
    */
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
   LIBCOPP_COPP_API int set_runner(callback_t &&runner);
-#else
-  LIBCOPP_COPP_API int set_runner(const callback_t &runner);
-#endif
 
   /**
    * get runner of this coroutine context (const)
-   * @return NULL of pointer of runner
+   * @return nullptr of pointer of runner
    */
   UTIL_FORCEINLINE const std::function<int(void *)> &get_runner() const LIBCOPP_MACRO_NOEXCEPT { return runner_; }
 
@@ -208,8 +188,8 @@ class coroutine_context_base {
  public:
   static UTIL_FORCEINLINE size_t align_private_data_size(size_t sz) {
     // static size_t random_index = 0;
-    // UTIL_CONFIG_CONSTEXPR size_t random_mask = 63;
-    UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
+    // constexpr const size_t random_mask = 63;
+    constexpr const size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
 
     // align
     sz += align_mask;
@@ -223,7 +203,7 @@ class coroutine_context_base {
   }
 
   static inline size_t align_address_size(size_t sz) {
-    UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
+    constexpr const size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
 
     sz += align_mask;
     sz &= ~align_mask;
@@ -231,7 +211,7 @@ class coroutine_context_base {
   }
 
   static inline size_t align_stack_size(size_t sz) {
-    UTIL_CONFIG_CONSTEXPR size_t align_mask = COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE - 1;
+    constexpr const size_t align_mask = COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE - 1;
 
     sz += align_mask;
     sz &= ~align_mask;
@@ -253,14 +233,14 @@ class coroutine_context_base {
   /**
    * @brief get current coroutine
    * @see detail::coroutine_context_base
-   * @return pointer of current coroutine, if not in coroutine, return NULL
+   * @return pointer of current coroutine, if not in coroutine, return nullptr
    */
   static LIBCOPP_COPP_API coroutine_context_base *get_this_coroutine_base() LIBCOPP_MACRO_NOEXCEPT;
 
   /**
    * @brief set current coroutine
    * @see detail::coroutine_context_base
-   * @param ctx pointer of current coroutine, if not in coroutine, set NULL
+   * @param ctx pointer of current coroutine, if not in coroutine, set nullptr
    */
   static LIBCOPP_COPP_API void set_this_coroutine_base(coroutine_context_base *ctx) LIBCOPP_MACRO_NOEXCEPT;
 };

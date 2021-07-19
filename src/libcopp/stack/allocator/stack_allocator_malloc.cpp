@@ -6,8 +6,6 @@
 #include <memory>
 #include <numeric>
 
-#include <libcopp/utils/config/compiler_features.h>
-
 #include <libcopp/stack/allocator/stack_allocator_malloc.h>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/stack/stack_traits.h>
@@ -30,13 +28,12 @@ LIBCOPP_COPP_API stack_allocator_malloc &stack_allocator_malloc::operator=(const
     LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+
 LIBCOPP_COPP_API stack_allocator_malloc::stack_allocator_malloc(stack_allocator_malloc &&) LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_malloc &stack_allocator_malloc::operator=(stack_allocator_malloc &&)
     LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#endif
 
 LIBCOPP_COPP_API void stack_allocator_malloc::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
   size = (std::max)(size, stack_traits::minimum_size());
@@ -47,7 +44,7 @@ LIBCOPP_COPP_API void stack_allocator_malloc::allocate(stack_context &ctx, std::
   void *start_ptr = malloc(size_);
 
   if (!start_ptr) {
-    ctx.sp = UTIL_CONFIG_NULLPTR;
+    ctx.sp = nullptr;
     return;
   }
 

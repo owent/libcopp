@@ -3,17 +3,18 @@
 
 #pragma once
 
-#include <assert.h>
-#include <cstring>
-#include <list>
 
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/lock_holder.h>
 #include <libcopp/utils/spin_lock.h>
-#include <libcopp/utils/std/smart_ptr.h>
 
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/stack/stack_traits.h>
+
+#include <assert.h>
+#include <cstring>
+#include <list>
+#include <memory>
 
 namespace copp {
 template <typename TAlloc>
@@ -43,8 +44,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  private:
   struct constructor_delegator {};
 
-  stack_pool() UTIL_CONFIG_DELETED_FUNCTION;
-  stack_pool(const stack_pool &) UTIL_CONFIG_DELETED_FUNCTION;
+  stack_pool() = delete;
+  stack_pool(const stack_pool &) = delete;
 
  public:
   static ptr_t create() { return std::make_shared<stack_pool>(constructor_delegator()); }
@@ -109,13 +110,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
 #endif
     // check limit
     if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
-      ctx.sp = NULL;
+      ctx.sp = nullptr;
       ctx.size = 0;
       return;
     }
 
     if (0 != conf_.max_stack_size && limits_.used_stack_size + conf_.stack_size > conf_.max_stack_size) {
-      ctx.sp = NULL;
+      ctx.sp = nullptr;
       ctx.size = 0;
       return;
     }
@@ -155,7 +156,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
 
     // get from origin allocator
     alloc_.allocate(ctx, conf_.stack_size);
-    if (NULL != ctx.sp && ctx.size > 0) {
+    if (nullptr != ctx.sp && ctx.size > 0) {
       // used limit
       ++limits_.used_stack_number;
       limits_.used_stack_size += ctx.size;
@@ -175,7 +176,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
       // check ctx
-      if (ctx.sp == NULL || 0 == ctx.size) {
+      if (ctx.sp == nullptr || 0 == ctx.size) {
         break;
       }
 

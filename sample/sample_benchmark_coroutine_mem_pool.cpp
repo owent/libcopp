@@ -48,10 +48,10 @@ static int my_runner(void *) {
 }
 
 int MAX_COROUTINE_NUMBER = 100000;  // 协程数量
-my_cotoutine_t::ptr_t *co_arr = NULL;
+my_cotoutine_t::ptr_t *co_arr = nullptr;
 
 // === 栈内存池 ===
-char *stack_mem_pool = NULL;
+char *stack_mem_pool = nullptr;
 
 int main(int argc, char *argv[]) {
   puts("###################### context coroutine (stack using memory pool) ###################");
@@ -80,13 +80,13 @@ int main(int argc, char *argv[]) {
   stack_mem_pool = new char[MAX_COROUTINE_NUMBER * stack_size];
   memset(stack_mem_pool, 0, MAX_COROUTINE_NUMBER * stack_size);
 
-  time_t begin_time = time(NULL);
+  time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
   co_arr = new my_cotoutine_t::ptr_t[MAX_COROUTINE_NUMBER];
 
-  time_t end_time = time(NULL);
+  time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
   printf("allocate %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", MAX_COROUTINE_NUMBER,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     co_arr[i] = my_cotoutine_t::create(my_runner, alloc, stack_size);
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("create %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", MAX_COROUTINE_NUMBER,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("switch %d coroutine contest %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
          MAX_COROUTINE_NUMBER, real_switch_times, static_cast<int>(end_time - begin_time),
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
   delete[] co_arr;
   delete[] stack_mem_pool;
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("remove %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", MAX_COROUTINE_NUMBER,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),

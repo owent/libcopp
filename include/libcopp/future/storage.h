@@ -3,17 +3,15 @@
 
 #pragma once
 
-#include <cstring>
-
-#include <libcopp/utils/config/compiler_features.h>
-
 #include <libcopp/utils/std/coroutine.h>
 #include <libcopp/utils/std/explicit_declare.h>
-#include <libcopp/utils/std/functional.h>
-#include <libcopp/utils/std/smart_ptr.h>
 #include <libcopp/utils/std/type_traits.h>
 
 #include <libcopp/utils/features.h>
+
+#include <cstring>
+#include <functional>
+#include <memory>
 
 namespace copp {
 namespace future {
@@ -25,16 +23,12 @@ EXPLICIT_NODISCARD_ATTR std::unique_ptr<T> make_unique(TARGS &&...args) {  // ma
 
 template <class T, typename std::enable_if<std::is_array<T>::value && std::extent<T>::value == 0, int>::type = 0>
 EXPLICIT_NODISCARD_ATTR std::unique_ptr<T> make_unique(size_t sz) {  // make a unique_ptr
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using TELEM = typename std::remove_extent<T>::type;
-#else
-  typedef typename std::remove_extent<T>::type TELEM;
-#endif
   return std::unique_ptr<T>(new TELEM[sz]());
 }
 
 template <class T, class... TARGS, typename std::enable_if<std::extent<T>::value != 0, int>::type = 0>
-void make_unique(TARGS &&...) UTIL_CONFIG_DELETED_FUNCTION;
+void make_unique(TARGS &&...) = delete;
 
 template <class T>
 struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_delete_t {
@@ -382,13 +376,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, true> {
   UTIL_FORCEINLINE bool is_error() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_ERROR; }
 
   UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? &success_data_ : NULL;
+    return is_success() ? &success_data_ : nullptr;
   }
-  UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT { return is_success() ? &success_data_ : NULL; }
+  UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT { return is_success() ? &success_data_ : nullptr; }
   UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? &error_data_ : NULL;
+    return is_error() ? &error_data_ : nullptr;
   }
-  UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT { return is_error() ? &error_data_ : NULL; }
+  UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT { return is_error() ? &error_data_ : nullptr; }
 
  private:
   template <class UOK, class UERR>
@@ -453,16 +447,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, false> {
   UTIL_FORCEINLINE bool is_error() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_ERROR; }
 
   UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? success_storage_type::unwrap(success_data_) : NULL;
+    return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
   }
   UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? success_storage_type::unwrap(success_data_) : NULL;
+    return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
   }
   UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? error_storage_type::unwrap(error_data_) : NULL;
+    return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
   }
   UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? error_storage_type::unwrap(error_data_) : NULL;
+    return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
   }
 
   result_base_t() : mode_(EN_RESULT_NONE) {

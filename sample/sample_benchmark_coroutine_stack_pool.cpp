@@ -56,13 +56,13 @@ int MAX_COROUTINE_NUMBER = 100000;  // 协程数量
 static void benchmark_round(int index) {
   printf("### Round: %d ###\n", index);
 
-  time_t begin_time = time(NULL);
+  time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
   my_cotoutine_t::ptr_t *co_arr = new my_cotoutine_t::ptr_t[MAX_COROUTINE_NUMBER];
 
-  time_t end_time = time(NULL);
+  time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
   printf("allocate %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", MAX_COROUTINE_NUMBER,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -79,7 +79,7 @@ static void benchmark_round(int index) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("create %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", MAX_COROUTINE_NUMBER,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -107,7 +107,7 @@ static void benchmark_round(int index) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("switch %d coroutine contest %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
          MAX_COROUTINE_NUMBER, real_switch_times, static_cast<int>(end_time - begin_time),
@@ -118,7 +118,7 @@ static void benchmark_round(int index) {
 
   delete[] co_arr;
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("remove %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", MAX_COROUTINE_NUMBER,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),

@@ -20,7 +20,6 @@ extern "C" {
 #include <libcopp/stack/allocator/stack_allocator_posix.h>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/stack/stack_traits.h>
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/fcontext/fcontext.hpp>
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
@@ -40,13 +39,13 @@ LIBCOPP_COPP_API stack_allocator_posix &stack_allocator_posix::operator=(const s
     LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+
 LIBCOPP_COPP_API stack_allocator_posix::stack_allocator_posix(stack_allocator_posix &&) LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_posix &stack_allocator_posix::operator=(stack_allocator_posix &&)
     LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#endif
+
 
 LIBCOPP_COPP_API void stack_allocator_posix::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
   size = (std::max)(size, stack_traits::minimum_size());
@@ -64,7 +63,7 @@ LIBCOPP_COPP_API void stack_allocator_posix::allocate(stack_context &ctx, std::s
 #endif
 
   if (!start_ptr || MAP_FAILED == start_ptr) {
-    ctx.sp = UTIL_CONFIG_NULLPTR;
+    ctx.sp = nullptr;
     return;
   }
 

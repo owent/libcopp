@@ -21,30 +21,20 @@ namespace copp {
 template <typename TALLOC>
 class coroutine_context_container : public coroutine_context {
  public:
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using coroutine_context_type = coroutine_context;
   using base_type = coroutine_context;
   using allocator_type = TALLOC;
   using this_type = coroutine_context_container<allocator_type>;
   using ptr_t = libcopp::util::intrusive_ptr<this_type>;
   using callback_t = coroutine_context::callback_t;
-#else
-  typedef coroutine_context coroutine_context_type;
-  typedef coroutine_context base_type;
-  typedef TALLOC allocator_type;
-  typedef coroutine_context_container<allocator_type> this_type;
-  typedef libcopp::util::intrusive_ptr<this_type> ptr_t;
-  typedef coroutine_context::callback_t callback_t;
-#endif
+
   COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
 
  private:
   coroutine_context_container(const allocator_type &alloc) LIBCOPP_MACRO_NOEXCEPT : alloc_(alloc), ref_count_(0) {}
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
   coroutine_context_container(allocator_type &&alloc) LIBCOPP_MACRO_NOEXCEPT : alloc_(std::move(alloc)),
                                                                                ref_count_(0) {}
-#endif
 
  public:
   ~coroutine_context_container() {}
@@ -70,14 +60,8 @@ class coroutine_context_container : public coroutine_context {
    * @param coroutine_size extend buffer before coroutine
    * @return COPP_EC_SUCCESS or error code
    */
-  static ptr_t create(
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-      callback_t &&runner,
-#else
-      const callback_t &runner,
-#endif
-      allocator_type &alloc, size_t stack_sz = 0, size_t private_buffer_size = 0,
-      size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static ptr_t create(callback_t &&runner, allocator_type &alloc, size_t stack_sz = 0, size_t private_buffer_size = 0,
+                      size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     ptr_t ret;
     if (0 == stack_sz) {
       stack_sz = stack_traits::default_size();
@@ -96,7 +80,7 @@ class coroutine_context_container : public coroutine_context {
     stack_context callee_stack;
     alloc.allocate(callee_stack, stack_sz);
 
-    if (NULL == callee_stack.sp) {
+    if (nullptr == callee_stack.sp) {
       return ret;
     }
 
@@ -126,7 +110,7 @@ class coroutine_context_container : public coroutine_context {
   template <class TRunner>
   static inline ptr_t create(TRunner *runner, allocator_type &alloc, size_t stack_size = 0,
                              size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
-    if (UTIL_CONFIG_NULLPTR == runner) {
+    if (nullptr == runner) {
       return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
     }
 
@@ -137,20 +121,15 @@ class coroutine_context_container : public coroutine_context {
 
   static inline ptr_t create(int (*fn)(void *), allocator_type &alloc, size_t stack_size = 0,
                              size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
-    if (UTIL_CONFIG_NULLPTR == fn) {
+    if (nullptr == fn) {
       return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
     }
 
     return create(callback_t(fn), alloc, stack_size, private_buffer_size, coroutine_size);
   }
 
-  static ptr_t create(
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-      callback_t &&runner,
-#else
-      const callback_t &runner,
-#endif
-      size_t stack_size = 0, size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static ptr_t create(callback_t &&runner, size_t stack_size = 0, size_t private_buffer_size = 0,
+                      size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     allocator_type alloc;
     return create(std::move(runner), alloc, stack_size, private_buffer_size, coroutine_size);
   }
@@ -171,11 +150,11 @@ class coroutine_context_container : public coroutine_context {
   inline size_t use_count() const LIBCOPP_MACRO_NOEXCEPT { return ref_count_.load(); }
 
  private:
-  coroutine_context_container(const coroutine_context_container &) UTIL_CONFIG_DELETED_FUNCTION;
+  coroutine_context_container(const coroutine_context_container &) = delete;
 
  private:
   friend void intrusive_ptr_add_ref(this_type *p) {
-    if (p == UTIL_CONFIG_NULLPTR) {
+    if (p == nullptr) {
       return;
     }
 
@@ -183,7 +162,7 @@ class coroutine_context_container : public coroutine_context {
   }
 
   friend void intrusive_ptr_release(this_type *p) {
-    if (p == UTIL_CONFIG_NULLPTR) {
+    if (p == nullptr) {
       return;
     }
 

@@ -1,8 +1,6 @@
 ﻿/**
  *
  * @file intrusive_ptr.h
- * @brief 侵入式智能指针
- * @note 这不是std标准中的一部分，但是这是对smart_ptr.h的补充
  * Licensed under the MIT licenses.
  *
  * @version 1.0
@@ -26,7 +24,6 @@
 #  include <compare>
 #endif
 
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 namespace libcopp {
@@ -41,7 +38,7 @@ namespace util {
 //      void intrusive_ptr_add_ref(T * p);
 //      void intrusive_ptr_release(T * p);
 //
-//          (p != NULL)
+//          (p != nullptr)
 //
 //  The object is responsible for destroying itself.
 //
@@ -52,31 +49,31 @@ class intrusive_ptr {
   typedef intrusive_ptr<T> self_type;
   typedef T element_type;
 
-  UTIL_CONFIG_CONSTEXPR intrusive_ptr() LIBCOPP_MACRO_NOEXCEPT : px(NULL) {}
+  constexpr intrusive_ptr() LIBCOPP_MACRO_NOEXCEPT : px(nullptr) {}
 
   intrusive_ptr(T *p, bool add_ref = true) : px(p) {
-    if (px != NULL && add_ref) {
+    if (px != nullptr && add_ref) {
       intrusive_ptr_add_ref(px);
     }
   }
 
   template <typename U>
   intrusive_ptr(intrusive_ptr<U> const &rhs,
-                typename std::enable_if<std::is_convertible<U *, T *>::value>::type * = NULL)
+                typename std::enable_if<std::is_convertible<U *, T *>::value>::type * = nullptr)
       : px(rhs.get()) {
-    if (px != NULL) {
+    if (px != nullptr) {
       intrusive_ptr_add_ref(px);
     }
   }
 
   intrusive_ptr(self_type const &rhs) : px(rhs.px) {
-    if (px != NULL) {
+    if (px != nullptr) {
       intrusive_ptr_add_ref(px);
     }
   }
 
   ~intrusive_ptr() {
-    if (px != NULL) {
+    if (px != nullptr) {
       intrusive_ptr_release(px);
     }
   }
@@ -91,10 +88,7 @@ class intrusive_ptr {
   }
 
   // Move support
-
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-
-  intrusive_ptr(self_type &&rhs) LIBCOPP_MACRO_NOEXCEPT : px(rhs.px) { rhs.px = NULL; }
+  intrusive_ptr(self_type &&rhs) LIBCOPP_MACRO_NOEXCEPT : px(rhs.px) { rhs.px = nullptr; }
 
   self_type &operator=(self_type &&rhs) LIBCOPP_MACRO_NOEXCEPT {
     self_type(static_cast<self_type &&>(rhs)).swap(*this);
@@ -103,9 +97,9 @@ class intrusive_ptr {
 
   template <typename U>
   intrusive_ptr(intrusive_ptr<U> &&rhs,
-                typename std::enable_if<std::is_convertible<U *, T *>::value>::type * = NULL) LIBCOPP_MACRO_NOEXCEPT
+                typename std::enable_if<std::is_convertible<U *, T *>::value>::type * = nullptr) LIBCOPP_MACRO_NOEXCEPT
       : px(rhs.px) {
-    rhs.px = NULL;
+    rhs.px = nullptr;
   }
 
   template <typename U, typename Deleter>
@@ -113,7 +107,6 @@ class intrusive_ptr {
     self_type(rhs.release()).swap(*this);
     return *this;
   }
-#endif
 
   self_type &operator=(self_type const &rhs) {
     self_type(rhs).swap(*this);
@@ -130,7 +123,7 @@ class intrusive_ptr {
 
   inline element_type *detach() LIBCOPP_MACRO_NOEXCEPT {
     element_type *ret = px;
-    px = NULL;
+    px = nullptr;
     return ret;
   }
 
@@ -145,9 +138,9 @@ class intrusive_ptr {
   }
 
   // implicit conversion to "bool"
-  inline operator bool() const LIBCOPP_MACRO_NOEXCEPT { return px != NULL; }
+  inline operator bool() const LIBCOPP_MACRO_NOEXCEPT { return px != nullptr; }
   // operator! is redundant, but some compilers need it
-  inline bool operator!() const LIBCOPP_MACRO_NOEXCEPT { return px == NULL; }
+  inline bool operator!() const LIBCOPP_MACRO_NOEXCEPT { return px == nullptr; }
 
   inline void swap(intrusive_ptr &rhs) LIBCOPP_MACRO_NOEXCEPT {
     element_type *tmp = px;
@@ -267,8 +260,6 @@ inline bool operator>=(T *a, intrusive_ptr<U> const &b) LIBCOPP_MACRO_NOEXCEPT {
 
 #endif
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_NULLPTR) && UTIL_CONFIG_COMPILER_CXX_NULLPTR
-
 template <typename T>
 inline bool operator==(intrusive_ptr<T> const &p, std::nullptr_t) LIBCOPP_MACRO_NOEXCEPT {
   return p.get() == nullptr;
@@ -279,7 +270,7 @@ inline bool operator==(std::nullptr_t, intrusive_ptr<T> const &p) LIBCOPP_MACRO_
   return p.get() == nullptr;
 }
 
-#  ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
 template <typename T>
 inline std::strong_ordering operator<=>(intrusive_ptr<T> const &p, std::nullptr_t) LIBCOPP_MACRO_NOEXCEPT {
   return p.get() <=> nullptr;
@@ -289,7 +280,7 @@ template <typename T>
 inline std::strong_ordering operator<=>(std::nullptr_t, intrusive_ptr<T> const &p) LIBCOPP_MACRO_NOEXCEPT {
   return p.get() <=> nullptr;
 }
-#  else
+#else
 template <typename T>
 inline bool operator!=(intrusive_ptr<T> const &p, std::nullptr_t) LIBCOPP_MACRO_NOEXCEPT {
   return p.get() != nullptr;
@@ -339,8 +330,6 @@ template <typename T>
 inline bool operator>=(std::nullptr_t, intrusive_ptr<T> const &p) LIBCOPP_MACRO_NOEXCEPT {
   return p.get() >= nullptr;
 }
-#  endif
-
 #endif
 
 template <typename T>

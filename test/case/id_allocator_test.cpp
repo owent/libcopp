@@ -2,19 +2,13 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <memory>
 #include <set>
+#include <thread>
 
 #include "frame/test_macros.h"
 
 #include "libcopp/utils/uint64_id_allocator.h"
-
-#if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
-    defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
-
-#  include <memory>
-#  include <thread>
-
-#endif
 
 CASE_TEST(coroutine_task, id_allocator_st) {
   copp::util::uint64_id_allocator alloc;
@@ -31,9 +25,6 @@ CASE_TEST(coroutine_task, id_allocator_st) {
 
   CASE_EXPECT_EQ(id_num, s.size());
 }
-
-#if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
-    defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
 
 CASE_TEST(coroutine_task, id_allocator_mt) {
   copp::util::uint64_id_allocator alloc;
@@ -66,5 +57,3 @@ CASE_TEST(coroutine_task, id_allocator_mt) {
 
   CASE_EXPECT_EQ(id_num, s[0].size());
 }
-
-#endif

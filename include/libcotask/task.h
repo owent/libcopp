@@ -37,7 +37,6 @@ namespace cotask {
 
 template <typename TCO_MACRO = macro_coroutine>
 class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
  public:
   using self_t = task<TCO_MACRO>;
   using ptr_t = libcopp::util::intrusive_ptr<self_t>;
@@ -51,21 +50,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
  private:
   using action_ptr_t = impl::task_impl::action_ptr_t;
-#else
- public:
-  typedef task<TCO_MACRO> self_t;
-  typedef libcopp::util::intrusive_ptr<self_t> ptr_t;
-  typedef TCO_MACRO macro_coroutine_t;
 
-  typedef typename macro_coroutine_t::coroutine_t coroutine_t;
-  typedef typename macro_coroutine_t::stack_allocator_t stack_allocator_t;
-
-  typedef typename impl::task_impl::id_t id_t;
-  typedef typename impl::task_impl::id_allocator_t id_allocator_t;
-
- private:
-  typedef impl::task_impl::action_ptr_t action_ptr_t;
-#endif
   struct task_group {
     std::list<std::pair<ptr_t, void *> > member_list_;
   };
@@ -77,40 +62,28 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    */
   task(size_t stack_sz)
       : stack_size_(stack_sz),
-        action_destroy_fn_(UTIL_CONFIG_NULLPTR)
+        action_destroy_fn_(nullptr)
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
         ,
-        binding_manager_ptr_(UTIL_CONFIG_NULLPTR),
-        binding_manager_fn_(UTIL_CONFIG_NULLPTR)
+        binding_manager_ptr_(nullptr),
+        binding_manager_fn_(nullptr)
 #endif
   {
   }
 
-/**
- * @brief create task with functor
- * @param action
- * @param stack_size stack size
- * @param private_buffer_size buffer size to store private data
- * @return task smart pointer
- */
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+  /**
+   * @brief create task with functor
+   * @param action
+   * @param stack_size stack size
+   * @param private_buffer_size buffer size to store private data
+   * @return task smart pointer
+   */
   template <typename TAct, typename Ty>
   static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with_delegate(Ty &&callable,
                                                                  typename coroutine_t::allocator_type &alloc,
                                                                  size_t stack_size = 0,
                                                                  size_t private_buffer_size = 0) {
-#else
-  template <typename TAct, typename Ty>
-  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with_delegate(const Ty &callable,
-                                                                 typename coroutine_t::allocator_type &alloc,
-                                                                 size_t stack_size = 0,
-                                                                 size_t private_buffer_size = 0) {
-#endif
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
     using a_t = TAct;
-#else
-    typedef TAct a_t;
-#endif
 
     if (0 == stack_size) {
       stack_size = copp::stack_traits::default_size();
@@ -124,7 +97,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     typename coroutine_t::ptr_t coroutine =
-        coroutine_t::create(reinterpret_cast<a_t *>(NULL), alloc, stack_size,
+        coroutine_t::create(reinterpret_cast<a_t *>(nullptr), alloc, stack_size,
                             sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
     if (!coroutine) {
       return ptr_t();
@@ -145,25 +118,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
     // placement new action
     a_t *action = new (action_addr) a_t(COPP_MACRO_STD_FORWARD(Ty, callable));
-    if (UTIL_CONFIG_NULLPTR == action) {
+    if (nullptr == action) {
       return ret;
     }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
     using a_t_fn_t = int (a_t::*)(void *);
-#else
-    typedef int (a_t::*a_t_fn_t)(void *);
-#endif
     a_t_fn_t a_t_fn = &a_t::operator();
 
     // redirect runner
-    coroutine->set_runner(
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-        std::move(std::bind(a_t_fn, action, std::placeholders::_1))
-#else
-        std::bind(a_t_fn, action, std::placeholders::_1)
-#endif
-    );
+    coroutine->set_runner(std::move(std::bind(a_t_fn, action, std::placeholders::_1)));
 
     ret->action_destroy_fn_ = get_placement_destroy(action);
     ret->_set_action(action);
@@ -178,7 +141,6 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  * @param private_buffer_size buffer size to store private data
  * @return task smart pointer
  */
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
   template <typename Ty>
   static inline ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
     typename coroutine_t::allocator_type alloc;
@@ -188,33 +150,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   template <typename Ty>
   static inline ptr_t create(Ty &&functor, typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
                              size_t private_buffer_size = 0) {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
     using decay_type = typename std::decay<Ty>::type;
     using a_t = typename std::conditional<std::is_base_of<impl::task_action_impl, decay_type>::value, decay_type,
                                           task_action_functor<decay_type> >::type;
-#  else
-    typedef typename std::decay<Ty>::type decay_type;
-    typedef typename std::conditional<std::is_base_of<impl::task_action_impl, decay_type>::value, decay_type,
-                                      task_action_functor<decay_type> >::type a_t;
-#  endif
+
     return create_with_delegate<a_t>(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size);
   }
-#else
-  template <typename Ty>
-  static inline ptr_t create(const Ty &functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
-    typename coroutine_t::allocator_type alloc;
-    return create(functor, alloc, stack_size, private_buffer_size);
-  }
-
-  template <typename Ty>
-  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(const Ty &functor, typename coroutine_t::allocator_type &alloc,
-                                                   size_t stack_size = 0, size_t private_buffer_size = 0) {
-    typedef typename std::decay<Ty>::type decay_type;
-    typedef typename std::conditional<std::is_base_of<impl::task_action_impl, decay_type>::value, decay_type,
-                                      task_action_functor<decay_type> >::type a_t;
-    return create_with_delegate<a_t>(functor, alloc, stack_size, private_buffer_size);
-  }
-#endif
 
   /**
    * @brief create task with function
@@ -225,11 +166,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   template <typename Ty>
   static inline ptr_t create(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
                              size_t private_buffer_size = 0) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
     using a_t = task_action_function<Ty>;
-#else
-    typedef task_action_function<Ty> a_t;
-#endif
 
     return create_with_delegate<a_t>(func, alloc, stack_size, private_buffer_size);
   }
@@ -250,11 +187,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(Ty(TInst::*func), TInst *instance,
                                                    typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
                                                    size_t private_buffer_size = 0) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
     using a_t = task_action_mem_function<Ty, TInst>;
-#else
-    typedef task_action_mem_function<Ty, TInst> a_t;
-#endif
 
     return create<a_t>(a_t(func, instance), alloc, stack_size, private_buffer_size);
   }
@@ -265,7 +198,6 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     return create(func, instance, alloc, stack_size, private_buffer_size);
   }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
   /**
    * @brief create task with functor type and parameters
    * @param stack_size stack size
@@ -275,15 +207,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   template <typename Ty, typename... TParams>
   static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with(typename coroutine_t::allocator_type &alloc, size_t stack_size,
                                                         size_t private_buffer_size, TParams &&...args) {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
     using a_t = Ty;
-#  else
-    typedef Ty a_t;
-#  endif
 
     return create(a_t(std::forward<TParams>(args)...), alloc, stack_size, private_buffer_size);
   }
-#endif
 
   /**
    * @brief add next task to run when task finished
@@ -293,7 +220,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @param priv_data priv_data passed to resume or start next stack
    * @return next_task if success , or self if failed
    */
-  inline ptr_t next(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) {
+  inline ptr_t next(ptr_t next_task, void *priv_data = nullptr) {
     // can not refers to self
     if (this == next_task.get() || !next_task) {
       return ptr_t(this);
@@ -327,31 +254,17 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  * @param stack_size stack size
  * @return the created task if success , or self if failed
  */
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
   template <typename Ty>
-  inline ptr_t next(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
+  inline ptr_t next(Ty &&functor, void *priv_data = nullptr, size_t stack_size = 0,
                     size_t private_buffer_size = 0) {
     return next(create(std::forward<Ty>(functor), stack_size, private_buffer_size), priv_data);
   }
 
   template <typename Ty>
-  inline ptr_t next(Ty &&functor, typename coroutine_t::allocator_type &alloc, void *priv_data = UTIL_CONFIG_NULLPTR,
+  inline ptr_t next(Ty &&functor, typename coroutine_t::allocator_type &alloc, void *priv_data = nullptr,
                     size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size), priv_data);
   }
-#else
-  template <typename Ty>
-  inline ptr_t next(const Ty &functor, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
-                    size_t private_buffer_size = 0) {
-    return next(create(functor, stack_size, private_buffer_size), priv_data);
-  }
-
-  template <typename Ty>
-  inline ptr_t next(const Ty &functor, typename coroutine_t::allocator_type &alloc,
-                    void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
-    return next(create(functor, alloc, stack_size, private_buffer_size), priv_data);
-  }
-#endif
 
   /**
    * @brief create next task with function
@@ -362,14 +275,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return the created task if success , or self if failed
    */
   template <typename Ty>
-  inline ptr_t next(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
+  inline ptr_t next(Ty (*func)(void *), void *priv_data = nullptr, size_t stack_size = 0,
                     size_t private_buffer_size = 0) {
     return next(create(func, stack_size, private_buffer_size), priv_data);
   }
 
   template <typename Ty>
   inline ptr_t next(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc,
-                    void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
+                    void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(func, alloc, stack_size, private_buffer_size), priv_data);
   }
 
@@ -383,14 +296,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return the created task if success , or self if failed
    */
   template <typename Ty, typename TInst>
-  inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0,
+  inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = nullptr, size_t stack_size = 0,
                     size_t private_buffer_size = 0) {
     return next(create(func, instance, stack_size, private_buffer_size), priv_data);
   }
 
   template <typename Ty, typename TInst>
   inline ptr_t next(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type &alloc,
-                    void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
+                    void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(func, instance, alloc, stack_size, private_buffer_size), priv_data);
   }
 
@@ -454,7 +367,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @param priv_data priv_data passed to resume or start the stack
    * @return next_task if success , or self if failed
    */
-  inline ptr_t then(ptr_t next_task, void *priv_data = UTIL_CONFIG_NULLPTR) { return next(next_task, priv_data); }
+  inline ptr_t then(ptr_t next_task, void *priv_data = nullptr) { return next(next_task, priv_data); }
 
   /**
    * @brief create next task with functor using the same allocator and private buffer size as this task
@@ -463,9 +376,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @param priv_data priv_data passed to start functor
    * @return the created task if success , or self if failed
    */
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
   template <typename Ty>
-  inline ptr_t then(Ty &&functor, void *priv_data = UTIL_CONFIG_NULLPTR) {
+  inline ptr_t then(Ty &&functor, void *priv_data = nullptr) {
     if (!coroutine_obj_) {
       then(create(std::forward<Ty>(functor), stack_size_, get_private_buffer_size()), priv_data);
     }
@@ -474,20 +386,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         create(std::forward<Ty>(functor), coroutine_obj_->get_allocator(), stack_size_, get_private_buffer_size()),
         priv_data);
   }
-#else
-  template <typename Ty>
-  inline ptr_t then(const Ty &functor, typename coroutine_t::allocator_type &alloc,
-                    void *priv_data = UTIL_CONFIG_NULLPTR, size_t stack_size = 0, size_t private_buffer_size = 0) {
-    if (!coroutine_obj_) {
-      return then(create(functor, stack_size_, get_private_buffer_size()), priv_data);
-    }
-
-    return then(create(functor, coroutine_obj_->get_allocator(), stack_size_, get_private_buffer_size()), priv_data);
-  }
-#endif
 
   template <typename Ty>
-  inline ptr_t then(Ty (*func)(void *), void *priv_data = UTIL_CONFIG_NULLPTR) {
+  inline ptr_t then(Ty (*func)(void *), void *priv_data = nullptr) {
     if (!coroutine_obj_) {
       return then(create(func, stack_size_, get_private_buffer_size()), priv_data);
     }
@@ -516,7 +417,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
  public:
-  virtual int get_ret_code() const UTIL_CONFIG_OVERRIDE {
+  int get_ret_code() const override {
     if (!coroutine_obj_) {
       return 0;
     }
@@ -525,7 +426,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) UTIL_CONFIG_OVERRIDE {
+  int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) override {
     std::list<std::exception_ptr> eptrs;
     int ret = start(eptrs, priv_data, expected_status);
     maybe_rethrow(eptrs);
@@ -535,7 +436,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   virtual int start(std::list<std::exception_ptr> &unhandled, void *priv_data,
                     EN_TASK_STATUS expected_status = EN_TS_CREATED) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  virtual int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) UTIL_CONFIG_OVERRIDE {
+  int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) override {
 #endif
     if (!coroutine_obj_) {
       return copp::COPP_EC_NOT_INITED;
@@ -607,7 +508,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) UTIL_CONFIG_OVERRIDE {
+  int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) override {
     return start(priv_data, expected_status);
   }
 
@@ -616,12 +517,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     return start(unhandled, priv_data, expected_status);
   }
 #else
-  virtual int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) UTIL_CONFIG_OVERRIDE {
+  int resume(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_WAITING) override {
     return start(priv_data, expected_status);
   }
 #endif
 
-  virtual int yield(void **priv_data) UTIL_CONFIG_OVERRIDE {
+  int yield(void **priv_data) override {
     if (!coroutine_obj_) {
       return copp::COPP_EC_NOT_INITED;
     }
@@ -630,7 +531,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  virtual int cancel(void *priv_data) UTIL_CONFIG_OVERRIDE {
+  int cancel(void *priv_data) override {
     std::list<std::exception_ptr> eptrs;
     int ret = cancel(eptrs, priv_data);
     maybe_rethrow(eptrs);
@@ -639,7 +540,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
   virtual int cancel(std::list<std::exception_ptr> &unhandled, void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  virtual int cancel(void *priv_data) UTIL_CONFIG_OVERRIDE {
+  int cancel(void *priv_data) override {
 #endif
 
     EN_TASK_STATUS from_status = get_status();
@@ -663,7 +564,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  virtual int kill(enum EN_TASK_STATUS status, void *priv_data) UTIL_CONFIG_OVERRIDE {
+  int kill(enum EN_TASK_STATUS status, void *priv_data) override {
     std::list<std::exception_ptr> eptrs;
     int ret = kill(eptrs, status, priv_data);
     maybe_rethrow(eptrs);
@@ -673,7 +574,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   virtual int kill(std::list<std::exception_ptr> &unhandled, enum EN_TASK_STATUS status,
                    void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  virtual int kill(enum EN_TASK_STATUS status, void *priv_data) UTIL_CONFIG_OVERRIDE {
+  int kill(enum EN_TASK_STATUS status, void *priv_data) override {
 #endif
     EN_TASK_STATUS from_status = get_status();
 
@@ -703,7 +604,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   using impl::task_impl::yield;
 
  public:
-  virtual bool is_completed() const LIBCOPP_MACRO_NOEXCEPT UTIL_CONFIG_OVERRIDE {
+  bool is_completed() const LIBCOPP_MACRO_NOEXCEPT override {
     if (!coroutine_obj_) {
       return false;
     }
@@ -727,7 +628,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
   void *get_private_buffer() {
     if (!coroutine_obj_) {
-      return UTIL_CONFIG_NULLPTR;
+      return nullptr;
     }
 
     return add_buffer_offset(coroutine_obj_->get_private_buffer(), sizeof(impl::task_impl *));
@@ -751,7 +652,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 #endif
  private:
-  task(const task &) UTIL_CONFIG_DELETED_FUNCTION;
+  task(const task &) = delete;
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   void active_next_tasks(std::list<std::exception_ptr> &unhandled) LIBCOPP_MACRO_NOEXCEPT {
@@ -772,8 +673,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
       manager_ptr = binding_manager_ptr_;
       manager_fn = binding_manager_fn_;
-      binding_manager_ptr_ = UTIL_CONFIG_NULLPTR;
-      binding_manager_fn_ = UTIL_CONFIG_NULLPTR;
+      binding_manager_ptr_ = nullptr;
+      binding_manager_fn_ = nullptr;
 #endif
     }
 
@@ -818,7 +719,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
     // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-    if (UTIL_CONFIG_NULLPTR != manager_ptr && UTIL_CONFIG_NULLPTR != manager_fn) {
+    if (nullptr != manager_ptr && nullptr != manager_fn) {
       (*manager_fn)(manager_ptr, *this);
     }
 #endif
@@ -858,7 +759,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
   friend void intrusive_ptr_add_ref(self_t *p) {
-    if (p == UTIL_CONFIG_NULLPTR) {
+    if (p == nullptr) {
       return;
     }
 
@@ -866,7 +767,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
   friend void intrusive_ptr_release(self_t *p) {
-    if (p == UTIL_CONFIG_NULLPTR) {
+    if (p == nullptr) {
       return;
     }
 
@@ -877,7 +778,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
       // then, find and destroy action
       void *action_ptr = reinterpret_cast<void *>(p->_get_action());
-      if (UTIL_CONFIG_NULLPTR != p->action_destroy_fn_ && UTIL_CONFIG_NULLPTR != action_ptr) {
+      if (nullptr != p->action_destroy_fn_ && nullptr != action_ptr) {
         (*p->action_destroy_fn_)(action_ptr);
       }
 
@@ -899,7 +800,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
 #  endif
-      if (task_inst.binding_manager_ptr_ != UTIL_CONFIG_NULLPTR) {
+      if (task_inst.binding_manager_ptr_ != nullptr) {
         return false;
       }
 
@@ -916,8 +817,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         return false;
       }
 
-      task_inst.binding_manager_ptr_ = UTIL_CONFIG_NULLPTR;
-      task_inst.binding_manager_fn_ = UTIL_CONFIG_NULLPTR;
+      task_inst.binding_manager_ptr_ = nullptr;
+      task_inst.binding_manager_fn_ = nullptr;
       return true;
     }
   };
@@ -927,8 +828,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   class awaitable_base_t {
    private:
-    awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-    awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+    awaitable_base_t(const awaitable_base_t &) = delete;
+    awaitable_base_t &operator=(const awaitable_base_t &) = delete;
 
    public:
     awaitable_base_t(ptr_t t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}

@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <assert.h>
-#include <cstddef>
-
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
-#include <libcopp/utils/std/smart_ptr.h>
+
+#include <assert.h>
+#include <cstddef>
+#include <memory>
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_PREFIX

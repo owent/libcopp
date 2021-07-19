@@ -97,7 +97,7 @@ UPGRADE FROM 1.2.X
 + Rename ``cotask::task::await`` into ``cotask::task::await_task``
 + Replace ``cotask::task<TCO_MACRO, TTASK_MACRO>`` with ``cotask::task<TCO_MACRO>`` , we don't allow to custom id allocator now.
 + Replace ``cotask::core::standard_int_id_allocator<uint64_t>`` with ``copp::util::uint64_id_allocator`` , we don't allow to custom id allocator now.
-+ Require gcc 4.7+, MSVC 14+(Visual Studio 2015)>)
++ Require gcc 4.8+, MSVC 15+(Visual Studio 2017)>)
 + Require `cmake`_ 3.12.0 or upper
 
 INSTALL
@@ -109,7 +109,7 @@ Prerequisites
 ^^^^^^^^^^^^^^^^
 
 * **[required]** GCC or Clang or MSVC or clang-cl support ISO C++ 11 and upper
-* **[required]** `cmake`_ 3.12.0 and upper
+* **[required]** `cmake`_ 3.16.0 and upper
 * **[optional]** `gtest`_ 1.6.0 and upper (Better unit test supported)
 * **[optional]** `Boost.Test`_ (Boost.Test supported)
 

@@ -33,7 +33,7 @@ std::list<example_context_t*> g_executor;
 struct example_poller {
   example_result_t::storage_type* result;
   std::list<example_context_t*>::iterator iter;
-  example_poller() : result(NULL) { iter = g_executor.end(); }
+  example_poller() : result(nullptr) { iter = g_executor.end(); }
   ~example_poller() {
     // cleanup and remove from executor
     if (iter != g_executor.end()) {
@@ -41,9 +41,9 @@ struct example_poller {
     }
   }
   void operator()(example_future_t& future, example_context_t& ctx) {
-    if (NULL != result) {
+    if (nullptr != result) {
       future.poll_data() = *result;
-      result = NULL;
+      result = nullptr;
       // remove from executor
       if (iter != g_executor.end()) {
         g_executor.erase(iter);
@@ -85,19 +85,19 @@ void run_with_custom_context() {
   // Then future is ready
   assert(future.is_ready() == true);
   example_result_t* result = future.data();
-  assert(result != NULL);
+  assert(result != nullptr);
 
   assert(result->is_success());
   assert(200 == result->get_success()->response_code);
   assert(false == result->is_error());
-  assert(NULL == result->get_error());
+  assert(nullptr == result->get_error());
 
   std::cout << "Got future success response code: " << result->get_success()->response_code << std::endl;
 }
 
 static void custom_poller_function(copp::future::context_t<void>&,
                                    copp::future::context_t<void>::poll_event_data_t evt_data) {
-  if (NULL == evt_data.private_data) {
+  if (nullptr == evt_data.private_data) {
     return;
   }
 
@@ -137,12 +137,12 @@ void run_with_void_context() {
   // Then future is ready
   assert(future.is_ready() == true);
   example_result_t* result = future.data();
-  assert(result != NULL);
+  assert(result != nullptr);
 
   assert(result->is_success());
   assert(200 == result->get_success()->response_code);
   assert(false == result->is_error());
-  assert(NULL == result->get_error());
+  assert(nullptr == result->get_error());
 
   std::cout << "Got future success response code(context_t<void>): " << result->get_success()->response_code
             << std::endl;

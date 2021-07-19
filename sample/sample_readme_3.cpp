@@ -19,11 +19,10 @@ mgr_t::ptr_t task_mgr = mgr_t::create();
 
 void tick() {
   // the first parameter is second, and the second is nanosecond
-  task_mgr->tick(time(NULL), 0);
+  task_mgr->tick(time(nullptr), 0);
 }
 
 int main() {
-#if defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
   // create two coroutine task
   task_ptr_type co_task = my_task_t::create([]() {
     std::cout << "task " << cotask::this_task::get<my_task_t>()->get_id() << " started" << std::endl;
@@ -72,8 +71,5 @@ int main() {
     std::cout << "kill task " << co_another_task->get_id() << " finished." << std::endl;
   }
 
-#else
-  std::cerr << "lambda not supported, this sample is not available." << std::endl;
-#endif
   return 0;
 }

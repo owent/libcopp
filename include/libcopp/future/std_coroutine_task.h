@@ -22,11 +22,7 @@ namespace future {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 struct macro_task {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using coroutine_handle_allocator = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>;
-#  else
-  typedef std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> coroutine_handle_allocator;
-#  endif
 };
 
 template <class TPD>
@@ -36,10 +32,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_t : public context_t<TPD> {
 
  private:
   // context can not be copy or moved.
-  task_context_t(const task_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_context_t &operator=(const task_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_context_t(task_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_context_t &operator=(task_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  task_context_t(const task_context_t &) = delete;
+  task_context_t &operator=(const task_context_t &) = delete;
+  task_context_t(task_context_t &&) = delete;
+  task_context_t &operator=(task_context_t &&) = delete;
 
  public:
   template <class... TARGS>
@@ -77,42 +73,24 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY task_status_t {
 
 template <class T, class TPD, class TPTR, class TMACRO>
 struct LIBCOPP_COPP_API_HEAD_ONLY task_common_types_t {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using future_type = task_future_t<T, TPTR>;
   using poll_type = typename future_type::poll_type;
   using waker_type = typename future_type::waker_t;
   using context_type = task_context_t<TPD>;
   using wake_list_type =
       std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator>;
-#  else
-  typedef task_future_t<T, TPTR> future_type;
-  typedef typename future_type::poll_type poll_type;
-  typedef typename future_type::waker_t waker_type;
-  typedef task_context_t<TPD> context_type;
-  typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator>
-      wake_list_type;
-#  endif
 };
 
 template <class T, class TPD, class TPTR, class TMACRO>
 struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime_t {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using self_type = task_promise_base_t<T, TPD, TPTR, TMACRO>;
   using future_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type;
   using waker_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type;
   using poll_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type;
   using context_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type;
   using wake_list_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type;
-#  else
-  typedef task_promise_base_t<T, TPD, TPTR, TMACRO> self_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type future_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type poll_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type waker_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type context_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
-#  endif
 
-  task_runtime_t() : task_id(0), status(task_status_t::CREATED), handle(NULL) {}
+  task_runtime_t() : task_id(0), status(task_status_t::CREATED), handle(nullptr) {}
 
 #  ifdef __cpp_impl_three_way_comparison
   friend inline std::strong_ordering operator<=>(const task_runtime_t &l,
@@ -148,10 +126,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime_t {
   std::exception_ptr unhandle_exception;
 #  endif
  private:
-  task_runtime_t(const task_runtime_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_runtime_t &operator=(const task_runtime_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_runtime_t(task_runtime_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_runtime_t &operator=(task_runtime_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  task_runtime_t(const task_runtime_t &) = delete;
+  task_runtime_t &operator=(const task_runtime_t &) = delete;
+  task_runtime_t(task_runtime_t &&) = delete;
+  task_runtime_t &operator=(task_runtime_t &&) = delete;
 };
 
 template <class TPROMISE>
@@ -179,10 +157,9 @@ struct task_waker_t {
 
   template <class UPD>
   void operator()(context_t<UPD> &ctx) {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
     static_assert(!std::is_same<context_type, context_t<UPD> >::value,
                   "task context type must be drive of task_context_t");
-#  endif
+
     (*this)(*static_cast<context_type *>(&ctx));
   }
 };
@@ -190,7 +167,6 @@ struct task_waker_t {
 template <class T, class TPD, class TPTR, class TMACRO>
 class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using runtime_type = task_runtime_t<T, TPD, TPTR, TMACRO>;
   using self_type = task_promise_base_t<T, TPD, TPTR, TMACRO>;
   using future_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type;
@@ -198,15 +174,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
   using poll_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type;
   using context_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type;
   using wake_list_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type;
-#  else
-  typedef typename task_runtime_t<T, TPD, TPTR, TMACRO> runtime_type;
-  typedef task_promise_base_t<T, TPD, TPTR, TMACRO> self_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type future_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type poll_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type waker_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type context_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
-#  endif
 
  private:
   // ================= C++20 Coroutine Support =================
@@ -270,7 +237,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
           promise->runtime_->handle = nullptr;
         }
         // clear waker
-        promise->get_context().set_wake_fn(NULL);
+        promise->get_context().set_wake_fn(nullptr);
 
         // wake all co_await handles
         promise->wake_all();
@@ -280,10 +247,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
 
  private:
   // future can not be copy or moved.
-  task_promise_base_t(const task_promise_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_promise_base_t &operator=(const task_promise_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_promise_base_t(task_promise_base_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_promise_base_t &operator=(task_promise_base_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  task_promise_base_t(const task_promise_base_t &) = delete;
+  task_promise_base_t &operator=(const task_promise_base_t &) = delete;
+  task_promise_base_t(task_promise_base_t &&) = delete;
+  task_promise_base_t &operator=(task_promise_base_t &&) = delete;
 
   template <class U>
   struct pick_pointer_awaitable {
@@ -404,11 +371,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
 template <class T, class TPD, class TPTR, class TMACRO>
 class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t : public task_promise_base_t<T, TPD, TPTR, TMACRO> {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using self_type = task_promise_t<T, TPD, TPTR, TMACRO>;
-#  else
-  typedef task_promise_t<T, TPD, TPTR, TMACRO> self_type;
-#  endif
 
  public:
   task_t<T, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
@@ -427,11 +390,7 @@ template <class TPD, class TPTR, class TMACRO>
 class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t<void, TPD, TPTR, TMACRO>
     : public task_promise_base_t<void, TPD, TPTR, TMACRO> {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using self_type = task_promise_t<void, TPD, TPTR, TMACRO>;
-#  else
-  typedef task_promise_t<void, TPD, TPTR, TMACRO> self_type;
-#  endif
 
  public:
   task_t<void, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
@@ -449,7 +408,6 @@ template <class T, class TPD = void, class TPTR = typename poll_storage_select_p
           class TMACRO = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
 class LIBCOPP_COPP_API_HEAD_ONLY task_t {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using self_type = task_t<T, TPD, TPTR, TMACRO>;
   using promise_type = task_promise_t<T, TPD, TPTR, TMACRO>;
   using runtime_type = typename promise_type::runtime_type;
@@ -460,24 +418,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
   using storage_type = typename poll_type::storage_type;
   using value_type = typename poll_type::value_type;
   using status_type = task_status_t;
-#  else
-  typedef task_t<T, TPD, TPTR, TMACRO> self_type;
-  typedef task_promise_t<T, TPD, TPTR, TMACRO> promise_type;
-  typedef typename promise_type::runtime_type runtime_type;
-  typedef typename promise_type::future_type future_type;
-  typedef typename promise_type::context_type context_type;
-  typedef typename promise_type::poll_type poll_type;
-  typedef typename promise_type::wake_list_type wake_list_type;
-  typedef typename poll_type::storage_type storage_type;
-  typedef typename poll_type::value_type value_type;
-  typedef task_status_t status_type;
-#  endif
 
  private:
   class awaitable_base_t {
    private:
-    awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-    awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+    awaitable_base_t(const awaitable_base_t &) = delete;
+    awaitable_base_t &operator=(const awaitable_base_t &) = delete;
 
    public:
     awaitable_base_t(self_type *task) : refer_task_(task) {

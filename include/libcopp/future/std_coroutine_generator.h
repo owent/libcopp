@@ -12,11 +12,7 @@ namespace future {
 template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_future_t : public future_t<T, TPTR> {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using self_type = generator_future_t<T, TPTR>;
-#  else
-  typedef generator_future_t<T, TPTR> self_type;
-#  endif
 
  public:
   template <class... TARGS>
@@ -43,10 +39,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_t : public context_t<TPD> {
 
  private:
   // context can not be copy or moved.
-  generator_context_t(const generator_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  generator_context_t &operator=(const generator_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  generator_context_t(generator_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  generator_context_t &operator=(generator_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  generator_context_t(const generator_context_t &) = delete;
+  generator_context_t &operator=(const generator_context_t &) = delete;
+  generator_context_t(generator_context_t &&) = delete;
+  generator_context_t &operator=(generator_context_t &&) = delete;
 
  public:
   template <class... TARGS>
@@ -56,25 +52,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_t : public context_t<TPD> {
 template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using self_type = generator_t<T, TPD, TPTR>;
   using context_type = generator_context_t<TPD>;
   using future_type = generator_future_t<T, TPTR>;
   using poll_type = typename future_type::poll_type;
   using value_type = typename future_type::value_type;
-#  else
-  typedef generator_t<T, TPD, TPTR> self_type;
-  typedef generator_context_t<TPD> context_type;
-  typedef generator_future_t<T, TPTR> future_type;
-  typedef typename future_type::poll_type poll_type;
-  typedef typename future_type::value_type value_type;
-#  endif
 
  private:
   class awaitable_base_t {
    private:
-    awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-    awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+    awaitable_base_t(const awaitable_base_t &) = delete;
+    awaitable_base_t &operator=(const awaitable_base_t &) = delete;
 
    public:
     awaitable_base_t(future_type &fut, context_type &ctx) : future_(&fut), context_(&ctx) {}
@@ -181,7 +169,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
 
     future_.template poll_as<future_type>(context_);
   }
-  ~generator_t() { context_.set_wake_fn(NULL); }
+  ~generator_t() { context_.set_wake_fn(nullptr); }
 
   auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return reference_awaitable_t{future_, context_}; }
 
@@ -201,10 +189,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
 
  private:
   // generator can not be copy or moved.
-  generator_t(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  generator_t &operator=(const generator_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  generator_t(generator_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  generator_t &operator=(generator_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  generator_t(const generator_t &) = delete;
+  generator_t &operator=(const generator_t &) = delete;
+  generator_t(generator_t &&) = delete;
+  generator_t &operator=(generator_t &&) = delete;
 
  protected:
   context_type context_;

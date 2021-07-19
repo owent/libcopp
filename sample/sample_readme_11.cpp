@@ -3,7 +3,7 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 #if (defined(LIBCOTASK_MACRO_ENABLED) && LIBCOTASK_MACRO_ENABLED) && defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && \
-    LIBCOPP_MACRO_ENABLE_WIN_FIBER && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+    LIBCOPP_MACRO_ENABLE_WIN_FIBER
 // include task header file
 #  include <libcotask/task.h>
 
@@ -29,14 +29,14 @@ typedef cotask::task<my_task_macro_t> my_task_t;
 #      define SAMPLE_VC_TEXT(x) x
 #    endif
 
-LPTOP_LEVEL_EXCEPTION_FILTER g_msvc_debuger_old_handle = NULL;
+LPTOP_LEVEL_EXCEPTION_FILTER g_msvc_debuger_old_handle = nullptr;
 std::string g_msvc_debuger_pattern;
 
 inline void CreateMiniDump(EXCEPTION_POINTERS *pep, LPCTSTR strFileName) {
   HANDLE hFile =
-      CreateFile(strFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+      CreateFile(strFileName, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
-  if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE)) {
+  if ((hFile != nullptr) && (hFile != INVALID_HANDLE_VALUE)) {
     MINIDUMP_EXCEPTION_INFORMATION mdei;
     mdei.ThreadId = GetCurrentThreadId();
     mdei.ExceptionPointers = pep;
@@ -47,7 +47,7 @@ inline void CreateMiniDump(EXCEPTION_POINTERS *pep, LPCTSTR strFileName) {
     MINIDUMP_TYPE mdt =
         (MINIDUMP_TYPE)(MiniDumpWithPrivateReadWriteMemory | MiniDumpWithDataSegs | MiniDumpWithHandleData |
                         MiniDumpWithFullMemoryInfo | MiniDumpWithThreadInfo | MiniDumpWithUnloadedModules);
-    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, mdt, (pep != 0) ? &mdei : 0, 0, NULL);
+    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, mdt, (pep != 0) ? &mdei : 0, 0, nullptr);
     CloseHandle(hFile);
   }
 }
@@ -58,7 +58,7 @@ LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo) {
   ::GetLocalTime(&st);
   //得到程序所在文件夹
   // TCHAR exeFullPath[256]; // MAX_PATH
-  // GetModuleFileName(NULL, exeFullPath, 256);//得到程序模块名称，全路径
+  // GetModuleFileName(nullptr, exeFullPath, 256);//得到程序模块名称，全路径
 
   TCHAR szFileName[_MAX_FNAME] = {0};
 
@@ -68,7 +68,7 @@ LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo) {
            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
   CreateMiniDump(pExceptionInfo, szFileName);
 
-  if (NULL == g_msvc_debuger_old_handle) {
+  if (nullptr == g_msvc_debuger_old_handle) {
     return EXCEPTION_EXECUTE_HANDLER;  // 下一个Handle, 一般是程序停止运行
   }
 
@@ -79,7 +79,7 @@ void __cdecl sample_setup_msvc_mini_dump(const char *prefix) {
   g_msvc_debuger_pattern = prefix;
   g_msvc_debuger_old_handle = SetUnhandledExceptionFilter(GPTUnhandledExceptionFilter);
   if (g_msvc_debuger_old_handle == GPTUnhandledExceptionFilter) {
-    g_msvc_debuger_old_handle = NULL;
+    g_msvc_debuger_old_handle = nullptr;
   }
 }
 #  endif

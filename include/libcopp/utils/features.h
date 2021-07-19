@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <libcopp/utils/config/compiler_features.h>
-
 // ================ build options ================
 #include <libcopp/utils/config/libcopp_build_features.h>
 // ---------------- build options ----------------
@@ -83,15 +81,6 @@
 #  endif
 #endif
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
-#  define COPP_MACRO_ENABLE_VARIADIC_TEMPLATE 1
-#endif
-
-#include <libcopp/utils/std/decltype.h>
-#if defined(STD_DECLTYPE)
-#  define COPP_MACRO_TYPEOF(...) STD_DECLTYPE(__VA_ARGS__)
-#endif
-
 #if defined(_POSIX_MT_) || defined(_MSC_VER)
 #  define COPP_MACRO_ENABLE_MULTI_THREAD
 #endif
@@ -137,34 +126,64 @@
 
 #include "errno.h"
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-
-#  if !defined(COPP_MACRO_RV_REF)
-#    define COPP_MACRO_RV_REF &&
-#  endif
-
-#  if !defined(COPP_MACRO_STD_MOVE)
-#    define COPP_MACRO_STD_MOVE(x) std::move(x)
-#  endif
-
-#  if !defined(COPP_MACRO_STD_FORWARD)
-#    define COPP_MACRO_STD_FORWARD(t, x) std::forward<t>(x)
-#  endif
-
-#else
-
-#  if !defined(COPP_MACRO_RV_REF)
-#    define COPP_MACRO_RV_REF
-#  endif
-
-#  if !defined(COPP_MACRO_STD_MOVE)
-#    define COPP_MACRO_STD_MOVE(x) x
-#  endif
-
-#  if !defined(COPP_MACRO_STD_FORWARD)
-#    define COPP_MACRO_STD_FORWARD(t, x) x
-#  endif
-
+#if !defined(COPP_MACRO_RV_REF)
+#  define COPP_MACRO_RV_REF &&
 #endif
+
+#if !defined(COPP_MACRO_STD_MOVE)
+#  define COPP_MACRO_STD_MOVE(x) std::move(x)
+#endif
+
+#if !defined(COPP_MACRO_STD_FORWARD)
+#  define COPP_MACRO_STD_FORWARD(t, x) std::forward<t>(x)
+#endif
+
+// ================ branch prediction information ================
+#if defined(COPP_MACRO_COMPILER_GCC)
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408 && __cplusplus >= 201103L
+#    define COPP_MACRO_COMPILER_CXX_THREAD_LOCAL 1
+#  else
+#    define COPP_MACRO_COMPILER_CXX_THREAD_LOCAL 0
+#  endif
+#elif defined(COPP_MACRO_COMPILER_CLANG)
+#  if __has_feature(cxx_thread_local)
+#    define COPP_MACRO_COMPILER_CXX_THREAD_LOCAL 1
+#  else
+#    define COPP_MACRO_COMPILER_CXX_THREAD_LOCAL 0
+#  endif
+#elif defined(_MSC_VER)
+#  if _MSC_VER >= 1900
+#    define COPP_MACRO_COMPILER_CXX_THREAD_LOCAL 1
+#  else
+#    define COPP_MACRO_COMPILER_CXX_THREAD_LOCAL 0
+#  endif
+#endif
+
+// iOS may not link STL with thread_local
+#if defined(__APPLE__)
+#  include <TargetConditionals.h>
+
+#  if TARGET_OS_IPHONE || TARGET_OS_EMBEDDED || TARGET_IPHONE_SIMULATOR
+#    define COPP_MACRO_DISABLE_THREAD_LOCAL_KEYWORK
+#  endif
+#endif
+
+// android may not link STL with thread_local
+#if defined(__ANDROID__)
+#  define COPP_MACRO_DISABLE_THREAD_LOCAL_KEYWORK
+#endif
+
+#if !defined(COPP_MACRO_DISABLE_THREAD_LOCAL_KEYWORK)
+#  if defined(COPP_MACRO_COMPILER_CXX_THREAD_LOCAL) && COPP_MACRO_COMPILER_CXX_THREAD_LOCAL
+#    define COPP_MACRO_THREAD_LOCAL thread_local
+#  elif defined(COPP_MACRO_COMPILER_GCC) || defined(COPP_MACRO_COMPILER_CLANG)
+#    define COPP_MACRO_THREAD_LOCAL __thread
+#  elif defined(_MSC_VER)
+#    define COPP_MACRO_THREAD_LOCAL __declspec(thread)
+#  else
+// COPP_MACRO_THREAD_LOCAL not defined for this configuration.
+#  endif
+#endif
+// ---------------- branch prediction information ----------------
 
 #endif
