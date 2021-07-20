@@ -48,7 +48,6 @@ LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::o
   return *this;
 }
 
-
 LIBCOPP_COPP_API void stack_allocator_split_segment::allocate(stack_context &ctx,
                                                               std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
   void *start_ptr = __splitstack_makecontext(size, ctx.segments_ctx, &ctx.size);

@@ -60,10 +60,10 @@ void cmd_option_list::init_key_value_map() {
 void cmd_option_list::add(const char *param) { keys_.push_back(std::make_shared<cmd_option_value>(param)); }
 
 void cmd_option_list::clear() {
-  key_value_.reset();  // 删除key-value映射
-  keys_.clear();       // 删除索引下标映射
-  cmd_array_.clear();  // 删除指令栈集合
-  ext_param_ = nullptr;   // 透传参数置空
+  key_value_.reset();    // 删除key-value映射
+  keys_.clear();         // 删除索引下标映射
+  cmd_array_.clear();    // 删除指令栈集合
+  ext_param_ = nullptr;  // 透传参数置空
 }
 
 void cmd_option_list::load_cmd_array(const cmd_array_type &cmds) { cmd_array_ = cmds; }

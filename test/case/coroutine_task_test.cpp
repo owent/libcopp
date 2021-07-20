@@ -1,9 +1,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <vector>
-#include <memory>
 
 #include <libcopp/stack/stack_pool.h>
 #include <libcotask/task.h>

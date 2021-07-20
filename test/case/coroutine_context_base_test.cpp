@@ -161,7 +161,8 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
     callee_stack.sp = reinterpret_cast<void *>(stack_buff + 120 * 1024);
     callee_stack.size = 120 * 1024;
 
-    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, copp::coroutine_context::create(nullptr, callback, callee_stack, 4096, 4096));
+    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
+                   copp::coroutine_context::create(nullptr, callback, callee_stack, 4096, 4096));
   }
 
   {

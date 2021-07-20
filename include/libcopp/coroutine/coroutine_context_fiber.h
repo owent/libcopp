@@ -104,8 +104,7 @@ class coroutine_context_fiber : public coroutine_context_base {
    * @param priv_data private data, will be passed to runner operator() or return to yield
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int start(std::exception_ptr &unhandled,
-                             void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int start(std::exception_ptr &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 #  endif
 
   /**
@@ -123,8 +122,7 @@ class coroutine_context_fiber : public coroutine_context_base {
    * @param priv_data private data, will be passed to runner operator() or return to yield
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int resume(std::exception_ptr &unhandled,
-                              void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int resume(std::exception_ptr &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 #  endif
 
   /**

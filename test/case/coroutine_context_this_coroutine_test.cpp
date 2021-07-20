@@ -7,23 +7,23 @@
  *  Released under the MIT license
  */
 
-#  include <assert.h>
-#  include <algorithm>
-#  include <cstdio>
-#  include <cstring>
-#  include <iostream>
+#include <assert.h>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
 
-#  include <atomic>
-#  include <chrono>
-#  include <functional>
-#  include <memory>
-#  include <thread>
-#  include <vector>
+#include <atomic>
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <thread>
+#include <vector>
 
-#  include "frame/test_macros.h"
+#include "frame/test_macros.h"
 
-#  include <libcopp/coroutine/coroutine_context_container.h>
-#  include <libcotask/task.h>
+#include <libcopp/coroutine/coroutine_context_container.h>
+#include <libcotask/task.h>
 
 class test_this_context_get_cotoutine_runner {
  public:
@@ -39,9 +39,9 @@ class test_this_context_get_cotoutine_runner {
 
     value_ptr_type this_co = static_cast<value_ptr_type>(copp::this_coroutine::get_coroutine());
     CASE_EXPECT_EQ(addr_, this_co);
-#  ifdef LIBCOTASK_MACRO_ENABLED
+#ifdef LIBCOTASK_MACRO_ENABLED
     CASE_EXPECT_EQ(nullptr, cotask::this_task::get_task());
-#  endif
+#endif
     run_ = true;
 
     std::chrono::milliseconds dura(4);

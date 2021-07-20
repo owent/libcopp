@@ -1,9 +1,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <vector>
-#include <memory>
 
 #include <libcopp/stack/stack_pool.h>
 #include <libcotask/task.h>
@@ -384,7 +384,6 @@ CASE_TEST(coroutine_task_fiber, next) {
     CASE_EXPECT_TRUE(co_task_b->::cotask::impl::task_impl::is_completed());
   }
 }
-
 
 struct test_context_task_fiber_functor_drived : public cotask::impl::task_action_impl {
  public:

@@ -15,11 +15,11 @@
 
 #include <stdint.h>
 #include <cstring>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <memory>
 
 #include <common/string_oprs.h>
 

@@ -134,13 +134,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     return ret;
   }
 
-/**
- * @brief create task with functor
- * @param action
- * @param stack_size stack size
- * @param private_buffer_size buffer size to store private data
- * @return task smart pointer
- */
+  /**
+   * @brief create task with functor
+   * @param action
+   * @param stack_size stack size
+   * @param private_buffer_size buffer size to store private data
+   * @return task smart pointer
+   */
   template <typename Ty>
   static inline ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
     typename coroutine_t::allocator_type alloc;
@@ -246,17 +246,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     return next_task;
   }
 
-/**
- * @brief create next task with functor
- * @see next
- * @param functor
- * @param priv_data priv_data passed to start functor
- * @param stack_size stack size
- * @return the created task if success , or self if failed
- */
+  /**
+   * @brief create next task with functor
+   * @see next
+   * @param functor
+   * @param priv_data priv_data passed to start functor
+   * @param stack_size stack size
+   * @return the created task if success , or self if failed
+   */
   template <typename Ty>
-  inline ptr_t next(Ty &&functor, void *priv_data = nullptr, size_t stack_size = 0,
-                    size_t private_buffer_size = 0) {
+  inline ptr_t next(Ty &&functor, void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(std::forward<Ty>(functor), stack_size, private_buffer_size), priv_data);
   }
 
@@ -281,8 +280,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
   template <typename Ty>
-  inline ptr_t next(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc,
-                    void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
+  inline ptr_t next(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, void *priv_data = nullptr,
+                    size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(func, alloc, stack_size, private_buffer_size), priv_data);
   }
 

@@ -165,11 +165,10 @@ static inline void jump_to(LPVOID to_fiber,
   coroutine_context_base::set_this_coroutine_base(restore_co);
 }
 
-LIBCOPP_COPP_API coroutine_context_fiber::coroutine_context_fiber() LIBCOPP_MACRO_NOEXCEPT
-    : coroutine_context_base(),
-      caller_(nullptr),
-      callee_(nullptr),
-      callee_stack_() {
+LIBCOPP_COPP_API coroutine_context_fiber::coroutine_context_fiber() LIBCOPP_MACRO_NOEXCEPT : coroutine_context_base(),
+                                                                                             caller_(nullptr),
+                                                                                             callee_(nullptr),
+                                                                                             callee_stack_() {
   flags_ |= flag_t::EN_CFT_IS_FIBER;
   // set_flags(flag_t::EN_CFT_IS_FIBER); // can not use set_flags to set a coroutine context's flag here
 }

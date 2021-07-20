@@ -18,7 +18,6 @@
 #include <map>
 #include <string>
 
-
 /**
  * Window 控制台相关
  * @see https://msdn.microsoft.com/zh-cn/windows/apps/ms686047%28v=vs.100%29.aspx

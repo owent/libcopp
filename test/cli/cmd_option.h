@@ -25,10 +25,10 @@
 #include <set>
 
 #include <map>
+#include <memory>
 #include <ostream>
 #include <sstream>
 #include <vector>
-#include <memory>
 
 #include "std/ref.h"
 
@@ -548,23 +548,23 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
     return help_msg_content;
   }
 
-/**
- * 增加指令处理函数 (相同命令会被覆盖)
- * 支持普通函数和类成员函数
- * 注意：所有传入的类为引用，请确保在执行start时类对象未被释放（特别注意指针和局部变量）
- * 注意：参数的复制发生在执行bind_cmd函数时
- */
+  /**
+   * 增加指令处理函数 (相同命令会被覆盖)
+   * 支持普通函数和类成员函数
+   * 注意：所有传入的类为引用，请确保在执行start时类对象未被释放（特别注意指针和局部变量）
+   * 注意：参数的复制发生在执行bind_cmd函数时
+   */
 
-/**
- * 绑定函数对象/函数/成员函数(自适应)
- * 注意：默认会复制函数对象和传入参数
- *
- * bind_cmd: 绑定参数[注意值的复制发生在本函数执行时]
- * example:
- *      *.bind_cmd(命令名称, 函数对象/函数/成员函数, 参数)                           // 默认类型推断是传值而非引用
- *      *.bind_cmd<传入类型>(命令名称, 函数对象/函数/成员函数, 参数)
- *      *.bind_cmd<传入类型, 参数类型>(命令名称, 函数对象/函数/成员函数, 参数)
- */
+  /**
+   * 绑定函数对象/函数/成员函数(自适应)
+   * 注意：默认会复制函数对象和传入参数
+   *
+   * bind_cmd: 绑定参数[注意值的复制发生在本函数执行时]
+   * example:
+   *      *.bind_cmd(命令名称, 函数对象/函数/成员函数, 参数)                           // 默认类型推断是传值而非引用
+   *      *.bind_cmd<传入类型>(命令名称, 函数对象/函数/成员函数, 参数)
+   *      *.bind_cmd<传入类型, 参数类型>(命令名称, 函数对象/函数/成员函数, 参数)
+   */
   template <typename _F,
             typename... _Args>  // 绑定函数(_Arg:参数[注意值的复制发生在本函数执行时], _R: 绑定函数返回值类型)
   std::shared_ptr<binder::cmd_option_bindt<typename binder::maybe_wrap_member_pointer<_F>::caller_type,

@@ -129,9 +129,8 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
     return create(callback_t(fn), alloc, stack_size, private_buffer_size, coroutine_size);
   }
 
-  static ptr_t create(
-      callback_t &&runner,
-      size_t stack_size = 0, size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static ptr_t create(callback_t &&runner, size_t stack_size = 0, size_t private_buffer_size = 0,
+                      size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     allocator_type alloc;
     return create(std::move(runner), alloc, stack_size, private_buffer_size, coroutine_size);
   }

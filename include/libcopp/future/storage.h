@@ -378,7 +378,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, true> {
   UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
     return is_success() ? &success_data_ : nullptr;
   }
-  UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT { return is_success() ? &success_data_ : nullptr; }
+  UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT {
+    return is_success() ? &success_data_ : nullptr;
+  }
   UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
     return is_error() ? &error_data_ : nullptr;
   }

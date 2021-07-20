@@ -46,7 +46,6 @@ LIBCOPP_COPP_API stack_allocator_posix &stack_allocator_posix::operator=(stack_a
   return *this;
 }
 
-
 LIBCOPP_COPP_API void stack_allocator_posix::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
   size = (std::max)(size, stack_traits::minimum_size());
   size = (std::min)(size, stack_traits::maximum_size());

@@ -37,9 +37,7 @@ static COPP_MACRO_THREAD_LOCAL coroutine_context_base *gt_current_coroutine = nu
 #else
 static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
 static pthread_key_t gt_coroutine_tls_key;
-static void init_pthread_this_coroutine_context() {
-  (void)pthread_key_create(&gt_coroutine_tls_key, nullptr);
-}
+static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, nullptr); }
 #endif
 
 static inline void set_this_coroutine_context(coroutine_context_base *p) {

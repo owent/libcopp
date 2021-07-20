@@ -21,10 +21,9 @@
 namespace copp {
 namespace allocator {
 
-LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory() LIBCOPP_MACRO_NOEXCEPT
-    : start_ptr_(nullptr),
-      memory_size_(0),
-      is_used_(false) {}
+LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory() LIBCOPP_MACRO_NOEXCEPT : start_ptr_(nullptr),
+                                                                                           memory_size_(0),
+                                                                                           is_used_(false) {}
 
 LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory(void *start_ptr,
                                                                 std::size_t max_size) LIBCOPP_MACRO_NOEXCEPT

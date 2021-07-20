@@ -3,7 +3,6 @@
 
 #pragma once
 
-
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/lock_holder.h>
 #include <libcopp/utils/spin_lock.h>

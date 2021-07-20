@@ -24,11 +24,10 @@ namespace copp {
  */
 class coroutine_context : public coroutine_context_base {
  public:
-  using ptr_t = libcopp::util::intrusive_ptr<coroutine_context> ;
+  using ptr_t = libcopp::util::intrusive_ptr<coroutine_context>;
   using callback_t = coroutine_context_base::callback_t;
   using status_t = coroutine_context_base::status_t;
   using flag_t = coroutine_context_base::flag_t;
-
 
  private:
   using coroutine_context_base::flags_;
@@ -105,8 +104,7 @@ class coroutine_context : public coroutine_context_base {
    * @param priv_data private data, will be passed to runner operator() or return to yield
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int start(std::exception_ptr &unhandled,
-                             void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int start(std::exception_ptr &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 #endif
 
   /**
@@ -124,8 +122,7 @@ class coroutine_context : public coroutine_context_base {
    * @param priv_data private data, will be passed to runner operator() or return to yield
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int resume(std::exception_ptr &unhandled,
-                              void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int resume(std::exception_ptr &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 #endif
 
   /**
