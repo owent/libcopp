@@ -63,7 +63,7 @@ static_assert(COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CO
  */
 class coroutine_context_base {
  public:
-  typedef std::function<int(void *)> callback_t;
+  using callback_t = std::function<int(void *)>;
 
   /**
    * @brief status of safe coroutine context base

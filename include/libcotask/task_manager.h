@@ -133,7 +133,7 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
 
 template <typename TTask>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
-  typedef typename TTask::ptr_t task_ptr_t;
+  using task_ptr_t = typename TTask::ptr_t;
 
   task_ptr_t task_;
   typename std::set<task_timer_node<TTask> >::iterator timer_node;
@@ -153,12 +153,12 @@ template <typename TTask,
           >
 class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
  public:
-  typedef TTask task_t;
-  typedef TTaskContainer container_t;
-  typedef typename task_t::id_t id_t;
-  typedef typename task_t::ptr_t task_ptr_t;
-  typedef task_manager<task_t, container_t> self_t;
-  typedef std::shared_ptr<self_t> ptr_t;
+  using task_t = TTask;
+  using container_t = TTaskContainer;
+  using id_t = typename task_t::id_t;
+  using task_ptr_t = typename task_t::ptr_t;
+  using self_t = task_manager<task_t, container_t>;
+  using ptr_t = std::shared_ptr<self_t>;
 
   struct flag_t {
     enum type {
@@ -267,7 +267,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
 
     // try to cast type
-    typedef typename container_t::value_type pair_type;
+    using pair_type = typename container_t::value_type;
     detail::task_manager_node<task_t> task_node;
     task_node.task_ = task;
     task_node.timer_node = task_timeout_timer_.end();
@@ -342,7 +342,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
@@ -384,7 +384,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return copp::COPP_EC_NOT_FOUND;
@@ -429,7 +429,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-    typedef typename container_t::iterator iter_type;
+    using iter_type = typename container_t::iterator;
     iter_type iter = tasks_.find(id);
     if (tasks_.end() == iter) return task_ptr_t();
 
@@ -461,7 +461,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
@@ -509,7 +509,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
@@ -557,7 +557,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return copp::COPP_EC_NOT_FOUND;
@@ -608,7 +608,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return copp::COPP_EC_NOT_FOUND;
@@ -708,7 +708,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
         }
 
         // check expire time(may be changed)
-        typedef typename container_t::iterator iter_type;
+        using iter_type = typename container_t::iterator;
 
         iter_type iter = tasks_.find(timer_node.task_id);
 

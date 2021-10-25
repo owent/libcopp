@@ -14,20 +14,20 @@
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
-static copp::future::task_t<int> call_for_coroutine_task_with_int_result() {
+static copp::future::task_future<int> call_for_coroutine_task_with_int_result() {
   // ... any code
   co_return 123;
 }
 
-static copp::future::task_t<void> call_for_coroutine_task_with_void_result() {
+static copp::future::task_future<void> call_for_coroutine_task_with_void_result() {
   // ... any code
   co_return;
 }
 
 struct sample_task_waker_t;
-typedef copp::future::task_t<int, sample_task_waker_t> sample_task_t;
-typedef copp::future::task_future_t<int> sample_future_t;
-typedef copp::future::task_context_t<sample_task_waker_t> sample_task_context_t;
+typedef copp::future::task_future<int, sample_task_waker_t> sample_task_t;
+typedef copp::future::task_future_data<int> sample_future_t;
+typedef copp::future::task_context<sample_task_waker_t> sample_task_context_t;
 
 std::list<std::pair<sample_task_context_t *, int> > g_sample_executor;
 
@@ -67,8 +67,9 @@ static sample_task_t call_for_coroutine_task_with_custom_waker() {
   // suspend and wait custom waker
   (void)co_await LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_always();
   // ... any code
-  // We can get the pointer to the future and th context of current task by co_yield current_future and current_context
-  sample_future_t *future = co_yield sample_task_t::current_future();
+  // We can get the pointer to the future and th context of current task by co_yield current_future_data and
+  // current_context
+  sample_future_t *future = co_yield sample_task_t::current_future_data();
   sample_task_context_t *context = co_yield sample_task_t::current_context();
   if (future && context && future->is_ready()) {
     // The return value will be ignored when the future is already set by custom waker
@@ -79,8 +80,8 @@ static sample_task_t call_for_coroutine_task_with_custom_waker() {
 }
 
 int main() {
-  copp::future::task_t<int> t1 = call_for_coroutine_task_with_int_result();
-  copp::future::task_t<void> t2 = call_for_coroutine_task_with_void_result();
+  copp::future::task_future<int> t1 = call_for_coroutine_task_with_int_result();
+  copp::future::task_future<void> t2 = call_for_coroutine_task_with_void_result();
   sample_task_t t3 = call_for_coroutine_task_with_custom_waker();
   std::cout << "Coroutine t1: " << t1.get_task_id() << " -> " << *t1.data() << std::endl;
   std::cout << "Coroutine t2: " << t2.get_task_id() << " -> " << (t2.done() ? "done" : "running") << std::endl;

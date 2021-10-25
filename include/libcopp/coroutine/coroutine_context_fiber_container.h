@@ -115,7 +115,7 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
       return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
     }
 
-    typedef int (TRunner::*runner_fn_t)(void *);
+    using runner_fn_t = int (TRunner::*)(void *);
     runner_fn_t fn = &TRunner::operator();
     return create(std::bind(fn, runner, std::placeholders::_1), alloc, stack_size, private_buffer_size, coroutine_size);
   }
@@ -138,7 +138,7 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
   template <class TRunner>
   static inline ptr_t create(TRunner *runner, size_t stack_size = 0, size_t private_buffer_size = 0,
                              size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
-    typedef int (TRunner::*runner_fn_t)(void *);
+    using runner_fn_t = int (TRunner::*)(void *);
     runner_fn_t fn = &TRunner::operator();
     return create(std::bind(fn, runner, std::placeholders::_1), stack_size, private_buffer_size, coroutine_size);
   }
@@ -189,7 +189,7 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
 #  endif
 };
 
-typedef coroutine_context_fiber_container<allocator::stack_allocator_malloc> coroutine_fiber_context_default;
+using coroutine_fiber_context_default = coroutine_context_fiber_container<allocator::stack_allocator_malloc>;
 }  // namespace copp
 
 #endif

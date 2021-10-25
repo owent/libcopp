@@ -825,22 +825,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
  public:
-  class awaitable_base_t {
+  class awaitable_base_type {
    private:
-    awaitable_base_t(const awaitable_base_t &) = delete;
-    awaitable_base_t &operator=(const awaitable_base_t &) = delete;
+    awaitable_base_type(const awaitable_base_type &) = delete;
+    awaitable_base_type &operator=(const awaitable_base_type &) = delete;
 
    public:
-    awaitable_base_t(ptr_t t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}
+    awaitable_base_type(ptr_t t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}
 
-    awaitable_base_t(awaitable_base_t &&other)
+    awaitable_base_type(awaitable_base_type &&other)
         : refer_task_(other.refer_task_), await_handle_iter_(other.await_handle_iter_) {
       if (other.refer_task_) {
         other.await_handle_iter_ = other.refer_task_->next_std_handles_.end();
         other.refer_task_.reset();
       }
     }
-    awaitable_base_t &operator=(awaitable_base_t &&other) {
+    awaitable_base_type &operator=(awaitable_base_type &&other) {
       refer_task_ = other.refer_task_;
       await_handle_iter_ = other.await_handle_iter_;
 
@@ -876,7 +876,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     typename std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>::iterator await_handle_iter_;
   };
 
-  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_t{ptr_t(this)}; }
+  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_type{ptr_t(this)}; }
 #endif
  private:
   size_t stack_size_;
@@ -907,8 +907,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <typename TCO_MACRO>
 auto operator co_await(libcopp::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
-  using awaitable_t = typename task<TCO_MACRO>::awaitable_base_t;
-  return awaitable_t{t};
+  using awaitable = typename task<TCO_MACRO>::awaitable_base_type;
+  return awaitable{t};
 }
 #endif
 }  // namespace cotask

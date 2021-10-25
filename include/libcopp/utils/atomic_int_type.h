@@ -102,7 +102,7 @@ using ::std::memory_order_seq_cst;
 template <typename Ty = int>
 class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
  public:
-  typedef Ty value_type;
+  using value_type = Ty;
 
  private:
   ::std::atomic<value_type> data_;
@@ -328,7 +328,7 @@ enum memory_order {
 template <typename Ty = int>
 class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
  public:
-  typedef Ty value_type;
+  using value_type = Ty;
 
  private:
   volatile value_type data_;
@@ -647,13 +647,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 // used for unsafe (not multi-thread safe)
 template <typename Ty = int>
 struct LIBCOPP_COPP_API_HEAD_ONLY unsafe_int_type {
-  typedef Ty value_type;
+  using value_type = Ty;
 };
 
 template <typename Ty>
 class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type<unsafe_int_type<Ty> > {
  public:
-  typedef typename unsafe_int_type<Ty>::value_type value_type;
+  using value_type = typename unsafe_int_type<Ty>::value_type;
 
  private:
   value_type data_;

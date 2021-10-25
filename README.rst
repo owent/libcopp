@@ -292,7 +292,7 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 3. Using coroutine task manager
 4. Using stack pool
 5. Using ``task::then`` or ``task::await_task``
-6. Using ``copp::future::future_t`` and prepare for c++20 coroutine
+6. Using ``copp::future::future_with_waker`` and prepare for c++20 coroutine
 7. Using c++20 coroutine
 8. Using c++20 coroutine with custom generator
 9. Custom error (timeout for example) when polling c++20 coroutine task or generator
@@ -311,7 +311,7 @@ It's recommanded to use stack pool instead of gcc splited stack.
 BENCHMARK
 ------------
 
-Please see CI output for latest benchmark report. Click to visit `benchmark on Linux and macOS <https://travis-ci.com/github/owt5008137/libcopp>`_ and `benchmark on Windows <https://ci.appveyor.com/project/owt5008137/libcopp>`_ . `benchmark on Linux,macOS and Windows of dev branch <https://github.com/owent/libcopp/actions>`_ can be found on `Github Actions <https://github.com/owent/libcopp/actions>`_ .
+Please see CI output for latest benchmark report. Click to visit `Github Actions <https://github.com/owent/libcopp/actions>`_ .
 
 FAQ
 ------------
@@ -342,7 +342,7 @@ If you has any question, please create a issue and provide the information of yo
 CONSTRIBUTORS
 ------------------------
 
-+ `owent <https://github.com/owt5008137>`_
++ `owent <https://github.com/owent>`_
 
 THANKS TO
 ------------

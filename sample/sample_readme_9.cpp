@@ -37,13 +37,13 @@ class sample_message_t {
 struct sample_generator_waker_t;
 struct sample_task_waker_t;
 
-typedef copp::future::result_t<sample_message_t, int32_t> sample_result_t;
-typedef copp::future::task_t<sample_result_t, sample_task_waker_t> sample_task_t;
-typedef copp::future::generator_context_t<sample_generator_waker_t> sample_generator_context_t;
-typedef copp::future::generator_future_t<sample_result_t> sample_generator_future_t;
-typedef copp::future::poll_t<sample_result_t> sample_poll_t;
-typedef copp::future::task_context_t<sample_task_waker_t> sample_task_context_t;
-typedef copp::future::task_future_t<sample_result_t> sample_task_future_t;
+typedef copp::future::result_type<sample_message_t, int32_t> sample_result_t;
+typedef copp::future::task_future<sample_result_t, sample_task_waker_t> sample_task_t;
+typedef copp::future::generator_context<sample_generator_waker_t> sample_generator_context_t;
+typedef copp::future::generator_future_data<sample_result_t> sample_generator_future_t;
+typedef copp::future::poll_type<sample_result_t> sample_poll_t;
+typedef copp::future::task_context<sample_task_waker_t> sample_task_context_t;
+typedef copp::future::task_future_data<sample_result_t> sample_task_future_t;
 
 std::list<sample_generator_context_t *> g_sample_generator_waker_list;
 std::list<sample_task_context_t *> g_sample_task_waker_list;
@@ -114,7 +114,7 @@ struct sample_task_waker_t {
 };
 
 // ============================ timeout for generator ============================
-typedef copp::future::generator_t<sample_result_t, sample_generator_waker_t> sample_generator_t;
+typedef copp::future::generator<sample_result_t, sample_generator_waker_t> sample_generator_t;
 static sample_task_t call_for_await_generator_and_timeout(int32_t await_times) {
   std::cout << "ready to co_await generator." << std::endl;
 
@@ -133,7 +133,7 @@ static sample_task_t call_for_await_generator_and_timeout(int32_t await_times) {
     ;
   }
 
-  sample_task_future_t *fut = co_yield sample_task_t::current_future();
+  sample_task_future_t *fut = co_yield sample_task_t::current_future_data();
   if (fut) {
     std::cout << "\tfut->is_ready() :" << fut->is_ready() << std::endl;
     if (fut->data() && fut->data()->is_error()) {
@@ -156,7 +156,7 @@ static void poll_generator_and_timeout() {
     (*g_sample_task_waker_list.begin())->wake();
   }
 
-  std::cout << "task status should be DONE(" << static_cast<int>(sample_task_t::status_type::DONE)
+  std::cout << "task status should be DONE(" << static_cast<int>(sample_task_t::status_type::kDone)
             << "), real is: " << static_cast<int>(t1.get_status()) << std::endl;
   if (t1.data() && t1.data()->is_error()) {
     std::cout << "\texpected code: " << SAMPLE_TIMEOUT_ERROR_CODE << ", real is: " << *t1.data()->get_error()
@@ -190,7 +190,7 @@ static sample_task_t call_for_await_task_and_timeout(int32_t await_times) {
     ;
   }
 
-  sample_task_future_t *fut = co_yield sample_task_t::current_future();
+  sample_task_future_t *fut = co_yield sample_task_t::current_future_data();
   if (fut) {
     std::cout << "\tfut->is_ready() :" << fut->is_ready() << std::endl;
     if (fut->data() && fut->data()->is_error()) {
@@ -215,8 +215,8 @@ static void poll_no_trival_task_and_timeout() {
 
   std::cout << "t1.done() :" << t1.done() << std::endl;
   std::cout << "\ttask " << t1.get_task_id() << " status should be DONE("
-            << static_cast<int>(sample_task_t::status_type::DONE) << "), real is: " << static_cast<int>(t1.get_status())
-            << std::endl;
+            << static_cast<int>(sample_task_t::status_type::kDone)
+            << "), real is: " << static_cast<int>(t1.get_status()) << std::endl;
   if (t1.data() && t1.data()->is_error()) {
     std::cout << "\texpected code: " << SAMPLE_TIMEOUT_ERROR_CODE << ", real is: " << *t1.data()->get_error()
               << std::endl;

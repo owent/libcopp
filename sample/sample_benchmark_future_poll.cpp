@@ -33,10 +33,10 @@
 #endif
 
 struct custom_waker_t;
-typedef copp::future::context_t<custom_waker_t> custom_context_t;
-typedef copp::future::result_t<int, int> custom_result_t;
-typedef copp::future::poll_t<custom_result_t> custom_poll_t;
-typedef copp::future::future_t<custom_result_t> custom_future_t;
+typedef copp::future::context<custom_waker_t> custom_context_t;
+typedef copp::future::result_type<int, int> custom_result_t;
+typedef copp::future::poll_type<custom_result_t> custom_poll_t;
+typedef copp::future::future_with_waker<custom_result_t> custom_future_t;
 
 struct custom_waker_t {
   int left_count;

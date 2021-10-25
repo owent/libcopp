@@ -12,7 +12,7 @@
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 namespace copp {
 struct fiber_context_tls_data_t {
-  typedef coroutine_context_fiber::jump_src_data_t jump_src_data_t;
+  using jump_src_data_t = coroutine_context_fiber::jump_src_data_t;
 
   LPVOID thread_fiber;
   jump_src_data_t jump_data;
@@ -50,7 +50,7 @@ static inline fiber_context_tls_data_t::jump_src_data_t &get_this_fiber_jump_src
 }
 
 struct libcopp_fiber_inner_api_helper {
-  typedef coroutine_context_fiber::jump_src_data_t jump_src_data_t;
+  using jump_src_data_t = coroutine_context_fiber::jump_src_data_t;
 
   static inline fiber_context_tls_data_t::jump_src_data_t &build_this_fiber_jump_src(coroutine_context_fiber &to_ctx,
                                                                                      void *data) {

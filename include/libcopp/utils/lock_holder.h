@@ -79,7 +79,7 @@ template <typename TLock, typename TLockAct = detail::default_lock_action<TLock>
           typename TUnlockAct = detail::default_unlock_action<TLock> >
 class LIBCOPP_COPP_API_HEAD_ONLY lock_holder {
  public:
-  typedef TLock value_type;
+  using value_type = TLock;
 
   lock_holder(TLock &lock) : lock_flag_(&lock) {
     if (false == TLockAct()(lock)) {

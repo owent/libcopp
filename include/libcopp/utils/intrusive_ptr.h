@@ -46,8 +46,8 @@ namespace util {
 template <typename T>
 class intrusive_ptr {
  public:
-  typedef intrusive_ptr<T> self_type;
-  typedef T element_type;
+  using self_type = intrusive_ptr<T>;
+  using element_type = T;
 
   constexpr intrusive_ptr() LIBCOPP_MACRO_NOEXCEPT : px(nullptr) {}
 

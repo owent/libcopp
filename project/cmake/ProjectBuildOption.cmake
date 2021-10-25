@@ -1,5 +1,7 @@
 # default option
-#####################################################################
+include(CMakeDependentOption)
+
+# ######################################################################################################################
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 
 # libcopp configure
@@ -11,11 +13,7 @@ unset(_VALGRIND_EXECUTABLE)
 find_path(_VALGRIND_HEADER NAMES valgrind/valgrind.h)
 find_program(_VALGRIND_EXECUTABLE NAMES valgrind)
 
-if(_VALGRIND_HEADER)
-  option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." ON)
-else()
-  option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." OFF)
-endif()
+cmake_dependent_option(LIBCOPP_ENABLE_VALGRIND "Enable valgrind." ON "_VALGRIND_HEADER" OFF)
 
 option(PROJECT_ENABLE_UNITTEST "Build unit test." OFF)
 option(PROJECT_ENABLE_SAMPLE "Build samples." OFF)
@@ -24,11 +22,8 @@ option(PROJECT_ENABLE_SAMPLE "Build samples." OFF)
 option(LIBCOPP_USE_DYNAMIC_LIBRARY "Build dynamic libraries." OFF)
 # You can set LIBCOPP_DISABLE_ATOMIC_LOCK=ON to reduce cache miss slightly
 option(LIBCOPP_DISABLE_ATOMIC_LOCK "Do not use atomic API and lock to keep thread-safe for libcopp." OFF)
-if(LIBCOPP_DISABLE_ATOMIC_LOCK)
-  option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." ON)
-else()
-  option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." OFF)
-endif()
+cmake_dependent_option(LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." ON
+                       "LIBCOPP_DISABLE_ATOMIC_LOCK" OFF)
 
 # This option can be set to ON only if the user do not use multi-thread at all. it can reduce the cache miss slightly.
 option(

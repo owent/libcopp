@@ -21,7 +21,7 @@ namespace copp {
  */
 class coroutine_context_fiber : public coroutine_context_base {
  public:
-  typedef libcopp::util::intrusive_ptr<coroutine_context_fiber> ptr_t;
+  using ptr_t = libcopp::util::intrusive_ptr<coroutine_context_fiber>;
 
   using callback_t = coroutine_context_base::callback_t;
   using status_t = coroutine_context_base::status_t;

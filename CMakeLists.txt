@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 3.16.0)
-cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0022 NEW)
+cmake_policy(SET CMP0048 NEW)
+cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0067 NEW)
 cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.19.0")
+  cmake_policy(SET CMP0111 NEW)
+endif()
+
+# MSVC RTTI flag /GR should not be not added to CMAKE_CXX_FLAGS by default. @see
+# https://cmake.org/cmake/help/latest/policy/CMP0117.html
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.20.0")
+  cmake_policy(SET CMP0117 NEW)
+endif()
 
 enable_testing()
 
@@ -49,56 +60,16 @@ int main() {
     LIBCOPP_MACRO_ENABLE_WIN_FIBER)
 endif()
 # Import options
-if(COMPILER_OPTIONS_TEST_STD_COROUTINE)
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-      ON
-      CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-      OFF
-      CACHE BOOL "Enable C++20 coroutine with experimental mode")
-elseif(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-      ON
-      CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-      ON
-      CACHE BOOL "Enable C++20 coroutine with experimental mode")
-else()
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-      OFF
-      CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-      OFF
-      CACHE BOOL "Enable C++20 coroutine with experimental mode")
-endif()
-
-if(COMPILER_OPTIONS_TEST_EXCEPTION)
-  set(LIBCOPP_MACRO_ENABLE_EXCEPTION
-      ON
-      CACHE BOOL "Enable exception support for libcopp")
-else()
-  set(LIBCOPP_MACRO_ENABLE_EXCEPTION
-      OFF
-      CACHE BOOL "Enable exception support for libcopp")
-endif()
-if(COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR)
-  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      ON
-      CACHE BOOL "Enable C++11 std::exception_ptr support for libcopp")
-else()
-  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      OFF
-      CACHE BOOL "Enable C++11 std::exception_ptr support for libcopp")
-endif()
-if(COMPILER_OPTIONS_TEST_RTTI)
-  set(LIBCOPP_MACRO_ENABLE_RTTI
-      ON
-      CACHE BOOL "Enable RTTI support for libcopp")
-else()
-  set(LIBCOPP_MACRO_ENABLE_RTTI
-      OFF
-      CACHE BOOL "Enable RTTI support for libcopp")
-endif()
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_STD_COROUTINE "Enable C++20 coroutine support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_STD_COROUTINE OR COMPILER_OPTIONS_TEST_STD_COROUTINE_TS" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE "Enable C++20 coroutine support for libcopp" ON
+                       "NOT COMPILER_OPTIONS_TEST_STD_COROUTINE;COMPILER_OPTIONS_TEST_STD_COROUTINE_TS" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_EXCEPTION "Enable exception support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_EXCEPTION" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR "Enable C++11 std::exception_ptr support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_RTTI "Enable C++11 std::exception_ptr support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_RTTI" OFF)
 
 unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 # 导入所有 macro 定义

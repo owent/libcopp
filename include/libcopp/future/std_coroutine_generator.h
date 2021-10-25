@@ -9,15 +9,16 @@ namespace copp {
 namespace future {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_future_t : public future_t<T, TPTR> {
+template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
+class LIBCOPP_COPP_API_HEAD_ONLY generator_future_data : public future_with_waker<T, TPTR> {
  public:
-  using self_type = generator_future_t<T, TPTR>;
+  using self_type = generator_future_data<T, TPTR>;
 
  public:
   template <class... TARGS>
-  generator_future_t(TARGS &&...args) : future_t<T, TPTR>(std::forward<TARGS>(args)...), await_handle_(nullptr) {}
-  ~generator_future_t() {}
+  generator_future_data(TARGS &&...args)
+      : future_with_waker<T, TPTR>(std::forward<TARGS>(args)...), await_handle_(nullptr) {}
+  ~generator_future_data() {}
 
   UTIL_FORCEINLINE const LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &get_handle() const { return await_handle_; }
   UTIL_FORCEINLINE LIBCOPP_MACRO_FUTURE_COROUTINE_VOID &get_handle() { return await_handle_; }
@@ -25,7 +26,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future_t : public future_t<T, TPTR> {
 
   template <class TCONTEXT>
   void poll(TCONTEXT &&ctx) {
-    future_t<T, TPTR>::template poll_as<self_type>(*this, std::forward<TCONTEXT>(ctx));
+    future_with_waker<T, TPTR>::template poll_as<self_type>(*this, std::forward<TCONTEXT>(ctx));
   }
 
  private:
@@ -33,45 +34,45 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future_t : public future_t<T, TPTR> {
 };
 
 template <class TPD>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_context_t : public context_t<TPD> {
+class LIBCOPP_COPP_API_HEAD_ONLY generator_context : public context<TPD> {
  public:
-  typedef generator_context_t<TPD> self_type;
+  using self_type = generator_context<TPD>;
 
  private:
   // context can not be copy or moved.
-  generator_context_t(const generator_context_t &) = delete;
-  generator_context_t &operator=(const generator_context_t &) = delete;
-  generator_context_t(generator_context_t &&) = delete;
-  generator_context_t &operator=(generator_context_t &&) = delete;
+  generator_context(const generator_context &) = delete;
+  generator_context &operator=(const generator_context &) = delete;
+  generator_context(generator_context &&) = delete;
+  generator_context &operator=(generator_context &&) = delete;
 
  public:
   template <class... TARGS>
-  generator_context_t(TARGS &&...args) : context_t<TPD>(std::forward<TARGS>(args)...) {}
+  generator_context(TARGS &&...args) : context<TPD>(std::forward<TARGS>(args)...) {}
 };
 
-template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
+template <class T, class TPD = void, class TPTR = typename poll_storage_ptr_selector<T>::type>
+class LIBCOPP_COPP_API_HEAD_ONLY generator {
  public:
-  using self_type = generator_t<T, TPD, TPTR>;
-  using context_type = generator_context_t<TPD>;
-  using future_type = generator_future_t<T, TPTR>;
-  using poll_type = typename future_type::poll_type;
-  using value_type = typename future_type::value_type;
+  using self_type = generator<T, TPD, TPTR>;
+  using context_type = generator_context<TPD>;
+  using future_data_type = generator_future_data<T, TPTR>;
+  using poll_type = typename future_data_type::poll_type;
+  using value_type = typename future_data_type::value_type;
 
  private:
-  class awaitable_base_t {
+  class awaitable_base_type {
    private:
-    awaitable_base_t(const awaitable_base_t &) = delete;
-    awaitable_base_t &operator=(const awaitable_base_t &) = delete;
+    awaitable_base_type(const awaitable_base_type &) = delete;
+    awaitable_base_type &operator=(const awaitable_base_type &) = delete;
 
    public:
-    awaitable_base_t(future_type &fut, context_type &ctx) : future_(&fut), context_(&ctx) {}
+    awaitable_base_type(future_data_type &fut, context_type &ctx) : future_(&fut), context_(&ctx) {}
 
-    awaitable_base_t(awaitable_base_t &&other) : future_(other.future_), context_(&other.context_) {
+    awaitable_base_type(awaitable_base_type &&other) : future_(other.future_), context_(&other.context_) {
       other.future_ = nullptr;
       other.context_ = nullptr;
     }
-    awaitable_base_t &operator=(awaitable_base_t &&other) {
+    awaitable_base_type &operator=(awaitable_base_type &&other) {
       future_ = other.future_;
       context_ = other.context_;
 
@@ -92,12 +93,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
       }
     }
 
-    inline future_type *await_resume() LIBCOPP_MACRO_NOEXCEPT {
+    inline future_data_type *await_resume() LIBCOPP_MACRO_NOEXCEPT {
       if (likely(future_)) {
         future_->set_handle(nullptr);
 
         if (future_->is_ready()) {
-          future_type *fut = future_;
+          future_data_type *fut = future_;
           future_ = nullptr;
 
           return fut;
@@ -108,16 +109,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
     }
 
    protected:
-    future_type *future_;
+    future_data_type *future_;
     context_type *context_;
   };
 
-  class reference_awaitable_t : public awaitable_base_t {
+  class reference_awaitable : public awaitable_base_type {
    public:
-    using awaitable_base_t::awaitable_base_t;
+    using awaitable_base_type::awaitable_base_type;
 
     value_type *await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      future_type *fut = awaitable_base_t::await_resume();
+      future_data_type *fut = awaitable_base_type::await_resume();
       if (nullptr != fut) {
         return fut->data();
       }
@@ -125,12 +126,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
     }
   };
 
-  class rvalue_awaitable_t : public awaitable_base_t {
+  class rvalue_awaitable : public awaitable_base_type {
    public:
-    using awaitable_base_t::awaitable_base_t;
+    using awaitable_base_type::awaitable_base_type;
 
     poll_type await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      future_type *fut = awaitable_base_t::await_resume();
+      future_data_type *fut = awaitable_base_type::await_resume();
       if (nullptr != fut) {
         return std::move(fut->poll_data());
       }
@@ -138,43 +139,43 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
     }
   };
 
-  struct generator_waker_t {
-    future_type *future;
-    generator_waker_t(future_type &fut) : future(&fut) {}
+  struct generator_waker {
+    future_data_type *future;
+    generator_waker(future_data_type &fut) : future(&fut) {}
 
     void operator()(context_type &ctx) {
       if (likely(future)) {
         if (!future->is_ready()) {
-          future->template poll_as<future_type>(ctx);
+          future->template poll_as<future_data_type>(ctx);
         }
 
         // waker may be destroyed when call poll, so copy waker and future into stack
         if (future->is_ready() && future->get_handle() && !future->get_handle().done()) {
-          // This may lead to deallocation of generator_waker_t later, and we need not to resume again
+          // This may lead to deallocation of generator_waker later, and we need not to resume again
           future->get_handle().resume();
         }
       }
     }
 
-    void operator()(context_t<TPD> &ctx) { (*this)(*static_cast<context_type *>(&ctx)); }
+    void operator()(context<TPD> &ctx) { (*this)(*static_cast<context_type *>(&ctx)); }
   };
 
  public:
   template <class... TARGS>
-  generator_t(TARGS &&...args) : context_(std::forward<TARGS>(args)...) {
-    context_.set_wake_fn(generator_waker_t{future_});
+  generator(TARGS &&...args) : context_(std::forward<TARGS>(args)...) {
+    context_.set_wake_fn(generator_waker{future_});
     // Can not set waker clear functor, because even future is polled outside
     //   we still need to resume handle after event finished
     // future_.set_ctx_waker(context_);
 
-    future_.template poll_as<future_type>(context_);
+    future_.template poll_as<future_data_type>(context_);
   }
-  ~generator_t() { context_.set_wake_fn(nullptr); }
+  ~generator() { context_.set_wake_fn(nullptr); }
 
-  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return reference_awaitable_t{future_, context_}; }
+  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return reference_awaitable{future_, context_}; }
 
-  // co_await a temporary generator_t in GCC 10.1.0 will destroy generator_t first, which will cause all resources
-  // unavailable auto operator co_await() && LIBCOPP_MACRO_NOEXCEPT { return rvalue_awaitable_t{future_, context_}; }
+  // co_await a temporary generator in GCC 10.1.0 will destroy generator first, which will cause all resources
+  // unavailable auto operator co_await() && LIBCOPP_MACRO_NOEXCEPT { return rvalue_awaitable{future_, context_}; }
 
   UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT { return future_.data(); }
   UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT { return future_.data(); }
@@ -189,14 +190,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_t {
 
  private:
   // generator can not be copy or moved.
-  generator_t(const generator_t &) = delete;
-  generator_t &operator=(const generator_t &) = delete;
-  generator_t(generator_t &&) = delete;
-  generator_t &operator=(generator_t &&) = delete;
+  generator(const generator &) = delete;
+  generator &operator=(const generator &) = delete;
+  generator(generator &&) = delete;
+  generator &operator=(generator &&) = delete;
 
  protected:
   context_type context_;
-  future_type future_;
+  future_data_type future_;
 };
 
 template <class T, class... TARGS>

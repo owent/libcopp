@@ -10,12 +10,12 @@
 namespace copp {
 namespace future {
 template <class TFUNCTION>
-struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
+struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function {
   TFUNCTION func;
   TFUNCTION **call_backup;
 
-  context_event_function_t() : call_backup(nullptr) {}
-  ~context_event_function_t() {
+  context_event_function() : call_backup(nullptr) {}
+  ~context_event_function() {
     if (call_backup) {
       *call_backup = nullptr;
     }
@@ -38,7 +38,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
       move_to_stack(std::forward<TARGS>(args)...);
 
       // restore functor, if move_to_stack_ptr is still not nullptr, this object must still exists
-      //   and not call context_event_function_t::set(arg)
+      //   and not call context_event_function::set(arg)
       // FIXME: Maybe there is visibillity problem?
       if (move_to_stack_ptr) {
         move_to_stack_ptr->swap(func);
@@ -73,35 +73,35 @@ struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function_t {
   }
 };
 /**
- * @brief context_t
- * @note TPD::operator()(future_t<T>&, context_t<TPD>&) must be declared
+ * @brief context
+ * @note TPD::operator()(future_with_waker<T>&, context<TPD>&) must be declared
  *         for private data type 'TPD' (template argument).
- *       TPD::operator()(future_t<T>&, context_t<TPD>&) will be called with private_data_(future, *this) when related
- * event state changes. and the "future.poll_data()" must be set if all related asynchronous jobs is done.
+ *       TPD::operator()(future_with_waker<T>&, context<TPD>&) will be called with private_data_(future, *this) when
+ * related event state changes. and the "future.poll_data()" must be set if all related asynchronous jobs is done.
  *
  */
 template <class TPD>
-class LIBCOPP_COPP_API_HEAD_ONLY context_t {
+class LIBCOPP_COPP_API_HEAD_ONLY context {
  public:
-  typedef context_t<TPD> self_type;
-  typedef std::function<void(self_type &)> wake_fn_t;
-  typedef TPD value_type;
+  using self_type = context<TPD>;
+  using wake_fn_t = std::function<void(self_type &)>;
+  using value_type = TPD;
 
  private:
   // context can not be copy or moved.
-  context_t(const context_t &) = delete;
-  context_t &operator=(const context_t &) = delete;
-  context_t(context_t &&) = delete;
-  context_t &operator=(context_t &&) = delete;
+  context(const context &) = delete;
+  context &operator=(const context &) = delete;
+  context(context &&) = delete;
+  context &operator=(context &&) = delete;
 
  public:
   template <class... TARGS>
-  context_t(TARGS &&...args) : private_data_(std::forward<TARGS>(args)...) {}
+  context(TARGS &&...args) : private_data_(std::forward<TARGS>(args)...) {}
 
   template <class TCONTEXT, class TFUTURE>
   void poll_as(TFUTURE &&fut) {
     static_assert(std::is_base_of<self_type, typename std::decay<TCONTEXT>::type>::value,
-                  "The context type must be drive of context_t<TPD>");
+                  "The context type must be drive of context<TPD>");
 
     private_data_(std::forward<TFUTURE>(fut), *static_cast<typename std::decay<TCONTEXT>::type *>(this));
   }
@@ -117,14 +117,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t {
 
  private:
   value_type private_data_;
-  context_event_function_t<wake_fn_t> wake_fn_;
+  context_event_function<wake_fn_t> wake_fn_;
 };
 
 template <bool>
-struct context_construct_helper_assign_t;
+struct context_construct_helper_assign;
 
 template <>
-struct context_construct_helper_assign_t<true> {
+struct context_construct_helper_assign<true> {
   template <class TCONTEXT, class U>
   static inline void assign(TCONTEXT &&self, U &&helper) {
     self.set_private_data(helper.private_data);
@@ -133,35 +133,35 @@ struct context_construct_helper_assign_t<true> {
 };
 
 template <>
-struct context_construct_helper_assign_t<false> {
+struct context_construct_helper_assign<false> {
   template <class TCONTEXT, class U>
   static inline void assign(TCONTEXT &&, U &&) {}
 };
 
 /**
- * @brief context_t<void>
- * @note pool_fn(self_type&, poll_event_data_t) will be called with pool_fn(*this, {&out, private_data_}) when related
+ * @brief context<void>
+ * @note pool_fn(self_type&, poll_event_data) will be called with pool_fn(*this, {&out, private_data_}) when related
  * event state changes, and the "out" must be set if the action is ready
  */
 template <>
-class LIBCOPP_COPP_API_HEAD_ONLY context_t<void> {
+class LIBCOPP_COPP_API_HEAD_ONLY context<void> {
  public:
-  struct poll_event_data_t {
-    void *future_ptr;    // set to address of **fut** when call poll(future_t<T> &fut)
+  struct poll_event_data {
+    void *future_ptr;    // set to address of **fut** when call poll(future_with_waker<T> &fut)
     void *private_data;  // set to ptr passed by constructor
   };
 
-  typedef context_t<void> self_type;
-  typedef std::function<void(self_type &)> wake_fn_t;
-  typedef std::function<void(self_type &, poll_event_data_t)> poll_fn_t;
-  typedef void *value_type;
+  using self_type = context<void>;
+  using wake_fn_t = std::function<void(self_type &)>;
+  using poll_fn_t = std::function<void(self_type &, poll_event_data)>;
+  using value_type = void *;
 
  private:
   // context can not be copy or moved.
-  context_t(const context_t &) = delete;
-  context_t &operator=(const context_t &) = delete;
-  context_t(context_t &&) = delete;
-  context_t &operator=(context_t &&) = delete;
+  context(const context &) = delete;
+  context &operator=(const context &) = delete;
+  context(context &&) = delete;
+  context &operator=(context &&) = delete;
 
   struct construct_helper_t {
     poll_fn_t pool_fn;
@@ -177,23 +177,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t<void> {
     return construct_helper_t(std::forward<U>(fn), ptr);
   }
 
-  context_t() : private_data_(nullptr) {}
+  context() : private_data_(nullptr) {}
   template <class TFIRST, class... TARGS>
-  context_t(TFIRST &&helper, TARGS &&...) : private_data_(nullptr) {
-    context_construct_helper_assign_t<
-        std::is_same<construct_helper_t, typename std::decay<TFIRST>::type>::value>::assign(*this,
-                                                                                            std::forward<TFIRST>(
-                                                                                                helper));
+  context(TFIRST &&helper, TARGS &&...) : private_data_(nullptr) {
+    context_construct_helper_assign<std::is_same<construct_helper_t, typename std::decay<TFIRST>::type>::value>::assign(
+        *this, std::forward<TFIRST>(helper));
   }
 
-  ~context_t() { on_destroy_fn_.invoke(*this); }
+  ~context() { on_destroy_fn_.invoke(*this); }
 
   template <class TCONTEXT, class TFUTURE>
   void poll_as(TFUTURE &&fut) {
     static_assert(std::is_base_of<self_type, typename std::decay<TCONTEXT>::type>::value,
-                  "The context type must be drive of context_t<TPD>");
+                  "The context type must be drive of context<TPD>");
 
-    poll_event_data_t data;
+    poll_event_data data;
     data.future_ptr = reinterpret_cast<void *>(&fut);
     data.private_data = private_data_;
     poll_fn_.invoke(*static_cast<typename std::decay<TCONTEXT>::type *>(this), data);
@@ -219,9 +217,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY context_t<void> {
 
  private:
   value_type private_data_;
-  context_event_function_t<wake_fn_t> wake_fn_;
-  context_event_function_t<poll_fn_t> poll_fn_;
-  context_event_function_t<wake_fn_t> on_destroy_fn_;
+  context_event_function<wake_fn_t> wake_fn_;
+  context_event_function<poll_fn_t> poll_fn_;
+  context_event_function<wake_fn_t> on_destroy_fn_;
 };
 }  // namespace future
 }  // namespace copp

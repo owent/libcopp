@@ -122,7 +122,7 @@ LIBCOPP_COPP_API void coroutine_context_base::set_this_coroutine_base(coroutine_
 }
 
 struct libcopp_inner_api_helper {
-  typedef coroutine_context::jump_src_data_t jump_src_data_t;
+  using jump_src_data_t = coroutine_context::jump_src_data_t;
 
   static UTIL_FORCEINLINE void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
     if (nullptr != src) {

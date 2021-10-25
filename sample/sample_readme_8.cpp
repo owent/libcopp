@@ -24,10 +24,10 @@ struct sample_message_t {
 
 struct sample_generator_waker_t;
 
-typedef copp::future::result_t<sample_message_t, int32_t> sample_result_t;
-typedef copp::future::task_t<sample_result_t> sample_task_t;
-typedef copp::future::generator_future_t<sample_result_t> sample_future_t;
-typedef copp::future::generator_context_t<sample_generator_waker_t> sample_generator_context_t;
+typedef copp::future::result_type<sample_message_t, int32_t> sample_result_t;
+typedef copp::future::task_future<sample_result_t> sample_task_t;
+typedef copp::future::generator_future_data<sample_result_t> sample_future_t;
+typedef copp::future::generator_context<sample_generator_waker_t> sample_generator_context_t;
 
 std::list<std::pair<sample_generator_context_t *, std::string> > g_sample_executor;
 
@@ -67,13 +67,13 @@ struct sample_generator_waker_t {
     }
   }
 };
-typedef copp::future::generator_t<sample_result_t, sample_generator_waker_t> sample_generator_t;
+typedef copp::future::generator<sample_result_t, sample_generator_waker_t> sample_generator_t;
 
-static copp::future::task_t<void> call_for_noop_task() { co_return; }
+static copp::future::task_future<void> call_for_noop_task() { co_return; }
 
-static copp::future::task_t<int> call_for_coroutine_task() {
+static copp::future::task_future<int> call_for_coroutine_task() {
   // We can start a subtask and await it
-  copp::future::task_t<void> t = call_for_noop_task();
+  copp::future::task_future<void> t = call_for_noop_task();
   (void)co_await t;
 
   sample_generator_t generator = copp::future::make_generator<sample_generator_t>(200);
@@ -91,7 +91,7 @@ static copp::future::task_t<int> call_for_coroutine_task() {
 }
 
 int main() {
-  copp::future::task_t<int> t = call_for_coroutine_task();
+  copp::future::task_future<int> t = call_for_coroutine_task();
   assert(false == t.done());
   assert(nullptr == t.data());  // Task isn't finished and has no data
 

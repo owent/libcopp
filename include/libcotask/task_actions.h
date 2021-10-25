@@ -106,7 +106,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_functor : public impl::task_actio
 template <typename Ty>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_action_impl {
  public:
-  typedef Ty (*value_type)(void *);
+  using value_type = Ty (*)(void *);
 
  private:
   template <class Tz, bool IS_INTEGRAL>
@@ -152,7 +152,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_acti
 template <typename Ty, typename Tc>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_action_impl {
  public:
-  typedef Ty Tc::*value_type;
+  using value_type = Ty Tc::*;
 
  private:
   template <class Tz, bool IS_INTEGRAL>
@@ -205,7 +205,7 @@ LIBCOPP_COTASK_API_HEAD_ONLY void placement_destroy(void *selfp) {
   self->~Ty();
 }
 
-typedef void (*placement_destroy_fn_t)(void *);
+using placement_destroy_fn_t = void (*)(void *);
 
 template <typename Ty>
 LIBCOPP_COTASK_API_HEAD_ONLY placement_destroy_fn_t get_placement_destroy(task_action_functor<Ty> * /*selfp*/) {

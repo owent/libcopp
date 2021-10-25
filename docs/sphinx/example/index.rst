@@ -53,10 +53,10 @@ This is a simple example of using ``then`` and ``await_task`` for cotask:
     :encoding: utf-8
 
 
-Using copp::future::future_t and prepare for c++20 coroutine
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using copp::future::future_with_waker and prepare for c++20 coroutine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is a simple example of using copp::future::future_t<RESULT> and using copp::future::context<RESULT>:
+This is a simple example of using copp::future::future_with_waker<RESULT> and using copp::future::context<RESULT>:
 
 .. literalinclude:: ../../../sample/sample_readme_6.cpp
     :language: cpp

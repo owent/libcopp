@@ -26,7 +26,7 @@ namespace allocator {
 template <typename TPool>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
  public:
-  typedef TPool pool_t;
+  using pool_t = TPool;
 
  public:
   stack_allocator_pool() LIBCOPP_MACRO_NOEXCEPT {}

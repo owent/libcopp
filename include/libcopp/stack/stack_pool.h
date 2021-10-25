@@ -19,8 +19,8 @@ namespace copp {
 template <typename TAlloc>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  public:
-  typedef TAlloc allocator_t;
-  typedef std::shared_ptr<stack_pool<TAlloc> > ptr_t;
+  using allocator_t = TAlloc;
+  using ptr_t = std::shared_ptr<stack_pool<TAlloc> >;
 
   struct limit_t {
     size_t used_stack_number;

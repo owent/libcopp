@@ -45,11 +45,11 @@ struct benchmark_no_trivial_message_t {
 };
 
 struct benchmark_generator_waker_t;
-typedef copp::future::result_t<benchmark_no_trivial_message_t, int32_t> benchmark_result_t;
-typedef copp::future::task_t<benchmark_result_t> benchmark_task_t;
-typedef copp::future::generator_context_t<benchmark_generator_waker_t> benchmark_generator_context_t;
-typedef copp::future::generator_future_t<benchmark_result_t> benchmark_generator_future_t;
-typedef copp::future::poll_t<benchmark_result_t> benchmark_poll_t;
+typedef copp::future::result_type<benchmark_no_trivial_message_t, int32_t> benchmark_result_t;
+typedef copp::future::task_future<benchmark_result_t> benchmark_task_t;
+typedef copp::future::generator_context<benchmark_generator_waker_t> benchmark_generator_context_t;
+typedef copp::future::generator_future_data<benchmark_result_t> benchmark_generator_future_t;
+typedef copp::future::poll_type<benchmark_result_t> benchmark_poll_t;
 
 std::vector<benchmark_generator_context_t *> g_benchmark_waker_list;
 std::vector<benchmark_task_t> g_benchmark_task_list;
@@ -69,7 +69,7 @@ struct benchmark_generator_waker_t {
   }
 };
 
-typedef copp::future::generator_t<benchmark_result_t, benchmark_generator_waker_t> benchmark_generator_t;
+typedef copp::future::generator<benchmark_result_t, benchmark_generator_waker_t> benchmark_generator_t;
 
 static benchmark_task_t benchmark_start_sum_task(size_t index, int32_t await_times) {
   int32_t sum = 0;
