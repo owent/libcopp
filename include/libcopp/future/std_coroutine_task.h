@@ -74,7 +74,7 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY task_status {
 template <class T, class TPD, class TPTR, class TMACRO>
 struct LIBCOPP_COPP_API_HEAD_ONLY task_common_types {
   using future_data_type = task_future_data<T, TPTR>;
-  using poll_type = typename future_data_type::poll_type;
+  using poller_type = typename future_data_type::poller_type;
   using waker_type = typename future_data_type::waker_type;
   using context_type = task_context<TPD>;
   using wake_list_type =
@@ -86,7 +86,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime {
   using self_type = task_promise_base_type<T, TPD, TPTR, TMACRO>;
   using future_data_type = typename task_common_types<T, TPD, TPTR, TMACRO>::future_data_type;
   using waker_type = typename task_common_types<T, TPD, TPTR, TMACRO>::waker_type;
-  using poll_type = typename task_common_types<T, TPD, TPTR, TMACRO>::poll_type;
+  using poller_type = typename task_common_types<T, TPD, TPTR, TMACRO>::poller_type;
   using context_type = typename task_common_types<T, TPD, TPTR, TMACRO>::context_type;
   using wake_list_type = typename task_common_types<T, TPD, TPTR, TMACRO>::wake_list_type;
 
@@ -169,7 +169,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
   using self_type = task_promise_base_type<T, TPD, TPTR, TMACRO>;
   using future_data_type = typename task_common_types<T, TPD, TPTR, TMACRO>::future_data_type;
   using waker_type = typename task_common_types<T, TPD, TPTR, TMACRO>::waker_type;
-  using poll_type = typename task_common_types<T, TPD, TPTR, TMACRO>::poll_type;
+  using poller_type = typename task_common_types<T, TPD, TPTR, TMACRO>::poller_type;
   using context_type = typename task_common_types<T, TPD, TPTR, TMACRO>::context_type;
   using wake_list_type = typename task_common_types<T, TPD, TPTR, TMACRO>::wake_list_type;
 
@@ -413,10 +413,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   using runtime_type = typename promise_type::runtime_type;
   using future_data_type = typename promise_type::future_data_type;
   using context_type = typename promise_type::context_type;
-  using poll_type = typename promise_type::poll_type;
+  using poller_type = typename promise_type::poller_type;
   using wake_list_type = typename promise_type::wake_list_type;
-  using storage_type = typename poll_type::storage_type;
-  using value_type = typename poll_type::value_type;
+  using storage_type = typename poller_type::storage_type;
+  using value_type = typename poller_type::value_type;
   using status_type = task_status;
 
  private:
@@ -502,17 +502,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   //         using awaitable_base_type::awaitable_base_type;
   //         using awaitable_base_type::refer_task_;
   //
-  //         poll_type await_resume() {
+  //         poller_type await_resume() {
   //             awaitable_base_type::await_resume();
   //             if (likely(refer_task_)) {
-  //                 poll_type *ret = refer_task_->poll_data();
+  //                 poller_type *ret = refer_task_->poll_data();
   //                 if (nullptr != ret) {
   //                     return std::move(*ret);
   //                 }
   //             }
   //
   //
-  //             return poll_type{};
+  //             return poller_type{};
   //         }
   //     };
   //
@@ -575,7 +575,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     return nullptr;
   }
 
-  inline const poll_type *poll_data() const LIBCOPP_MACRO_NOEXCEPT {
+  inline const poller_type *poll_data() const LIBCOPP_MACRO_NOEXCEPT {
     if (likely(runtime_)) {
       return &runtime_->future.poll_data();
     }
@@ -583,7 +583,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     return nullptr;
   }
 
-  inline poll_type *poll_data() LIBCOPP_MACRO_NOEXCEPT {
+  inline poller_type *poll_data() LIBCOPP_MACRO_NOEXCEPT {
     if (likely(runtime_)) {
       return &runtime_->future.poll_data();
     }

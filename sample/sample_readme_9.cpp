@@ -41,7 +41,7 @@ typedef copp::future::result_type<sample_message_t, int32_t> sample_result_t;
 typedef copp::future::task_future<sample_result_t, sample_task_waker_t> sample_task_t;
 typedef copp::future::generator_context<sample_generator_waker_t> sample_generator_context_t;
 typedef copp::future::generator_future_data<sample_result_t> sample_generator_future_t;
-typedef copp::future::poll_type<sample_result_t> sample_poll_t;
+typedef copp::future::poller<sample_result_t> sample_poll_t;
 typedef copp::future::task_context<sample_task_waker_t> sample_task_context_t;
 typedef copp::future::task_future_data<sample_result_t> sample_task_future_t;
 

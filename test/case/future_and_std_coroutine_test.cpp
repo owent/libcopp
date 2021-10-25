@@ -4,7 +4,7 @@
 #include <string>
 
 #include <libcopp/future/future.h>
-#include <libcopp/future/poll.h>
+#include <libcopp/future/poller.h>
 
 #include "frame/test_macros.h"
 
@@ -25,19 +25,19 @@ struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
 };
 
 CASE_TEST(future, poll_void) {
-  copp::future::poll_type<void> p1;
+  copp::future::poller<void> p1;
   CASE_EXPECT_FALSE(p1.is_ready());
 
-  copp::future::poll_type<void> p2(123);
+  copp::future::poller<void> p2(123);
   CASE_EXPECT_TRUE(p2.is_ready() && p2.data());
   CASE_EXPECT_EQ(p2.data(), &p2.raw_ptr());
 
   std::unique_ptr<bool> param3 = std::unique_ptr<bool>(new bool(false));
-  copp::future::poll_type<void> p3(std::move(param3));
+  copp::future::poller<void> p3(std::move(param3));
   CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
   CASE_EXPECT_EQ(p3.data(), &p3.raw_ptr());
 
-  copp::future::poll_type<void> p4;
+  copp::future::poller<void> p4;
   // set ready
   p4 = true;
   CASE_EXPECT_TRUE(p4.is_ready() && p4.data());
@@ -45,21 +45,21 @@ CASE_TEST(future, poll_void) {
 }
 
 CASE_TEST(future, poll_trival) {
-  copp::future::poll_type<int> p1;
+  copp::future::poller<int> p1;
   CASE_EXPECT_FALSE(p1.is_ready());
 
-  copp::future::poll_type<int> p2(123);
+  copp::future::poller<int> p2(123);
   CASE_EXPECT_TRUE(p2.is_ready() && p2.data());
   CASE_EXPECT_EQ(p2.data() ? *p2.data() : 0, 123);
 
   std::unique_ptr<int> param3 = std::unique_ptr<int>(new int(234));
-  copp::future::poll_type<int> p3(std::move(param3));
+  copp::future::poller<int> p3(std::move(param3));
   CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
   CASE_EXPECT_EQ(p3.data() ? *p3.data() : 0, 234);
 }
 
 CASE_TEST(future, poll_no_trivial) {
-  typedef copp::future::poll_type<test_no_trivial_parent_clazz> test_poll_type;
+  typedef copp::future::poller<test_no_trivial_parent_clazz> test_poll_type;
 
   test_poll_type p1;
   CASE_EXPECT_FALSE(p1.is_ready());
@@ -73,7 +73,7 @@ CASE_TEST(future, poll_no_trivial) {
 }
 
 CASE_TEST(future, poll_shared_ptr) {
-  typedef copp::future::poll_type<test_no_trivial_parent_clazz, std::shared_ptr<test_no_trivial_parent_clazz> >
+  typedef copp::future::poller<test_no_trivial_parent_clazz, std::shared_ptr<test_no_trivial_parent_clazz> >
       test_poll_type;
 
   test_poll_type p1;
@@ -103,8 +103,8 @@ CASE_TEST(future, poll_shared_ptr) {
 CASE_TEST(future, poll_void_reset_and_swap) {
   // using copp::future::swap;
   {
-    copp::future::poll_type<void> p1;
-    copp::future::poll_type<void> p2;
+    copp::future::poller<void> p1;
+    copp::future::poller<void> p2;
 
     p1 = true;
     CASE_EXPECT_TRUE(p1.is_ready());
@@ -123,8 +123,8 @@ CASE_TEST(future, poll_void_reset_and_swap) {
 CASE_TEST(future, poll_trivial_reset_and_swap) {
   // using copp::future::swap;
   {
-    copp::future::poll_type<int> p1;
-    copp::future::poll_type<int> p2;
+    copp::future::poller<int> p1;
+    copp::future::poller<int> p2;
 
     p1 = 123;
     CASE_EXPECT_TRUE(p1.is_ready());
@@ -144,8 +144,8 @@ CASE_TEST(future, poll_trivial_reset_and_swap) {
 CASE_TEST(future, poll_no_trivial_reset_and_swap) {
   // using copp::future::swap;
   {
-    copp::future::poll_type<test_no_trivial_parent_clazz> p1;
-    copp::future::poll_type<test_no_trivial_parent_clazz> p2;
+    copp::future::poller<test_no_trivial_parent_clazz> p1;
+    copp::future::poller<test_no_trivial_parent_clazz> p2;
 
     p1 = copp::future::make_unique<test_no_trivial_parent_clazz>(123);
     CASE_EXPECT_TRUE(p1.is_ready());
@@ -262,9 +262,9 @@ struct test_future_void_context_poll_functor {
 
     T *r = reinterpret_cast<T *>(evt.private_data);
     if (nullptr == r) {
-      fut->poll_data() = copp::future::poll_type<T>(data);
+      fut->poll_data() = copp::future::poller<T>(data);
     } else {
-      fut->poll_data() = copp::future::poll_type<T>(*r);
+      fut->poll_data() = copp::future::poller<T>(*r);
     }
 
     CASE_MSG_INFO() << "[Future] custom poll functor " << this << " finished" << std::endl;
@@ -302,7 +302,7 @@ struct test_future_custom_poller_for_context {
       return;
     }
 
-    fut.reset_data(copp::future::poll_type<U, UPTR>(std::move(data)));
+    fut.reset_data(copp::future::poller<U, UPTR>(std::move(data)));
     CASE_MSG_INFO() << "[Future] custom poller " << this << " finished" << std::endl;
   }
 };
@@ -528,7 +528,7 @@ typedef copp::future::task_future<test_trivial_result_t> test_trivial_task_t;
 typedef copp::future::generator_context<test_future_for_std_coroutine_trivial_generator_waker_t>
     test_trivial_generator_context_t;
 typedef copp::future::generator_future_data<test_trivial_result_t> test_trivial_generator_future_t;
-typedef copp::future::poll_type<test_trivial_result_t> test_trivial_poll_t;
+typedef copp::future::poller<test_trivial_result_t> test_trivial_poll_t;
 
 std::list<test_trivial_generator_context_t *> g_test_future_for_std_coroutine_trivial_context_waker_list;
 
@@ -712,7 +712,7 @@ typedef copp::future::task_future<test_no_trivial_result_t, test_future_for_std_
 typedef copp::future::generator_context<test_future_for_std_coroutine_no_trivial_generator_waker_t>
     test_no_trivial_generator_context_t;
 typedef copp::future::generator_future_data<test_no_trivial_result_t> test_no_trivial_generator_future_t;
-typedef copp::future::poll_type<test_no_trivial_result_t> test_no_trivial_poll_t;
+typedef copp::future::poller<test_no_trivial_result_t> test_no_trivial_poll_t;
 typedef copp::future::task_context<test_future_for_std_coroutine_no_trivial_task_waker_t>
     test_no_trivial_task_context_t;
 typedef copp::future::task_future_data<test_no_trivial_result_t> test_no_trivial_task_future_t;

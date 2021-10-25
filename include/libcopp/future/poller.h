@@ -1,5 +1,5 @@
-#ifndef COPP_FUTURE_POLL_H
-#define COPP_FUTURE_POLL_H
+#ifndef COPP_FUTURE_POLLER_H
+#define COPP_FUTURE_POLLER_H
 
 #pragma once
 
@@ -8,9 +8,9 @@
 namespace copp {
 namespace future {
 template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
-class LIBCOPP_COPP_API_HEAD_ONLY poll_type {
+class LIBCOPP_COPP_API_HEAD_ONLY poller {
  public:
-  using self_type = poll_type<T, TPTR>;
+  using self_type = poller<T, TPTR>;
   // If T is trivial and is smaller than size of four pointer, using small object optimization
   using poll_storage = poll_storage_base<T, TPTR>;
   using storage_type = typename poll_storage::storage_type;
@@ -18,22 +18,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY poll_type {
   using value_type = typename poll_storage::value_type;
 
  public:
-  inline poll_type() LIBCOPP_MACRO_NOEXCEPT { poll_storage::construct_default_storage(storage_data_); }
+  inline poller() LIBCOPP_MACRO_NOEXCEPT { poll_storage::construct_default_storage(storage_data_); }
 
   template <class U>
-  inline poll_type(U &&in) LIBCOPP_MACRO_NOEXCEPT {
+  inline poller(U &&in) LIBCOPP_MACRO_NOEXCEPT {
     setup_from(std::forward<U>(in));
   }
 
-  inline poll_type(self_type &&other) LIBCOPP_MACRO_NOEXCEPT { setup_from(std::move(other)); }
+  inline poller(self_type &&other) LIBCOPP_MACRO_NOEXCEPT { setup_from(std::move(other)); }
 
-  inline poll_type &operator=(self_type &&other) LIBCOPP_MACRO_NOEXCEPT {
+  inline poller &operator=(self_type &&other) LIBCOPP_MACRO_NOEXCEPT {
     setup_from(std::move(other));
     return *this;
   }
 
   template <class U>
-  inline poll_type &operator=(U &&in) LIBCOPP_MACRO_NOEXCEPT {
+  inline poller &operator=(U &&in) LIBCOPP_MACRO_NOEXCEPT {
     setup_from(std::forward<U>(in));
     return *this;
   }

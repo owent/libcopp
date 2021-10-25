@@ -56,7 +56,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator {
   using self_type = generator<T, TPD, TPTR>;
   using context_type = generator_context<TPD>;
   using future_data_type = generator_future_data<T, TPTR>;
-  using poll_type = typename future_data_type::poll_type;
+  using poller_type = typename future_data_type::poller_type;
   using value_type = typename future_data_type::value_type;
 
  private:
@@ -130,7 +130,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator {
    public:
     using awaitable_base_type::awaitable_base_type;
 
-    poll_type await_resume() LIBCOPP_MACRO_NOEXCEPT {
+    poller_type await_resume() LIBCOPP_MACRO_NOEXCEPT {
       future_data_type *fut = awaitable_base_type::await_resume();
       if (nullptr != fut) {
         return std::move(fut->poll_data());
@@ -179,8 +179,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator {
 
   UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT { return future_.data(); }
   UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT { return future_.data(); }
-  UTIL_FORCEINLINE poll_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return future_.poll_data(); }
-  UTIL_FORCEINLINE const poll_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return future_.poll_data(); }
+  UTIL_FORCEINLINE poller_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return future_.poll_data(); }
+  UTIL_FORCEINLINE const poller_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return future_.poll_data(); }
   UTIL_FORCEINLINE context_type &get_context() LIBCOPP_MACRO_NOEXCEPT { return context_; }
   UTIL_FORCEINLINE const context_type &get_context() const LIBCOPP_MACRO_NOEXCEPT { return context_; }
 

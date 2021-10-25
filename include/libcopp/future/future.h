@@ -6,7 +6,7 @@
 #include <list>
 
 #include "context.h"
-#include "poll.h"
+#include "poller.h"
 
 namespace copp {
 namespace future {
@@ -15,10 +15,10 @@ template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
 class LIBCOPP_COPP_API_HEAD_ONLY future {
  public:
   using self_type = future<T, TPTR>;
-  using poll_type = poll_type<T, TPTR>;
-  using storage_type = typename poll_type::storage_type;
-  using value_type = typename poll_type::value_type;
-  using ptr_type = typename poll_type::ptr_type;
+  using poller_type = poller<T, TPTR>;
+  using storage_type = typename poller_type::storage_type;
+  using value_type = typename poller_type::value_type;
+  using ptr_type = typename poller_type::ptr_type;
 
  public:
   future() {}
@@ -46,8 +46,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
 
   UTIL_FORCEINLINE const ptr_type &raw_ptr() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
   UTIL_FORCEINLINE ptr_type &raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
-  UTIL_FORCEINLINE const poll_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
-  UTIL_FORCEINLINE poll_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
+  UTIL_FORCEINLINE const poller_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
+  UTIL_FORCEINLINE poller_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
   UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
 
   template <class U>
@@ -56,17 +56,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
   }
 
  private:
-  poll_type poll_data_;
+  poller_type poll_data_;
 };
 
 template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
 class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
  public:
   using self_type = future_with_waker<T, TPTR>;
-  using poll_type = typename future<T, TPTR>::poll_type;
-  using storage_type = typename poll_type::storage_type;
-  using value_type = typename poll_type::value_type;
-  using ptr_type = typename poll_type::ptr_type;
+  using poller_type = typename future<T, TPTR>::poller_type;
+  using storage_type = typename poller_type::storage_type;
+  using value_type = typename poller_type::value_type;
+  using ptr_type = typename poller_type::ptr_type;
 
   struct waker_type {
     self_type *self;

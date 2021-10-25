@@ -49,7 +49,7 @@ typedef copp::future::result_type<benchmark_no_trivial_message_t, int32_t> bench
 typedef copp::future::task_future<benchmark_result_t> benchmark_task_t;
 typedef copp::future::generator_context<benchmark_generator_waker_t> benchmark_generator_context_t;
 typedef copp::future::generator_future_data<benchmark_result_t> benchmark_generator_future_t;
-typedef copp::future::poll_type<benchmark_result_t> benchmark_poll_t;
+typedef copp::future::poller<benchmark_result_t> benchmark_poll_t;
 
 std::vector<benchmark_generator_context_t *> g_benchmark_waker_list;
 std::vector<benchmark_task_t> g_benchmark_task_list;
