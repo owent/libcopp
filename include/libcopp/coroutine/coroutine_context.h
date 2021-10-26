@@ -78,15 +78,16 @@ class coroutine_context : public coroutine_context_base {
    * @param private_buffer_size size of private buffer
    * @return COPP_EC_SUCCESS or error code
    */
-  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
+  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &&runner, const stack_context &callee_stack,
                                      size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT;
 
   template <typename TRunner>
   static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack,
                                                size_t coroutine_size,
                                                size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
-    return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
-                  private_buffer_size);
+    return create(
+        p, [runner](void *private_data) { return (*runner)(private_data); }, callee_stack, coroutine_size,
+        private_buffer_size);
   }
 
   /**

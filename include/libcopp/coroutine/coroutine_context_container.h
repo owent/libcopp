@@ -99,8 +99,8 @@ class coroutine_context_container : public coroutine_context {
     }
 
     // after this call runner will be unavailable
-    callback_t callback(std::move(runner));
-    if (coroutine_context::create(ret.get(), callback, ret->callee_stack_, coroutine_size, private_buffer_size) < 0) {
+    if (coroutine_context::create(ret.get(), std::move(runner), ret->callee_stack_, coroutine_size,
+                                  private_buffer_size) < 0) {
       ret.reset();
     }
 
@@ -114,9 +114,8 @@ class coroutine_context_container : public coroutine_context {
       return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
     }
 
-    using runner_fn_t = int (TRunner::*)(void *);
-    runner_fn_t fn = &TRunner::operator();
-    return create(std::bind(fn, runner, std::placeholders::_1), alloc, stack_size, private_buffer_size, coroutine_size);
+    return create([runner](void *private_data) { return (*runner)(private_data); }, alloc, stack_size,
+                  private_buffer_size, coroutine_size);
   }
 
   static inline ptr_t create(int (*fn)(void *), allocator_type &alloc, size_t stack_size = 0,
@@ -137,9 +136,8 @@ class coroutine_context_container : public coroutine_context {
   template <class TRunner>
   static inline ptr_t create(TRunner *runner, size_t stack_size = 0, size_t private_buffer_size = 0,
                              size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
-    using runner_fn_t = int (TRunner::*)(void *);
-    runner_fn_t fn = &TRunner::operator();
-    return create(std::bind(fn, runner, std::placeholders::_1), stack_size, private_buffer_size, coroutine_size);
+    return create([runner](void *private_data) { return (*runner)(private_data); }, stack_size, private_buffer_size,
+                  coroutine_size);
   }
 
   static inline ptr_t create(int (*fn)(void *), size_t stack_size = 0, size_t private_buffer_size = 0,

@@ -156,65 +156,59 @@ CASE_TEST(coroutine, coroutine_context_create_failed) {
   copp::coroutine_context *placement_new_addr = reinterpret_cast<copp::coroutine_context *>(stack_buff + 112 * 1024);
   test_context_base_foo_runner runner;
   {
-    copp::coroutine_context::callback_t callback(std::move(runner));
     copp::stack_context callee_stack;
     callee_stack.sp = reinterpret_cast<void *>(stack_buff + 120 * 1024);
     callee_stack.size = 120 * 1024;
 
     CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
-                   copp::coroutine_context::create(nullptr, callback, callee_stack, 4096, 4096));
+                   copp::coroutine_context::create(nullptr, std::move(runner), callee_stack, 4096, 4096));
   }
 
   {
-    copp::coroutine_context::callback_t callback(std::move(runner));
     copp::stack_context callee_stack;
     callee_stack.sp = reinterpret_cast<void *>(stack_buff + 120 * 1024);
     callee_stack.size = 120 * 1024;
 
     CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
-                   copp::coroutine_context::create(placement_new_addr, callback, callee_stack, 4096, 4095));
+                   copp::coroutine_context::create(placement_new_addr, std::move(runner), callee_stack, 4096, 4095));
   }
 
   {
-    copp::coroutine_context::callback_t callback(std::move(runner));
     copp::stack_context callee_stack;
     callee_stack.sp = reinterpret_cast<void *>(stack_buff + 120 * 1024);
     callee_stack.size = 120 * 1024;
 
     CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
-                   copp::coroutine_context::create(placement_new_addr, callback, callee_stack, 4095, 4096));
+                   copp::coroutine_context::create(placement_new_addr, std::move(runner), callee_stack, 4095, 4096));
   }
 
   {
-    copp::coroutine_context::callback_t callback(std::move(runner));
     copp::stack_context callee_stack;
     callee_stack.sp = nullptr;
     callee_stack.size = 120 * 1024;
 
     CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
-                   copp::coroutine_context::create(placement_new_addr, callback, callee_stack, 4096, 4096));
+                   copp::coroutine_context::create(placement_new_addr, std::move(runner), callee_stack, 4096, 4096));
   }
 
   {
-    copp::coroutine_context::callback_t callback(std::move(runner));
     copp::stack_context callee_stack;
     callee_stack.sp = reinterpret_cast<void *>(stack_buff + 120 * 1024);
     callee_stack.size = 8192;
 
     CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
-                   copp::coroutine_context::create(placement_new_addr, callback, callee_stack, 4096, 4096));
+                   copp::coroutine_context::create(placement_new_addr, std::move(runner), callee_stack, 4096, 4096));
   }
 
   {
-    copp::coroutine_context::callback_t callback(std::move(runner));
     copp::stack_context callee_stack;
     callee_stack.sp = reinterpret_cast<void *>(stack_buff + 120 * 1024);
     callee_stack.size = 120 * 1024;
 
     copp::coroutine_context *placement_invalid_addr =
         reinterpret_cast<copp::coroutine_context *>(stack_buff + 116 * 1024);
-    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR,
-                   copp::coroutine_context::create(placement_invalid_addr, callback, callee_stack, 4096, 4096));
+    CASE_EXPECT_EQ(copp::COPP_EC_ARGS_ERROR, copp::coroutine_context::create(placement_invalid_addr, std::move(runner),
+                                                                             callee_stack, 4096, 4096));
   }
 
   delete[] stack_buff;

@@ -92,7 +92,8 @@ CASE_TEST(this_context, get_coroutine) {
     for (int i = 0; i < 5; ++i) {
       co_arr[i] = co_type::create(&runners[i], 128 * 1024);
 
-      th_pool.push_back(std::thread(std::bind(test_this_context_thread_func, co_arr[i], &runners[i])));
+      th_pool.push_back(
+          std::thread([&co_arr, &runners, i]() { test_this_context_thread_func(co_arr[i], &runners[i]); }));
     }
 
     for (std::thread &th : th_pool) {

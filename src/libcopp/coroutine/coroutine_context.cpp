@@ -273,7 +273,7 @@ LIBCOPP_COPP_API coroutine_context::coroutine_context() LIBCOPP_MACRO_NOEXCEPT :
 
 LIBCOPP_COPP_API coroutine_context::~coroutine_context() {}
 
-LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &runner,
+LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &&runner,
                                                const stack_context &callee_stack, size_t coroutine_size,
                                                size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
   if (nullptr == p) {

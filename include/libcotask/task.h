@@ -97,7 +97,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     typename coroutine_t::ptr_t coroutine =
-        coroutine_t::create(reinterpret_cast<a_t *>(nullptr), alloc, stack_size,
+        coroutine_t::create(coroutine_t::callback_t(), alloc, stack_size,
                             sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
     if (!coroutine) {
       return ptr_t();
@@ -122,11 +122,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
       return ret;
     }
 
-    using a_t_fn_t = int (a_t::*)(void *);
-    a_t_fn_t a_t_fn = &a_t::operator();
-
     // redirect runner
-    coroutine->set_runner(std::move(std::bind(a_t_fn, action, std::placeholders::_1)));
+    coroutine->set_runner([action](void *private_data) { return (*action)(private_data); });
 
     ret->action_destroy_fn_ = get_placement_destroy(action);
     ret->_set_action(action);
