@@ -1,4 +1,4 @@
-﻿/*
+/*
  * task_impl.h
  *
  *  Created on: 2014年4月2日
@@ -12,13 +12,8 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <list>
-
 #include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
-#include <libcopp/utils/std/smart_ptr.h>
 
 #include <libcopp/utils/uint64_id_allocator.h>
 
@@ -26,6 +21,10 @@
 #include <libcopp/utils/spin_lock.h>
 
 #include <libcotask/task_actions.h>
+
+#include <stdint.h>
+#include <list>
+#include <memory>
 
 namespace cotask {
 enum EN_TASK_STATUS {
@@ -42,21 +41,12 @@ enum EN_TASK_STATUS {
 namespace impl {
 
 class UTIL_SYMBOL_VISIBLE task_impl {
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
  public:
   using id_t = copp::util::uint64_id_allocator::value_type;
   using id_allocator_t = copp::util::uint64_id_allocator;
 
  protected:
   using action_ptr_t = task_action_impl *;
-#else
- public:
-  typedef copp::util::uint64_id_allocator::value_type id_t;
-  typedef copp::util::uint64_id_allocator id_allocator_t;
-
- protected:
-  typedef action_ptr_t;
-#endif
 
   struct LIBCOPP_COTASK_API ext_coroutine_flag_t {
     enum type {
@@ -67,13 +57,11 @@ class UTIL_SYMBOL_VISIBLE task_impl {
   };
 
  private:
-  task_impl(const task_impl &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_impl &operator=(const task_impl &) UTIL_CONFIG_DELETED_FUNCTION;
+  task_impl(const task_impl &) = delete;
+  task_impl &operator=(const task_impl &) = delete;
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-  task_impl(const task_impl &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_impl &operator=(const task_impl &&) UTIL_CONFIG_DELETED_FUNCTION;
-#endif
+  task_impl(const task_impl &&) = delete;
+  task_impl &operator=(const task_impl &&) = delete;
 
  public:
   LIBCOPP_COTASK_API task_impl();
@@ -112,12 +100,12 @@ class UTIL_SYMBOL_VISIBLE task_impl {
   virtual int kill(enum EN_TASK_STATUS status, void *priv_data) = 0;
   UTIL_FORCEINLINE int kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
 
-  UTIL_FORCEINLINE int start() { return start(UTIL_CONFIG_NULLPTR); }
-  UTIL_FORCEINLINE int resume() { return resume(UTIL_CONFIG_NULLPTR); }
-  UTIL_FORCEINLINE int yield() { return yield(UTIL_CONFIG_NULLPTR); }
-  UTIL_FORCEINLINE int cancel() { return cancel(UTIL_CONFIG_NULLPTR); }
-  UTIL_FORCEINLINE int kill(enum EN_TASK_STATUS status) { return kill(status, UTIL_CONFIG_NULLPTR); }
-  UTIL_FORCEINLINE int kill() { return kill(UTIL_CONFIG_NULLPTR); }
+  UTIL_FORCEINLINE int start() { return start(nullptr); }
+  UTIL_FORCEINLINE int resume() { return resume(nullptr); }
+  UTIL_FORCEINLINE int yield() { return yield(nullptr); }
+  UTIL_FORCEINLINE int cancel() { return cancel(nullptr); }
+  UTIL_FORCEINLINE int kill(enum EN_TASK_STATUS status) { return kill(status, nullptr); }
+  UTIL_FORCEINLINE int kill() { return kill(nullptr); }
 
   LIBCOPP_COTASK_API virtual int on_finished();
 

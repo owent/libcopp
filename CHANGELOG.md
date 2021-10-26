@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.5.0
+
+1. \[BREAK CHANGES\] We need gcc 4.8+, Clang 4.0+ or MSVC 1900(Visual Studio 2017)+
+  + Remove `COPP_MACRO_ENABLE_VARIADIC_TEMPLATE`
+  + Remove `STD_DECLTYPE` , `COPP_MACRO_TYPEOF`
+  + Remove `libcopp/utils/std/decltype.h`
+  + Remove `libcopp/utils/config/compiler_features.h`
+  + Remove `libcopp/utils/std/functional.h`
+  + Remove `libcopp/utils/std/smart_ptr.h`
+2. 
+
 ## 1.4.1
 
 1. [OPTIMIZE] Allow to download submodule by external tool and do not depend `git`.

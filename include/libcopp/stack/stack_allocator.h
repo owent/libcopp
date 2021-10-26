@@ -17,7 +17,7 @@
 #  include "allocator/stack_allocator_posix.h"
 namespace copp {
 namespace allocator {
-typedef stack_allocator_posix default_statck_allocator;
+using default_statck_allocator = stack_allocator_posix;
 }
 }  // namespace copp
 
@@ -26,7 +26,7 @@ typedef stack_allocator_posix default_statck_allocator;
 #  include "allocator/stack_allocator_windows.h"
 namespace copp {
 namespace allocator {
-typedef stack_allocator_windows default_statck_allocator;
+using default_statck_allocator = stack_allocator_windows;
 }
 }  // namespace copp
 

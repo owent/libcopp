@@ -24,7 +24,7 @@ static stack_pool_t::ptr_t global_stack_pool = stack_pool_t::create();
 typedef cotask::task<sample_macro_coroutine> sample_task_t;
 
 int main() {
-#if defined(LIBCOTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+#if defined(LIBCOTASK_MACRO_ENABLED)
 
   global_stack_pool->set_min_stack_number(4);
   std::cout << "stack pool=> used stack number: " << global_stack_pool->get_limit().used_stack_number
@@ -85,7 +85,7 @@ int main() {
             << ", free stack number: " << global_stack_pool->get_limit().free_stack_number
             << ", free stack size: " << global_stack_pool->get_limit().free_stack_size << std::endl;
 #else
-  std::cerr << "lambda not supported, this sample is not available." << std::endl;
+  std::cerr << "this sample require cotask enabled." << std::endl;
 #endif
   return 0;
 }

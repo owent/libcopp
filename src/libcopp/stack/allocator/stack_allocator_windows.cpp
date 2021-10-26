@@ -15,7 +15,6 @@ extern "C" {
 #include <libcopp/stack/allocator/stack_allocator_windows.h>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/stack/stack_traits.h>
-#include <libcopp/utils/config/compiler_features.h>
 
 #if defined(COPP_MACRO_COMPILER_MSVC)
 #  pragma warning(push)
@@ -37,13 +36,12 @@ LIBCOPP_COPP_API stack_allocator_windows &stack_allocator_windows::operator=(con
     LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+
 LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows(stack_allocator_windows &&) LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_windows &stack_allocator_windows::operator=(stack_allocator_windows &&)
     LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#endif
 
 LIBCOPP_COPP_API void stack_allocator_windows::allocate(stack_context &ctx, std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
   size = (std::max)(size, stack_traits::minimum_size());
@@ -54,7 +52,7 @@ LIBCOPP_COPP_API void stack_allocator_windows::allocate(stack_context &ctx, std:
 
   void *start_ptr = ::VirtualAlloc(0, size_, MEM_COMMIT, PAGE_READWRITE);
   if (!start_ptr) {
-    ctx.sp = UTIL_CONFIG_NULLPTR;
+    ctx.sp = nullptr;
     return;
   }
 

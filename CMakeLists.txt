@@ -1,15 +1,26 @@
 cmake_minimum_required(VERSION 3.16.0)
-cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0022 NEW)
+cmake_policy(SET CMP0048 NEW)
+cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0067 NEW)
 cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.19.0")
+  cmake_policy(SET CMP0111 NEW)
+endif()
+
+# MSVC RTTI flag /GR should not be not added to CMAKE_CXX_FLAGS by default. @see
+# https://cmake.org/cmake/help/latest/policy/CMP0117.html
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.20.0")
+  cmake_policy(SET CMP0117 NEW)
+endif()
 
 enable_testing()
 
 project(
   libcopp
-  VERSION "1.4.1"
+  VERSION "1.5.0"
   DESCRIPTION "Cross-platform coroutine library in C++ ."
   HOMEPAGE_URL "https://libcopp.atframe.work"
   LANGUAGES C CXX ASM)
@@ -40,7 +51,7 @@ static VOID __stdcall FiberMainFunc(LPVOID main_fiber) {
 }
 
 int main() {
-    LPVOID main_fiber = ConvertThreadToFiber(NULL);
+    LPVOID main_fiber = ConvertThreadToFiber(nullptr);
     LPVOID sub_fiber = CreateFiber(0, FiberMainFunc, (LPVOID)&main_fiber);
     SwitchToFiber(sub_fiber);
     return 0;
@@ -49,56 +60,16 @@ int main() {
     LIBCOPP_MACRO_ENABLE_WIN_FIBER)
 endif()
 # Import options
-if(COMPILER_OPTIONS_TEST_STD_COROUTINE)
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-      ON
-      CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-      OFF
-      CACHE BOOL "Enable C++20 coroutine with experimental mode")
-elseif(COMPILER_OPTIONS_TEST_STD_COROUTINE_TS)
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-      ON
-      CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-      ON
-      CACHE BOOL "Enable C++20 coroutine with experimental mode")
-else()
-  set(LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-      OFF
-      CACHE BOOL "Enable C++20 coroutine support for libcopp")
-  set(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
-      OFF
-      CACHE BOOL "Enable C++20 coroutine with experimental mode")
-endif()
-
-if(COMPILER_OPTIONS_TEST_EXCEPTION)
-  set(LIBCOPP_MACRO_ENABLE_EXCEPTION
-      ON
-      CACHE BOOL "Enable exception support for libcopp")
-else()
-  set(LIBCOPP_MACRO_ENABLE_EXCEPTION
-      OFF
-      CACHE BOOL "Enable exception support for libcopp")
-endif()
-if(COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR)
-  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      ON
-      CACHE BOOL "Enable C++11 std::exception_ptr support for libcopp")
-else()
-  set(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      OFF
-      CACHE BOOL "Enable C++11 std::exception_ptr support for libcopp")
-endif()
-if(COMPILER_OPTIONS_TEST_RTTI)
-  set(LIBCOPP_MACRO_ENABLE_RTTI
-      ON
-      CACHE BOOL "Enable RTTI support for libcopp")
-else()
-  set(LIBCOPP_MACRO_ENABLE_RTTI
-      OFF
-      CACHE BOOL "Enable RTTI support for libcopp")
-endif()
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_STD_COROUTINE "Enable C++20 coroutine support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_STD_COROUTINE OR COMPILER_OPTIONS_TEST_STD_COROUTINE_TS" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE "Enable C++20 coroutine support for libcopp" ON
+                       "NOT COMPILER_OPTIONS_TEST_STD_COROUTINE;COMPILER_OPTIONS_TEST_STD_COROUTINE_TS" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_EXCEPTION "Enable exception support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_EXCEPTION" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR "Enable C++11 std::exception_ptr support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR" OFF)
+cmake_dependent_option(LIBCOPP_MACRO_ENABLE_RTTI "Enable C++11 std::exception_ptr support for libcopp" ON
+                       "COMPILER_OPTIONS_TEST_RTTI" OFF)
 
 unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 # 导入所有 macro 定义
@@ -109,53 +80,6 @@ if(NOT EXISTS "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
   file(MAKE_DIRECTORY "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
 endif()
 
-# generate check header
-if(CMAKE_VERSION VERSION_LESS "3.20.0")
-  include(WriteCompilerDetectionHeader)
-  write_compiler_detection_header(
-    FILE "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/compiler_features.h" PREFIX UTIL_CONFIG
-    COMPILERS GNU Clang AppleClang MSVC
-    FEATURES c_std_90
-             c_std_99
-             c_std_11
-             c_restrict
-             c_static_assert
-             c_variadic_macros
-             cxx_std_98
-             cxx_std_11
-             cxx_std_14
-             cxx_std_17
-             cxx_std_20
-             cxx_alias_templates
-             cxx_attributes
-             cxx_attribute_deprecated
-             cxx_auto_type
-             cxx_constexpr
-             cxx_decltype
-             cxx_decltype_auto
-             cxx_default_function_template_args
-             cxx_defaulted_functions
-             cxx_delegating_constructors
-             cxx_deleted_functions
-             cxx_final
-             cxx_generic_lambdas
-             cxx_inheriting_constructors
-             cxx_lambdas
-             cxx_long_long_type
-             cxx_noexcept
-             cxx_nonstatic_member_init
-             cxx_nullptr
-             cxx_override
-             cxx_range_for
-             cxx_raw_string_literals
-             cxx_relaxed_constexpr
-             cxx_return_type_deduction
-             cxx_rvalue_references
-             cxx_sizeof_member
-             cxx_static_assert
-             cxx_thread_local
-             cxx_variadic_templates)
-endif()
 if(LIBCOTASK_ENABLE)
   set(LIBCOTASK_MACRO_ENABLED 1)
 endif()

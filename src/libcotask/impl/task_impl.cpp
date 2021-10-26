@@ -21,7 +21,7 @@
 namespace cotask {
 namespace impl {
 LIBCOPP_COTASK_API task_impl::task_impl()
-    : action_(UTIL_CONFIG_NULLPTR), id_(0), finish_priv_data_(UTIL_CONFIG_NULLPTR), status_(EN_TS_CREATED) {
+    : action_(nullptr), id_(0), finish_priv_data_(nullptr), status_(EN_TS_CREATED) {
   id_allocator_t id_alloc_;
   ((void)id_alloc_);
   id_ = id_alloc_.allocate();
@@ -50,12 +50,12 @@ LIBCOPP_COTASK_API int task_impl::on_finished() { return 0; }
 
 LIBCOPP_COTASK_API task_impl *task_impl::this_task() {
   copp::coroutine_context_base *this_co = copp::coroutine_context_base::get_this_coroutine_base();
-  if (UTIL_CONFIG_NULLPTR == this_co) {
-    return UTIL_CONFIG_NULLPTR;
+  if (nullptr == this_co) {
+    return nullptr;
   }
 
   if (false == this_co->check_flags(ext_coroutine_flag_t::EN_ECFT_COTASK)) {
-    return UTIL_CONFIG_NULLPTR;
+    return nullptr;
   }
 
   return *reinterpret_cast<task_impl **>(this_co->get_private_buffer());

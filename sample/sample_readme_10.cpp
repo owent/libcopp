@@ -17,7 +17,7 @@
 
 typedef cotask::task<> my_task_t;
 
-static copp::future::task_t<int> call_for_await_cotask(my_task_t::ptr_t t) {
+static copp::future::task_future<int> call_for_await_cotask(my_task_t::ptr_t t) {
   if (t) {
     co_return co_await t;
   }

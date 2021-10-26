@@ -21,7 +21,7 @@
 // include manager header file
 #include <libcotask/task.h>
 
-#if defined(LIBCOTASK_MACRO_ENABLED) && defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
+#if defined(LIBCOTASK_MACRO_ENABLED)
 
 typedef cotask::task<> my_task_t;
 
@@ -79,7 +79,7 @@ int main() {
 }
 #else
 int main() {
-  puts("this sample require cotask enabled and compiler support c++11");
+  puts("this sample require cotask enabled");
   return 0;
 }
 #endif

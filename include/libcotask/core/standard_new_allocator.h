@@ -14,7 +14,8 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
-#include <libcopp/utils/std/smart_ptr.h>
+
+#include <memory>
 
 namespace cotask {
 namespace core {

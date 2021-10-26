@@ -45,11 +45,11 @@ struct benchmark_no_trivial_message_t {
 };
 
 struct benchmark_generator_waker_t;
-typedef copp::future::result_t<benchmark_no_trivial_message_t, int32_t> benchmark_result_t;
-typedef copp::future::task_t<benchmark_result_t> benchmark_task_t;
-typedef copp::future::generator_context_t<benchmark_generator_waker_t> benchmark_generator_context_t;
-typedef copp::future::generator_future_t<benchmark_result_t> benchmark_generator_future_t;
-typedef copp::future::poll_t<benchmark_result_t> benchmark_poll_t;
+typedef copp::future::result_type<benchmark_no_trivial_message_t, int32_t> benchmark_result_t;
+typedef copp::future::task_future<benchmark_result_t> benchmark_task_t;
+typedef copp::future::generator_context<benchmark_generator_waker_t> benchmark_generator_context_t;
+typedef copp::future::generator_future_data<benchmark_result_t> benchmark_generator_future_t;
+typedef copp::future::poller<benchmark_result_t> benchmark_poll_t;
 
 std::vector<benchmark_generator_context_t *> g_benchmark_waker_list;
 std::vector<benchmark_task_t> g_benchmark_task_list;
@@ -69,7 +69,7 @@ struct benchmark_generator_waker_t {
   }
 };
 
-typedef copp::future::generator_t<benchmark_result_t, benchmark_generator_waker_t> benchmark_generator_t;
+typedef copp::future::generator<benchmark_result_t, benchmark_generator_waker_t> benchmark_generator_t;
 
 static benchmark_task_t benchmark_start_sum_task(size_t index, int32_t await_times) {
   int32_t sum = 0;
@@ -94,7 +94,7 @@ static void benchmark_round(int index) {
 
   printf("### Round: %d ###\n", index);
 
-  time_t begin_time = time(NULL);
+  time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines task
@@ -102,7 +102,7 @@ static void benchmark_round(int index) {
     g_benchmark_task_list.push_back(benchmark_start_sum_task(g_benchmark_task_list.size(), switch_count));
   }
 
-  time_t end_time = time(NULL);
+  time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
   printf("create %d task(s) and generator(s), cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -131,7 +131,7 @@ static void benchmark_round(int index) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("poll %d task(s) and generator(s) for %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
          max_task_number, real_switch_times, static_cast<int>(end_time - begin_time),
@@ -143,7 +143,7 @@ static void benchmark_round(int index) {
   g_benchmark_waker_list.clear();
   g_benchmark_task_list.clear();
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("remove %d task(s), cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),

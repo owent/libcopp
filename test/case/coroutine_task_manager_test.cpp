@@ -1,8 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-
-#include <libcopp/utils/std/smart_ptr.h>
+#include <memory>
 
 #include <libcotask/task.h>
 #include <libcotask/task_manager.h>
@@ -317,12 +316,9 @@ CASE_TEST(coroutine_task_manager, protect_this_task) {
   CASE_EXPECT_EQ(3, (int)g_test_coroutine_task_manager_status);
 }
 
-#  if ((defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)) && \
-      defined(UTIL_CONFIG_COMPILER_CXX_LAMBDAS) && UTIL_CONFIG_COMPILER_CXX_LAMBDAS
-
 static libcopp::util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
 
-static const int test_context_task_manager_action_mt_run_times = 10000;
+static constexpr const int test_context_task_manager_action_mt_run_times = 10000;
 enum { test_context_task_manager_action_mt_thread_num = 1000 };
 
 struct test_context_task_manager_action_mt_thread : public cotask::impl::task_action_impl {
@@ -386,8 +382,6 @@ CASE_TEST(coroutine_task_manager, create_and_run_mt) {
   CASE_EXPECT_EQ(test_context_task_manager_action_mt_run_times * test_context_task_manager_action_mt_thread_num,
                  g_test_coroutine_task_manager_atomic.load());
 }
-
-#  endif
 
 #  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
 CASE_TEST(coroutine_task_manager, auto_cleanup_for_manager) {

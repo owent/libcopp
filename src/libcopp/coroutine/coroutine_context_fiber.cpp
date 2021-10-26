@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
@@ -13,21 +12,21 @@
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 namespace copp {
 struct fiber_context_tls_data_t {
-  typedef coroutine_context_fiber::jump_src_data_t jump_src_data_t;
+  using jump_src_data_t = coroutine_context_fiber::jump_src_data_t;
 
   LPVOID thread_fiber;
   jump_src_data_t jump_data;
-  fiber_context_tls_data_t() : thread_fiber(UTIL_CONFIG_NULLPTR) {
-    jump_data.from_co = UTIL_CONFIG_NULLPTR;
-    jump_data.from_fiber = UTIL_CONFIG_NULLPTR;
-    jump_data.to_co = UTIL_CONFIG_NULLPTR;
-    jump_data.to_fiber = UTIL_CONFIG_NULLPTR;
-    jump_data.priv_data = UTIL_CONFIG_NULLPTR;
+  fiber_context_tls_data_t() : thread_fiber(nullptr) {
+    jump_data.from_co = nullptr;
+    jump_data.from_fiber = nullptr;
+    jump_data.to_co = nullptr;
+    jump_data.to_fiber = nullptr;
+    jump_data.priv_data = nullptr;
   }
   ~fiber_context_tls_data_t() {
     if (thread_fiber) {
       ConvertFiberToThread();
-      thread_fiber = UTIL_CONFIG_NULLPTR;
+      thread_fiber = nullptr;
     }
   }
 };
@@ -35,12 +34,12 @@ struct fiber_context_tls_data_t {
 #  if defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT
 static fiber_context_tls_data_t gt_current_fiber;
 #  else
-static UTIL_CONFIG_THREAD_LOCAL fiber_context_tls_data_t gt_current_fiber;
+static COPP_MACRO_THREAD_LOCAL fiber_context_tls_data_t gt_current_fiber;
 #  endif
 
 static inline LPVOID get_this_fiber_address() {
   if (!gt_current_fiber.thread_fiber) {
-    gt_current_fiber.thread_fiber = ConvertThreadToFiber(UTIL_CONFIG_NULLPTR);
+    gt_current_fiber.thread_fiber = ConvertThreadToFiber(nullptr);
   }
 
   return gt_current_fiber.thread_fiber;
@@ -51,14 +50,14 @@ static inline fiber_context_tls_data_t::jump_src_data_t &get_this_fiber_jump_src
 }
 
 struct libcopp_fiber_inner_api_helper {
-  typedef coroutine_context_fiber::jump_src_data_t jump_src_data_t;
+  using jump_src_data_t = coroutine_context_fiber::jump_src_data_t;
 
   static inline fiber_context_tls_data_t::jump_src_data_t &build_this_fiber_jump_src(coroutine_context_fiber &to_ctx,
                                                                                      void *data) {
     fiber_context_tls_data_t::jump_src_data_t &jump_src = get_this_fiber_jump_src();
 
     jump_src.from_co = ::copp::this_fiber::get_coroutine();
-    if (UTIL_CONFIG_NULLPTR == jump_src.from_co) {
+    if (nullptr == jump_src.from_co) {
       jump_src.from_fiber = get_this_fiber_address();
     } else {
       jump_src.from_fiber = jump_src.from_co->callee_;
@@ -71,13 +70,13 @@ struct libcopp_fiber_inner_api_helper {
   }
 
   static UTIL_FORCEINLINE void set_caller(coroutine_context_fiber *src, LPVOID fctx) {
-    if (UTIL_CONFIG_NULLPTR != src) {
+    if (nullptr != src) {
       src->caller_ = fctx;
     }
   }
 
   // static UTIL_FORCEINLINE void set_callee(coroutine_context_fiber *src, LPVOID fctx) {
-  //     if (UTIL_CONFIG_NULLPTR != src) {
+  //     if (nullptr != src) {
   //         src->callee_ = fctx;
   //     }
   // }
@@ -85,7 +84,7 @@ struct libcopp_fiber_inner_api_helper {
   static void __stdcall coroutine_fiber_context_callback(LPVOID lpParameter) {
     coroutine_context_fiber *ctx = reinterpret_cast<coroutine_context_fiber *>(lpParameter);
     assert(ctx);
-    if (UTIL_CONFIG_NULLPTR == ctx) {
+    if (nullptr == ctx) {
       abort();
       // return; // clang-analyzer will report "Unreachable code"
     }
@@ -105,7 +104,7 @@ struct libcopp_fiber_inner_api_helper {
     ins_ptr->caller_ = jump_src.from_fiber;
 
     // There is no need to update fiber's callee_ of from_co
-    // if (UTIL_CONFIG_NULLPTR != jump_src.from_co) {
+    // if (nullptr != jump_src.from_co) {
     //     jump_src.from_co->callee_ = jump_src.from_fiber;
     // }
 
@@ -151,7 +150,7 @@ static inline void jump_to(LPVOID to_fiber,
    * and now we should save the callee of C and set the caller of A = C
    *
    * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
-   * jump_src->from_co = B, jump_src->to_co = UTIL_CONFIG_NULLPTR
+   * jump_src->from_co = B, jump_src->to_co = nullptr
    * and now we should save the callee of B and should change the caller of A
    *
    */
@@ -166,26 +165,25 @@ static inline void jump_to(LPVOID to_fiber,
   coroutine_context_base::set_this_coroutine_base(restore_co);
 }
 
-LIBCOPP_COPP_API coroutine_context_fiber::coroutine_context_fiber() LIBCOPP_MACRO_NOEXCEPT
-    : coroutine_context_base(),
-      caller_(UTIL_CONFIG_NULLPTR),
-      callee_(UTIL_CONFIG_NULLPTR),
-      callee_stack_() {
+LIBCOPP_COPP_API coroutine_context_fiber::coroutine_context_fiber() LIBCOPP_MACRO_NOEXCEPT : coroutine_context_base(),
+                                                                                             caller_(nullptr),
+                                                                                             callee_(nullptr),
+                                                                                             callee_stack_() {
   flags_ |= flag_t::EN_CFT_IS_FIBER;
   // set_flags(flag_t::EN_CFT_IS_FIBER); // can not use set_flags to set a coroutine context's flag here
 }
 
 LIBCOPP_COPP_API coroutine_context_fiber::~coroutine_context_fiber() {
-  if (UTIL_CONFIG_NULLPTR != callee_) {
+  if (nullptr != callee_) {
     DeleteFiber(callee_);
   }
 }
 
-LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p, callback_t &runner,
+LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p, callback_t &&runner,
                                                      const stack_context &callee_stack, size_t coroutine_size,
                                                      size_t private_buffer_size,
                                                      size_t stack_reserve_size_of_fiber) LIBCOPP_MACRO_NOEXCEPT {
-  if (UTIL_CONFIG_NULLPTR == p) {
+  if (nullptr == p) {
     return COPP_EC_ARGS_ERROR;
   }
 
@@ -199,7 +197,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p,
   }
 
   size_t stack_offset = private_buffer_size + coroutine_size;
-  if (UTIL_CONFIG_NULLPTR == callee_stack.sp || callee_stack.size <= stack_offset) {
+  if (nullptr == callee_stack.sp || callee_stack.size <= stack_offset) {
     return COPP_EC_ARGS_ERROR;
   }
 
@@ -229,7 +227,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p,
       CreateFiberEx(0, stack_reserve_size_of_fiber,
                     0,  // We don't use FIBER_FLAG_FLOAT_SWITCH because fcontext version also don't save XMM0-XMM7
                     &libcopp_fiber_inner_api_helper::coroutine_fiber_context_callback, p);
-  if (UTIL_CONFIG_NULLPTR == p->callee_) {
+  if (nullptr == p->callee_) {
     return COPP_EC_FCONTEXT_MAKE_FAILED;
   }
 
@@ -249,7 +247,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::start(std::exception_ptr &unhandle
 #  else
 LIBCOPP_COPP_API int coroutine_context_fiber::start(void *priv_data) {
 #  endif
-  if (UTIL_CONFIG_NULLPTR == callee_) {
+  if (nullptr == callee_) {
     return COPP_EC_NOT_INITED;
   }
 
@@ -309,7 +307,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::resume(std::exception_ptr &unhandl
 #  endif
 
 LIBCOPP_COPP_API int coroutine_context_fiber::yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
-  if (UTIL_CONFIG_NULLPTR == callee_) {
+  if (nullptr == callee_) {
     return COPP_EC_NOT_INITED;
   }
 
@@ -337,13 +335,13 @@ LIBCOPP_COPP_API int coroutine_context_fiber::yield(void **priv_data) LIBCOPP_MA
   jump_src_data_t jump_data;
   jump_data.from_co = this;
   jump_data.from_fiber = callee_;
-  jump_data.to_co = UTIL_CONFIG_NULLPTR;
+  jump_data.to_co = nullptr;
   jump_data.to_fiber = caller_;
-  jump_data.priv_data = UTIL_CONFIG_NULLPTR;
+  jump_data.priv_data = nullptr;
 
   jump_to(caller_, jump_data);
 
-  if (UTIL_CONFIG_NULLPTR != priv_data) {
+  if (nullptr != priv_data) {
     *priv_data = jump_data.priv_data;
   }
 
@@ -354,14 +352,14 @@ namespace this_fiber {
 LIBCOPP_COPP_API coroutine_context_fiber *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
   coroutine_context_base *ret = coroutine_context_base::get_this_coroutine_base();
   if (ret && !ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
-    ret = UTIL_CONFIG_NULLPTR;
+    ret = nullptr;
   }
   return static_cast<coroutine_context_fiber *>(ret);
 }
 
 LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
   coroutine_context_fiber *pco = get_coroutine();
-  if (UTIL_CONFIG_NULLPTR != pco) {
+  if (nullptr != pco) {
     return pco->yield(priv_data);
   }
 

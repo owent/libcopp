@@ -3,17 +3,15 @@
 
 #pragma once
 
-#include <cstring>
-
-#include <libcopp/utils/config/compiler_features.h>
-
 #include <libcopp/utils/std/coroutine.h>
 #include <libcopp/utils/std/explicit_declare.h>
-#include <libcopp/utils/std/functional.h>
-#include <libcopp/utils/std/smart_ptr.h>
 #include <libcopp/utils/std/type_traits.h>
 
 #include <libcopp/utils/features.h>
+
+#include <cstring>
+#include <functional>
+#include <memory>
 
 namespace copp {
 namespace future {
@@ -25,19 +23,15 @@ EXPLICIT_NODISCARD_ATTR std::unique_ptr<T> make_unique(TARGS &&...args) {  // ma
 
 template <class T, typename std::enable_if<std::is_array<T>::value && std::extent<T>::value == 0, int>::type = 0>
 EXPLICIT_NODISCARD_ATTR std::unique_ptr<T> make_unique(size_t sz) {  // make a unique_ptr
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using TELEM = typename std::remove_extent<T>::type;
-#else
-  typedef typename std::remove_extent<T>::type TELEM;
-#endif
   return std::unique_ptr<T>(new TELEM[sz]());
 }
 
 template <class T, class... TARGS, typename std::enable_if<std::extent<T>::value != 0, int>::type = 0>
-void make_unique(TARGS &&...) UTIL_CONFIG_DELETED_FUNCTION;
+void make_unique(TARGS &&...) = delete;
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_delete_t {
+struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_deleter {
   inline void operator()(T *) const LIBCOPP_MACRO_NOEXCEPT {
     // Do nothing
   }
@@ -48,45 +42,45 @@ struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_delete_t {
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t;
+struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_ptr_selector;
 
 template <>
-struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t<void> {
-  typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
+struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_ptr_selector<void> {
+  using type = std::unique_ptr<void, small_object_optimize_storage_deleter<void> >;
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_select_ptr_t {
-  typedef typename std::conditional<COPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) < (sizeof(size_t) << 2),
-                                    std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >,
-                                    std::unique_ptr<T, std::default_delete<T> > >::type type;
+struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_ptr_selector {
+  using type = typename std::conditional<COPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) < (sizeof(size_t) << 2),
+                                         std::unique_ptr<T, small_object_optimize_storage_deleter<T> >,
+                                         std::unique_ptr<T, std::default_delete<T> > >::type;
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t;
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_selector;
 
 template <>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t<void> {
-  typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > type;
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_selector<void> {
+  using type = std::unique_ptr<void, small_object_optimize_storage_deleter<void> >;
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_select_t {
-  typedef typename std::conditional<COPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) <= (sizeof(size_t) << 2),
-                                    std::unique_ptr<T, small_object_optimize_storage_delete_t<T> >,
-                                    std::shared_ptr<T> >::type type;
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_selector {
+  using type = typename std::conditional<COPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) <= (sizeof(size_t) << 2),
+                                         std::unique_ptr<T, small_object_optimize_storage_deleter<T> >,
+                                         std::shared_ptr<T> >::type;
 };
 
 template <class T, class TPTR>
-struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t;
+struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base;
 
 template <>
 struct LIBCOPP_COPP_API_HEAD_ONLY
-    poll_storage_base_t<void, std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > >
+    poll_storage_base<void, std::unique_ptr<void, small_object_optimize_storage_deleter<void> > >
     : public std::true_type {
-  typedef void value_type;
-  typedef std::unique_ptr<void, small_object_optimize_storage_delete_t<void> > ptr_type;
-  typedef ptr_type storage_type;
+  using value_type = void;
+  using ptr_type = std::unique_ptr<void, small_object_optimize_storage_deleter<void> >;
+  using storage_type = ptr_type;
 
   static UTIL_FORCEINLINE void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT { out.reset(); }
 
@@ -141,11 +135,11 @@ struct LIBCOPP_COPP_API_HEAD_ONLY
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY
-    poll_storage_base_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > > : public std::true_type {
-  typedef T value_type;
-  typedef std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > ptr_type;
-  typedef std::pair<T, ptr_type> storage_type;
+struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_object_optimize_storage_deleter<T> > >
+    : public std::true_type {
+  using value_type = T;
+  using ptr_type = std::unique_ptr<T, small_object_optimize_storage_deleter<T> >;
+  using storage_type = std::pair<T, ptr_type>;
 
   static UTIL_FORCEINLINE void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT {
     memset(&out.first, 0, sizeof(out.first));
@@ -212,10 +206,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY
 };
 
 template <class T, class TPTR>
-struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t : public std::false_type {
-  typedef T value_type;
-  typedef TPTR ptr_type;
-  typedef ptr_type storage_type;
+struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base : public std::false_type {
+  using value_type = T;
+  using ptr_type = TPTR;
+  using storage_type = ptr_type;
 
   static UTIL_FORCEINLINE void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT { out.reset(); }
 
@@ -245,14 +239,14 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base_t : public std::false_type {
 };
 
 template <class T, class TPTR>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t;
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage;
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t<T, std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > >
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::unique_ptr<T, small_object_optimize_storage_deleter<T> > >
     : public std::true_type {
-  typedef T value_type;
-  typedef std::unique_ptr<T, small_object_optimize_storage_delete_t<T> > ptr_type;
-  typedef T storage_type;
+  using value_type = T;
+  using ptr_type = std::unique_ptr<T, small_object_optimize_storage_deleter<T> >;
+  using storage_type = T;
 
   static UTIL_FORCEINLINE bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return false; }
   static UTIL_FORCEINLINE void destroy_storage(storage_type &) {
@@ -311,10 +305,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t<T, std::unique_ptr<T, small_
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t<T, std::shared_ptr<T> > : public std::false_type {
-  typedef T value_type;
-  typedef std::shared_ptr<T> ptr_type;
-  typedef ptr_type storage_type;
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::shared_ptr<T> > : public std::false_type {
+  using value_type = T;
+  using ptr_type = std::shared_ptr<T>;
+  using storage_type = ptr_type;
 
   static UTIL_FORCEINLINE bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return true; }
   static UTIL_FORCEINLINE void destroy_storage(storage_type &out) { out.reset(); }
@@ -361,19 +355,19 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_t<T, std::shared_ptr<T> > : pu
 };
 
 template <class T>
-struct default_compact_storage_t : public compact_storage_t<T, typename compact_storage_select_t<T>::type> {
-  typedef compact_storage_t<T, typename compact_storage_select_t<T>::type> type;
+struct default_compact_storage : public compact_storage<T, typename compact_storage_selector<T>::type> {
+  using type = compact_storage<T, typename compact_storage_selector<T>::type>;
 };
 
 template <class TOK, class TERR, bool is_all_trivial>
-class LIBCOPP_COPP_API_HEAD_ONLY result_base_t;
+class LIBCOPP_COPP_API_HEAD_ONLY result_base;
 
 template <class TOK, class TERR>
-class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, true> {
+class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
  public:
-  typedef TOK success_type;
-  typedef TERR error_type;
-  enum mode_t {
+  using success_type = TOK;
+  using error_type = TERR;
+  enum mode_type {
     EN_RESULT_SUCCESS = 0,
     EN_RESULT_ERROR = 1,
   };
@@ -382,17 +376,19 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, true> {
   UTIL_FORCEINLINE bool is_error() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_ERROR; }
 
   UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? &success_data_ : NULL;
+    return is_success() ? &success_data_ : nullptr;
   }
-  UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT { return is_success() ? &success_data_ : NULL; }
+  UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT {
+    return is_success() ? &success_data_ : nullptr;
+  }
   UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? &error_data_ : NULL;
+    return is_error() ? &error_data_ : nullptr;
   }
-  UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT { return is_error() ? &error_data_ : NULL; }
+  UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT { return is_error() ? &error_data_ : nullptr; }
 
  private:
   template <class UOK, class UERR>
-  friend class result_t;
+  friend class result_type;
   template <class TRESULT, bool>
   friend struct _make_result_instance_helper;
 
@@ -418,7 +414,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, true> {
     mode_ = EN_RESULT_ERROR;
   }
 
-  inline void swap(result_base_t &other) LIBCOPP_MACRO_NOEXCEPT {
+  inline void swap(result_base &other) LIBCOPP_MACRO_NOEXCEPT {
     using std::swap;
     if (is_success()) {
       swap(success_data_, other.success_data_);
@@ -428,22 +424,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, true> {
     swap(mode_, other.mode_);
   }
 
-  friend UTIL_FORCEINLINE void swap(result_base_t &l, result_base_t &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  friend UTIL_FORCEINLINE void swap(result_base &l, result_base &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
 
  private:
   union {
     success_type success_data_;
     error_type error_data_;
   };
-  mode_t mode_;
+  mode_type mode_;
 };
 
 template <class TOK, class TERR>
-class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, false> {
+class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
  public:
-  typedef TOK success_type;
-  typedef TERR error_type;
-  enum mode_t {
+  using success_type = TOK;
+  using error_type = TERR;
+  enum mode_type {
     EN_RESULT_SUCCESS = 0,
     EN_RESULT_ERROR = 1,
     EN_RESULT_NONE = 2,
@@ -453,49 +449,49 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, false> {
   UTIL_FORCEINLINE bool is_error() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_ERROR; }
 
   UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? success_storage_type::unwrap(success_data_) : NULL;
+    return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
   }
   UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? success_storage_type::unwrap(success_data_) : NULL;
+    return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
   }
   UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? error_storage_type::unwrap(error_data_) : NULL;
+    return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
   }
   UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? error_storage_type::unwrap(error_data_) : NULL;
+    return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
   }
 
-  result_base_t() : mode_(EN_RESULT_NONE) {
+  result_base() : mode_(EN_RESULT_NONE) {
     success_storage_type::construct_default_storage(success_data_);
     error_storage_type::construct_default_storage(error_data_);
   }
-  ~result_base_t() { reset(); }
+  ~result_base() { reset(); }
 
-  result_base_t(result_base_t &&other) : mode_(EN_RESULT_NONE) {
+  result_base(result_base &&other) : mode_(EN_RESULT_NONE) {
     success_storage_type::construct_default_storage(success_data_);
     error_storage_type::construct_default_storage(error_data_);
 
     swap(other);
   }
 
-  result_base_t &operator=(result_base_t &&other) {
+  result_base &operator=(result_base &&other) {
     swap(other);
     other.reset();
     return *this;
   }
 
-  inline void swap(result_base_t &other) LIBCOPP_MACRO_NOEXCEPT {
+  inline void swap(result_base &other) LIBCOPP_MACRO_NOEXCEPT {
     using std::swap;
     success_storage_type::swap(success_data_, other.success_data_);
     error_storage_type::swap(error_data_, other.error_data_);
     swap(mode_, other.mode_);
   }
 
-  friend UTIL_FORCEINLINE void swap(result_base_t &l, result_base_t &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  friend UTIL_FORCEINLINE void swap(result_base &l, result_base &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
 
  private:
   template <class UOK, class UERR>
-  friend class result_t;
+  friend class result_type;
   template <class TRESULT, bool>
   friend struct _make_result_instance_helper;
 
@@ -548,12 +544,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base_t<TOK, TERR, false> {
     TSTORAGE::construct_storage(out, std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
   }
 
-  typedef typename default_compact_storage_t<success_type>::type success_storage_type;
-  typedef typename default_compact_storage_t<error_type>::type error_storage_type;
+  using success_storage_type = typename default_compact_storage<success_type>::type;
+  using error_storage_type = typename default_compact_storage<error_type>::type;
 
   typename success_storage_type::storage_type success_data_;
   typename error_storage_type::storage_type error_data_;
-  mode_t mode_;
+  mode_type mode_;
 };
 
 template <class TRESULT, bool>
@@ -561,7 +557,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper;
 
 template <class TRESULT>
 struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
-  typedef std::unique_ptr<TRESULT> type;
+  using type = std::unique_ptr<TRESULT>;
 
   template <class... TARGS>
   static inline type make_success(TARGS &&...args) {
@@ -586,7 +582,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
 
 template <class TRESULT>
 struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, true> {
-  typedef TRESULT type;
+  using type = TRESULT;
 
   template <class... TARGS>
   static inline type make_success(TARGS &&...args) {
@@ -604,20 +600,18 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, true> {
 };
 
 template <class TOK, class TERR>
-class LIBCOPP_COPP_API_HEAD_ONLY result_t
-    : public result_base_t<TOK, TERR, default_compact_storage_t<TOK>::value && default_compact_storage_t<TERR>::value> {
+class LIBCOPP_COPP_API_HEAD_ONLY result_type
+    : public result_base<TOK, TERR, default_compact_storage<TOK>::value && default_compact_storage<TERR>::value> {
  public:
-  typedef result_base_t<TOK, TERR, default_compact_storage_t<TOK>::value && default_compact_storage_t<TERR>::value>
-      base_type;
-  typedef result_t<TOK, TERR> self_type;
+  using base_type = result_base<TOK, TERR, default_compact_storage<TOK>::value && default_compact_storage<TERR>::value>;
+  using self_type = result_type<TOK, TERR>;
 
  private:
-  typedef _make_result_instance_helper<
-      self_type, poll_storage_base_t<base_type, typename poll_storage_select_ptr_t<base_type>::type>::value>
-      _make_instance_type;
+  using _make_instance_type = _make_result_instance_helper<
+      self_type, poll_storage_base<base_type, typename poll_storage_ptr_selector<base_type>::type>::value>;
 
  public:
-  typedef typename _make_instance_type::type storage_type;
+  using storage_type = typename _make_instance_type::type;
 
   template <class... TARGS>
   static inline self_type create_success(TARGS &&...args) {

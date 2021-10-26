@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     stack_size = atoi(argv[3]) * 1024;
   }
 
-  time_t begin_time = time(NULL);
+  time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     task_arr.push_back(new_task);
   }
 
-  time_t end_time = time(NULL);
+  time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
   printf("create %d task, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("switch %d tasks %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          real_switch_times, static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
 
   task_arr.clear();
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("remove %d tasks, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),

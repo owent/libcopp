@@ -22,7 +22,7 @@ static int stack_pool_test_task_action(void *) { return 0; }
 
 CASE_TEST(stack_pool_test, stack_context) {
   copp::stack_context ctx;
-  CASE_EXPECT_EQ(NULL, ctx.sp);
+  CASE_EXPECT_EQ(nullptr, ctx.sp);
   CASE_EXPECT_EQ(0, ctx.size);
 
   unsigned char test_buffer[256];
@@ -30,7 +30,7 @@ CASE_TEST(stack_pool_test, stack_context) {
   ctx.size = sizeof(test_buffer);
   ctx.reset();
 
-  CASE_EXPECT_EQ(NULL, ctx.sp);
+  CASE_EXPECT_EQ(nullptr, ctx.sp);
   CASE_EXPECT_EQ(0, ctx.size);
 }
 

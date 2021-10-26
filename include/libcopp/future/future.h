@@ -6,59 +6,97 @@
 #include <list>
 
 #include "context.h"
-#include "poll.h"
+#include "poller.h"
 
 namespace copp {
 namespace future {
-template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-class LIBCOPP_COPP_API_HEAD_ONLY future_t {
- public:
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using self_type = future_t<T, TPTR>;
-  using poll_type = poll_t<T, TPTR>;
-  using storage_type = typename poll_type::storage_type;
-  using value_type = typename poll_type::value_type;
-  using ptr_type = typename poll_type::ptr_type;
-#else
-  typedef future_t<T, TPTR> self_type;
-  typedef poll_t<T, TPTR> poll_type;
-  typedef typename poll_type::storage_type storage_type;
-  typedef typename poll_type::value_type value_type;
-  typedef typename poll_type::ptr_type ptr_type;
-#endif
 
-  struct waker_t {
+template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
+class LIBCOPP_COPP_API_HEAD_ONLY future {
+ public:
+  using self_type = future<T, TPTR>;
+  using poller_type = poller<T, TPTR>;
+  using storage_type = typename poller_type::storage_type;
+  using value_type = typename poller_type::value_type;
+  using ptr_type = typename poller_type::ptr_type;
+
+ public:
+  future() {}
+  ~future() {}
+
+  UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_ready(); }
+
+  UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_pending(); }
+
+  UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
+    if (!is_ready()) {
+      return nullptr;
+    }
+
+    return poll_data_.data();
+  }
+
+  UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT {
+    if (!is_ready()) {
+      return nullptr;
+    }
+
+    return poll_data_.data();
+  }
+
+  UTIL_FORCEINLINE const ptr_type &raw_ptr() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
+  UTIL_FORCEINLINE ptr_type &raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
+  UTIL_FORCEINLINE const poller_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
+  UTIL_FORCEINLINE poller_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
+  UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
+
+  template <class U>
+  inline void reset_data(U &&in) {
+    poll_data_ = std::forward<U>(in);
+  }
+
+ private:
+  poller_type poll_data_;
+};
+
+template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
+class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
+ public:
+  using self_type = future_with_waker<T, TPTR>;
+  using poller_type = typename future<T, TPTR>::poller_type;
+  using storage_type = typename poller_type::storage_type;
+  using value_type = typename poller_type::value_type;
+  using ptr_type = typename poller_type::ptr_type;
+
+  struct waker_type {
     self_type *self;
   };
 
  private:
-  // future can not be copy or moved.
-  future_t(const future_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  future_t &operator=(const future_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  future_t(future_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  future_t &operator=(future_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  // future_with_waker can not be copyed or moved.waker may reference to poll_data_
+  future_with_waker(const future_with_waker &) = delete;
+  future_with_waker &operator=(const future_with_waker &) = delete;
+  future_with_waker(future_with_waker &&) = delete;
+  future_with_waker &operator=(future_with_waker &&) = delete;
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
  private:
   struct _test_context_functor_t {
     // template <class U>
     // int operator()(U *);
 
     template <class U>
-    bool operator()(context_t<U> *);
+    bool operator()(context<U> *);
   };
-#endif
 
  protected:
   template <class TSELF, class TCONTEXT>
   static void poll_as(TSELF &self, TCONTEXT &&ctx) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
-    typedef typename std::decay<TCONTEXT>::type decay_context_type;
+    using decay_context_type = typename std::decay<TCONTEXT>::type;
     static_assert(std::is_same<bool, COPP_RETURN_VALUE_DECAY(_test_context_functor_t, decay_context_type *)>::value,
-                  "ctx must be drive of context_t");
+                  "ctx must be drive of context");
     static_assert(std::is_base_of<self_type, typename std::decay<TSELF>::type>::value,
-                  "self must be drive of future_t<T, TPTR>");
-#endif
+                  "self must be drive of future_with_waker<T, TPTR>");
+
     if (self.is_ready()) {
       return;
     }
@@ -66,7 +104,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_t {
     // Set waker first, and then context can be moved or copyed in private data callback
     // If two or more context poll the same future, we just use the last one
     if (!ctx.get_wake_fn()) {
-      ctx.set_wake_fn(future_waker_t<TSELF, typename std::decay<TCONTEXT>::type>(self));
+      ctx.set_wake_fn(future_waker_type<TSELF, typename std::decay<TCONTEXT>::type>(self));
       self.set_ctx_waker(std::forward<TCONTEXT>(ctx));
     }
 
@@ -78,12 +116,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_t {
   }
 
  public:
-  future_t() {}
-  ~future_t() { clear_ctx_waker(); }
-
-  UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_ready(); }
-
-  UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_pending(); }
+  future_with_waker() {}
+  ~future_with_waker() { clear_ctx_waker(); }
 
   template <class TCONTEXT>
   UTIL_FORCEINLINE void poll(TCONTEXT &&ctx) {
@@ -95,60 +129,38 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_t {
     poll_as(*static_cast<typename std::decay<TSELF>::type *>(this), std::forward<TCONTEXT>(ctx));
   }
 
-  UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
-    if (!is_ready()) {
-      return NULL;
-    }
-
-    return poll_data_.data();
-  }
-
-  UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT {
-    if (!is_ready()) {
-      return NULL;
-    }
-
-    return poll_data_.data();
-  }
-
-  UTIL_FORCEINLINE const ptr_type &raw_ptr() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
-  UTIL_FORCEINLINE ptr_type &raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
-  UTIL_FORCEINLINE const poll_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
-  UTIL_FORCEINLINE poll_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
-  UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
-
   inline void clear_ctx_waker() LIBCOPP_MACRO_NOEXCEPT {
     if (clear_ctx_waker_) {
       clear_ctx_waker_();
-      clear_ctx_waker_ = NULL;
+      clear_ctx_waker_ = nullptr;
     }
   }
 
   template <class TCONTEXT>
   inline void set_ctx_waker(TCONTEXT &&ctx) {
     clear_ctx_waker();
-    clear_ctx_waker_ = clear_context_waker_t<typename std::decay<TCONTEXT>::type>(ctx);
+    clear_ctx_waker_ = clear_context_waker_type<typename std::decay<TCONTEXT>::type>(ctx);
   }
 
  protected:
   template <class TCONTEXT>
-  struct clear_context_waker_t {
+  struct clear_context_waker_type {
     TCONTEXT *context;
-    clear_context_waker_t(TCONTEXT &ctx) : context(&ctx) {}
+    clear_context_waker_type(TCONTEXT &ctx) : context(&ctx) {}
 
     void operator()() LIBCOPP_MACRO_NOEXCEPT {
       if (likely(context)) {
-        context->set_wake_fn(NULL);
+        context->set_wake_fn(nullptr);
       }
     }
   };
 
  private:
-  // Allow to auto set waker for any child class of context_t
+  // Allow to auto set waker for any child class of context
   template <class TSELF, class TCONTEXT>
-  struct future_waker_t {
+  struct future_waker_type {
     TSELF *self;
-    future_waker_t(TSELF &s) : self(&s) {}
+    future_waker_type(TSELF &s) : self(&s) {}
 
     void operator()(TCONTEXT &ctx) {
       if (likely(self)) {
@@ -158,20 +170,19 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_t {
 
     // convert type
     template <class TPD>
-    inline void operator()(context_t<TPD> &ctx) {
-#if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
-      static_assert(std::is_base_of<context_t<TPD>, TCONTEXT>::value, "TCONTEXT must be drive of context_t<T, TPTR>");
-#endif
+    inline void operator()(context<TPD> &ctx) {
+      static_assert(std::is_base_of<context<TPD>, TCONTEXT>::value, "TCONTEXT must be drive of context<T, TPTR>");
+
       (*this)(*static_cast<TCONTEXT *>(&ctx));
     }
   };
 
   template <class TSELF, class TPD>
-  struct future_waker_t<TSELF, context_t<TPD> > {
+  struct future_waker_type<TSELF, context<TPD> > {
     TSELF *self;
-    future_waker_t(TSELF &s) : self(&s) {}
+    future_waker_type(TSELF &s) : self(&s) {}
 
-    void operator()(context_t<TPD> &ctx) {
+    void operator()(context<TPD> &ctx) {
       if (likely(self)) {
         self->template poll_as<TSELF>(ctx);
       }
@@ -180,7 +191,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_t {
 
  private:
   std::function<void()> clear_ctx_waker_;
-  poll_type poll_data_;
 };
 }  // namespace future
 }  // namespace copp

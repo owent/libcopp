@@ -133,7 +133,7 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
 
 template <typename TTask>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
-  typedef typename TTask::ptr_t task_ptr_t;
+  using task_ptr_t = typename TTask::ptr_t;
 
   task_ptr_t task_;
   typename std::set<task_timer_node<TTask> >::iterator timer_node;
@@ -153,12 +153,12 @@ template <typename TTask,
           >
 class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
  public:
-  typedef TTask task_t;
-  typedef TTaskContainer container_t;
-  typedef typename task_t::id_t id_t;
-  typedef typename task_t::ptr_t task_ptr_t;
-  typedef task_manager<task_t, container_t> self_t;
-  typedef std::shared_ptr<self_t> ptr_t;
+  using task_t = TTask;
+  using container_t = TTaskContainer;
+  using id_t = typename task_t::id_t;
+  using task_ptr_t = typename task_t::ptr_t;
+  using self_t = task_manager<task_t, container_t>;
+  using ptr_t = std::shared_ptr<self_t>;
 
   struct flag_t {
     enum type {
@@ -173,9 +173,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     int *data_;
     typename flag_t::type flag_;
     inline flag_guard_t(int *flags, typename flag_t::type v) : data_(flags), flag_(v) {
-      if (NULL == data_ || (*data_ & flag_)) {
+      if (nullptr == data_ || (*data_ & flag_)) {
         flag_ = flag_t::EN_TM_NONE;
-        data_ = NULL;
+        data_ = nullptr;
       } else {
         (*data_) |= flag_;
       }
@@ -186,7 +186,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       }
     }
 
-    inline operator bool() { return NULL != data_ && flag_t::EN_TM_NONE != flag_; }
+    inline operator bool() { return nullptr != data_ && flag_t::EN_TM_NONE != flag_; }
   };
 
  public:
@@ -267,7 +267,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
 
     // try to cast type
-    typedef typename container_t::value_type pair_type;
+    using pair_type = typename container_t::value_type;
     detail::task_manager_node<task_t> task_node;
     task_node.task_ = task;
     task_node.timer_node = task_timeout_timer_.end();
@@ -342,7 +342,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
@@ -365,7 +365,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @param id task id
    * @return 0 or error code
    */
-  inline int remove_task(id_t id) { return remove_task(id, UTIL_CONFIG_NULLPTR); }
+  inline int remove_task(id_t id) { return remove_task(id, nullptr); }
 
   /**
    * @brief remove task in this manager
@@ -384,12 +384,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return copp::COPP_EC_NOT_FOUND;
       }
-      if (UTIL_CONFIG_NULLPTR != confirm_ptr && iter->second.task_.get() != confirm_ptr) {
+      if (nullptr != confirm_ptr && iter->second.task_.get() != confirm_ptr) {
         return copp::COPP_EC_NOT_FOUND;
       }
 
@@ -408,7 +408,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       EN_TASK_STATUS task_status = task_inst->get_status();
       if (task_status > EN_TS_CREATED && task_status < EN_TS_DONE) {
-        return task_inst->kill(EN_TS_KILLED, NULL);
+        return task_inst->kill(EN_TS_KILLED, nullptr);
       }
     }
 
@@ -429,7 +429,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-    typedef typename container_t::iterator iter_type;
+    using iter_type = typename container_t::iterator;
     iter_type iter = tasks_.find(id);
     if (tasks_.end() == iter) return task_ptr_t();
 
@@ -440,16 +440,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   // int scheduling_once();
   // int scheduling_loop();
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int start(id_t id, void *priv_data = NULL) {
+  int start(id_t id, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = start(id, eptrs, priv_data);
     task_t::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int start(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+  int start(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int start(id_t id, void *priv_data = NULL) {
+  int start(id_t id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return copp::COPP_EC_IN_RESET;
@@ -461,7 +461,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
@@ -488,16 +488,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int resume(id_t id, void *priv_data = NULL) {
+  int resume(id_t id, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = resume(id, eptrs, priv_data);
     task_t::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int resume(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+  int resume(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int resume(id_t id, void *priv_data = NULL) {
+  int resume(id_t id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return copp::COPP_EC_IN_RESET;
@@ -509,7 +509,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
 
@@ -536,16 +536,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int cancel(id_t id, void *priv_data = NULL) {
+  int cancel(id_t id, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = cancel(id, eptrs, priv_data);
     task_t::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int cancel(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+  int cancel(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int cancel(id_t id, void *priv_data = NULL) {
+  int cancel(id_t id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return copp::COPP_EC_IN_RESET;
@@ -557,7 +557,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return copp::COPP_EC_NOT_FOUND;
@@ -586,7 +586,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = NULL) {
+  int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = kill(id, eptrs, status, priv_data);
     task_t::maybe_rethrow(eptrs);
@@ -594,9 +594,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
   int kill(id_t id, std::list<std::exception_ptr> &unhandled, enum EN_TASK_STATUS status,
-           void *priv_data = NULL) LIBCOPP_MACRO_NOEXCEPT {
+           void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = NULL) {
+  int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return copp::COPP_EC_IN_RESET;
@@ -608,7 +608,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      typedef typename container_t::iterator iter_type;
+      using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return copp::COPP_EC_NOT_FOUND;
@@ -636,7 +636,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
   }
 
-  int kill(id_t id, void *priv_data = NULL) { return kill(id, EN_TS_KILLED, priv_data); }
+  int kill(id_t id, void *priv_data = nullptr) { return kill(id, EN_TS_KILLED, priv_data); }
 
   /**
    * @brief active tick event and deal with clock
@@ -708,7 +708,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
         }
 
         // check expire time(may be changed)
-        typedef typename container_t::iterator iter_type;
+        using iter_type = typename container_t::iterator;
 
         iter_type iter = tasks_.find(timer_node.task_id);
 
@@ -808,7 +808,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
   static void task_cleanup_callback(void *self_ptr, task_t &task_inst) {
-    if (UTIL_CONFIG_NULLPTR == self_ptr) {
+    if (nullptr == self_ptr) {
       return;
     }
 

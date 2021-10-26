@@ -4,7 +4,7 @@
 #include <string>
 
 #include <libcopp/future/future.h>
-#include <libcopp/future/poll.h>
+#include <libcopp/future/poller.h>
 
 #include "frame/test_macros.h"
 
@@ -25,19 +25,19 @@ struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
 };
 
 CASE_TEST(future, poll_void) {
-  copp::future::poll_t<void> p1;
+  copp::future::poller<void> p1;
   CASE_EXPECT_FALSE(p1.is_ready());
 
-  copp::future::poll_t<void> p2(123);
+  copp::future::poller<void> p2(123);
   CASE_EXPECT_TRUE(p2.is_ready() && p2.data());
   CASE_EXPECT_EQ(p2.data(), &p2.raw_ptr());
 
   std::unique_ptr<bool> param3 = std::unique_ptr<bool>(new bool(false));
-  copp::future::poll_t<void> p3(std::move(param3));
+  copp::future::poller<void> p3(std::move(param3));
   CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
   CASE_EXPECT_EQ(p3.data(), &p3.raw_ptr());
 
-  copp::future::poll_t<void> p4;
+  copp::future::poller<void> p4;
   // set ready
   p4 = true;
   CASE_EXPECT_TRUE(p4.is_ready() && p4.data());
@@ -45,21 +45,21 @@ CASE_TEST(future, poll_void) {
 }
 
 CASE_TEST(future, poll_trival) {
-  copp::future::poll_t<int> p1;
+  copp::future::poller<int> p1;
   CASE_EXPECT_FALSE(p1.is_ready());
 
-  copp::future::poll_t<int> p2(123);
+  copp::future::poller<int> p2(123);
   CASE_EXPECT_TRUE(p2.is_ready() && p2.data());
   CASE_EXPECT_EQ(p2.data() ? *p2.data() : 0, 123);
 
   std::unique_ptr<int> param3 = std::unique_ptr<int>(new int(234));
-  copp::future::poll_t<int> p3(std::move(param3));
+  copp::future::poller<int> p3(std::move(param3));
   CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
   CASE_EXPECT_EQ(p3.data() ? *p3.data() : 0, 234);
 }
 
 CASE_TEST(future, poll_no_trivial) {
-  typedef copp::future::poll_t<test_no_trivial_parent_clazz> test_poll_type;
+  typedef copp::future::poller<test_no_trivial_parent_clazz> test_poll_type;
 
   test_poll_type p1;
   CASE_EXPECT_FALSE(p1.is_ready());
@@ -73,7 +73,7 @@ CASE_TEST(future, poll_no_trivial) {
 }
 
 CASE_TEST(future, poll_shared_ptr) {
-  typedef copp::future::poll_t<test_no_trivial_parent_clazz, std::shared_ptr<test_no_trivial_parent_clazz> >
+  typedef copp::future::poller<test_no_trivial_parent_clazz, std::shared_ptr<test_no_trivial_parent_clazz> >
       test_poll_type;
 
   test_poll_type p1;
@@ -103,8 +103,8 @@ CASE_TEST(future, poll_shared_ptr) {
 CASE_TEST(future, poll_void_reset_and_swap) {
   // using copp::future::swap;
   {
-    copp::future::poll_t<void> p1;
-    copp::future::poll_t<void> p2;
+    copp::future::poller<void> p1;
+    copp::future::poller<void> p2;
 
     p1 = true;
     CASE_EXPECT_TRUE(p1.is_ready());
@@ -123,8 +123,8 @@ CASE_TEST(future, poll_void_reset_and_swap) {
 CASE_TEST(future, poll_trivial_reset_and_swap) {
   // using copp::future::swap;
   {
-    copp::future::poll_t<int> p1;
-    copp::future::poll_t<int> p2;
+    copp::future::poller<int> p1;
+    copp::future::poller<int> p2;
 
     p1 = 123;
     CASE_EXPECT_TRUE(p1.is_ready());
@@ -144,8 +144,8 @@ CASE_TEST(future, poll_trivial_reset_and_swap) {
 CASE_TEST(future, poll_no_trivial_reset_and_swap) {
   // using copp::future::swap;
   {
-    copp::future::poll_t<test_no_trivial_parent_clazz> p1;
-    copp::future::poll_t<test_no_trivial_parent_clazz> p2;
+    copp::future::poller<test_no_trivial_parent_clazz> p1;
+    copp::future::poller<test_no_trivial_parent_clazz> p2;
 
     p1 = copp::future::make_unique<test_no_trivial_parent_clazz>(123);
     CASE_EXPECT_TRUE(p1.is_ready());
@@ -165,10 +165,10 @@ CASE_TEST(future, poll_no_trivial_reset_and_swap) {
 CASE_TEST(future, swap_trivial_result) {
   // using copp::future::swap;
   {
-    copp::future::result_t<test_no_trivial_parent_clazz, int> p1 =
-        copp::future::result_t<test_no_trivial_parent_clazz, int>::create_success(123);
-    copp::future::result_t<test_no_trivial_parent_clazz, int> p2 =
-        copp::future::result_t<test_no_trivial_parent_clazz, int>::create_error(456);
+    copp::future::result_type<test_no_trivial_parent_clazz, int> p1 =
+        copp::future::result_type<test_no_trivial_parent_clazz, int>::create_success(123);
+    copp::future::result_type<test_no_trivial_parent_clazz, int> p2 =
+        copp::future::result_type<test_no_trivial_parent_clazz, int>::create_error(456);
 
     CASE_EXPECT_TRUE(p1.is_success());
     CASE_EXPECT_TRUE(p2.is_error());
@@ -186,8 +186,8 @@ CASE_TEST(future, swap_trivial_result) {
 CASE_TEST(future, swap_no_trivial_result) {
   // using copp::future::swap;
   {
-    copp::future::result_t<int, int> p1 = copp::future::result_t<int, int>::create_success(123);
-    copp::future::result_t<int, int> p2 = copp::future::result_t<int, int>::create_error(456);
+    copp::future::result_type<int, int> p1 = copp::future::result_type<int, int>::create_success(123);
+    copp::future::result_type<int, int> p2 = copp::future::result_type<int, int>::create_error(456);
 
     CASE_EXPECT_TRUE(p1.is_success());
     CASE_EXPECT_TRUE(p2.is_error());
@@ -211,11 +211,11 @@ struct test_future_void_context_poll_functor<void> {
 
   test_future_void_context_poll_functor(int32_t d) : delay(d) {}
 
-  static void on_destroy(copp::future::context_t<void> &ctx) {
+  static void on_destroy(copp::future::context<void> &ctx) {
     CASE_MSG_INFO() << "[Future] custom void poll context " << &ctx << "destroyed." << std::endl;
   }
 
-  void operator()(copp::future::context_t<void> &ctx, copp::future::context_t<void>::poll_event_data_t evt) {
+  void operator()(copp::future::context<void> &ctx, copp::future::context<void>::poll_event_data evt) {
     CASE_MSG_INFO() << "[Future] custom void poll functor " << this << " polled by " << &ctx
                     << ". future: " << evt.future_ptr << std::endl;
 
@@ -226,7 +226,8 @@ struct test_future_void_context_poll_functor<void> {
 
     ctx.set_on_destroy(on_destroy);
 
-    copp::future::future_t<void> *fut = reinterpret_cast<copp::future::future_t<void> *>(evt.future_ptr);
+    copp::future::future_with_waker<void> *fut =
+        reinterpret_cast<copp::future::future_with_waker<void> *>(evt.future_ptr);
 
     fut->poll_data() = true;
 
@@ -242,15 +243,15 @@ struct test_future_void_context_poll_functor {
   template <class U>
   test_future_void_context_poll_functor(int32_t d, U in) : data(in), delay(d) {}
 
-  static void on_destroy(copp::future::context_t<void> &ctx) {
+  static void on_destroy(copp::future::context<void> &ctx) {
     CASE_MSG_INFO() << "[Future] custom void poll context " << &ctx << "destroyed." << std::endl;
   }
 
-  void operator()(copp::future::context_t<void> &ctx, copp::future::context_t<void>::poll_event_data_t evt) {
+  void operator()(copp::future::context<void> &ctx, copp::future::context<void>::poll_event_data evt) {
     CASE_MSG_INFO() << "[Future] custom poll functor " << this << " polled by " << &ctx
                     << ". future: " << evt.future_ptr << std::endl;
 
-    copp::future::future_t<T> *fut = reinterpret_cast<copp::future::future_t<T> *>(evt.future_ptr);
+    copp::future::future_with_waker<T> *fut = reinterpret_cast<copp::future::future_with_waker<T> *>(evt.future_ptr);
 
     if (delay > 0) {
       --delay;
@@ -260,10 +261,10 @@ struct test_future_void_context_poll_functor {
     ctx.set_on_destroy(on_destroy);
 
     T *r = reinterpret_cast<T *>(evt.private_data);
-    if (NULL == r) {
-      fut->poll_data() = copp::future::poll_t<T>(data);
+    if (nullptr == r) {
+      fut->poll_data() = copp::future::poller<T>(data);
     } else {
-      fut->poll_data() = copp::future::poll_t<T>(*r);
+      fut->poll_data() = copp::future::poller<T>(*r);
     }
 
     CASE_MSG_INFO() << "[Future] custom poll functor " << this << " finished" << std::endl;
@@ -288,34 +289,34 @@ struct test_future_custom_poller_for_context {
   typedef test_future_custom_poller_for_context<T> self_type;
   T data;
   int32_t delay;
-  copp::future::context_t<self_type> *last_trigger;
+  copp::future::context<self_type> *last_trigger;
 
   template <class U, class UPTR>
-  void operator()(copp::future::future_t<U, UPTR> &fut, copp::future::context_t<self_type> &ctx) {
+  void operator()(copp::future::future_with_waker<U, UPTR> &fut, copp::future::context<self_type> &ctx) {
     last_trigger = &ctx;
 
     CASE_MSG_INFO() << "[Future] custom " << test_future_trivial_name<std::is_trivial<self_type>::value>() << " poller "
-                    << this << " polled by context " << &ctx << ". future_t: " << &fut << std::endl;
+                    << this << " polled by context " << &ctx << ". future_with_waker: " << &fut << std::endl;
     if (delay > 0) {
       --delay;
       return;
     }
 
-    fut.poll_data() = copp::future::poll_t<U, UPTR>(std::move(data));
+    fut.reset_data(copp::future::poller<U, UPTR>(std::move(data)));
     CASE_MSG_INFO() << "[Future] custom poller " << this << " finished" << std::endl;
   }
 };
 
 CASE_TEST(future, future_with_void_result_and_void_context) {
-  copp::future::future_t<void> fut;
+  copp::future::future_with_waker<void> fut;
 
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
-  CASE_EXPECT_EQ(NULL, fut.data());
-  CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+  CASE_EXPECT_EQ(nullptr, fut.data());
+  CASE_EXPECT_EQ(nullptr, fut.raw_ptr().get());
 
-  copp::future::context_t<void> ctx(
-      copp::future::context_t<void>::construct(test_future_void_context_poll_functor<void>(1), NULL));
+  copp::future::context<void> ctx(
+      copp::future::context<void>::construct(test_future_void_context_poll_functor<void>(1), nullptr));
   fut.poll(ctx);
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
@@ -329,16 +330,16 @@ CASE_TEST(future, future_with_void_result_and_void_context) {
 }
 
 CASE_TEST(future, future_with_trival_result_and_void_context) {
-  copp::future::future_t<int32_t> fut;
+  copp::future::future_with_waker<int32_t> fut;
   int32_t simulator_result = 12345678;
 
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
-  CASE_EXPECT_EQ(NULL, fut.data());
-  CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+  CASE_EXPECT_EQ(nullptr, fut.data());
+  CASE_EXPECT_EQ(nullptr, fut.raw_ptr().get());
 
-  copp::future::context_t<void> ctx(copp::future::context_t<void>::construct(
-      test_future_void_context_poll_functor<int32_t>(1, 0), &simulator_result));
+  copp::future::context<void> ctx(
+      copp::future::context<void>::construct(test_future_void_context_poll_functor<int32_t>(1, 0), &simulator_result));
   fut.poll(ctx);
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
@@ -355,17 +356,17 @@ CASE_TEST(future, future_with_trival_result_and_void_context) {
 
 CASE_TEST(future, future_and_custom_poller_context_trivial) {
   typedef test_future_custom_poller_for_context<int32_t> custom_poller_t;
-  UTIL_CONFIG_STATIC_ASSERT(std::is_trivial<custom_poller_t>::value);
+  static_assert(std::is_trivial<custom_poller_t>::value, "custom_poller_t must be trivial");
 
-  copp::future::future_t<int32_t> fut;
+  copp::future::future_with_waker<int32_t> fut;
   int32_t simulator_result = 12345679;
 
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
-  CASE_EXPECT_EQ(NULL, fut.data());
-  CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+  CASE_EXPECT_EQ(nullptr, fut.data());
+  CASE_EXPECT_EQ(nullptr, fut.raw_ptr().get());
 
-  copp::future::context_t<custom_poller_t> ctx;
+  copp::future::context<custom_poller_t> ctx;
   ctx.get_private_data().delay = 1;
   ctx.get_private_data().data = simulator_result;
 
@@ -375,7 +376,7 @@ CASE_TEST(future, future_and_custom_poller_context_trivial) {
 
   // After first poll, ctx is binded to future
   CASE_EXPECT_TRUE(!!ctx.get_wake_fn());
-  CASE_EXPECT_NE(NULL, ctx.get_private_data().last_trigger);
+  CASE_EXPECT_NE(nullptr, ctx.get_private_data().last_trigger);
   // When jobs finished, call wake to poll again
 
   ctx.wake();
@@ -390,17 +391,17 @@ CASE_TEST(future, future_and_custom_poller_context_trivial) {
 
 CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
   typedef test_future_custom_poller_for_context<std::unique_ptr<test_no_trivial_child_clazz> > custom_poller_t;
-  UTIL_CONFIG_STATIC_ASSERT(!std::is_trivial<custom_poller_t>::value);
+  static_assert(!std::is_trivial<custom_poller_t>::value, "custom_poller_t must not be trivial");
 
-  copp::future::future_t<test_no_trivial_child_clazz> fut;
+  copp::future::future_with_waker<test_no_trivial_child_clazz> fut;
   int32_t simulator_result = 12345680;
 
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
-  CASE_EXPECT_EQ(NULL, fut.data());
-  CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+  CASE_EXPECT_EQ(nullptr, fut.data());
+  CASE_EXPECT_EQ(nullptr, fut.raw_ptr().get());
 
-  copp::future::context_t<custom_poller_t> ctx;
+  copp::future::context<custom_poller_t> ctx;
   ctx.get_private_data().delay = 1;
 
   fut.poll(ctx);
@@ -409,7 +410,7 @@ CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
 
   // After first poll, ctx is binded to future
   CASE_EXPECT_TRUE(!!ctx.get_wake_fn());
-  CASE_EXPECT_NE(NULL, ctx.get_private_data().last_trigger);
+  CASE_EXPECT_NE(nullptr, ctx.get_private_data().last_trigger);
   // When jobs finished, call wake to poll again
 
   ctx.get_private_data().data.reset(new test_no_trivial_child_clazz(simulator_result));
@@ -418,7 +419,7 @@ CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
   CASE_EXPECT_TRUE(fut.is_ready());
   CASE_EXPECT_FALSE(fut.is_pending());
   // already moved into fut
-  CASE_EXPECT_EQ(NULL, ctx.get_private_data().data.get());
+  CASE_EXPECT_EQ(nullptr, ctx.get_private_data().data.get());
 
   CASE_EXPECT_EQ(-simulator_result, fut.data()->data);
 
@@ -426,19 +427,19 @@ CASE_TEST(future, future_and_custom_poller_context_no_trivial) {
 }
 
 CASE_TEST(future, future_with_copp_result_and_custom_poller_context_trivial) {
-  typedef copp::future::result_t<int, long> result_type;
+  typedef copp::future::result_type<int, long> result_type;
   typedef test_future_custom_poller_for_context<result_type> custom_poller_t;
-  UTIL_CONFIG_STATIC_ASSERT(std::is_trivial<custom_poller_t>::value);
+  static_assert(std::is_trivial<custom_poller_t>::value, "custom_poller_t must be trivial");
 
-  copp::future::future_t<result_type> fut;
+  copp::future::future_with_waker<result_type> fut;
   int simulator_result = 12345681;
 
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
-  CASE_EXPECT_EQ(NULL, fut.data());
-  CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+  CASE_EXPECT_EQ(nullptr, fut.data());
+  CASE_EXPECT_EQ(nullptr, fut.raw_ptr().get());
 
-  copp::future::context_t<custom_poller_t> ctx;
+  copp::future::context<custom_poller_t> ctx;
   ctx.get_private_data().delay = 1;
   ctx.get_private_data().data = result_type::create_success(simulator_result);
 
@@ -448,7 +449,7 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_trivial) {
 
   // After first poll, ctx is binded to future
   CASE_EXPECT_TRUE(!!ctx.get_wake_fn());
-  CASE_EXPECT_NE(NULL, ctx.get_private_data().last_trigger);
+  CASE_EXPECT_NE(nullptr, ctx.get_private_data().last_trigger);
   // When jobs finished, call wake to poll again
 
   ctx.wake();
@@ -464,19 +465,19 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_trivial) {
 }
 
 CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) {
-  typedef copp::future::result_t<int, test_no_trivial_child_clazz> result_type;
+  typedef copp::future::result_type<int, test_no_trivial_child_clazz> result_type;
   typedef test_future_custom_poller_for_context<std::unique_ptr<result_type> > custom_poller_t;
-  UTIL_CONFIG_STATIC_ASSERT(!std::is_trivial<custom_poller_t>::value);
+  static_assert(!std::is_trivial<custom_poller_t>::value, "custom_poller_t must not be trivial");
 
-  copp::future::future_t<result_type> fut;
+  copp::future::future_with_waker<result_type> fut;
   int simulator_result = 12345682;
 
   CASE_EXPECT_FALSE(fut.is_ready());
   CASE_EXPECT_TRUE(fut.is_pending());
-  CASE_EXPECT_EQ(NULL, fut.data());
-  CASE_EXPECT_EQ(NULL, fut.raw_ptr().get());
+  CASE_EXPECT_EQ(nullptr, fut.data());
+  CASE_EXPECT_EQ(nullptr, fut.raw_ptr().get());
 
-  copp::future::context_t<custom_poller_t> ctx;
+  copp::future::context<custom_poller_t> ctx;
   ctx.get_private_data().delay = 1;
 
   fut.poll(ctx);
@@ -485,7 +486,7 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
 
   // After first poll, ctx is binded to future
   CASE_EXPECT_TRUE(!!ctx.get_wake_fn());
-  CASE_EXPECT_NE(NULL, ctx.get_private_data().last_trigger);
+  CASE_EXPECT_NE(nullptr, ctx.get_private_data().last_trigger);
   // When jobs finished, call wake to poll again
 
   ctx.get_private_data().data.reset(
@@ -497,7 +498,7 @@ CASE_TEST(future, future_with_copp_result_and_custom_poller_context_no_trivial) 
   // already moved into fut
   CASE_EXPECT_FALSE(fut.data()->is_success());
   CASE_EXPECT_TRUE(fut.data()->is_error());
-  CASE_EXPECT_EQ(NULL, ctx.get_private_data().data.get());
+  CASE_EXPECT_EQ(nullptr, ctx.get_private_data().data.get());
 
   CASE_EXPECT_EQ(-simulator_result, fut.data()->get_error()->data);
 
@@ -521,12 +522,13 @@ struct test_future_for_std_coroutine_trivial_result_message_t {
 
 struct test_future_for_std_coroutine_trivial_generator_waker_t;
 
-typedef copp::future::result_t<test_future_for_std_coroutine_trivial_result_message_t, int32_t> test_trivial_result_t;
-typedef copp::future::task_t<test_trivial_result_t> test_trivial_task_t;
-typedef copp::future::generator_context_t<test_future_for_std_coroutine_trivial_generator_waker_t>
+typedef copp::future::result_type<test_future_for_std_coroutine_trivial_result_message_t, int32_t>
+    test_trivial_result_t;
+typedef copp::future::task_future<test_trivial_result_t> test_trivial_task_t;
+typedef copp::future::generator_context<test_future_for_std_coroutine_trivial_generator_waker_t>
     test_trivial_generator_context_t;
-typedef copp::future::generator_future_t<test_trivial_result_t> test_trivial_generator_future_t;
-typedef copp::future::poll_t<test_trivial_result_t> test_trivial_poll_t;
+typedef copp::future::generator_future_data<test_trivial_result_t> test_trivial_generator_future_t;
+typedef copp::future::poller<test_trivial_result_t> test_trivial_poll_t;
 
 std::list<test_trivial_generator_context_t *> g_test_future_for_std_coroutine_trivial_context_waker_list;
 
@@ -559,14 +561,14 @@ struct test_future_for_std_coroutine_trivial_generator_waker_t {
       test_future_for_std_coroutine_trivial_result_message_t msg;
       msg.ret_code = code;
       msg.rsp_code = code;
-      fut.poll_data() = test_trivial_result_t::make_success(msg);
+      fut.reset_data(test_trivial_result_t::make_success(msg));
     } else {
       fut.poll_data() = test_trivial_result_t::make_error(code);
     }
   }
 };
 
-typedef copp::future::generator_t<test_trivial_result_t, test_future_for_std_coroutine_trivial_generator_waker_t>
+typedef copp::future::generator<test_trivial_result_t, test_future_for_std_coroutine_trivial_generator_waker_t>
     test_trivial_generator_t;
 
 static test_trivial_task_t call_for_coroutine_fn_runtime_with_code(int32_t await_times, int32_t code) {
@@ -595,9 +597,7 @@ static test_trivial_task_t call_for_coroutine_fn_runtime_with_code(int32_t await
 }
 
 CASE_TEST(future_for_std_coroutine, poll_trival_generator) {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
   static_assert(std::is_trivial<test_trivial_result_t>::value, "test_trivial_result_t must be trivial");
-#  endif
   test_trivial_task_t t1 = call_for_coroutine_fn_runtime_with_code(3, 200);
   test_trivial_task_t t2 = call_for_coroutine_fn_runtime_with_code(3, -200);
 
@@ -630,18 +630,18 @@ CASE_TEST(future_for_std_coroutine, poll_trival_generator) {
   }
 }
 
-static copp::future::task_t<int> call_for_coroutine_fn_runtime_trivial() {
+static copp::future::task_future<int> call_for_coroutine_fn_runtime_trivial() {
   // test compile for trivial result type of task_t
   co_return 123;
 }
 
-static copp::future::task_t<void> call_for_coroutine_fn_runtime_void() {
+static copp::future::task_future<void> call_for_coroutine_fn_runtime_void() {
   // test compile for void result type of task_t
   co_return;
 }
 
 CASE_TEST(future_for_std_coroutine, tast_with_trivial_result) {
-  copp::future::task_t<int> t = call_for_coroutine_fn_runtime_trivial();
+  copp::future::task_future<int> t = call_for_coroutine_fn_runtime_trivial();
 
   CASE_EXPECT_TRUE(t.done());
   CASE_EXPECT_TRUE(t.poll_data()->is_ready());
@@ -652,7 +652,7 @@ CASE_TEST(future_for_std_coroutine, tast_with_trivial_result) {
 }
 
 CASE_TEST(future_for_std_coroutine, tast_with_void_result) {
-  copp::future::task_t<void> t = call_for_coroutine_fn_runtime_void();
+  copp::future::task_future<void> t = call_for_coroutine_fn_runtime_void();
 
   CASE_EXPECT_TRUE(t.done());
   CASE_EXPECT_TRUE(t.poll_data()->is_ready());
@@ -660,11 +660,13 @@ CASE_TEST(future_for_std_coroutine, tast_with_void_result) {
 }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-static copp::future::task_t<int> call_for_coroutine_fn_and_throw_exception() { co_return(int) std::string().at(1); }
+static copp::future::task_future<int> call_for_coroutine_fn_and_throw_exception() {
+  co_return(int) std::string().at(1);
+}
 
 CASE_TEST(future_for_std_coroutine, tast_with_exception) {
   try {
-    copp::future::task_t<int> t = call_for_coroutine_fn_and_throw_exception();
+    copp::future::task_future<int> t = call_for_coroutine_fn_and_throw_exception();
     CASE_EXPECT_TRUE(t.done());
     CASE_EXPECT_FALSE(t.poll_data()->is_ready());
     CASE_EXPECT_NE(nullptr, t.data());
@@ -681,13 +683,13 @@ CASE_TEST(future_for_std_coroutine, tast_with_exception) {
 class test_future_for_std_coroutine_no_trivial_result_message_t {
  private:
   test_future_for_std_coroutine_no_trivial_result_message_t(
-      const test_future_for_std_coroutine_no_trivial_result_message_t &) UTIL_CONFIG_DELETED_FUNCTION;
+      const test_future_for_std_coroutine_no_trivial_result_message_t &) = delete;
   test_future_for_std_coroutine_no_trivial_result_message_t &operator=(
-      const test_future_for_std_coroutine_no_trivial_result_message_t &) UTIL_CONFIG_DELETED_FUNCTION;
+      const test_future_for_std_coroutine_no_trivial_result_message_t &) = delete;
   test_future_for_std_coroutine_no_trivial_result_message_t(
-      test_future_for_std_coroutine_no_trivial_result_message_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+      test_future_for_std_coroutine_no_trivial_result_message_t &&) = delete;
   test_future_for_std_coroutine_no_trivial_result_message_t &operator=(
-      test_future_for_std_coroutine_no_trivial_result_message_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+      test_future_for_std_coroutine_no_trivial_result_message_t &&) = delete;
 
  public:
   int ret_code;
@@ -703,17 +705,17 @@ class test_future_for_std_coroutine_no_trivial_result_message_t {
 struct test_future_for_std_coroutine_no_trivial_generator_waker_t;
 struct test_future_for_std_coroutine_no_trivial_task_waker_t;
 
-typedef copp::future::result_t<test_future_for_std_coroutine_no_trivial_result_message_t, int32_t>
+typedef copp::future::result_type<test_future_for_std_coroutine_no_trivial_result_message_t, int32_t>
     test_no_trivial_result_t;
-typedef copp::future::task_t<test_no_trivial_result_t, test_future_for_std_coroutine_no_trivial_task_waker_t>
+typedef copp::future::task_future<test_no_trivial_result_t, test_future_for_std_coroutine_no_trivial_task_waker_t>
     test_no_trivial_task_t;
-typedef copp::future::generator_context_t<test_future_for_std_coroutine_no_trivial_generator_waker_t>
+typedef copp::future::generator_context<test_future_for_std_coroutine_no_trivial_generator_waker_t>
     test_no_trivial_generator_context_t;
-typedef copp::future::generator_future_t<test_no_trivial_result_t> test_no_trivial_generator_future_t;
-typedef copp::future::poll_t<test_no_trivial_result_t> test_no_trivial_poll_t;
-typedef copp::future::task_context_t<test_future_for_std_coroutine_no_trivial_task_waker_t>
+typedef copp::future::generator_future_data<test_no_trivial_result_t> test_no_trivial_generator_future_t;
+typedef copp::future::poller<test_no_trivial_result_t> test_no_trivial_poll_t;
+typedef copp::future::task_context<test_future_for_std_coroutine_no_trivial_task_waker_t>
     test_no_trivial_task_context_t;
-typedef copp::future::task_future_t<test_no_trivial_result_t> test_no_trivial_task_future_t;
+typedef copp::future::task_future_data<test_no_trivial_result_t> test_no_trivial_task_future_t;
 
 std::list<test_no_trivial_generator_context_t *> g_test_future_for_std_coroutine_no_trivial_generator_waker_list;
 std::list<test_no_trivial_task_context_t *> g_test_future_for_std_coroutine_no_trivial_task_waker_list;
@@ -781,7 +783,7 @@ struct test_future_for_std_coroutine_no_trivial_task_waker_t {
   }
 };
 
-typedef copp::future::generator_t<test_no_trivial_result_t, test_future_for_std_coroutine_no_trivial_generator_waker_t>
+typedef copp::future::generator<test_no_trivial_result_t, test_future_for_std_coroutine_no_trivial_generator_waker_t>
     test_no_trivial_generator_t;
 
 static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code(int32_t await_times, int32_t code) {
@@ -790,7 +792,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
   (void)co_await t_void;
   // refer to auto task_t::operator co_await() &
 
-  copp::future::task_t<int> t123 = call_for_coroutine_fn_runtime_trivial();
+  copp::future::task_future<int> t123 = call_for_coroutine_fn_runtime_trivial();
 
   decltype(auto) r123 = co_await t123;
   CASE_EXPECT_NE(nullptr, r123);
@@ -824,16 +826,15 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_fn_runtime_with_code
 }
 
 CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
   static_assert(!std::is_trivial<test_no_trivial_result_t>::value, "test_no_trivial_result_t must not be trivial");
-#  endif
+
   test_no_trivial_task_t t1 = call_for_no_trivial_coroutine_fn_runtime_with_code(3, 200);
   test_no_trivial_task_t t2 = call_for_no_trivial_coroutine_fn_runtime_with_code(3, -200);
 
   CASE_EXPECT_FALSE(t1.done());
   CASE_EXPECT_FALSE(t2.done());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t2.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kRunning == t1.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kRunning == t2.get_status());
 
   for (int i = 0; i < 10 && (!t1.done() || !t2.done()); ++i) {
     for (std::list<test_no_trivial_generator_t::context_type *>::iterator iter =
@@ -847,8 +848,8 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator) {
 
   CASE_EXPECT_TRUE(t1.done());
   CASE_EXPECT_TRUE(t2.done());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t1.get_status());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t2.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kDone == t1.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kDone == t2.get_status());
   CASE_EXPECT_NE(nullptr, t1.data());
   CASE_EXPECT_NE(nullptr, t2.data());
   if (nullptr != t1.data()) {
@@ -879,7 +880,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_await_generator_and_
     CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, context->get_private_data().code);
   }
 
-  test_no_trivial_task_future_t *fut = co_yield test_no_trivial_task_t::current_future();
+  test_no_trivial_task_future_t *fut = co_yield test_no_trivial_task_t::current_future_data();
   CASE_EXPECT_NE(nullptr, fut);
   if (fut) {
     CASE_EXPECT_TRUE(fut->is_ready());
@@ -895,7 +896,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_await_generator_and_
 CASE_TEST(future_for_std_coroutine, poll_no_trival_generator_and_timeout) {
   test_no_trivial_task_t t1 = call_for_no_trivial_coroutine_await_generator_and_timeout(3);
   CASE_EXPECT_FALSE(t1.done());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kRunning == t1.get_status());
 
   // set timeout result
   for (int retry_times = 10; retry_times >= 0 && !g_test_future_for_std_coroutine_no_trivial_task_waker_list.empty();
@@ -907,7 +908,7 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_generator_and_timeout) {
   }
 
   CASE_EXPECT_TRUE(t1.done());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t1.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kDone == t1.get_status());
   CASE_EXPECT_TRUE(t1.data() && t1.data()->is_error());
   if (t1.data() && t1.data()->is_error()) {
     CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, *t1.data()->get_error());
@@ -940,7 +941,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_await_task_and_timeo
     CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, context->get_private_data().code);
   }
 
-  test_no_trivial_task_future_t *fut = co_yield test_no_trivial_task_t::current_future();
+  test_no_trivial_task_future_t *fut = co_yield test_no_trivial_task_t::current_future_data();
   CASE_EXPECT_NE(nullptr, fut);
   if (fut) {
     CASE_EXPECT_TRUE(fut->is_ready());
@@ -956,7 +957,7 @@ static test_no_trivial_task_t call_for_no_trivial_coroutine_await_task_and_timeo
 CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
   test_no_trivial_task_t t1 = call_for_no_trivial_coroutine_await_task_and_timeout(3);
   CASE_EXPECT_FALSE(t1.done());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::RUNNING == t1.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kRunning == t1.get_status());
 
   // set timeout result
   for (int retry_times = 10; retry_times >= 0 && !t1.done() && t1.get_context(); --retry_times) {
@@ -969,7 +970,7 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
   }
 
   CASE_EXPECT_TRUE(t1.done());
-  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::DONE == t1.get_status());
+  CASE_EXPECT_TRUE(test_no_trivial_task_t::status_type::kDone == t1.get_status());
   CASE_EXPECT_TRUE(t1.data() && t1.data()->is_error());
   if (t1.data() && t1.data()->is_error()) {
     CASE_EXPECT_EQ(STD_COROUTINE_TASK_TIMEOUT_ERROR_CODE, *t1.data()->get_error());
@@ -990,7 +991,7 @@ CASE_TEST(future_for_std_coroutine, poll_no_trival_task_and_timeout) {
   }
 }
 
-static copp::future::task_t<int> call_for_await_cotask(cotask::task<>::ptr_t t) {
+static copp::future::task_future<int> call_for_await_cotask(cotask::task<>::ptr_t t) {
   if (t) {
     co_return co_await t;
   }

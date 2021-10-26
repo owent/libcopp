@@ -3,14 +3,13 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
 #include <libcopp/coroutine/coroutine_context.h>
 
-#if defined(UTIL_CONFIG_THREAD_LOCAL)
+#if defined(COPP_MACRO_THREAD_LOCAL)
 // using thread_local
 #else
 #  include <pthread.h>
@@ -32,19 +31,17 @@ namespace copp {
 namespace detail {
 
 #if defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT
-static coroutine_context_base *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
-#elif defined(UTIL_CONFIG_THREAD_LOCAL)
-static UTIL_CONFIG_THREAD_LOCAL coroutine_context_base *gt_current_coroutine = UTIL_CONFIG_NULLPTR;
+static coroutine_context_base *gt_current_coroutine = nullptr;
+#elif defined(COPP_MACRO_THREAD_LOCAL)
+static COPP_MACRO_THREAD_LOCAL coroutine_context_base *gt_current_coroutine = nullptr;
 #else
 static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
 static pthread_key_t gt_coroutine_tls_key;
-static void init_pthread_this_coroutine_context() {
-  (void)pthread_key_create(&gt_coroutine_tls_key, UTIL_CONFIG_NULLPTR);
-}
+static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt_coroutine_tls_key, nullptr); }
 #endif
 
 static inline void set_this_coroutine_context(coroutine_context_base *p) {
-#if (defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT) || defined(UTIL_CONFIG_THREAD_LOCAL)
+#if (defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT) || defined(COPP_MACRO_THREAD_LOCAL)
   gt_current_coroutine = p;
 #else
   (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -53,7 +50,7 @@ static inline void set_this_coroutine_context(coroutine_context_base *p) {
 }
 
 static inline coroutine_context_base *get_this_coroutine_context() {
-#if (defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT) || defined(UTIL_CONFIG_THREAD_LOCAL)
+#if (defined(LIBCOPP_DISABLE_THIS_MT) && LIBCOPP_DISABLE_THIS_MT) || defined(COPP_MACRO_THREAD_LOCAL)
   return gt_current_coroutine;
 #else
   (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -65,8 +62,8 @@ static inline coroutine_context_base *get_this_coroutine_context() {
 LIBCOPP_COPP_API coroutine_context_base::coroutine_context_base() LIBCOPP_MACRO_NOEXCEPT
     : runner_ret_code_(0),
       flags_(0),
-      runner_(UTIL_CONFIG_NULLPTR),
-      priv_data_(UTIL_CONFIG_NULLPTR),
+      runner_(nullptr),
+      priv_data_(nullptr),
       private_buffer_size_(0),
       status_(status_t::EN_CRS_INVALID) {}
 
@@ -94,11 +91,7 @@ LIBCOPP_COPP_API bool coroutine_context_base::check_flags(int flags) const LIBCO
   return 0 != (flags_ & flags);
 }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
 LIBCOPP_COPP_API int coroutine_context_base::set_runner(callback_t &&runner) {
-#else
-LIBCOPP_COPP_API int coroutine_context_base::set_runner(const callback_t &runner) {
-#endif
   if (!runner) {
     return COPP_EC_ARGS_ERROR;
   }
@@ -129,16 +122,16 @@ LIBCOPP_COPP_API void coroutine_context_base::set_this_coroutine_base(coroutine_
 }
 
 struct libcopp_inner_api_helper {
-  typedef coroutine_context::jump_src_data_t jump_src_data_t;
+  using jump_src_data_t = coroutine_context::jump_src_data_t;
 
   static UTIL_FORCEINLINE void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
-    if (UTIL_CONFIG_NULLPTR != src) {
+    if (nullptr != src) {
       src->caller_ = fctx;
     }
   }
 
   static UTIL_FORCEINLINE void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
-    if (UTIL_CONFIG_NULLPTR != src) {
+    if (nullptr != src) {
       src->callee_ = fctx;
     }
   }
@@ -147,7 +140,7 @@ struct libcopp_inner_api_helper {
   static UTIL_FORCEINLINE void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
                                                       EXPLICIT_UNUSED_ATTR stack_context &to_sctx,
                                                       libcopp_inner_api_helper::jump_src_data_t &jump_transfer) {
-    if (UTIL_CONFIG_NULLPTR != jump_transfer.from_co) {
+    if (nullptr != jump_transfer.from_co) {
       __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
       if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
         memcpy(&from_sctx.segments_ctx, &jump_transfer.from_co->callee_stack_.segments_ctx,
@@ -162,7 +155,7 @@ struct libcopp_inner_api_helper {
 
   static void coroutine_context_callback(::copp::fcontext::transfer_t src_ctx) {
     assert(src_ctx.data);
-    if (UTIL_CONFIG_NULLPTR == src_ctx.data) {
+    if (nullptr == src_ctx.data) {
       abort();
       // return; // clang-analyzer will report "Unreachable code"
     }
@@ -173,7 +166,7 @@ struct libcopp_inner_api_helper {
     // this must in a coroutine
     coroutine_context *ins_ptr = jump_src.to_co;
     assert(ins_ptr);
-    if (UTIL_CONFIG_NULLPTR == ins_ptr) {
+    if (nullptr == ins_ptr) {
       abort();
       // return; // clang-analyzer will report "Unreachable code"
     }
@@ -182,7 +175,7 @@ struct libcopp_inner_api_helper {
     ins_ptr->caller_ = src_ctx.fctx;
 
     // save from_co's fcontext and switch status
-    if (UTIL_CONFIG_NULLPTR != jump_src.from_co) {
+    if (nullptr != jump_src.from_co) {
       jump_src.from_co->callee_ = src_ctx.fctx;
     }
 
@@ -227,14 +220,14 @@ static inline void jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR s
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
   assert(&from_sctx != &to_sctx);
-  // ROOT->A: jump_transfer.from_co == UTIL_CONFIG_NULLPTR, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip
+  // ROOT->A: jump_transfer.from_co == nullptr, jump_transfer.to_co == A, from_sctx == A.caller_stack_, skip
   // backup segments A->B.start(): jump_transfer.from_co == A, jump_transfer.to_co == B, from_sctx == B.caller_stack_,
-  // backup segments B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == UTIL_CONFIG_NULLPTR, from_sctx ==
+  // backup segments B.yield()->A: jump_transfer.from_co == B, jump_transfer.to_co == nullptr, from_sctx ==
   // B.callee_stack_, skip backup segments
   libcopp_inner_api_helper::splitstack_swapcontext(from_sctx, to_sctx, jump_transfer);
 #endif
   res = copp::fcontext::copp_jump_fcontext(to_fctx, &jump_transfer);
-  if (UTIL_CONFIG_NULLPTR == res.data) {
+  if (nullptr == res.data) {
     abort();
     return;
   }
@@ -250,7 +243,7 @@ static inline void jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR s
    * and now we should save the callee of C and set the caller of A = C
    *
    * if we jump sequence is A->B.yield()->A, and if this call is A->B, then
-   * jump_src->from_co = B, jump_src->to_co = UTIL_CONFIG_NULLPTR, jump_transfer.from_co = A, jump_transfer.to_co = B
+   * jump_src->from_co = B, jump_src->to_co = nullptr, jump_transfer.from_co = A, jump_transfer.to_co = B
    * and now we should save the callee of B and should change the caller of A
    *
    */
@@ -268,8 +261,8 @@ static inline void jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR s
 }
 
 LIBCOPP_COPP_API coroutine_context::coroutine_context() LIBCOPP_MACRO_NOEXCEPT : coroutine_context_base(),
-                                                                                 caller_(UTIL_CONFIG_NULLPTR),
-                                                                                 callee_(UTIL_CONFIG_NULLPTR),
+                                                                                 caller_(nullptr),
+                                                                                 callee_(nullptr),
                                                                                  callee_stack_()
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
     ,
@@ -280,10 +273,10 @@ LIBCOPP_COPP_API coroutine_context::coroutine_context() LIBCOPP_MACRO_NOEXCEPT :
 
 LIBCOPP_COPP_API coroutine_context::~coroutine_context() {}
 
-LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &runner,
+LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &&runner,
                                                const stack_context &callee_stack, size_t coroutine_size,
                                                size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
-  if (UTIL_CONFIG_NULLPTR == p) {
+  if (nullptr == p) {
     return COPP_EC_ARGS_ERROR;
   }
 
@@ -297,7 +290,7 @@ LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t 
   }
 
   size_t stack_offset = align_stack_size(private_buffer_size + coroutine_size);
-  if (UTIL_CONFIG_NULLPTR == callee_stack.sp || callee_stack.size <= stack_offset) {
+  if (nullptr == callee_stack.sp || callee_stack.size <= stack_offset) {
     return COPP_EC_ARGS_ERROR;
   }
 
@@ -326,7 +319,7 @@ LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t 
   p->callee_ = fcontext::copp_make_fcontext(reinterpret_cast<unsigned char *>(p->callee_stack_.sp) - stack_offset,
                                             p->callee_stack_.size - stack_offset,
                                             &libcopp_inner_api_helper::coroutine_context_callback);
-  if (UTIL_CONFIG_NULLPTR == p->callee_) {
+  if (nullptr == p->callee_) {
     return COPP_EC_FCONTEXT_MAKE_FAILED;
   }
 
@@ -345,7 +338,7 @@ LIBCOPP_COPP_API int coroutine_context::start(std::exception_ptr &unhandled, voi
 #else
 LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
 #endif
-  if (UTIL_CONFIG_NULLPTR == callee_) {
+  if (nullptr == callee_) {
     return COPP_EC_NOT_INITED;
   }
 
@@ -419,7 +412,7 @@ LIBCOPP_COPP_API int coroutine_context::resume(std::exception_ptr &unhandled, vo
 #endif
 
 LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
-  if (UTIL_CONFIG_NULLPTR == callee_) {
+  if (nullptr == callee_) {
     return COPP_EC_NOT_INITED;
   }
 
@@ -446,7 +439,7 @@ LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) LIBCOPP_MACRO_NO
   // success or finished will continue
   jump_src_data_t jump_data;
   jump_data.from_co = this;
-  jump_data.to_co = UTIL_CONFIG_NULLPTR;
+  jump_data.to_co = nullptr;
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
   jump_to(caller_, callee_stack_, caller_stack_, jump_data);
@@ -454,7 +447,7 @@ LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) LIBCOPP_MACRO_NO
   jump_to(caller_, callee_stack_, callee_stack_, jump_data);
 #endif
 
-  if (UTIL_CONFIG_NULLPTR != priv_data) {
+  if (nullptr != priv_data) {
     *priv_data = jump_data.priv_data;
   }
 
@@ -466,7 +459,7 @@ LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
   coroutine_context_base *ret = detail::get_this_coroutine_context();
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
   if (ret && ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
-    ret = UTIL_CONFIG_NULLPTR;
+    ret = nullptr;
   }
 #endif
   return static_cast<coroutine_context *>(ret);
@@ -478,7 +471,7 @@ LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
 #else
   coroutine_context *pco = static_cast<coroutine_context *>(detail::get_this_coroutine_context());
 #endif
-  if (likely(UTIL_CONFIG_NULLPTR != pco)) {
+  if (likely(nullptr != pco)) {
     return pco->yield(priv_data);
   }
 

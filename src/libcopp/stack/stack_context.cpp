@@ -1,12 +1,11 @@
 #include <cstring>
 
 #include <libcopp/stack/stack_context.h>
-#include <libcopp/utils/config/compiler_features.h>
 
 namespace copp {
 
 LIBCOPP_COPP_API stack_context::stack_context() LIBCOPP_MACRO_NOEXCEPT : size(0),
-                                                                         sp(NULL)
+                                                                         sp(nullptr)
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
     ,
                                                                          segments_ctx()
@@ -27,7 +26,6 @@ LIBCOPP_COPP_API stack_context &stack_context::operator=(const stack_context &ot
   return *this;
 }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
 LIBCOPP_COPP_API stack_context::stack_context(stack_context &&other) LIBCOPP_MACRO_NOEXCEPT {
   copy_from(other);
   other.reset();
@@ -38,11 +36,10 @@ LIBCOPP_COPP_API stack_context &stack_context::operator=(stack_context &&other) 
   other.reset();
   return *this;
 }
-#endif
 
 LIBCOPP_COPP_API void stack_context::reset() LIBCOPP_MACRO_NOEXCEPT {
   size = 0;
-  sp = UTIL_CONFIG_NULLPTR;
+  sp = nullptr;
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
   memset(segments_ctx, 0, sizeof(segments_ctx));
 #endif

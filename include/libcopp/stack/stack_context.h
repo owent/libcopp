@@ -5,7 +5,6 @@
 
 #include <cstddef>
 
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 
@@ -15,7 +14,7 @@ struct LIBCOPP_COPP_API stack_context {
   void *sp;    /** @brief stack end pointer **/
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-  typedef void *segments_context_t[COPP_MACRO_SEGMENTED_STACK_NUMBER];
+  using segments_context_t = void *[COPP_MACRO_SEGMENTED_STACK_NUMBER];
   segments_context_t segments_ctx; /** @brief gcc split segment stack data **/
 #endif
 
@@ -28,10 +27,8 @@ struct LIBCOPP_COPP_API stack_context {
 
   stack_context(const stack_context &other) LIBCOPP_MACRO_NOEXCEPT;
   stack_context &operator=(const stack_context &other) LIBCOPP_MACRO_NOEXCEPT;
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
   stack_context(stack_context &&other) LIBCOPP_MACRO_NOEXCEPT;
   stack_context &operator=(stack_context &&other) LIBCOPP_MACRO_NOEXCEPT;
-#endif
 
   void reset() LIBCOPP_MACRO_NOEXCEPT;
 

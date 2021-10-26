@@ -19,7 +19,6 @@
 
 #include <cstring>
 
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 namespace libcopp {
@@ -80,25 +79,25 @@ template <typename TLock, typename TLockAct = detail::default_lock_action<TLock>
           typename TUnlockAct = detail::default_unlock_action<TLock> >
 class LIBCOPP_COPP_API_HEAD_ONLY lock_holder {
  public:
-  typedef TLock value_type;
+  using value_type = TLock;
 
   lock_holder(TLock &lock) : lock_flag_(&lock) {
     if (false == TLockAct()(lock)) {
-      lock_flag_ = NULL;
+      lock_flag_ = nullptr;
     }
   }
 
   ~lock_holder() {
-    if (NULL != lock_flag_) {
+    if (nullptr != lock_flag_) {
       TUnlockAct()(*lock_flag_);
     }
   }
 
-  bool is_available() const { return NULL != lock_flag_; }
+  bool is_available() const { return nullptr != lock_flag_; }
 
  private:
-  lock_holder(const lock_holder &) UTIL_CONFIG_DELETED_FUNCTION;
-  lock_holder &operator=(const lock_holder &) UTIL_CONFIG_DELETED_FUNCTION;
+  lock_holder(const lock_holder &) = delete;
+  lock_holder &operator=(const lock_holder &) = delete;
 
  private:
   value_type *lock_flag_;

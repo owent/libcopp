@@ -72,11 +72,9 @@ struct task_action_functor_check {
 // functor
 template <typename Ty>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_action_functor : public impl::task_action_impl {
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
  public:
-  typedef typename std::decay<Ty>::type value_type;
+  using value_type = typename std::decay<Ty>::type;
 
-#  if defined(UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_VARIADIC_TEMPLATES
   template <typename... TARG>
   task_action_functor(TARG &&...arg) : functor_(std::forward<TARG>(arg)...) {}
 
@@ -86,29 +84,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_functor : public impl::task_actio
   template <typename... TARG>
   task_action_functor(const task_action_functor &other, TARG &&...) : functor_(other.functor_) {}
 
-#  else
-  template <int TH = 0>
-  task_action_functor(task_action_functor &&other) : functor_(std::move(other.functor_)) {}
-
-  template <int TH = 0>
-  task_action_functor(const task_action_functor &other) : functor_(other.functor_) {}
-
-  template <typename TARG, int TH = 0>
-  task_action_functor(TARG &&arg) : functor_(std::forward<TARG>(arg)) {}
-#  endif
-
-#else
- public:
-  typedef Ty value_type;
-  task_action_functor(const value_type &functor) : functor_(functor) {}
-#endif
   ~task_action_functor() {}
   virtual int operator()(void *priv_data) {
     return detail::task_action_functor_check::call(&value_type::operator(), functor_, priv_data);
   }
 
   static void placement_destroy(void *selfp) {
-    if (UTIL_CONFIG_NULLPTR == selfp) {
+    if (nullptr == selfp) {
       return;
     }
 
@@ -124,7 +106,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_functor : public impl::task_actio
 template <typename Ty>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_action_impl {
  public:
-  typedef Ty (*value_type)(void *);
+  using value_type = Ty (*)(void *);
 
  private:
   template <class Tz, bool IS_INTEGRAL>
@@ -154,7 +136,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_acti
   }
 
   static void placement_destroy(void *selfp) {
-    if (UTIL_CONFIG_NULLPTR == selfp) {
+    if (nullptr == selfp) {
       return;
     }
 
@@ -170,7 +152,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_acti
 template <typename Ty, typename Tc>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_action_impl {
  public:
-  typedef Ty Tc::*value_type;
+  using value_type = Ty Tc::*;
 
  private:
   template <class Tz, bool IS_INTEGRAL>
@@ -200,7 +182,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_
   }
 
   static void placement_destroy(void *selfp) {
-    if (UTIL_CONFIG_NULLPTR == selfp) {
+    if (nullptr == selfp) {
       return;
     }
 
@@ -215,7 +197,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_
 
 template <typename Ty>
 LIBCOPP_COTASK_API_HEAD_ONLY void placement_destroy(void *selfp) {
-  if (UTIL_CONFIG_NULLPTR == selfp) {
+  if (nullptr == selfp) {
     return;
   }
 
@@ -223,7 +205,7 @@ LIBCOPP_COTASK_API_HEAD_ONLY void placement_destroy(void *selfp) {
   self->~Ty();
 }
 
-typedef void (*placement_destroy_fn_t)(void *);
+using placement_destroy_fn_t = void (*)(void *);
 
 template <typename Ty>
 LIBCOPP_COTASK_API_HEAD_ONLY placement_destroy_fn_t get_placement_destroy(task_action_functor<Ty> * /*selfp*/) {

@@ -1,7 +1,7 @@
 ﻿/*
  * test_manager.cpp
  *
- *  Created on: 2014年3月11日
+ *  Created on: 2014-03-11
  *      Author: owent
  *
  *  Released under the MIT license
@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <libcopp/utils/config/compile_optimize.h>
-#include <libcopp/utils/config/compiler_features.h>
 
 #include "cli/cmd_option.h"
 #include "cli/cmd_option_phoenix.h"
@@ -30,14 +29,13 @@ struct test_manager_tls_block_t {
   int *success_counter_ptr;
   int *failed_counter_ptr;
 };
-#  if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
-#    if (defined(__cplusplus) && __cplusplus >= 201402L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201402L))
-UTIL_CONFIG_STATIC_ASSERT(std::is_trivially_copyable<test_manager_tls_block_t>::value);
-#    elif (defined(__cplusplus) && __cplusplus >= 201103L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
-UTIL_CONFIG_STATIC_ASSERT(std::is_trivial<test_manager_tls_block_t>::value);
-#    else
-UTIL_CONFIG_STATIC_ASSERT(std::is_pod<test_manager_tls_block_t>::value);
-#    endif
+
+#  if (defined(__cplusplus) && __cplusplus >= 201402L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201402L))
+static_assert(std::is_trivially_copyable<test_manager_tls_block_t>::value, "test_manager_tls_block_t must be trially");
+#  elif (defined(__cplusplus) && __cplusplus >= 201103L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
+static_assert(std::is_trivial<test_manager_tls_block_t>::value, "test_manager_tls_block_t must be trially");
+#  else
+static_assert(std::is_pod<test_manager_tls_block_t>::value, "test_manager_tls_block_t must be POD");
 #  endif
 
 static test_manager_tls_block_t g_global_counter_cache = {0, 0};
@@ -52,14 +50,14 @@ struct test_manager_tls_block_t {
   int *success_counter_ptr;
   int *failed_counter_ptr;
 
-  test_manager_tls_block_t() : success_counter_ptr(NULL), failed_counter_ptr(NULL) {}
+  test_manager_tls_block_t() : success_counter_ptr(nullptr), failed_counter_ptr(nullptr) {}
 };
 static pthread_once_t gt_test_manager_tls_block_once = PTHREAD_ONCE_INIT;
 static pthread_key_t gt_test_manager_tls_block_key;
 
 static void dtor_pthread_test_manager_tls_block(void *p) {
   test_manager_tls_block_t *block = reinterpret_cast<test_manager_tls_block_t *>(p);
-  if (NULL != block) {
+  if (nullptr != block) {
     delete block;
   }
 }
@@ -73,7 +71,7 @@ test_manager_tls_block_t *get_test_manager_tls_block() {
   (void)pthread_once(&gt_test_manager_tls_block_once, init_pthread_test_manager_tls_block);
   test_manager_tls_block_t *block =
       reinterpret_cast<test_manager_tls_block_t *>(pthread_getspecific(gt_test_manager_tls_block_key));
-  if (NULL == block) {
+  if (nullptr == block) {
     block = new test_manager_tls_block_t(g_global_counter_cache);
     pthread_setspecific(gt_test_manager_tls_block_key, block);
   }
@@ -84,14 +82,14 @@ struct gt_test_manager_tls_block_main_thread_dtor_t {
   test_manager_tls_block_t *block_ptr;
   gt_test_manager_tls_block_main_thread_dtor_t() {
     block_ptr = get_test_manager_tls_block();
-    if (NULL != block_ptr) {
-      block_ptr->success_counter_ptr = NULL;
-      block_ptr->failed_counter_ptr = NULL;
+    if (nullptr != block_ptr) {
+      block_ptr->success_counter_ptr = nullptr;
+      block_ptr->failed_counter_ptr = nullptr;
     }
   }
 
   ~gt_test_manager_tls_block_main_thread_dtor_t() {
-    pthread_setspecific(gt_test_manager_tls_block_key, NULL);
+    pthread_setspecific(gt_test_manager_tls_block_key, nullptr);
     dtor_pthread_test_manager_tls_block(reinterpret_cast<void *>(block_ptr));
   }
 };
@@ -163,7 +161,7 @@ void test_manager::append_event_on_exit(const std::string &event_name, on_exit_p
 #ifdef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST
 
 boost::unit_test::test_suite *&test_manager::test_suit() {
-  static boost::unit_test::test_suite *ret = NULL;
+  static boost::unit_test::test_suite *ret = nullptr;
   return ret;
 }
 
@@ -441,7 +439,7 @@ std::string test_manager::get_expire_time(clock_t begin, clock_t end) {
 
 void test_manager::set_counter_ptr(int *success_counter_ptr, int *failed_counter_ptr) {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  if (NULL != block) {
+  if (nullptr != block) {
     block->success_counter_ptr = success_counter_ptr;
     block->failed_counter_ptr = failed_counter_ptr;
   }
@@ -451,7 +449,7 @@ void test_manager::set_counter_ptr(int *success_counter_ptr, int *failed_counter
 
 void test_manager::inc_success_counter() {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  if (likely(NULL != block && NULL != block->success_counter_ptr)) {
+  if (likely(nullptr != block && nullptr != block->success_counter_ptr)) {
     ++(*block->success_counter_ptr);
     return;
   }
@@ -464,7 +462,7 @@ void test_manager::inc_success_counter() {
 
 void test_manager::inc_failed_counter() {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  if (likely(NULL != block && NULL != block->failed_counter_ptr)) {
+  if (likely(nullptr != block && nullptr != block->failed_counter_ptr)) {
     ++(*block->failed_counter_ptr);
     return;
   }

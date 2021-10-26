@@ -12,7 +12,7 @@
 #endif
 
 #if defined(_WIN32_WCE)
-typedef int intptr_t;
+using intptr_t = int;
 #endif
 
 #include <stdint.h>
@@ -27,7 +27,7 @@ typedef int intptr_t;
 
 namespace copp {
 namespace fcontext {
-typedef void* fcontext_t;
+using fcontext_t = void*;
 
 struct transfer_t {
   fcontext_t fctx;

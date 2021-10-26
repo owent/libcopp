@@ -33,10 +33,10 @@
 #endif
 
 struct custom_waker_t;
-typedef copp::future::context_t<custom_waker_t> custom_context_t;
-typedef copp::future::result_t<int, int> custom_result_t;
-typedef copp::future::poll_t<custom_result_t> custom_poll_t;
-typedef copp::future::future_t<custom_result_t> custom_future_t;
+typedef copp::future::context<custom_waker_t> custom_context_t;
+typedef copp::future::result_type<int, int> custom_result_t;
+typedef copp::future::poller<custom_result_t> custom_poll_t;
+typedef copp::future::future_with_waker<custom_result_t> custom_future_t;
 
 struct custom_waker_t {
   int left_count;
@@ -66,7 +66,7 @@ std::vector<std::unique_ptr<custom_context_t> > context_arr;
 static void benchmark_round(int index) {
   printf("### Round: %d ###\n", index);
 
-  time_t begin_time = time(NULL);
+  time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
@@ -78,7 +78,7 @@ static void benchmark_round(int index) {
     context_arr.back()->get_private_data().left_count = switch_count;
   }
 
-  time_t end_time = time(NULL);
+  time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
   printf("create %d future and context, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -102,7 +102,7 @@ static void benchmark_round(int index) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("poll %d future and context for %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
          max_task_number, real_switch_times, static_cast<int>(end_time - begin_time),
@@ -114,7 +114,7 @@ static void benchmark_round(int index) {
   task_arr.clear();
   context_arr.clear();
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("remove %d future and context, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_task_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),

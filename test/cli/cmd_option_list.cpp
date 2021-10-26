@@ -15,13 +15,13 @@ namespace util {
 namespace cli {
 const char *binder::cmd_option_bind_base::ROOT_NODE_CMD = "@Root";
 
-cmd_option_list::cmd_option_list() : ext_param_(NULL) {}
+cmd_option_list::cmd_option_list() : ext_param_(nullptr) {}
 
-cmd_option_list::cmd_option_list(int argv, const char *argc[]) : ext_param_(NULL) {
+cmd_option_list::cmd_option_list(int argv, const char *argc[]) : ext_param_(nullptr) {
   for (int i = 0; i < argv; ++i) keys_.push_back(std::make_shared<cmd_option_value>(argc[i]));
 }
 
-cmd_option_list::cmd_option_list(const std::vector<std::string> &cmds) : ext_param_(NULL) {
+cmd_option_list::cmd_option_list(const std::vector<std::string> &cmds) : ext_param_(nullptr) {
   std::vector<std::string>::size_type uSize = cmds.size();
   for (std::vector<std::string>::size_type i = 0; i < uSize; ++i) {
     keys_.push_back(std::make_shared<cmd_option_value>(cmds[i].c_str()));
@@ -32,13 +32,13 @@ void cmd_option_list::init_key_value_map() {
   typedef std::map<std::string, value_type> key_map_type;
   typedef std::vector<value_type> keys_type;
   // 已经初始化，跳过
-  if (key_value_.get() != NULL) return;
+  if (key_value_.get() != nullptr) return;
 
   key_value_ = std::shared_ptr<key_map_type>(new key_map_type());
 
   for (keys_type::size_type i = 0; i < keys_.size(); ++i) {
     const char *str_key = keys_[i]->to_string();
-    if (NULL == str_key) {
+    if (nullptr == str_key) {
       continue;
     }
 
@@ -60,10 +60,10 @@ void cmd_option_list::init_key_value_map() {
 void cmd_option_list::add(const char *param) { keys_.push_back(std::make_shared<cmd_option_value>(param)); }
 
 void cmd_option_list::clear() {
-  key_value_.reset();  // 删除key-value映射
-  keys_.clear();       // 删除索引下标映射
-  cmd_array_.clear();  // 删除指令栈集合
-  ext_param_ = NULL;   // 透传参数置空
+  key_value_.reset();    // 删除key-value映射
+  keys_.clear();         // 删除索引下标映射
+  cmd_array_.clear();    // 删除指令栈集合
+  ext_param_ = nullptr;  // 透传参数置空
 }
 
 void cmd_option_list::load_cmd_array(const cmd_array_type &cmds) { cmd_array_ = cmds; }
@@ -78,7 +78,7 @@ const cmd_option_list::cmd_array_type &cmd_option_list::get_cmd_array() const { 
 
 cmd_option_list::value_type cmd_option_list::get(std::string key, const char *default_val) {
   value_type ret_ptr = get(key);
-  if (ret_ptr.get() == NULL) return std::make_shared<cmd_option_value>(default_val);
+  if (ret_ptr.get() == nullptr) return std::make_shared<cmd_option_value>(default_val);
   return ret_ptr;
 }
 

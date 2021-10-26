@@ -10,7 +10,6 @@ extern "C" {
 #include <libcopp/stack/allocator/stack_allocator_split_segment.h>
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/stack/stack_traits.h>
-#include <libcopp/utils/config/compiler_features.h>
 #include <libcopp/fcontext/fcontext.hpp>
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
@@ -41,21 +40,20 @@ LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::o
     const stack_allocator_split_segment &) LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
+
 LIBCOPP_COPP_API
 stack_allocator_split_segment::stack_allocator_split_segment(stack_allocator_split_segment &&) LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::operator=(
     stack_allocator_split_segment &&) LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
-#endif
 
 LIBCOPP_COPP_API void stack_allocator_split_segment::allocate(stack_context &ctx,
                                                               std::size_t size) LIBCOPP_MACRO_NOEXCEPT {
   void *start_ptr = __splitstack_makecontext(size, ctx.segments_ctx, &ctx.size);
   assert(start_ptr);
   if (!start_ptr) {
-    ctx.sp = UTIL_CONFIG_NULLPTR;
+    ctx.sp = nullptr;
     return;
   }
 

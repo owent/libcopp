@@ -22,28 +22,24 @@ namespace future {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 struct macro_task {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
   using coroutine_handle_allocator = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>;
-#  else
-  typedef std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> coroutine_handle_allocator;
-#  endif
 };
 
 template <class TPD>
-class LIBCOPP_COPP_API_HEAD_ONLY task_context_t : public context_t<TPD> {
+class LIBCOPP_COPP_API_HEAD_ONLY task_context : public context<TPD> {
  public:
-  typedef task_context_t<TPD> self_type;
+  using self_type = task_context<TPD>;
 
  private:
   // context can not be copy or moved.
-  task_context_t(const task_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_context_t &operator=(const task_context_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_context_t(task_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_context_t &operator=(task_context_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  task_context(const task_context &) = delete;
+  task_context &operator=(const task_context &) = delete;
+  task_context(task_context &&) = delete;
+  task_context &operator=(task_context &&) = delete;
 
  public:
   template <class... TARGS>
-  task_context_t(uint64_t tid, TARGS &&...args) : context_t<TPD>(std::forward<TARGS>(args)...), task_id_(tid) {}
+  task_context(uint64_t tid, TARGS &&...args) : context<TPD>(std::forward<TARGS>(args)...), task_id_(tid) {}
 
   inline uint64_t get_task_id() const LIBCOPP_MACRO_NOEXCEPT { return task_id_; }
 
@@ -51,120 +47,101 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_t : public context_t<TPD> {
   uint64_t task_id_;
 };
 
-template <class T, class TPTR = typename poll_storage_select_ptr_t<T>::type>
-class LIBCOPP_COPP_API_HEAD_ONLY task_future_t : public future_t<T, TPTR> {
+template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
+class LIBCOPP_COPP_API_HEAD_ONLY task_future_data : public future_with_waker<T, TPTR> {
  public:
-  using future_t<T, TPTR>::future_t;
+  using future_with_waker<T, TPTR>::future_with_waker;
 };
 
 template <class T, class TPD, class TPTR, class TMACRO>
-class LIBCOPP_COPP_API_HEAD_ONLY task_t;
+class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 
 template <class T, class TPD, class TPTR, class TMACRO>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t;
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type;
 
 template <class T, class TPD, class TPTR, class TMACRO>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t;
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise;
 
 template <class T, class TPD, class TPTR, class TMACRO>
-struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime_t;
+struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime;
 
-enum class LIBCOPP_COPP_API_HEAD_ONLY task_status_t {
-  CREATED = 0,
-  RUNNING = 1,
-  DONE = 2,
+enum class LIBCOPP_COPP_API_HEAD_ONLY task_status {
+  kCreated = 0,
+  kRunning = 1,
+  kDone = 2,
 };
 
 template <class T, class TPD, class TPTR, class TMACRO>
-struct LIBCOPP_COPP_API_HEAD_ONLY task_common_types_t {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using future_type = task_future_t<T, TPTR>;
-  using poll_type = typename future_type::poll_type;
-  using waker_type = typename future_type::waker_t;
-  using context_type = task_context_t<TPD>;
+struct LIBCOPP_COPP_API_HEAD_ONLY task_common_types {
+  using future_data_type = task_future_data<T, TPTR>;
+  using poller_type = typename future_data_type::poller_type;
+  using waker_type = typename future_data_type::waker_type;
+  using context_type = task_context<TPD>;
   using wake_list_type =
       std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator>;
-#  else
-  typedef task_future_t<T, TPTR> future_type;
-  typedef typename future_type::poll_type poll_type;
-  typedef typename future_type::waker_t waker_type;
-  typedef task_context_t<TPD> context_type;
-  typedef std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID, typename macro_task::coroutine_handle_allocator>
-      wake_list_type;
-#  endif
 };
 
 template <class T, class TPD, class TPTR, class TMACRO>
-struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime_t {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using self_type = task_promise_base_t<T, TPD, TPTR, TMACRO>;
-  using future_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type;
-  using waker_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type;
-  using poll_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type;
-  using context_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type;
-  using wake_list_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type;
-#  else
-  typedef task_promise_base_t<T, TPD, TPTR, TMACRO> self_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type future_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type poll_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type waker_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type context_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
-#  endif
+struct LIBCOPP_COPP_API_HEAD_ONLY task_runtime {
+  using self_type = task_promise_base_type<T, TPD, TPTR, TMACRO>;
+  using future_data_type = typename task_common_types<T, TPD, TPTR, TMACRO>::future_data_type;
+  using waker_type = typename task_common_types<T, TPD, TPTR, TMACRO>::waker_type;
+  using poller_type = typename task_common_types<T, TPD, TPTR, TMACRO>::poller_type;
+  using context_type = typename task_common_types<T, TPD, TPTR, TMACRO>::context_type;
+  using wake_list_type = typename task_common_types<T, TPD, TPTR, TMACRO>::wake_list_type;
 
-  task_runtime_t() : task_id(0), status(task_status_t::CREATED), handle(NULL) {}
+  task_runtime() : task_id(0), status(task_status::kCreated), handle(nullptr) {}
 
 #  ifdef __cpp_impl_three_way_comparison
-  friend inline std::strong_ordering operator<=>(const task_runtime_t &l,
-                                                 const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline std::strong_ordering operator<=>(const task_runtime &l, const task_runtime &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.task_id <=> r.task_id;
   }
 #  else
-  friend inline bool operator!=(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator!=(const task_runtime &l, const task_runtime &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.task_id != r.task_id;
   }
-  friend inline bool operator<(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator<(const task_runtime &l, const task_runtime &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.task_id < r.task_id;
   }
-  friend inline bool operator<=(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator<=(const task_runtime &l, const task_runtime &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.task_id <= r.task_id;
   }
-  friend inline bool operator>(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator>(const task_runtime &l, const task_runtime &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.task_id > r.task_id;
   }
-  friend inline bool operator>=(const task_runtime_t &l, const task_runtime_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator>=(const task_runtime &l, const task_runtime &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.task_id >= r.task_id;
   }
 #  endif
 
-  inline bool done() const LIBCOPP_MACRO_NOEXCEPT { return status == task_status_t::DONE || !handle || handle.done(); }
+  inline bool done() const LIBCOPP_MACRO_NOEXCEPT { return status == task_status::kDone || !handle || handle.done(); }
 
   uint64_t task_id;
-  task_status_t status;
-  future_type future;
+  task_status status;
+  future_data_type future;
   LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
-  coroutine_handle<task_promise_t<T, TPD, TPTR, TMACRO> > handle;
+  coroutine_handle<task_promise<T, TPD, TPTR, TMACRO> > handle;
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   std::exception_ptr unhandle_exception;
 #  endif
  private:
-  task_runtime_t(const task_runtime_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_runtime_t &operator=(const task_runtime_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_runtime_t(task_runtime_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_runtime_t &operator=(task_runtime_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  task_runtime(const task_runtime &) = delete;
+  task_runtime &operator=(const task_runtime &) = delete;
+  task_runtime(task_runtime &&) = delete;
+  task_runtime &operator=(task_runtime &&) = delete;
 };
 
 template <class TPROMISE>
-struct task_waker_t {
-  typedef typename TPROMISE::context_type context_type;
+struct task_waker {
+  using context_type = typename TPROMISE::context_type;
   std::shared_ptr<typename TPROMISE::runtime_type> runtime;
-  task_waker_t(std::shared_ptr<typename TPROMISE::runtime_type> &r) : runtime(r) {}
+  task_waker(std::shared_ptr<typename TPROMISE::runtime_type> &r) : runtime(r) {}
 
   void operator()(context_type &ctx) {
     // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
     if (likely(runtime)) {
       if (!runtime->done() && !runtime->future.is_ready()) {
-        runtime->future.template poll_as<typename TPROMISE::future_type>(ctx);
+        runtime->future.template poll_as<typename TPROMISE::future_data_type>(ctx);
       }
 
       // once set ready, it must be polled to the end
@@ -178,35 +155,23 @@ struct task_waker_t {
   }
 
   template <class UPD>
-  void operator()(context_t<UPD> &ctx) {
-#  if defined(UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT) && UTIL_CONFIG_COMPILER_CXX_STATIC_ASSERT
-    static_assert(!std::is_same<context_type, context_t<UPD> >::value,
-                  "task context type must be drive of task_context_t");
-#  endif
+  void operator()(context<UPD> &ctx) {
+    static_assert(!std::is_same<context_type, context<UPD> >::value, "task context type must be drive of task_context");
+
     (*this)(*static_cast<context_type *>(&ctx));
   }
 };
 
 template <class T, class TPD, class TPTR, class TMACRO>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using runtime_type = task_runtime_t<T, TPD, TPTR, TMACRO>;
-  using self_type = task_promise_base_t<T, TPD, TPTR, TMACRO>;
-  using future_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type;
-  using waker_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type;
-  using poll_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type;
-  using context_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type;
-  using wake_list_type = typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type;
-#  else
-  typedef typename task_runtime_t<T, TPD, TPTR, TMACRO> runtime_type;
-  typedef task_promise_base_t<T, TPD, TPTR, TMACRO> self_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::future_type future_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::poll_type poll_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::waker_type waker_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::context_type context_type;
-  typedef typename task_common_types_t<T, TPD, TPTR, TMACRO>::wake_list_type wake_list_type;
-#  endif
+  using runtime_type = task_runtime<T, TPD, TPTR, TMACRO>;
+  using self_type = task_promise_base_type<T, TPD, TPTR, TMACRO>;
+  using future_data_type = typename task_common_types<T, TPD, TPTR, TMACRO>::future_data_type;
+  using waker_type = typename task_common_types<T, TPD, TPTR, TMACRO>::waker_type;
+  using poller_type = typename task_common_types<T, TPD, TPTR, TMACRO>::poller_type;
+  using context_type = typename task_common_types<T, TPD, TPTR, TMACRO>::context_type;
+  using wake_list_type = typename task_common_types<T, TPD, TPTR, TMACRO>::wake_list_type;
 
  private:
   // ================= C++20 Coroutine Support =================
@@ -232,13 +197,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
       if (likely(handle)) {
         if (likely(handle.promise().runtime_)) {
           runtime_type &runtime = *handle.promise().runtime_;
-          handle.promise().get_context().set_wake_fn(task_waker_t<U>{handle.promise().runtime_});
+          handle.promise().get_context().set_wake_fn(task_waker<U>{handle.promise().runtime_});
           // Can not set waker clear functor, because even future is polled outside
           //   we still need to resume handle after event finished
           // runtime.future.set_ctx_waker(handle.promise().get_context());
 
           if (!runtime.future.is_ready()) {
-            runtime.future.template poll_as<future_type>(handle.promise().get_context());
+            runtime.future.template poll_as<future_data_type>(handle.promise().get_context());
           }
         }
 
@@ -248,7 +213,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
 
     inline void await_resume() LIBCOPP_MACRO_NOEXCEPT {
       if (likely(promise && promise->runtime_)) {
-        promise->runtime_->status = task_status_t::RUNNING;
+        promise->runtime_->status = task_status::kRunning;
       }
     }
   };
@@ -266,11 +231,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
     void await_resume() LIBCOPP_MACRO_NOEXCEPT {
       if (likely(promise)) {
         if (likely(promise->runtime_)) {
-          promise->runtime_->status = task_status_t::DONE;
+          promise->runtime_->status = task_status::kDone;
           promise->runtime_->handle = nullptr;
         }
         // clear waker
-        promise->get_context().set_wake_fn(NULL);
+        promise->get_context().set_wake_fn(nullptr);
 
         // wake all co_await handles
         promise->wake_all();
@@ -280,10 +245,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
 
  private:
   // future can not be copy or moved.
-  task_promise_base_t(const task_promise_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_promise_base_t &operator=(const task_promise_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-  task_promise_base_t(task_promise_base_t &&) UTIL_CONFIG_DELETED_FUNCTION;
-  task_promise_base_t &operator=(task_promise_base_t &&) UTIL_CONFIG_DELETED_FUNCTION;
+  task_promise_base_type(const task_promise_base_type &) = delete;
+  task_promise_base_type &operator=(const task_promise_base_type &) = delete;
+  task_promise_base_type(task_promise_base_type &&) = delete;
+  task_promise_base_type &operator=(task_promise_base_type &&) = delete;
 
   template <class U>
   struct pick_pointer_awaitable {
@@ -308,15 +273,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
 
  public:
   template <class... TARGS>
-  task_promise_base_t(TARGS &&...args)
+  task_promise_base_type(TARGS &&...args)
       : context_(copp::util::uint64_id_allocator::allocate(), std::forward<TARGS>(args)...),
         runtime_(std::make_shared<runtime_type>()) {
     if (runtime_) {
       runtime_->task_id = context_.get_task_id();
     }
   }
-  ~task_promise_base_t() {
-    // printf("~task_promise_base_t %p - %s\n", this, typeid(typename future_type::value_type).name());
+  ~task_promise_base_type() {
+    // printf("~task_promise_base_type %p - %s\n", this, typeid(typename future_data_type::value_type).name());
     // cleanup: await_handles_ should be already cleanup in final_awaitable::await_suspend
     wake_all();
   }
@@ -393,7 +358,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
   static inline pick_context_awaitable<context_type> current_context() {
     return pick_context_awaitable<context_type>{};
   }
-  static inline pick_future_awaitable<future_type> current_future() { return pick_future_awaitable<future_type>{}; }
+  static inline pick_future_awaitable<future_data_type> current_future_data() {
+    return pick_future_awaitable<future_data_type>{};
+  }
 
  private:
   wake_list_type await_handles_;
@@ -402,17 +369,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_t {
 };
 
 template <class T, class TPD, class TPTR, class TMACRO>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t : public task_promise_base_t<T, TPD, TPTR, TMACRO> {
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise : public task_promise_base_type<T, TPD, TPTR, TMACRO> {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using self_type = task_promise_t<T, TPD, TPTR, TMACRO>;
-#  else
-  typedef task_promise_t<T, TPD, TPTR, TMACRO> self_type;
-#  endif
+  using self_type = task_promise<T, TPD, TPTR, TMACRO>;
 
  public:
-  task_t<T, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
-  using task_promise_base_t<T, TPD, TPTR, TMACRO>::get_runtime;
+  task_future<T, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
+  using task_promise_base_type<T, TPD, TPTR, TMACRO>::get_runtime;
 
   template <class U>
   void return_value(U &&in) LIBCOPP_MACRO_NOEXCEPT {
@@ -424,18 +387,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t : public task_promise_base_t<T, 
 };
 
 template <class TPD, class TPTR, class TMACRO>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t<void, TPD, TPTR, TMACRO>
-    : public task_promise_base_t<void, TPD, TPTR, TMACRO> {
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise<void, TPD, TPTR, TMACRO>
+    : public task_promise_base_type<void, TPD, TPTR, TMACRO> {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using self_type = task_promise_t<void, TPD, TPTR, TMACRO>;
-#  else
-  typedef task_promise_t<void, TPD, TPTR, TMACRO> self_type;
-#  endif
+  using self_type = task_promise<void, TPD, TPTR, TMACRO>;
 
  public:
-  task_t<void, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
-  using task_promise_base_t<void, TPD, TPTR, TMACRO>::get_runtime;
+  task_future<void, TPD, TPTR, TMACRO> get_return_object() LIBCOPP_MACRO_NOEXCEPT;
+  using task_promise_base_type<void, TPD, TPTR, TMACRO>::get_runtime;
 
   void return_void() LIBCOPP_MACRO_NOEXCEPT {
     // Maybe set error data on custom poller, ignore co_return here.
@@ -445,52 +404,39 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_t<void, TPD, TPTR, TMACRO>
   }
 };
 
-template <class T, class TPD = void, class TPTR = typename poll_storage_select_ptr_t<T>::type,
+template <class T, class TPD = void, class TPTR = typename poll_storage_ptr_selector<T>::type,
           class TMACRO = std::allocator<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> >
-class LIBCOPP_COPP_API_HEAD_ONLY task_t {
+class LIBCOPP_COPP_API_HEAD_ONLY task_future {
  public:
-#  if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
-  using self_type = task_t<T, TPD, TPTR, TMACRO>;
-  using promise_type = task_promise_t<T, TPD, TPTR, TMACRO>;
+  using self_type = task_future<T, TPD, TPTR, TMACRO>;
+  using promise_type = task_promise<T, TPD, TPTR, TMACRO>;
   using runtime_type = typename promise_type::runtime_type;
-  using future_type = typename promise_type::future_type;
+  using future_data_type = typename promise_type::future_data_type;
   using context_type = typename promise_type::context_type;
-  using poll_type = typename promise_type::poll_type;
+  using poller_type = typename promise_type::poller_type;
   using wake_list_type = typename promise_type::wake_list_type;
-  using storage_type = typename poll_type::storage_type;
-  using value_type = typename poll_type::value_type;
-  using status_type = task_status_t;
-#  else
-  typedef task_t<T, TPD, TPTR, TMACRO> self_type;
-  typedef task_promise_t<T, TPD, TPTR, TMACRO> promise_type;
-  typedef typename promise_type::runtime_type runtime_type;
-  typedef typename promise_type::future_type future_type;
-  typedef typename promise_type::context_type context_type;
-  typedef typename promise_type::poll_type poll_type;
-  typedef typename promise_type::wake_list_type wake_list_type;
-  typedef typename poll_type::storage_type storage_type;
-  typedef typename poll_type::value_type value_type;
-  typedef task_status_t status_type;
-#  endif
+  using storage_type = typename poller_type::storage_type;
+  using value_type = typename poller_type::value_type;
+  using status_type = task_status;
 
  private:
-  class awaitable_base_t {
+  class awaitable_base_type {
    private:
-    awaitable_base_t(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
-    awaitable_base_t &operator=(const awaitable_base_t &) UTIL_CONFIG_DELETED_FUNCTION;
+    awaitable_base_type(const awaitable_base_type &) = delete;
+    awaitable_base_type &operator=(const awaitable_base_type &) = delete;
 
    public:
-    awaitable_base_t(self_type *task) : refer_task_(task) {
+    awaitable_base_type(self_type *task) : refer_task_(task) {
       if (refer_task_ && refer_task_->runtime_ && !refer_task_->runtime_->done()) {
         await_iterator_ = refer_task_->runtime_->handle.promise().end_wake_handles();
       }
     }
 
-    awaitable_base_t(awaitable_base_t &&other)
+    awaitable_base_type(awaitable_base_type &&other)
         : await_iterator_(other.await_iterator_), refer_task_(other.refer_task_) {
       other.refer_task_ = nullptr;
     }
-    awaitable_base_t &operator=(awaitable_base_t &&other) {
+    awaitable_base_type &operator=(awaitable_base_type &&other) {
       await_iterator_ = other.await_iterator_;
       refer_task_ = other.refer_task_;
 
@@ -525,61 +471,61 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
   };
 
  public:
-  task_t() {}
-  task_t(std::shared_ptr<runtime_type> r) : runtime_(r) {}
+  task_future() {}
+  task_future(std::shared_ptr<runtime_type> r) : runtime_(r) {}
 
 #  ifdef __cpp_impl_three_way_comparison
-  friend inline std::strong_ordering operator<=>(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline std::strong_ordering operator<=>(const task_future &l, const task_future &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.get_task_id() <=> r.get_task_id();
   }
 #  else
-  friend inline bool operator!=(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator!=(const task_future &l, const task_future &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.get_task_id() != r.get_task_id();
   }
-  friend inline bool operator<(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator<(const task_future &l, const task_future &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.get_task_id() < r.get_task_id();
   }
-  friend inline bool operator<=(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator<=(const task_future &l, const task_future &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.get_task_id() <= r.get_task_id();
   }
-  friend inline bool operator>(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator>(const task_future &l, const task_future &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.get_task_id() > r.get_task_id();
   }
-  friend inline bool operator>=(const task_t &l, const task_t &r) LIBCOPP_MACRO_NOEXCEPT {
+  friend inline bool operator>=(const task_future &l, const task_future &r) LIBCOPP_MACRO_NOEXCEPT {
     return l.get_task_id() >= r.get_task_id();
   }
 #  endif
 
-  // co_await a temporary task_t in GCC 10.1.0 will destroy task_t first, which may cause all resources unavailable
-  // auto operator co_await() && LIBCOPP_MACRO_NOEXCEPT {
-  //     struct awaitable_t : awaitable_base_t {
-  //         using awaitable_base_t::awaitable_base_t;
-  //         using awaitable_base_t::refer_task_;
+  // co_await a temporary task_future in GCC 10.1.0 will destroy task_future first, which may cause all resources
+  // unavailable auto operator co_await() && LIBCOPP_MACRO_NOEXCEPT {
+  //     struct awaitable : awaitable_base_type {
+  //         using awaitable_base_type::awaitable_base_type;
+  //         using awaitable_base_type::refer_task_;
   //
-  //         poll_type await_resume() {
-  //             awaitable_base_t::await_resume();
+  //         poller_type await_resume() {
+  //             awaitable_base_type::await_resume();
   //             if (likely(refer_task_)) {
-  //                 poll_type *ret = refer_task_->poll_data();
+  //                 poller_type *ret = refer_task_->poll_data();
   //                 if (nullptr != ret) {
   //                     return std::move(*ret);
   //                 }
   //             }
   //
   //
-  //             return poll_type{};
+  //             return poller_type{};
   //         }
   //     };
   //
-  //     return awaitable_t{this};
+  //     return awaitable{this};
   // }
 
   auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT {
-    struct awaitable_t : awaitable_base_t {
-      using awaitable_base_t::awaitable_base_t;
-      using awaitable_base_t::refer_task_;
+    struct awaitable : awaitable_base_type {
+      using awaitable_base_type::awaitable_base_type;
+      using awaitable_base_type::refer_task_;
 
       value_type *await_resume() {
-        awaitable_base_t::await_resume();
+        awaitable_base_type::await_resume();
         if (likely(refer_task_)) {
           return refer_task_->data();
         }
@@ -588,7 +534,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
       }
     };
 
-    return awaitable_t{this};
+    return awaitable{this};
   }
 
   inline bool done() const LIBCOPP_MACRO_NOEXCEPT {
@@ -629,7 +575,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
     return nullptr;
   }
 
-  inline const poll_type *poll_data() const LIBCOPP_MACRO_NOEXCEPT {
+  inline const poller_type *poll_data() const LIBCOPP_MACRO_NOEXCEPT {
     if (likely(runtime_)) {
       return &runtime_->future.poll_data();
     }
@@ -637,7 +583,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
     return nullptr;
   }
 
-  inline poll_type *poll_data() LIBCOPP_MACRO_NOEXCEPT {
+  inline poller_type *poll_data() LIBCOPP_MACRO_NOEXCEPT {
     if (likely(runtime_)) {
       return &runtime_->future.poll_data();
     }
@@ -650,7 +596,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
       return runtime_->status;
     }
 
-    return status_type::DONE;
+    return status_type::kDone;
   }
 
   inline context_type *get_context() LIBCOPP_MACRO_NOEXCEPT {
@@ -685,8 +631,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
   static typename promise_type::template pick_context_awaitable<context_type> current_context() {
     return promise_type::current_context();
   }
-  static typename promise_type::template pick_future_awaitable<future_type> current_future() {
-    return promise_type::current_future();
+  static typename promise_type::template pick_future_awaitable<future_data_type> current_future_data() {
+    return promise_type::current_future_data();
   }
 
  private:
@@ -707,21 +653,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_t {
 };
 
 template <typename T, class TPD, class TPTR, class TMACRO>
-task_t<T, TPD, TPTR, TMACRO> task_promise_t<T, TPD, TPTR, TMACRO>::get_return_object() LIBCOPP_MACRO_NOEXCEPT {
+task_future<T, TPD, TPTR, TMACRO> task_promise<T, TPD, TPTR, TMACRO>::get_return_object() LIBCOPP_MACRO_NOEXCEPT {
   // if (get_runtime() && !get_runtime()->handle) {
   //     get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
-  //         coroutine_handle<typename task_t<T, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
+  //         coroutine_handle<typename task_future<T, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
   // }
-  return task_t<T, TPD, TPTR, TMACRO>{get_runtime()};
+  return task_future<T, TPD, TPTR, TMACRO>{get_runtime()};
 }
 
 template <class TPD, class TPTR, class TMACRO>
-task_t<void, TPD, TPTR, TMACRO> task_promise_t<void, TPD, TPTR, TMACRO>::get_return_object() LIBCOPP_MACRO_NOEXCEPT {
+task_future<void, TPD, TPTR, TMACRO> task_promise<void, TPD, TPTR, TMACRO>::get_return_object() LIBCOPP_MACRO_NOEXCEPT {
   // if (get_runtime() && !get_runtime()->handle) {
   //     get_runtime()->handle = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE
-  //     coroutine_handle<typename task_t<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
+  //     coroutine_handle<typename task_future<void, TPD, TPTR, TMACRO>::promise_type>::from_promise(*this);
   // }
-  return task_t<void, TPD, TPTR, TMACRO>{get_runtime()};
+  return task_future<void, TPD, TPTR, TMACRO>{get_runtime()};
 }
 #endif
 }  // namespace future

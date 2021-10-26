@@ -29,12 +29,12 @@ int test_case_base::run() {
   test_manager::set_counter_ptr(&success_, &failed_);
 
 #ifndef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST
-  if (NULL != func_) {
+  if (nullptr != func_) {
     (*func_)();
   }
 #endif
 
-  test_manager::set_counter_ptr(NULL, NULL);
+  test_manager::set_counter_ptr(nullptr, nullptr);
 
   return 0;
 }
@@ -44,7 +44,7 @@ void test_on_start_base::register_self() { test_manager::me().append_event_on_st
 test_on_start_base::~test_on_start_base() {}
 
 int test_on_start_base::run() {
-  if (NULL != func_) {
+  if (nullptr != func_) {
     (*func_)();
   }
   return 0;
@@ -55,7 +55,7 @@ void test_on_exit_base::register_self() { test_manager::me().append_event_on_exi
 test_on_exit_base::~test_on_exit_base() {}
 
 int test_on_exit_base::run() {
-  if (NULL != func_) {
+  if (nullptr != func_) {
     (*func_)();
   }
   return 0;

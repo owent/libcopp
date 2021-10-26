@@ -24,17 +24,10 @@ namespace copp {
  */
 class coroutine_context : public coroutine_context_base {
  public:
-  typedef libcopp::util::intrusive_ptr<coroutine_context> ptr_t;
-
-#if defined(UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES) && UTIL_CONFIG_COMPILER_CXX_ALIAS_TEMPLATES
+  using ptr_t = libcopp::util::intrusive_ptr<coroutine_context>;
   using callback_t = coroutine_context_base::callback_t;
   using status_t = coroutine_context_base::status_t;
   using flag_t = coroutine_context_base::flag_t;
-#else
-  typedef coroutine_context_base::callback_t callback_t;
-  typedef coroutine_context_base::status_t status_t;
-  typedef coroutine_context_base::flag_t flag_t;
-#endif
 
  private:
   using coroutine_context_base::flags_;
@@ -71,13 +64,10 @@ class coroutine_context : public coroutine_context_base {
   LIBCOPP_COPP_API ~coroutine_context();
 
  private:
-  coroutine_context(const coroutine_context &) UTIL_CONFIG_DELETED_FUNCTION;
-  coroutine_context &operator=(const coroutine_context &) UTIL_CONFIG_DELETED_FUNCTION;
-
-#if defined(UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES) && UTIL_CONFIG_COMPILER_CXX_RVALUE_REFERENCES
-  coroutine_context(const coroutine_context &&) UTIL_CONFIG_DELETED_FUNCTION;
-  coroutine_context &operator=(const coroutine_context &&) UTIL_CONFIG_DELETED_FUNCTION;
-#endif
+  coroutine_context(const coroutine_context &) = delete;
+  coroutine_context &operator=(const coroutine_context &) = delete;
+  coroutine_context(const coroutine_context &&) = delete;
+  coroutine_context &operator=(const coroutine_context &&) = delete;
 
  public:
   /**
@@ -88,15 +78,16 @@ class coroutine_context : public coroutine_context_base {
    * @param private_buffer_size size of private buffer
    * @return COPP_EC_SUCCESS or error code
    */
-  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &runner, const stack_context &callee_stack,
+  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &&runner, const stack_context &callee_stack,
                                      size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT;
 
   template <typename TRunner>
   static LIBCOPP_COPP_API_HEAD_ONLY int create(coroutine_context *p, TRunner *runner, const stack_context &callee_stack,
                                                size_t coroutine_size,
                                                size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
-    return create(p, std::bind(&TRunner::operator(), runner, std::placeholders::_1), callee_stack, coroutine_size,
-                  private_buffer_size);
+    return create(
+        p, [runner](void *private_data) { return (*runner)(private_data); }, callee_stack, coroutine_size,
+        private_buffer_size);
   }
 
   /**
@@ -105,7 +96,7 @@ class coroutine_context : public coroutine_context_base {
    * @exception if exception is enabled, it will throw all unhandled exception after resumed
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int start(void *priv_data = UTIL_CONFIG_NULLPTR);
+  LIBCOPP_COPP_API int start(void *priv_data = nullptr);
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   /**
@@ -114,8 +105,7 @@ class coroutine_context : public coroutine_context_base {
    * @param priv_data private data, will be passed to runner operator() or return to yield
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int start(std::exception_ptr &unhandled,
-                             void *priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int start(std::exception_ptr &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 #endif
 
   /**
@@ -124,7 +114,7 @@ class coroutine_context : public coroutine_context_base {
    * @exception if exception is enabled, it will throw all unhandled exception after resumed
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int resume(void *priv_data = UTIL_CONFIG_NULLPTR);
+  LIBCOPP_COPP_API int resume(void *priv_data = nullptr);
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   /**
@@ -133,23 +123,22 @@ class coroutine_context : public coroutine_context_base {
    * @param priv_data private data, will be passed to runner operator() or return to yield
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int resume(std::exception_ptr &unhandled,
-                              void *priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int resume(std::exception_ptr &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 #endif
 
   /**
    * @brief yield coroutine
-   * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
+   * @param priv_data private data, if not nullptr, will get the value from start(priv_data) or resume(priv_data)
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
+  LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 };
 
 namespace this_coroutine {
 /**
  * @brief get current coroutine
  * @see detail::coroutine_context
- * @return pointer of current coroutine, if not in coroutine, return NULL
+ * @return pointer of current coroutine, if not in coroutine, return nullptr
  */
 LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT;
 
@@ -157,7 +146,7 @@ LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT;
  * @brief get current coroutine and try to convert type
  * @see get_coroutine
  * @see detail::coroutine_context
- * @return pointer of current coroutine, if not in coroutine or fail to convert type, return NULL
+ * @return pointer of current coroutine, if not in coroutine or fail to convert type, return nullptr
  */
 template <typename Tc>
 LIBCOPP_COPP_API_HEAD_ONLY Tc *get() {
@@ -166,10 +155,10 @@ LIBCOPP_COPP_API_HEAD_ONLY Tc *get() {
 
 /**
  * @brief yield current coroutine
- * @param priv_data private data, if not NULL, will get the value from start(priv_data) or resume(priv_data)
+ * @param priv_data private data, if not nullptr, will get the value from start(priv_data) or resume(priv_data)
  * @return 0 or error code
  */
-LIBCOPP_COPP_API int yield(void **priv_data = UTIL_CONFIG_NULLPTR) LIBCOPP_MACRO_NOEXCEPT;
+LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 }  // namespace this_coroutine
 }  // namespace copp
 

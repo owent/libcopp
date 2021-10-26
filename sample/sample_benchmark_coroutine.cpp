@@ -46,7 +46,7 @@ static int my_runner(void *) {
 }
 
 int max_coroutine_number = 100000;  // 协程数量
-copp::coroutine_context_default::ptr_t *co_arr = NULL;
+copp::coroutine_context_default::ptr_t *co_arr = nullptr;
 int main(int argc, char *argv[]) {
 #ifdef LIBCOPP_MACRO_SYS_POSIX
   puts("###################### context coroutine (stack using default allocator[mmap]) ###################");
@@ -74,13 +74,13 @@ int main(int argc, char *argv[]) {
     stack_size = atoi(argv[3]) * 1024;
   }
 
-  time_t begin_time = time(NULL);
+  time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
   co_arr = new copp::coroutine_context_default::ptr_t[max_coroutine_number];
 
-  time_t end_time = time(NULL);
+  time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
   printf("allocate %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_coroutine_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("create %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_coroutine_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("switch %d coroutine contest %lld times, cost time: %d s, clock time: %d ms, avg: %lld ns\n",
          max_coroutine_number, real_switch_times, static_cast<int>(end_time - begin_time),
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
 
   delete[] co_arr;
 
-  end_time = time(NULL);
+  end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
   printf("remove %d coroutine, cost time: %d s, clock time: %d ms, avg: %lld ns\n", max_coroutine_number,
          static_cast<int>(end_time - begin_time), CALC_MS_CLOCK(end_clock - begin_clock),

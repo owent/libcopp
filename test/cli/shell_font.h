@@ -1,12 +1,12 @@
 ﻿/*
  * shell_fonts.h
  *
- *  Created on: 2014年3月11日
+ *  Created on: 2014-03-11
  *      Author: owent
  *
  *  Released under the MIT license
  * @history
- *    2015-06-30  增加Windows控制台支持，增加通用输出流
+ *    2015-06-30  Support Windows console
  */
 
 #ifndef UTIL_CLI_SHELLFONT_H
@@ -17,8 +17,6 @@
 #include <iostream>
 #include <map>
 #include <string>
-
-#include <libcopp/utils/config/compiler_features.h>
 
 /**
  * Window 控制台相关
@@ -181,9 +179,7 @@ class shell_stream {
       return (*this);
     }
 
-#if defined(UTIL_CONFIG_COMPILER_CXX_NULLPTR) && UTIL_CONFIG_COMPILER_CXX_NULLPTR
     const shell_stream_opr &operator<<(std::nullptr_t) const;
-#endif
     const shell_stream_opr &operator<<(shell_font_style::shell_font_spec style) const;
     const shell_stream_opr &operator<<(shell_font_style::shell_font_color style) const;
     const shell_stream_opr &operator<<(shell_font_style::shell_font_background_color style) const;
