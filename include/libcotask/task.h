@@ -97,7 +97,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     typename coroutine_t::ptr_t coroutine =
-        coroutine_t::create(coroutine_t::callback_t(), alloc, stack_size,
+        coroutine_t::create(typename coroutine_t::callback_t(), alloc, stack_size,
                             sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
     if (!coroutine) {
       return ptr_t();
