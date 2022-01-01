@@ -32,7 +32,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   using macro_coroutine_type = TCO_MACRO;
   using result_type = LIBCOPP_COPP_NAMESPACE_ID::future::future<typename macro_coroutine_type::data_type>;
-  using self_type = task<macro_coroutine>;
+  using self_type = task<macro_coroutine_type>;
   using ptr_type = libcopp::util::intrusive_ptr<self_type>;
 
   using coroutine_type = typename macro_coroutine_type::coroutine_type;
@@ -776,7 +776,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     size_t left = --p->ref_count_;
     if (0 == left) {
       // save coroutine context first, make sure it's still available after destroy task
-      typename coroutine_type::ptr_type coro = p->coroutine_obj_;
+      using coroutine_type = typename task<TCO_MACRO>::coroutine_type;
+      using coroutine_ptr_type = typename coroutine_type::ptr_type;
+      coroutine_ptr_type coro = p->coroutine_obj_;
 
       // then, find and destroy action
       void *action_ptr = reinterpret_cast<void *>(p->_get_action());

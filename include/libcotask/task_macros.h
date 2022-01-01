@@ -4,14 +4,14 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-#include <stdint.h>
-
 #include <libcopp/coroutine/coroutine_context_container.h>
 #include <libcopp/coroutine/coroutine_context_fiber_container.h>
 #include <libcopp/utils/errno.h>
 
 #include <libcotask/core/standard_new_allocator.h>
 #include <libcotask/impl/task_impl.h>
+
+#include <stdint.h>
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 struct LIBCOPP_COTASK_API_HEAD_ONLY macro_coroutine {
