@@ -26,10 +26,10 @@
 
 .file "jump_x86_64_sysv_elf_gas.S"
 .text
-.globl copp_jump_fcontext
-.type copp_jump_fcontext,@function
+.globl copp_jump_fcontext_v2
+.type copp_jump_fcontext_v2,@function
 .align 16
-copp_jump_fcontext:
+copp_jump_fcontext_v2:
     leaq  -0x38(%rsp), %rsp /* prepare stack */
 
 #if !defined(LIBCOPP_FCONTEXT_USE_TSX)
@@ -85,7 +85,7 @@ copp_jump_fcontext:
 
     /* indirect jump to context */
     jmp  *%r8
-.size copp_jump_fcontext,.-copp_jump_fcontext
+.size copp_jump_fcontext_v2,.-copp_jump_fcontext_v2
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

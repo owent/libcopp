@@ -1,16 +1,8 @@
-/*
- * task_impl.h
- *
- *  Created on: 2014年4月2日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COTASK_IMPL_TASK_IMPL_H
-#define COTASK_IMPL_TASK_IMPL_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/atomic_int_type.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
@@ -26,7 +18,7 @@
 #include <list>
 #include <memory>
 
-namespace cotask {
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 enum EN_TASK_STATUS {
   EN_TS_INVALID = 0,
   EN_TS_CREATED,
@@ -42,8 +34,8 @@ namespace impl {
 
 class UTIL_SYMBOL_VISIBLE task_impl {
  public:
-  using id_t = copp::util::uint64_id_allocator::value_type;
-  using id_allocator_t = copp::util::uint64_id_allocator;
+  using id_t = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::value_type;
+  using id_allocator_t = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator;
 
  protected:
   using action_ptr_t = task_action_impl *;
@@ -158,6 +150,4 @@ class UTIL_SYMBOL_VISIBLE task_impl {
 #endif
 };
 }  // namespace impl
-}  // namespace cotask
-
-#endif /* TASK_IMPL_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

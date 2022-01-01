@@ -67,39 +67,39 @@
  *******************************************************/
 
 .file "make_ppc64_sysv_elf_gas.S"
-.globl copp_make_fcontext
+.globl copp_make_fcontext_v2
 #if _CALL_ELF == 2
 	.text
 	.align 2
-copp_make_fcontext:
-	addis	%r2, %r12, .TOC.-copp_make_fcontext@ha
-	addi	%r2, %r2, .TOC.-copp_make_fcontext@l
-	.localentry copp_make_fcontext, . - copp_make_fcontext
+copp_make_fcontext_v2:
+	addis	%r2, %r12, .TOC.-copp_make_fcontext_v2@ha
+	addi	%r2, %r2, .TOC.-copp_make_fcontext_v2@l
+	.localentry copp_make_fcontext_v2, . - copp_make_fcontext_v2
 #else
 	.section ".opd","aw"
 	.align 3
-copp_make_fcontext:
+copp_make_fcontext_v2:
 # ifdef _CALL_LINUX
-	.quad	.L.copp_make_fcontext,.TOC.@tocbase,0
-	.type	copp_make_fcontext,@function
+	.quad	.L.copp_make_fcontext_v2,.TOC.@tocbase,0
+	.type	copp_make_fcontext_v2,@function
 	.text
 	.align 2
-.L.copp_make_fcontext:
+.L.copp_make_fcontext_v2:
 # else
-	.hidden	.copp_make_fcontext
-	.globl	.copp_make_fcontext
-	.quad	.copp_make_fcontext,.TOC.@tocbase,0
-	.size	copp_make_fcontext,24
-	.type	.copp_make_fcontext,@function
+	.hidden	.copp_make_fcontext_v2
+	.globl	.copp_make_fcontext_v2
+	.quad	.copp_make_fcontext_v2,.TOC.@tocbase,0
+	.size	copp_make_fcontext_v2,24
+	.type	.copp_make_fcontext_v2,@function
 	.text
 	.align 2
-.copp_make_fcontext:
+.copp_make_fcontext_v2:
 # endif
 #endif
     # save return address into R6
     mflr  %r6
 
-    # first arg of copp_make_fcontext() == top address of context-stack
+    # first arg of copp_make_fcontext_v2() == top address of context-stack
     # shift address in R3 to lower 16 byte boundary
     clrrdi  %r3, %r3, 4
 
@@ -107,7 +107,7 @@ copp_make_fcontext:
     # including 64 byte of linkage + parameter area (R1 % 16 == 0)
     subi  %r3, %r3, 248
 
-    # third arg of copp_make_fcontext() == address of context-function
+    # third arg of copp_make_fcontext_v2() == address of context-function
     # entry point (ELFv2) or descriptor (ELFv1)
 #if _CALL_ELF == 2
     # save address of context-function entry point
@@ -164,12 +164,12 @@ finish:
     bl  _exit
     nop
 #if _CALL_ELF == 2
-	.size copp_make_fcontext, .-copp_make_fcontext
+	.size copp_make_fcontext_v2, .-copp_make_fcontext_v2
 #else
 # ifdef _CALL_LINUX
-	.size .copp_make_fcontext, .-.L.copp_make_fcontext
+	.size .copp_make_fcontext_v2, .-.L.copp_make_fcontext_v2
 # else
-	.size .copp_make_fcontext, .-.copp_make_fcontext
+	.size .copp_make_fcontext_v2, .-.copp_make_fcontext_v2
 # endif
 #endif
 

@@ -1,4 +1,4 @@
-﻿#ifndef CMDOPTIONLIST_H
+#ifndef CMDOPTIONLIST_H
 #define CMDOPTIONLIST_H
 
 #pragma once

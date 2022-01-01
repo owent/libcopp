@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 
 // include task header file
 #include <libcotask/task.h>

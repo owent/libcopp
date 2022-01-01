@@ -45,8 +45,8 @@
 
 .text
 .align	8
-.global	copp_jump_fcontext
-.type	copp_jump_fcontext, @function
+.global	copp_jump_fcontext_v2
+.type	copp_jump_fcontext_v2, @function
 
 #define ARG_OFFSET         0
 #define GR_OFFSET	   16
@@ -66,7 +66,7 @@ struct transfer_t {
    void    *   data;
 };
 
-transfer_t copp_jump_fcontext( fcontext_t const to,
+transfer_t copp_jump_fcontext_v2( fcontext_t const to,
 			  void * data);
 
 Incoming args
@@ -76,7 +76,7 @@ r4 - Data pointer
 
 */
 
-copp_jump_fcontext:
+copp_jump_fcontext_v2:
 	.machine "z10"
 	/* Reserve stack space to store the current context.  */
 	aghi	%r15,-CONTEXT_SIZE
@@ -131,7 +131,7 @@ copp_jump_fcontext:
 	ltg	%r2,GR_OFFSET(%r15)
 	jnz	use_return_slot
 
-	/* We restore a copp_make_fcontext context.  Use the function
+	/* We restore a copp_make_fcontext_v2 context.  Use the function
 	   argument slot in the context we just saved and allocate the
 	   register save area for the target function.  */
 	la	%r2,ARG_OFFSET(%r1)
@@ -139,9 +139,9 @@ copp_jump_fcontext:
 
 use_return_slot:
 	/* Save the two fields in transfer_t.  When calling a
-	   copp_make_fcontext function this becomes the function argument of
+	   copp_make_fcontext_v2 function this becomes the function argument of
 	   the target function, otherwise it will be the return value of
-	   copp_jump_fcontext.  */
+	   copp_jump_fcontext_v2.  */
 	stg	%r1,0(%r2)
 	stg	%r4,8(%r2)
 
@@ -152,5 +152,5 @@ use_return_slot:
 	br	%r5
 
 
-.size   copp_jump_fcontext,.-copp_jump_fcontext
+.size   copp_jump_fcontext_v2,.-copp_jump_fcontext_v2
 .section .note.GNU-stack,"",%progbits

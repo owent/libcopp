@@ -26,11 +26,11 @@
 
 .file "make_i386_sysv_elf_gas.S"
 .text
-.globl copp_make_fcontext
+.globl copp_make_fcontext_v2
 .align 2
-.type copp_make_fcontext,@function
-copp_make_fcontext:
-    /* first arg of copp_make_fcontext() == top of context-stack */
+.type copp_make_fcontext_v2,@function
+copp_make_fcontext_v2:
+    /* first arg of copp_make_fcontext_v2() == top of context-stack */
     movl  0x4(%esp), %eax
 
     /* reserve space for first argument of context-function
@@ -43,7 +43,7 @@ copp_make_fcontext:
     /* reserve space for context-data on context-stack */
     leal  -0x28(%eax), %eax
 
-    /* third arg of copp_make_fcontext() == address of context-function */
+    /* third arg of copp_make_fcontext_v2() == address of context-function */
     /* stored in EBX */
     movl  0xc(%esp), %ecx
     movl  %ecx, 0x10(%eax)
@@ -65,7 +65,7 @@ copp_make_fcontext:
     /* compute abs address of label trampoline */
     addl  $trampoline-1b, %ecx
     /* save address of trampoline as return address */
-    /* will be entered after calling copp_jump_fcontext() first time */
+    /* will be entered after calling copp_jump_fcontext_v2() first time */
     movl  %ecx, 0x18(%eax)
 
     /* compute abs address of label finish */
@@ -101,7 +101,7 @@ finish:
     /* exit application */
     call  _exit@PLT
     hlt
-.size copp_make_fcontext,.-copp_make_fcontext
+.size copp_make_fcontext_v2,.-copp_make_fcontext_v2
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

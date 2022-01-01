@@ -39,9 +39,9 @@
  *******************************************************/
 
 .text
-.globl _copp_ontop_fcontext
+.globl _copp_ontop_fcontext_v2
 .align 2
-_copp_ontop_fcontext:
+_copp_ontop_fcontext_v2:
     @ save LR as PC
     push {lr}
     @ save hidden,V1-V8,LR

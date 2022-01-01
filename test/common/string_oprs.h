@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file string_oprs.h
  * @brief 字符串相关操作
  * Licensed under the MIT licenses.

@@ -1,8 +1,8 @@
 Extracted from boost.context
 
 
-jump_fcontext => copp_jump_fcontext
-make_fcontext => copp_make_fcontext
+jump_fcontext => copp_jump_fcontext_v2
+make_fcontext => copp_make_fcontext_v2
 
 namespace boost => namespace copp
 namespace context => namespace fcontext

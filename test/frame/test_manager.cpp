@@ -1,4 +1,4 @@
-﻿/*
+/*
  * test_manager.cpp
  *
  *  Created on: 2014-03-11

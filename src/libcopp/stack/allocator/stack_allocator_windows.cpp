@@ -1,3 +1,11 @@
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
+
+#include <libcopp/stack/allocator/stack_allocator_windows.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+
 #include <assert.h>
 #include <algorithm>
 #include <cstring>
@@ -12,10 +20,6 @@ extern "C" {
 #include <Windows.h>
 }
 
-#include <libcopp/stack/allocator/stack_allocator_windows.h>
-#include <libcopp/stack/stack_context.h>
-#include <libcopp/stack/stack_traits.h>
-
 #if defined(COPP_MACRO_COMPILER_MSVC)
 #  pragma warning(push)
 #  pragma warning(disable : 4244 4267)
@@ -25,7 +29,7 @@ extern "C" {
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 
 LIBCOPP_COPP_API stack_allocator_windows::stack_allocator_windows() LIBCOPP_MACRO_NOEXCEPT {}
@@ -73,7 +77,7 @@ LIBCOPP_COPP_API void stack_allocator_windows::deallocate(stack_context &ctx) LI
   ::VirtualFree(start_ptr, 0, MEM_RELEASE);
 }
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX

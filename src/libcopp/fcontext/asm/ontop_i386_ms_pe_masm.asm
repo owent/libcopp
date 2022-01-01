@@ -24,7 +24,7 @@
 .model flat, c
 .code
 
-copp_ontop_fcontext PROC EXPORT
+copp_ontop_fcontext_v2 PROC EXPORT
     ; prepare stack
     lea  esp, [esp-02ch]
 
@@ -63,19 +63,19 @@ ENDIF
     ; store ESP (pointing to context-data) in ECX
     mov  ecx, esp
 
-    ; first arg of copp_ontop_fcontext() == fcontext to jump to
+    ; first arg of copp_ontop_fcontext_v2() == fcontext to jump to
     mov  eax, [esp+030h]
 
 	; pass parent fcontext_t
 	mov  [eax+030h], ecx
 
-    ; second arg of copp_ontop_fcontext() == data to be transferred
+    ; second arg of copp_ontop_fcontext_v2() == data to be transferred
     mov  ecx, [esp+034h]
 
 	; pass data
 	mov  [eax+034h], ecx
 
-    ; third arg of copp_ontop_fcontext() == ontop-function
+    ; third arg of copp_ontop_fcontext_v2() == ontop-function
     mov  ecx, [esp+038h]
     
     ; restore ESP (pointing to context-data) from EAX
@@ -120,5 +120,5 @@ ENDIF
 
     ; jump to context
     jmp ecx
-copp_ontop_fcontext ENDP
+copp_ontop_fcontext_v2 ENDP
 END

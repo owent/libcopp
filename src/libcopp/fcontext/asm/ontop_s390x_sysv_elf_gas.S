@@ -45,8 +45,8 @@
 
 .text
 .align  8
-.global copp_ontop_fcontext
-.type   copp_ontop_fcontext, @function
+.global copp_ontop_fcontext_v2
+.type   copp_ontop_fcontext_v2, @function
 
 #define ARG_OFFSET         0
 #define GR_OFFSET	   16
@@ -66,7 +66,7 @@ struct transfer_t {
    void    *   data;
 };
 
-transfer_t copp_ontop_fcontext( fcontext_t const to,
+transfer_t copp_ontop_fcontext_v2( fcontext_t const to,
 			   void * vp,
 			   transfer_t (* fn)( transfer_t) );
 
@@ -76,12 +76,12 @@ r3 - Target context
 r4 - Data pointer
 r5 - Function to be executed
 
-This implementation assumes that copp_ontop_fcontext will never be called with target contexts
-created via copp_make_fcontext.
+This implementation assumes that copp_ontop_fcontext_v2 will never be called with target contexts
+created via copp_make_fcontext_v2.
 
 */
 
-copp_ontop_fcontext:
+copp_ontop_fcontext_v2:
 	/* Reserve stack space to store the current context.  */
 	aghi	%r15,-CONTEXT_SIZE
 
@@ -142,5 +142,5 @@ copp_ontop_fcontext:
 
 	br	%r5
 
-.size   copp_ontop_fcontext,.-copp_ontop_fcontext
+.size   copp_ontop_fcontext_v2,.-copp_ontop_fcontext_v2
 .section .note.GNU-stack,"",%progbits

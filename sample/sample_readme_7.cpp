@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_readme_7.cpp
  *
  *  Created on: 2020-05-25

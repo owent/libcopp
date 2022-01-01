@@ -52,12 +52,12 @@
 
 .file "jump_ppc32_sysv_elf_gas.S"
 .text
-.globl copp_jump_fcontext
+.globl copp_jump_fcontext_v2
 .align 2
-.type copp_jump_fcontext,@function
-copp_jump_fcontext:
-    # Linux: copp_jump_fcontext( hidden transfer_t * R3, R4, R5)
-    # Other: transfer_t R3:R4 = copp_jump_fcontext( R3, R4)
+.type copp_jump_fcontext_v2,@function
+copp_jump_fcontext_v2:
+    # Linux: copp_jump_fcontext_v2( hidden transfer_t * R3, R4, R5)
+    # Other: transfer_t R3:R4 = copp_jump_fcontext_v2( R3, R4)
 
     mflr  %r0  # return address from LR
     mffs  %f0  # FPSCR
@@ -195,7 +195,7 @@ copp_jump_fcontext:
 
     # jump to context
     bctr
-.size copp_jump_fcontext, .-copp_jump_fcontext
+.size copp_jump_fcontext_v2, .-copp_jump_fcontext_v2
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

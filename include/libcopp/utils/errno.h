@@ -1,9 +1,10 @@
-#ifndef COPP_UTILS_ERRNO_H
-#define COPP_UTILS_ERRNO_H
+// Copyright 2022 owent
 
 #pragma once
 
-namespace copp {
+#include <libcopp/utils/config/libcopp_build_features.h>
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
  * error code
  */
@@ -39,6 +40,4 @@ enum copp_error_code {
   COPP_EC_TASK_NOT_IN_ACTION = -3004,               //!< COPP_EC_TASK_NOT_IN_ACTION
   COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER = -3005,  //!< COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER
 };
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

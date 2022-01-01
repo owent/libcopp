@@ -1,13 +1,14 @@
-#ifndef COPP_FUTURE_CONTEXT_H
-#define COPP_FUTURE_CONTEXT_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <assert.h>
 
 #include "poller.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 template <class TFUNCTION>
 struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function {
@@ -222,6 +223,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY context<void> {
   context_event_function<wake_fn_t> on_destroy_fn_;
 };
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

@@ -1,8 +1,8 @@
-# *.h         text working-tree-encoding=UTF-8 eol=lf
-# *.hpp       text working-tree-encoding=UTF-8 eol=lf
-# *.cpp       text working-tree-encoding=UTF-8 eol=lf
-# *.cxx       text working-tree-encoding=UTF-8 eol=lf
-# *.cc        text working-tree-encoding=UTF-8 eol=lf
+*.h text working-tree-encoding=UTF-8 eol=lf
+*.hpp text working-tree-encoding=UTF-8 eol=lf
+*.cpp text working-tree-encoding=UTF-8 eol=lf
+*.cxx text working-tree-encoding=UTF-8 eol=lf
+*.cc text working-tree-encoding=UTF-8 eol=lf
 *.sh text eol=lf
 *.sh.mako text eol=lf
 *.sh.template text eol=lf

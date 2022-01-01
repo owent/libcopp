@@ -1,3 +1,16 @@
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
+
+#include <libcopp/stack/allocator/stack_allocator_posix.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/fcontext/fcontext.hpp>
+
+#if defined(LIBCOPP_MACRO_USE_VALGRIND)
+#  include <valgrind/valgrind.h>
+#endif
+
 extern "C" {
 #include <errno.h>
 #include <fcntl.h>
@@ -17,20 +30,11 @@ extern "C" {
 #include <limits>
 #include <numeric>
 
-#include <libcopp/stack/allocator/stack_allocator_posix.h>
-#include <libcopp/stack/stack_context.h>
-#include <libcopp/stack/stack_traits.h>
-#include <libcopp/fcontext/fcontext.hpp>
-
-#if defined(LIBCOPP_MACRO_USE_VALGRIND)
-#  include <valgrind/valgrind.h>
-#endif
-
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 LIBCOPP_COPP_API stack_allocator_posix::stack_allocator_posix() LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_posix::~stack_allocator_posix() {}
@@ -90,7 +94,7 @@ LIBCOPP_COPP_API void stack_allocator_posix::deallocate(stack_context &ctx) LIBC
   ::munmap(start_ptr, ctx.size);
 }
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX

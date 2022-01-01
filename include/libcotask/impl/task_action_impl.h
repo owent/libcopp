@@ -1,20 +1,12 @@
-﻿/*
- * task_action_impl.h
- *
- *  Created on: 2014年4月1日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COTASK_IMPL_TASK_ACTION_IMPL_H
-#define COTASK_IMPL_TASK_ACTION_IMPL_H
+// Copyright 2022 owent
 
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-namespace cotask {
+#include <libcopp/utils/config/libcopp_build_features.h>
+
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 
 namespace impl {
 
@@ -35,6 +27,4 @@ class LIBCOPP_COTASK_API task_action_impl {
   virtual int on_finished(task_impl &) { return 0; }
 };
 }  // namespace impl
-}  // namespace cotask
-
-#endif /* _COTASK_IMPL_TASK_ACTION_IMPL_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

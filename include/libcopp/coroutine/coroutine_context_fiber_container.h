@@ -1,20 +1,18 @@
-/**
- * coroutine context fiber container
- */
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_CONTAINER_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_CONTAINER_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include <cstddef>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/coroutine/coroutine_context_fiber.h>
 #include <libcopp/stack/stack_allocator.h>
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 
+#include <cstddef>
+
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
  * @brief coroutine container
  * contain stack context, stack allocator and runtime fcontext
@@ -187,8 +185,6 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
 };
 
 using coroutine_fiber_context_default = coroutine_context_fiber_container<allocator::stack_allocator_malloc>;
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END
 
 #endif

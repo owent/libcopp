@@ -1,7 +1,8 @@
-#ifndef COPP_FUTURE_STD_COROUTINE_TASK_H
-#define COPP_FUTURE_STD_COROUTINE_TASK_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <assert.h>
 
@@ -11,13 +12,13 @@
 
 #include <libcopp/utils/uint64_id_allocator.h>
 
-#include "future.h"
-
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
 
-namespace copp {
+#include "future.h"
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
@@ -274,7 +275,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
  public:
   template <class... TARGS>
   task_promise_base_type(TARGS &&...args)
-      : context_(copp::util::uint64_id_allocator::allocate(), std::forward<TARGS>(args)...),
+      : context_(LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::allocate(), std::forward<TARGS>(args)...),
         runtime_(std::make_shared<runtime_type>()) {
     if (runtime_) {
       runtime_->task_id = context_.get_task_id();
@@ -671,6 +672,4 @@ task_future<void, TPD, TPTR, TMACRO> task_promise<void, TPD, TPTR, TMACRO>::get_
 }
 #endif
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

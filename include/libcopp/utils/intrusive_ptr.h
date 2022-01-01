@@ -1,4 +1,4 @@
-﻿/**
+/**
  *
  * @file intrusive_ptr.h
  * Licensed under the MIT licenses.

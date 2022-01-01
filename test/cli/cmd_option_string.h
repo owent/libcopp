@@ -1,4 +1,4 @@
-﻿#ifndef UTIL_CLI_CMDOPTION_STRING_H
+#ifndef UTIL_CLI_CMDOPTION_STRING_H
 #define UTIL_CLI_CMDOPTION_STRING_H
 
 #pragma once

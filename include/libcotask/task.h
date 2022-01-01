@@ -1,24 +1,16 @@
-﻿/*
- * task.h
- *
- *  Created on: 2014年4月1日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COTASK_TASK_H
-#define COTASK_TASK_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include <stdint.h>
-#include <algorithm>
-#include <cstddef>
-#include <list>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/future/std_coroutine_generator.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
+
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/utils/errno.h>
+#include <libcotask/task_macros.h>
+#include <libcotask/this_task.h>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
@@ -27,13 +19,12 @@
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 #  include <type_traits>
 #endif
+#include <stdint.h>
+#include <algorithm>
+#include <cstddef>
+#include <list>
 
-#include <libcopp/stack/stack_traits.h>
-#include <libcopp/utils/errno.h>
-#include <libcotask/task_macros.h>
-#include <libcotask/this_task.h>
-
-namespace cotask {
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 
 template <typename TCO_MACRO = macro_coroutine>
 class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
@@ -86,7 +77,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     using a_t = TAct;
 
     if (0 == stack_size) {
-      stack_size = copp::stack_traits::default_size();
+      stack_size = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::default_size();
     }
 
     size_t action_size = coroutine_t::align_address_size(sizeof(a_t));
@@ -313,35 +304,35 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    */
   inline int await_task(ptr_t wait_task) {
     if (!wait_task) {
-      return copp::COPP_EC_ARGS_ERROR;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR;
     }
 
     if (this == wait_task.get()) {
-      return copp::COPP_EC_TASK_CAN_NOT_WAIT_SELF;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_CAN_NOT_WAIT_SELF;
     }
 
     // if target is exiting or completed, just return
     if (wait_task->is_exiting() || wait_task->is_completed()) {
-      return copp::COPP_EC_TASK_IS_EXITING;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_EXITING;
     }
 
     if (is_exiting()) {
-      return copp::COPP_EC_TASK_IS_EXITING;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_EXITING;
     }
 
     if (this_task() != this) {
-      return copp::COPP_EC_TASK_NOT_IN_ACTION;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_NOT_IN_ACTION;
     }
 
     // add to next list failed
     if (wait_task->next(ptr_t(this)).get() != this) {
-      return copp::COPP_EC_TASK_ADD_NEXT_FAILED;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_ADD_NEXT_FAILED;
     }
 
     int ret = 0;
     while (!(wait_task->is_exiting() || wait_task->is_completed())) {
       if (is_exiting()) {
-        return copp::COPP_EC_TASK_IS_EXITING;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_EXITING;
       }
 
       ret = yield();
@@ -435,18 +426,18 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   int start(void *priv_data, EN_TASK_STATUS expected_status = EN_TS_CREATED) override {
 #endif
     if (!coroutine_obj_) {
-      return copp::COPP_EC_NOT_INITED;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_INITED;
     }
 
     EN_TASK_STATUS from_status = expected_status;
 
     do {
       if (unlikely(from_status >= EN_TS_DONE)) {
-        return copp::COPP_EC_ALREADY_FINISHED;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_FINISHED;
       }
 
       if (unlikely(from_status == EN_TS_RUNNING)) {
-        return copp::COPP_EC_IS_RUNNING;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING;
       }
 
       if (likely(_cas_status(from_status, EN_TS_RUNNING))) {  // Atomic.CAS here
@@ -520,7 +511,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
   int yield(void **priv_data) override {
     if (!coroutine_obj_) {
-      return copp::COPP_EC_NOT_INITED;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_INITED;
     }
 
     return coroutine_obj_->yield(priv_data);
@@ -543,7 +534,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
     do {
       if (EN_TS_RUNNING == from_status) {
-        return copp::COPP_EC_IS_RUNNING;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING;
       }
 
       if (likely(_cas_status(from_status, EN_TS_CANCELED))) {
@@ -556,7 +547,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #else
     _notify_finished(priv_data);
 #endif
-    return copp::COPP_EC_SUCCESS;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -590,7 +581,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
       finish_priv_data_ = priv_data;
     }
 
-    return copp::COPP_EC_SUCCESS;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
   using impl::task_impl::cancel;
@@ -610,7 +601,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
   virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT {
-    return std::is_base_of<copp::coroutine_context_fiber, coroutine_t>::value;
+    return std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_fiber, coroutine_t>::value;
   }
 #endif
 
@@ -865,7 +856,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         return refer_task_->get_ret_code();
       }
 
-      return copp::COPP_EC_NOT_FOUND;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
 
    protected:
@@ -908,6 +899,4 @@ auto operator co_await(libcopp::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP
   return awaitable{t};
 }
 #endif
-}  // namespace cotask
-
-#endif /* _COTASK_TASK_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

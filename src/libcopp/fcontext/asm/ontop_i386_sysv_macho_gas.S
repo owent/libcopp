@@ -25,9 +25,9 @@
  ****************************************************************************************/
 
 .text
-.globl _copp_ontop_fcontext
+.globl _copp_ontop_fcontext_v2
 .align 2
-_copp_ontop_fcontext:
+_copp_ontop_fcontext_v2:
     leal  -0x18(%esp), %esp  /* prepare stack */
 
 #if !defined(LIBCOPP_FCONTEXT_USE_TSX)
@@ -43,19 +43,19 @@ _copp_ontop_fcontext:
     /* store ESP (pointing to context-data) in ECX */
     movl  %esp, %ecx
 
-    /* first arg of copp_ontop_fcontext() == fcontext to jump to */
+    /* first arg of copp_ontop_fcontext_v2() == fcontext to jump to */
     movl  0x1c(%esp), %eax
 
     /* pass parent fcontext_t */
     movl  %ecx, 0x1c(%eax)
 
-    /* second arg of copp_ontop_fcontext() == data to be transferred */
+    /* second arg of copp_ontop_fcontext_v2() == data to be transferred */
     movl  0x20(%esp), %ecx
 
     /* pass data */
     movl %ecx, 0x20(%eax)
 
-    /* third arg of copp_ontop_fcontext() == ontop-function */
+    /* third arg of copp_ontop_fcontext_v2() == ontop-function */
     movl  0x24(%esp), %ecx
 
     /* restore ESP (pointing to context-data) from EAX */

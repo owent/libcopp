@@ -5,6 +5,11 @@ include(CMakeDependentOption)
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 
 # libcopp configure
+math(EXPR LIBCOPP_API_LEVEL "1000 * ${PROJECT_VERSION_MAJOR} + ${PROJECT_VERSION_MINOR}" OUTPUT_FORMAT DECIMAL)
+set(LIBCOPP_ABI_TAG
+    "v${LIBCOPP_API_LEVEL}"
+    CACHE STRING "ABI tag for libcopp.")
+
 option(LIBCOPP_ENABLE_SEGMENTED_STACKS "Enable segmented stacks." OFF)
 
 # fast find valgrind header to decide wether to enable valgrind

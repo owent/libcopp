@@ -40,11 +40,11 @@
 
 .file "jump_arm_aapcs_elf_gas.S"
 .text
-.globl copp_jump_fcontext
+.globl copp_jump_fcontext_v2
 .align 2
-.type copp_jump_fcontext,%function
+.type copp_jump_fcontext_v2,%function
 .syntax unified
-copp_jump_fcontext:
+copp_jump_fcontext_v2:
     @ save LR as PC
     push {lr}
     @ save hidden,V1-V8,LR
@@ -82,7 +82,7 @@ copp_jump_fcontext:
 
     @ restore PC
     pop {pc}
-.size copp_jump_fcontext,.-copp_jump_fcontext
+.size copp_jump_fcontext_v2,.-copp_jump_fcontext_v2
 
 @ Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

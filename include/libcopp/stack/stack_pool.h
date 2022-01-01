@@ -1,7 +1,8 @@
-#ifndef COPP_STACKCONTEXT_STACK_POOL_H
-#define COPP_STACKCONTEXT_STACK_POOL_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/lock_holder.h>
@@ -15,7 +16,7 @@
 #include <list>
 #include <memory>
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 template <typename TAlloc>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  public:
@@ -52,7 +53,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   stack_pool(constructor_delegator) {
     memset(&limits_, 0, sizeof(limits_));
     memset(&conf_, 0, sizeof(conf_));
-    conf_.stack_size = copp::stack_traits::default_size();
+    conf_.stack_size = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::default_size();
     conf_.auto_gc = true;
   }
   ~stack_pool() { clear(); }
@@ -64,10 +65,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   inline const allocator_t &get_origin_allocator() const LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
 
   size_t set_stack_size(size_t sz) {
-    if (sz <= copp::stack_traits::minimum_size()) {
-      sz = copp::stack_traits::minimum_size();
+    if (sz <= LIBCOPP_COPP_NAMESPACE_ID::stack_traits::minimum_size()) {
+      sz = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::minimum_size();
     } else {
-      sz = copp::stack_traits::round_to_page_size(sz);
+      sz = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::round_to_page_size(sz);
     }
 
     if (sz != conf_.stack_size) {
@@ -299,6 +300,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
 #endif
   std::list<stack_context> free_list_;
 };
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

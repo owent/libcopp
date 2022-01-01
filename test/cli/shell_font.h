@@ -1,4 +1,4 @@
-﻿/*
+/*
  * shell_fonts.h
  *
  *  Created on: 2014-03-11

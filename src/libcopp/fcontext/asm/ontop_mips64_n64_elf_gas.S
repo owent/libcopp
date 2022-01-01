@@ -47,11 +47,11 @@
 
 .file "ontop_mips64_n64_elf_gas.S"
 .text
-.globl copp_ontop_fcontext
+.globl copp_ontop_fcontext_v2
 .align 3
-.type copp_ontop_fcontext,@function
-.ent copp_ontop_fcontext
-copp_ontop_fcontext:
+.type copp_ontop_fcontext_v2,@function
+.ent copp_ontop_fcontext_v2
+copp_ontop_fcontext_v2:
     # reserve space on stack
     daddiu $sp, $sp, -160
 
@@ -116,8 +116,8 @@ copp_ontop_fcontext:
 
     # jump to context
     jr  $t9
-.end copp_ontop_fcontext
-.size copp_ontop_fcontext, .-copp_ontop_fcontext
+.end copp_ontop_fcontext_v2
+.size copp_ontop_fcontext_v2, .-copp_ontop_fcontext_v2
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

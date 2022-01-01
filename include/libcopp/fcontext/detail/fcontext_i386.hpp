@@ -1,11 +1,8 @@
+// Copyright 2022 owent
 
-//          Copyright Oliver Kowalke 2009.
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
+#pragma once
 
-#ifndef _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_I386H
-#define _COPP_BOOST_CONTEXT_DETAIL_FCONTEXT_I386H
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #  pragma once
@@ -22,7 +19,7 @@
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_PREFIX
 #endif
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace fcontext {
 
 extern "C" {
@@ -45,9 +42,8 @@ struct fcontext_t {
 };
 }
 }  // namespace fcontext
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX
 #endif
-#endif  // BOOST_CONTEXT_DETAIL_FCONTEXT_I386_H

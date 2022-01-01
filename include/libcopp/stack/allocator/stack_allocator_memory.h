@@ -1,18 +1,18 @@
-#ifndef COPP_STACKCONTEXT_ALLOCATOR_MEMORY_H
-#define COPP_STACKCONTEXT_ALLOCATOR_MEMORY_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include <cstddef>
-
 #include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/utils/features.h>
+
+#include <cstddef>
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 struct stack_context;
 
 namespace allocator {
@@ -66,10 +66,8 @@ class LIBCOPP_COPP_API stack_allocator_memory {
   void deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT;
 };
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX
-#endif
-
 #endif

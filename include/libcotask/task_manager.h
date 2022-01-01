@@ -1,16 +1,8 @@
-﻿/*
- * task_manager.h
- *
- *  Created on: 2014年6月16日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COTASK_TASK_MANAGER_H
-#define COTASK_TASK_MANAGER_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <assert.h>
 #include <stdint.h>
@@ -31,13 +23,13 @@
 #  include <map>
 #endif
 
-#include <libcotask/task_macros.h>
-
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
 
-namespace cotask {
+#include <libcotask/task_macros.h>
+
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 
 namespace detail {
 struct LIBCOPP_COTASK_API_HEAD_ONLY tickspec_t {
@@ -255,15 +247,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   int add_task(const task_ptr_t &task, time_t timeout_sec, int timeout_nsec) {
     if (!task) {
       assert(task);
-      return copp::COPP_EC_ARGS_ERROR;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR;
     }
 
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     if (task->is_exiting()) {
-      return copp::COPP_EC_TASK_IS_EXITING;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_EXITING;
     }
 
     // try to cast type
@@ -274,7 +266,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
     if (!task_node.task_) {
       assert(task_node.task_);
-      return copp::COPP_EC_CAST_FAILED;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_CAST_FAILED;
     }
 
     // lock before we will operator tasks_
@@ -284,13 +276,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
     id_t task_id = task->get_id();
     if (tasks_.end() != tasks_.find(task_id)) {
-      return copp::COPP_EC_ALREADY_EXIST;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST;
     }
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
     if (!task_t::task_manager_helper::setup_task_manager(*task, reinterpret_cast<void *>(this),
                                                          &task_cleanup_callback)) {
-      return copp::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER;
     }
 #endif
 
@@ -300,12 +292,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
       task_t::task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
 #endif
-      return copp::COPP_EC_EXTERNAL_INSERT_FAILED;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_EXTERNAL_INSERT_FAILED;
     }
 
     // add timeout controller
     set_timeout_timer(res.first->second, timeout_sec, timeout_nsec);
-    return copp::COPP_EC_SUCCESS;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
   /**
@@ -334,7 +326,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    */
   int set_timeout(id_t id, time_t timeout_sec, int timeout_nsec) {
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     {
@@ -344,12 +336,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
-      if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
+      if (tasks_.end() == iter) return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
 
       set_timeout_timer(iter->second, timeout_sec, timeout_nsec);
     }
 
-    return copp::COPP_EC_SUCCESS;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
   /**
@@ -375,7 +367,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    */
   int remove_task(id_t id, const task_t *confirm_ptr) {
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     task_ptr_t task_inst;
@@ -387,10 +379,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
-        return copp::COPP_EC_NOT_FOUND;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
       }
       if (nullptr != confirm_ptr && iter->second.task_.get() != confirm_ptr) {
-        return copp::COPP_EC_NOT_FOUND;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
       }
 
       // make sure running task be killed first
@@ -412,7 +404,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       }
     }
 
-    return copp::COPP_EC_SUCCESS;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
   /**
@@ -452,7 +444,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   int start(id_t id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     task_ptr_t task_inst;
@@ -463,7 +455,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
-      if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
+      if (tasks_.end() == iter) return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
 
       task_inst = iter->second.task_;
     }
@@ -483,7 +475,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       return ret;
     } else {
-      return copp::COPP_EC_NOT_FOUND;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
@@ -500,7 +492,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   int resume(id_t id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     task_ptr_t task_inst;
@@ -511,7 +503,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
-      if (tasks_.end() == iter) return copp::COPP_EC_NOT_FOUND;
+      if (tasks_.end() == iter) return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
 
       task_inst = iter->second.task_;
     }
@@ -531,7 +523,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       return ret;
     } else {
-      return copp::COPP_EC_NOT_FOUND;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
@@ -548,7 +540,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   int cancel(id_t id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     task_ptr_t task_inst;
@@ -560,7 +552,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
-        return copp::COPP_EC_NOT_FOUND;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
       }
 
       task_inst = std::move(iter->second.task_);
@@ -581,7 +573,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       return task_inst->cancel(priv_data);
 #endif
     } else {
-      return copp::COPP_EC_NOT_FOUND;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
@@ -599,7 +591,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     task_ptr_t task_inst;
@@ -611,7 +603,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       using iter_type = typename container_t::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
-        return copp::COPP_EC_NOT_FOUND;
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
       }
 
       task_inst = std::move(iter->second.task_);
@@ -632,7 +624,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       return task_inst->kill(status, priv_data);
 #endif
     } else {
-      return copp::COPP_EC_NOT_FOUND;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
@@ -659,11 +651,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     // we will ignore tick when in a recursive call
     flag_guard_t tick_flag(&flags_, flag_t::EN_TM_IN_TICK);
     if (!tick_flag) {
-      return copp::COPP_EC_SUCCESS;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     }
 
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return copp::COPP_EC_IN_RESET;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     // first tick, init and reset task timeout
@@ -684,7 +676,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
       task_timeout_timer_.swap(task_timeout_timer_);
       last_tick_time_ = now_tick_time;
-      return copp::COPP_EC_SUCCESS;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -740,7 +732,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
     task_t::maybe_rethrow(eptrs);
 #endif
-    return copp::COPP_EC_SUCCESS;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
   /**
@@ -826,6 +818,4 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #endif
   int flags_;
 };
-}  // namespace cotask
-
-#endif /* TASK_MANAGER_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

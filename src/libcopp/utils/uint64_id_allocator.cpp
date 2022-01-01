@@ -1,4 +1,6 @@
-#include <ctime>
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/atomic_int_type.h>
 #include <libcopp/utils/uint64_id_allocator.h>
@@ -6,8 +8,9 @@
 #if defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD
 #  include <pthread.h>
 #endif
+#include <ctime>
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {
 namespace details {
 
@@ -119,4 +122,4 @@ LIBCOPP_COPP_API uint64_id_allocator::value_type uint64_id_allocator::allocate()
 
 LIBCOPP_COPP_API void uint64_id_allocator::deallocate(value_type) LIBCOPP_MACRO_NOEXCEPT {}
 }  // namespace util
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END

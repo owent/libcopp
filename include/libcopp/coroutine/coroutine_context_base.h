@@ -1,11 +1,11 @@
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_BASE_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_BASE_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/intrusive_ptr.h>
 #include <libcopp/fcontext/all.hpp>
@@ -17,7 +17,7 @@
 #  include <exception>
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 
 namespace details {
 template <size_t N1, size_t N2, bool BIGGER_THAN_16>
@@ -41,16 +41,18 @@ struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
 // We should align to at least 16 bytes, @see https://wiki.osdev.org/System_V_ABI for more details
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
     (defined(_MSC_VER) && _MSC_VER >= 1900)
-#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<sizeof(max_align_t), 16>::value
+#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE \
+    LIBCOPP_COPP_NAMESPACE_ID::details::align_helper<sizeof(max_align_t), 16>::value
 #else
-#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(size_t), 16>::value
+#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE \
+    LIBCOPP_COPP_NAMESPACE_ID::details::align_helper<2 * sizeof(size_t), 16>::value
 #endif
 
 // Some architecture may require stack to be aligned to 64
 // @see "3.2.2 The Stack Frame" of https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf
 // More documents about x86/x86_64 canbe found at https://stackoverflow.com/tags/x86/info
 #define COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE \
-  ::copp::details::align_helper<COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE, 64>::value
+  LIBCOPP_COPP_NAMESPACE_ID::details::align_helper<COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE, 64>::value
 
 static_assert(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16,
               "COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE");
@@ -244,6 +246,4 @@ class coroutine_context_base {
    */
   static LIBCOPP_COPP_API void set_this_coroutine_base(coroutine_context_base *ctx) LIBCOPP_MACRO_NOEXCEPT;
 };
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

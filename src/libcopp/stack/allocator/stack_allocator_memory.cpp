@@ -1,8 +1,6 @@
-#include <assert.h>
-#include <algorithm>
-#include <cstring>
-#include <limits>
-#include <numeric>
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/std/explicit_declare.h>
 
@@ -18,7 +16,13 @@
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+#include <assert.h>
+#include <algorithm>
+#include <cstring>
+#include <limits>
+#include <numeric>
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 
 LIBCOPP_COPP_API stack_allocator_memory::stack_allocator_memory() LIBCOPP_MACRO_NOEXCEPT : start_ptr_(nullptr),
@@ -114,7 +118,7 @@ LIBCOPP_COPP_API void stack_allocator_memory::deallocate(EXPLICIT_UNUSED_ATTR st
   is_used_ = false;
 }
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX

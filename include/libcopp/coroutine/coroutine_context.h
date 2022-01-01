@@ -1,7 +1,8 @@
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include "coroutine_context_base.h"
 
@@ -18,9 +19,9 @@
   using base_type::callee_stack_;                    \
   COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
- * @brief base type of all coroutine context
+ * @brief base type of all stackful coroutine context
  */
 class coroutine_context : public coroutine_context_base {
  public:
@@ -46,7 +47,7 @@ class coroutine_context : public coroutine_context_base {
     void *priv_data;
   };
 
-  friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_inner_api_helper;
+  friend struct libcopp_internal_api_set;
 
  protected:
   fcontext::fcontext_t caller_; /** caller runtime context **/
@@ -160,6 +161,4 @@ LIBCOPP_COPP_API_HEAD_ONLY Tc *get() {
  */
 LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 }  // namespace this_coroutine
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

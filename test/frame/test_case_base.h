@@ -1,4 +1,4 @@
-﻿/*
+/*
  * test_case_base.h
  *
  *  Created on: 2014年3月11日

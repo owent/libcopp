@@ -54,16 +54,16 @@
 .file "make_arm64_aapcs_elf_gas.S"
 .text
 .align  2
-.global copp_make_fcontext
-.type   copp_make_fcontext, %function
-copp_make_fcontext:
+.global copp_make_fcontext_v2
+.type   copp_make_fcontext_v2, %function
+copp_make_fcontext_v2:
     # shift address in x0 (allocated stack) to lower 16 byte boundary
     and x0, x0, ~0xF
 
     # reserve space for context-data on context-stack
     sub  x0, x0, #0xb0
 
-    # third arg of copp_make_fcontext() == address of context-function
+    # third arg of copp_make_fcontext_v2() == address of context-function
     # store address as a PC to jump in
     str  x2, [x0, #0xa0]
 
@@ -80,6 +80,6 @@ finish:
     # exit application
     bl  _exit
 
-.size   copp_make_fcontext,.-copp_make_fcontext
+.size   copp_make_fcontext_v2,.-copp_make_fcontext_v2
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

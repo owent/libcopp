@@ -1,4 +1,4 @@
-﻿/*
+/*
  * main.cpp
  *
  *  Created on: 2014年3月11日

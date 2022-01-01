@@ -1,16 +1,6 @@
-﻿/*
- * task_impl.cpp
- *
- *  Created on: 2014年4月2日
- *      Author: owent
- *
- *  Released under the MIT license
- */
+// Copyright 2022 owent
 
-#include <algorithm>
-#include <cstdlib>
-
-#include <assert.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/coroutine/coroutine_context.h>
 #include <libcopp/coroutine/coroutine_context_fiber.h>
@@ -18,7 +8,12 @@
 #include <libcotask/impl/task_action_impl.h>
 #include <libcotask/impl/task_impl.h>
 
-namespace cotask {
+#include <algorithm>
+#include <cstdlib>
+
+#include <assert.h>
+
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 namespace impl {
 LIBCOPP_COTASK_API task_impl::task_impl()
     : action_(nullptr), id_(0), finish_priv_data_(nullptr), status_(EN_TS_CREATED) {
@@ -49,7 +44,8 @@ LIBCOPP_COTASK_API bool task_impl::is_exiting() const LIBCOPP_MACRO_NOEXCEPT { r
 LIBCOPP_COTASK_API int task_impl::on_finished() { return 0; }
 
 LIBCOPP_COTASK_API task_impl *task_impl::this_task() {
-  copp::coroutine_context_base *this_co = copp::coroutine_context_base::get_this_coroutine_base();
+  LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_base *this_co =
+      LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_base::get_this_coroutine_base();
   if (nullptr == this_co) {
     return nullptr;
   }
@@ -89,11 +85,11 @@ LIBCOPP_COTASK_API int task_impl::_notify_finished(void *priv_data) {
     return ret;
   } catch (...) {
     unhandled.emplace_back(std::current_exception());
-    return copp::COPP_EC_HAS_UNHANDLE_EXCEPTION;
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_HAS_UNHANDLE_EXCEPTION;
   }
 #else
   return ret;
 #endif
 }
 }  // namespace impl
-}  // namespace cotask
+LIBCOPP_COTASK_NAMESPACE_END

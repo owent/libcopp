@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 

@@ -1,9 +1,9 @@
-#ifndef COPP_STACKCONTEXT_ALLOCATOR_POOL_H
-#define COPP_STACKCONTEXT_ALLOCATOR_POOL_H
+// Copyright 2022 owent
 
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/utils/features.h>
 
 #include <assert.h>
@@ -14,7 +14,7 @@
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 struct stack_context;
 
 namespace allocator {
@@ -69,10 +69,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
   std::shared_ptr<pool_t> pool_;
 };
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX
-#endif
-
 #endif

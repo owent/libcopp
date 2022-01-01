@@ -26,10 +26,10 @@
 
 .file "ontop_x86_64_sysv_elf_gas.S"
 .text
-.globl copp_ontop_fcontext
-.type copp_ontop_fcontext,@function
+.globl copp_ontop_fcontext_v2
+.type copp_ontop_fcontext_v2,@function
 .align 16
-copp_ontop_fcontext:
+copp_ontop_fcontext_v2:
     /* preserve ontop-function in R8 */
     movq  %rdx, %r8
 
@@ -88,7 +88,7 @@ copp_ontop_fcontext:
 
     /* indirect jump to context */
     jmp  *%r8
-.size copp_ontop_fcontext,.-copp_ontop_fcontext
+.size copp_ontop_fcontext_v2,.-copp_ontop_fcontext_v2
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

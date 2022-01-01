@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file lock_holder.h
  * @brief 锁管理器
  * Licensed under the MIT licenses.

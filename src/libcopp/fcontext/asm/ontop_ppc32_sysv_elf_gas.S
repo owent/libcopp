@@ -52,12 +52,12 @@
 
 .file "ontop_ppc32_sysv_elf_gas.S"
 .text
-.globl copp_ontop_fcontext
+.globl copp_ontop_fcontext_v2
 .align 2
-.type copp_ontop_fcontext,@function
-copp_ontop_fcontext:
-    # Linux: copp_ontop_fcontext( hidden transfer_t * R3, R4, R5, R6)
-    # Other: transfer_t R3:R4 = copp_jump_fcontext( R3, R4, R5)
+.type copp_ontop_fcontext_v2,@function
+copp_ontop_fcontext_v2:
+    # Linux: copp_ontop_fcontext_v2( hidden transfer_t * R3, R4, R5, R6)
+    # Other: transfer_t R3:R4 = copp_jump_fcontext_v2( R3, R4, R5)
 
     mflr  %r0  # return address from LR
     mffs  %f0  # FPSCR
@@ -187,7 +187,7 @@ copp_ontop_fcontext:
     # Linux: fcontext_ontop_tail( hidden transfer_t * R3, R4, R5, R6, R7)
     # Other: transfer_t R3:R4 = fcontext_ontop_tail( R3, R4, R5, R6)
     b ontop_fcontext_tail
-.size copp_ontop_fcontext, .-copp_ontop_fcontext
+.size copp_ontop_fcontext_v2, .-copp_ontop_fcontext_v2
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

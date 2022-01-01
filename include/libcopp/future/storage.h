@@ -1,7 +1,8 @@
-#ifndef COPP_FUTURE_STORAGE_H
-#define COPP_FUTURE_STORAGE_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/std/coroutine.h>
 #include <libcopp/utils/std/explicit_declare.h>
@@ -13,7 +14,7 @@
 #include <functional>
 #include <memory>
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 // FUNCTION TEMPLATE make_unique
 template <class T, class... TARGS, typename std::enable_if<!std::is_array<T>::value, int>::type = 0>
@@ -561,7 +562,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
 
   template <class... TARGS>
   static inline type make_success(TARGS &&...args) {
-    type ret = copp::future::make_unique<TRESULT>();
+    type ret = LIBCOPP_COPP_NAMESPACE_ID::future::make_unique<TRESULT>();
     if (ret) {
       ret->make_success_base(std::forward<TARGS>(args)...);
     }
@@ -571,7 +572,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
 
   template <class... TARGS>
   static inline type make_error(TARGS &&...args) {
-    type ret = copp::future::make_unique<TRESULT>();
+    type ret = LIBCOPP_COPP_NAMESPACE_ID::future::make_unique<TRESULT>();
     if (ret) {
       ret->make_error_base(std::forward<TARGS>(args)...);
     }
@@ -639,6 +640,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_type
   }
 };
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

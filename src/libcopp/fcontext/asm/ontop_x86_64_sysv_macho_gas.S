@@ -25,9 +25,9 @@
  ****************************************************************************************/
 
 .text
-.globl _copp_ontop_fcontext
+.globl _copp_ontop_fcontext_v2
 .align 8
-_copp_ontop_fcontext:
+_copp_ontop_fcontext_v2:
     /* preserve ontop-function in R8 */
     movq  %rdx, %r8
 

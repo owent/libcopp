@@ -1,23 +1,14 @@
-﻿/**
- * standard_new_allocator.h
- *
- *  Created on: 2014年4月1日
- *      Author: owent
- *  @date 2017-05-10
- *  Released under the MIT license
- */
-
-#ifndef COTASK_CORE_STANDARD_NEW_ALLOCATOR_H
-#define COTASK_CORE_STANDARD_NEW_ALLOCATOR_H
+// Copyright 2022 owent
 
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/utils/features.h>
 
 #include <memory>
 
-namespace cotask {
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 namespace core {
 class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
  public:
@@ -35,6 +26,4 @@ class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
   static void deallocate(std::shared_ptr<Ty> &) {}
 };
 }  // namespace core
-}  // namespace cotask
-
-#endif /* STANDARD_NEW_ALLOCATOR_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

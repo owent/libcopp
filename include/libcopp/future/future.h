@@ -1,14 +1,15 @@
-#ifndef COPP_FUTURE_FUTURE_H
-#define COPP_FUTURE_FUTURE_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <list>
 
 #include "context.h"
 #include "poller.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 
 template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
@@ -193,6 +194,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
   std::function<void()> clear_ctx_waker_;
 };
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

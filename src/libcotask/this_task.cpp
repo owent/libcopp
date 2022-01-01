@@ -1,16 +1,11 @@
-﻿/*
- * this_task.cpp
- *
- *  Created on: 2014年4月2日
- *      Author: owent
- *
- *  Released under the MIT license
- */
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcotask/this_task.h>
 
-namespace cotask {
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 namespace this_task {
 LIBCOPP_COTASK_API impl::task_impl *get_task() LIBCOPP_MACRO_NOEXCEPT { return impl::task_impl::this_task(); }
 }  // namespace this_task
-}  // namespace cotask
+LIBCOPP_COTASK_NAMESPACE_END

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_stress_test_coroutine.cpp
  *
  *  Created on: 2014年5月11日

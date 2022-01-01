@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file spin_lock.h
  * @brief 自旋锁
  * Licensed under the MIT licenses.

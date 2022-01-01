@@ -1,4 +1,4 @@
-﻿#include <inttypes.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <cstdio>
 #include <cstring>

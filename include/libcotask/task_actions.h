@@ -1,20 +1,12 @@
-﻿/*
- * task_actions.h
- *
- *  Created on: 2014年4月1日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COTASK_TASK_ACTIONS_H
-#define COTASK_TASK_ACTIONS_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcotask/impl/task_action_impl.h>
 
-namespace cotask {
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 
 namespace detail {
 
@@ -227,6 +219,4 @@ template <typename Ty>
 LIBCOPP_COTASK_API_HEAD_ONLY placement_destroy_fn_t get_placement_destroy(Ty * /*selfp*/) {
   return &placement_destroy<Ty>;
 }
-}  // namespace cotask
-
-#endif /* _COTASK_TASK_ACTIONS_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

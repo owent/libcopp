@@ -89,13 +89,13 @@
 .file	"make_x86_64_ms_pe_clang_gas.S"
 .text
 .p2align 4,,15
-.globl	copp_make_fcontext
-.def	copp_make_fcontext;	.scl	2;	.type	32;	.endef
-.seh_proc	copp_make_fcontext
-copp_make_fcontext:
+.globl	copp_make_fcontext_v2
+.def	copp_make_fcontext_v2;	.scl	2;	.type	32;	.endef
+.seh_proc	copp_make_fcontext_v2
+copp_make_fcontext_v2:
 .seh_endprologue
 
-    /* first arg of copp_make_fcontext() == top of context-stack */
+    /* first arg of copp_make_fcontext_v2() == top of context-stack */
     movq  %rcx, %rax
 
     /* shift address in RAX to lower 16 byte boundary */
@@ -106,13 +106,13 @@ copp_make_fcontext:
     /* on context-function entry: (RSP -0x8) % 16 == 0 */
     leaq  -0x150(%rax), %rax
 
-    /* third arg of copp_make_fcontext() == address of context-function */
+    /* third arg of copp_make_fcontext_v2() == address of context-function */
     movq  %r8, 0x100(%rax)
 
-    /* first arg of copp_make_fcontext() == top of context-stack */
+    /* first arg of copp_make_fcontext_v2() == top of context-stack */
     /* save top address of context stack as 'base' */
     movq  %rcx, 0xc8(%rax)
-    /* second arg of copp_make_fcontext() == size of context-stack */
+    /* second arg of copp_make_fcontext_v2() == size of context-stack */
     /* negate stack size for LEA instruction (== substraction) */
     negq  %rdx
     /* compute bottom address of context stack (limit) */
@@ -138,7 +138,7 @@ copp_make_fcontext:
     /* compute abs address of label trampoline */
     leaq  trampoline(%rip), %rcx
     /* save address of finish as return-address for context-function */
-    /* will be entered after copp_jump_fcontext() first time */
+    /* will be entered after copp_jump_fcontext_v2() first time */
     movq  %rcx, 0x118(%rax)
 
     /* compute abs address of label finish */
@@ -160,7 +160,7 @@ finish:
     /* 32byte shadow-space for _exit() */
     andq  $-32, %rsp
     /* 32byte shadow-space for _exit() are */
-    /* already reserved by copp_make_fcontext() */
+    /* already reserved by copp_make_fcontext_v2() */
     /* exit code is zero */
     xorq  %rcx, %rcx
     /* exit application */
@@ -171,4 +171,4 @@ finish:
 .def	_exit;	.scl	2;	.type	32;	.endef  /* standard C library function */
 
 .section .drectve
-.ascii " -export:\"copp_make_fcontext\""
+.ascii " -export:\"copp_make_fcontext_v2\""

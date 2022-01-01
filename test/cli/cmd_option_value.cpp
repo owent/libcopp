@@ -1,4 +1,4 @@
-﻿/*
+/*
  * cmd_option_value.cpp
  *
  *  Created on: 2011-12-29

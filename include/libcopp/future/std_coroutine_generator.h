@@ -1,11 +1,12 @@
-#ifndef COPP_FUTURE_STD_COROUTINE_GENERATOR_H
-#define COPP_FUTURE_STD_COROUTINE_GENERATOR_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include "future.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
@@ -206,6 +207,4 @@ inline T make_generator(TARGS &&...args) {
 }
 #endif
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

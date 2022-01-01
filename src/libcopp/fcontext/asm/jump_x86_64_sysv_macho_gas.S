@@ -25,9 +25,9 @@
  ****************************************************************************************/
 
 .text
-.globl _copp_jump_fcontext
+.globl _copp_jump_fcontext_v2
 .align 8
-_copp_jump_fcontext:
+_copp_jump_fcontext_v2:
     leaq  -0x38(%rsp), %rsp /* prepare stack */
 
 #if !defined(LIBCOPP_FCONTEXT_USE_TSX)

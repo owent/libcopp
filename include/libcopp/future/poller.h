@@ -1,11 +1,12 @@
-#ifndef COPP_FUTURE_POLLER_H
-#define COPP_FUTURE_POLLER_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include "storage.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
 class LIBCOPP_COPP_API_HEAD_ONLY poller {
@@ -78,6 +79,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
   storage_type storage_data_;
 };
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

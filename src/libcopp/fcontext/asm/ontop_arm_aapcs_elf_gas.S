@@ -40,11 +40,11 @@
 
 .file "ontop_arm_aapcs_elf_gas.S"
 .text
-.globl copp_ontop_fcontext
+.globl copp_ontop_fcontext_v2
 .align 2
-.type copp_ontop_fcontext,%function
+.type copp_ontop_fcontext_v2,%function
 .syntax unified
-copp_ontop_fcontext:
+copp_ontop_fcontext_v2:
     @ save LR as PC
     push {lr}
     @ save hidden,V1-V8,LR
@@ -87,7 +87,7 @@ copp_ontop_fcontext:
 
     @ jump to ontop-function
     bx  a4
-.size copp_ontop_fcontext,.-copp_ontop_fcontext
+.size copp_ontop_fcontext_v2,.-copp_ontop_fcontext_v2
 
 @ Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

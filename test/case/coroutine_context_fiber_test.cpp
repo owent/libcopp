@@ -39,7 +39,7 @@ CASE_TEST(coroutine_fiber, context_base) {
 
     CASE_EXPECT_TRUE(!!co);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_RUNNING, co->yield());
 
     co->start();
 
@@ -50,8 +50,8 @@ CASE_TEST(coroutine_fiber, context_base) {
     ++g_test_coroutine_fiber_status;
     CASE_EXPECT_EQ(g_test_coroutine_fiber_status, 5);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_READY, co->resume());
-    CASE_EXPECT_EQ(::copp::COPP_EC_ALREADY_EXIST, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_READY, co->resume());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST, co->yield());
   }
 
   {
@@ -63,7 +63,7 @@ CASE_TEST(coroutine_fiber, context_base) {
 
     CASE_EXPECT_TRUE(!!co);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_RUNNING, co->yield());
 
     co->start();
 
@@ -74,8 +74,8 @@ CASE_TEST(coroutine_fiber, context_base) {
     ++g_test_coroutine_fiber_status;
     CASE_EXPECT_EQ(g_test_coroutine_fiber_status, 5);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_READY, co->resume());
-    CASE_EXPECT_EQ(::copp::COPP_EC_ALREADY_EXIST, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_READY, co->resume());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST, co->yield());
   }
 }
 
@@ -118,7 +118,7 @@ CASE_TEST(coroutine_fiber, coroutine_context_throw_exception) {
 
     CASE_EXPECT_TRUE(!!co);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_RUNNING, co->yield());
 
     co->start();
   } catch (const std::exception &e) {

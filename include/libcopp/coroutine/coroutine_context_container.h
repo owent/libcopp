@@ -1,19 +1,17 @@
-/**
- * coroutine context container
- */
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_CONTAINER_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_CONTAINER_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include <cstddef>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/coroutine/coroutine_context.h>
 #include <libcopp/stack/stack_allocator.h>
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 
-namespace copp {
+#include <cstddef>
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
  * @brief coroutine container
  * contain stack context, stack allocator and runtime fcontext
@@ -187,6 +185,4 @@ class coroutine_context_container : public coroutine_context {
 };
 
 using coroutine_context_default = coroutine_context_container<allocator::default_statck_allocator>;
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

@@ -1,7 +1,8 @@
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_BASE_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_BASE_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <cstddef>
 
@@ -15,7 +16,7 @@
 
 #  include <Windows.h>
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
  * @brief base type of all coroutine context of windows fiber
  */
@@ -46,7 +47,7 @@ class coroutine_context_fiber : public coroutine_context_base {
     void *priv_data;
   };
 
-  friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_fiber_inner_api_helper;
+  friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_fiber_internal_api_set;
   friend struct LIBCOPP_COPP_API_HEAD_ONLY fiber_context_tls_data_t;
 
  protected:
@@ -160,8 +161,6 @@ LIBCOPP_COPP_API_HEAD_ONLY Tc *get() {
  */
 LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 }  // namespace this_fiber
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END
 
 #endif

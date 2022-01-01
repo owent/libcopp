@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // ================ branch prediction information ================
 #ifndef likely

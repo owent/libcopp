@@ -20,7 +20,7 @@ enable_testing()
 
 project(
   libcopp
-  VERSION "1.5.0"
+  VERSION "2.0.0"
   DESCRIPTION "Cross-platform coroutine library in C++ ."
   HOMEPAGE_URL "https://libcopp.atframe.work"
   LANGUAGES C CXX ASM)

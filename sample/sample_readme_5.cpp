@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_readme_5.cpp
  *
  *  Created on: 2014-05-19

@@ -1,7 +1,8 @@
-#ifndef COPP_STACKCONTEXT_STACK_ALLOCATOR_H
-#define COPP_STACKCONTEXT_STACK_ALLOCATOR_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/features.h>
 
@@ -15,25 +16,23 @@
 
 #ifdef LIBCOPP_MACRO_SYS_POSIX
 #  include "allocator/stack_allocator_posix.h"
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 using default_statck_allocator = stack_allocator_posix;
 }
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #elif defined(LIBCOPP_MACRO_SYS_WIN)
 
 #  include "allocator/stack_allocator_windows.h"
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 using default_statck_allocator = stack_allocator_windows;
 }
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #else
 
 #  error unknown stack allocator
 
 #endif
-
-#endif /* STACK_ALLOCATOR_H_ */

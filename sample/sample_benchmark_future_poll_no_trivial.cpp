@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_benchmark_future_poll.cpp
  *
  *  Created on: 2020-05-08

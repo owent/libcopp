@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_benchmark_task_stack_pool.cpp
  *
  *  Created on: 2017年5月19日

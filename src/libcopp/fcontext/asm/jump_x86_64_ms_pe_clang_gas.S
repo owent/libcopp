@@ -89,10 +89,10 @@
 .file	"jump_x86_64_ms_pe_clang_gas.S"
 .text
 .p2align 4,,15
-.globl	copp_jump_fcontext
-.def	copp_jump_fcontext;	.scl	2;	.type	32;	.endef
-.seh_proc	copp_jump_fcontext
-copp_jump_fcontext:
+.globl	copp_jump_fcontext_v2
+.def	copp_jump_fcontext_v2;	.scl	2;	.type	32;	.endef
+.seh_proc	copp_jump_fcontext_v2
+copp_jump_fcontext_v2:
 .seh_endprologue
 
     leaq  -0x118(%rsp), %rsp /* prepare stack */
@@ -206,4 +206,4 @@ copp_jump_fcontext:
 .seh_endproc
 
 .section .drectve
-.ascii " -export:\"copp_jump_fcontext\""
+.ascii " -export:\"copp_jump_fcontext_v2\""
