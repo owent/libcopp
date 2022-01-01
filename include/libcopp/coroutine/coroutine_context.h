@@ -25,10 +25,14 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
  */
 class coroutine_context : public coroutine_context_base {
  public:
-  using ptr_t = libcopp::util::intrusive_ptr<coroutine_context>;
-  using callback_t = coroutine_context_base::callback_t;
+  using ptr_type = libcopp::util::intrusive_ptr<coroutine_context>;
+  using callback_type = coroutine_context_base::callback_type;
   using status_t = coroutine_context_base::status_t;
   using flag_t = coroutine_context_base::flag_t;
+
+  // Compability with libcopp-1.x
+  using ptr_t = ptr_type;
+  using callback_t = callback_type;
 
  private:
   using coroutine_context_base::flags_;
@@ -79,7 +83,7 @@ class coroutine_context : public coroutine_context_base {
    * @param private_buffer_size size of private buffer
    * @return COPP_EC_SUCCESS or error code
    */
-  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &&runner, const stack_context &callee_stack,
+  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_type &&runner, const stack_context &callee_stack,
                                      size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT;
 
   template <typename TRunner>

@@ -4,8 +4,11 @@
 
 1. Add ABI tag for all c++ codes
   > We will keep ABI compatitablity for all assemblly APIs and will change the suffix when ABI changed.
-2. Change the return type to result_type instead of `int`
-3. Allow `cotask::task` to wait for C++20 coroutine
+2. \[TODO\] Change the return type to `cotask::task_action_future<T>`
+  + Add `data_type` to task_macro ( `macro_coroutine` )
+  + Add API `task_action_impl::get_task_id`
+  + Add internal API`task_action_impl::get_task`
+  + Store result data into `cotask::task<...>`
 
 ## 1.5.0
 

@@ -65,7 +65,10 @@ static_assert(COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CO
  */
 class coroutine_context_base {
  public:
-  using callback_t = std::function<int(void *)>;
+  using callback_type = std::function<int(void *)>;
+
+  // Compability with libcopp-1.x
+  using callback_t = callback_type;
 
   /**
    * @brief status of safe coroutine context base
@@ -90,9 +93,9 @@ class coroutine_context_base {
   };
 
  protected:
-  int runner_ret_code_; /** coroutine return code **/
-  int flags_;           /** flags **/
-  callback_t runner_;   /** coroutine runner **/
+  int runner_ret_code_;  /** coroutine return code **/
+  int flags_;            /** flags **/
+  callback_type runner_; /** coroutine runner **/
   void *priv_data_;
   size_t private_buffer_size_;
 
@@ -157,7 +160,7 @@ class coroutine_context_base {
    * @param runner
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int set_runner(callback_t &&runner);
+  LIBCOPP_COPP_API int set_runner(callback_type &&runner);
 
   /**
    * get runner of this coroutine context (const)

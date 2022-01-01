@@ -16,7 +16,7 @@
 #  include <exception>
 #endif
 
-#include "future.h"
+#include "libcopp/future/future.h"
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {

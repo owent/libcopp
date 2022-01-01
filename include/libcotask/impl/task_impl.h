@@ -5,7 +5,6 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/uint64_id_allocator.h>
 
@@ -34,11 +33,18 @@ namespace impl {
 
 class UTIL_SYMBOL_VISIBLE task_impl {
  public:
-  using id_t = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::value_type;
-  using id_allocator_t = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator;
+  using id_type = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::value_type;
+  using id_allocator_type = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator;
+
+  // Compability with libcopp-1.x
+  using id_t = id_type;
+  using id_allocator_t = id_allocator_type;
 
  protected:
-  using action_ptr_t = task_action_impl *;
+  using action_ptr_type = task_action_impl *;
+
+  // Compability with libcopp-1.x
+  using action_ptr_t = action_ptr_type;
 
   struct LIBCOPP_COTASK_API ext_coroutine_flag_t {
     enum type {
@@ -59,7 +65,7 @@ class UTIL_SYMBOL_VISIBLE task_impl {
   LIBCOPP_COTASK_API task_impl();
   LIBCOPP_COTASK_API virtual ~task_impl() = 0;
 
-  UTIL_FORCEINLINE id_t get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
+  UTIL_FORCEINLINE id_type get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
 
   /**
    * get task status
@@ -105,10 +111,6 @@ class UTIL_SYMBOL_VISIBLE task_impl {
   virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT = 0;
 #endif
 
-  LIBCOPP_COTASK_API friend void intrusive_ptr_add_ref(task_impl *p);
-
-  LIBCOPP_COTASK_API friend void intrusive_ptr_release(task_impl *p);
-
   /**
    * get current running task
    * @return current running task or empty pointer
@@ -121,11 +123,11 @@ class UTIL_SYMBOL_VISIBLE task_impl {
    * cotask
    * @return pointer to task_action instance
    */
-  UTIL_FORCEINLINE action_ptr_t get_raw_action() const LIBCOPP_MACRO_NOEXCEPT { return action_; }
+  UTIL_FORCEINLINE action_ptr_type get_raw_action() const LIBCOPP_MACRO_NOEXCEPT { return action_; }
 
  protected:
-  LIBCOPP_COTASK_API void _set_action(action_ptr_t action);
-  LIBCOPP_COTASK_API action_ptr_t _get_action();
+  LIBCOPP_COTASK_API void _set_action(action_ptr_type action);
+  LIBCOPP_COTASK_API action_ptr_type _get_action();
 
   LIBCOPP_COTASK_API bool _cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired);
 
@@ -136,8 +138,8 @@ class UTIL_SYMBOL_VISIBLE task_impl {
 #endif
 
  private:
-  action_ptr_t action_;
-  id_t id_;
+  action_ptr_type action_;
+  id_type id_;
 
  protected:
   void *finish_priv_data_;

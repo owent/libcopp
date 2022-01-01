@@ -2,7 +2,6 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
@@ -183,7 +182,7 @@ LIBCOPP_COPP_API coroutine_context_fiber::~coroutine_context_fiber() {
   }
 }
 
-LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p, callback_t &&runner,
+LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p, callback_type &&runner,
                                                      const stack_context &callee_stack, size_t coroutine_size,
                                                      size_t private_buffer_size,
                                                      size_t stack_reserve_size_of_fiber) LIBCOPP_MACRO_NOEXCEPT {

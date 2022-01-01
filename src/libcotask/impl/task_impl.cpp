@@ -57,9 +57,9 @@ LIBCOPP_COTASK_API task_impl *task_impl::this_task() {
   return *reinterpret_cast<task_impl **>(this_co->get_private_buffer());
 }
 
-LIBCOPP_COTASK_API void task_impl::_set_action(action_ptr_t action) { action_ = action; }
+LIBCOPP_COTASK_API void task_impl::_set_action(action_ptr_type action) { action_ = action; }
 
-LIBCOPP_COTASK_API task_impl::action_ptr_t task_impl::_get_action() { return action_; }
+LIBCOPP_COTASK_API task_impl::action_ptr_type task_impl::_get_action() { return action_; }
 
 LIBCOPP_COTASK_API bool task_impl::_cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired) {
   uint32_t expected_int = expected;

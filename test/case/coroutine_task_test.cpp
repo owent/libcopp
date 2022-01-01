@@ -382,7 +382,7 @@ struct test_context_task_functor_drived : public cotask::impl::task_action_impl 
 
 CASE_TEST(coroutine_task, functor_drived_action) {
   typedef cotask::task<>::ptr_t task_ptr_type;
-  cotask::task<>::coroutine_t::allocator_type alloc;
+  cotask::task<>::coroutine_type::allocator_type alloc;
   task_ptr_type co_task = cotask::task<>::create_with<test_context_task_functor_drived>(alloc, 0, 0, 1, 3);
   CASE_EXPECT_EQ(0, co_task->start());
 }
@@ -582,9 +582,9 @@ CASE_TEST(coroutine_task, then) {
 
 typedef copp::stack_pool<copp::allocator::stack_allocator_malloc> test_context_task_stack_pool_t;
 struct test_context_task_stack_pool_test_macro_coroutine {
-  typedef copp::allocator::stack_allocator_pool<test_context_task_stack_pool_t> stack_allocator_t;
-
-  typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
+  using stack_allocator_type = copp::allocator::stack_allocator_pool<test_context_task_stack_pool_t>;
+  using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
+  using data_type = int;
 };
 
 typedef cotask::task<test_context_task_stack_pool_test_macro_coroutine> test_context_task_stack_pool_test_task_t;

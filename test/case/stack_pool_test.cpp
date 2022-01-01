@@ -10,9 +10,9 @@
 
 typedef copp::stack_pool<copp::allocator::stack_allocator_malloc> stack_pool_t;
 struct stack_pool_test_macro_coroutine {
-  typedef copp::allocator::stack_allocator_pool<stack_pool_t> stack_allocator_t;
-
-  typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
+  using stack_allocator_type = copp::allocator::stack_allocator_pool<stack_pool_t>;
+  using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
+  using data_type = int;
 };
 static stack_pool_t::ptr_t global_stack_pool;
 

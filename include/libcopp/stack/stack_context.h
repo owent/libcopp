@@ -4,10 +4,9 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-#include <cstddef>
-
-#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
+
+#include <cstddef>
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 struct LIBCOPP_COPP_API stack_context {

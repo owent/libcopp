@@ -4,6 +4,8 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcotask/task_macros.h>
+
 #include <assert.h>
 #include <stdint.h>
 #include <algorithm>
@@ -26,8 +28,6 @@
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
-
-#include <libcotask/task_macros.h>
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 
@@ -70,7 +70,7 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY tickspec_t {
 template <typename TTask>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
   tickspec_t expired_time;
-  typename TTask::id_t task_id;
+  typename TTask::id_type task_id;
 
   friend bool operator==(const task_timer_node &l, const task_timer_node &r) {
     return l.expired_time == r.expired_time && l.task_id == r.task_id;
@@ -125,9 +125,9 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
 
 template <typename TTask>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
-  using task_ptr_t = typename TTask::ptr_t;
+  using task_ptr_type = typename TTask::ptr_type;
 
-  task_ptr_t task_;
+  task_ptr_type task_;
   typename std::set<task_timer_node<TTask> >::iterator timer_node;
 };
 
@@ -138,19 +138,26 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
  */
 template <typename TTask,
 #if defined(COTASK_MACRO_MANAGER_USING_UNORDERED_MAP)
-          typename TTaskContainer = std::unordered_map<typename TTask::id_t, detail::task_manager_node<TTask> >
+          typename TTaskContainer = std::unordered_map<typename TTask::id_type, detail::task_manager_node<TTask> >
 #else
-          typename TTaskContainer = std::map<typename TTask::id_t, detail::task_manager_node<TTask> >
+          typename TTaskContainer = std::map<typename TTask::id_type, detail::task_manager_node<TTask> >
 #endif
           >
 class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
  public:
-  using task_t = TTask;
+  using task_type = TTask;
   using container_t = TTaskContainer;
-  using id_t = typename task_t::id_t;
-  using task_ptr_t = typename task_t::ptr_t;
-  using self_t = task_manager<task_t, container_t>;
-  using ptr_t = std::shared_ptr<self_t>;
+  using id_type = typename task_type::id_type;
+  using task_ptr_type = typename task_type::ptr_type;
+  using self_type = task_manager<task_type, container_t>;
+  using ptr_type = std::shared_ptr<self_type>;
+
+  // Compability with libcopp-1.x
+  using id_t = id_type;
+  using self_t = self_type;
+  using task_t = task_type;
+  using task_ptr_t = task_ptr_type;
+  using ptr_t = ptr_type;
 
   struct flag_t {
     enum type {
@@ -198,7 +205,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       return;
     }
 
-    std::vector<task_ptr_t> all_tasks;
+    std::vector<task_ptr_type> all_tasks;
     // first, lock and reset all data
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
@@ -218,7 +225,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
 
     // then, kill all tasks
-    for (typename std::vector<task_ptr_t>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
+    for (typename std::vector<task_ptr_type>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
       if (!(*iter)->is_exiting()) {
         (*iter)->kill(EN_TS_KILLED);
       }
@@ -229,7 +236,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @brief create a new task manager
    * @return smart pointer of task manager
    */
-  static ptr_t create() { return std::make_shared<self_t>(); }
+  static ptr_type create() { return std::make_shared<self_type>(); }
 
   /**
    * @brief add task to manager
@@ -244,7 +251,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    *       the timeout will be set releative to the first calling time of tick method
    * @see tick
    */
-  int add_task(const task_ptr_t &task, time_t timeout_sec, int timeout_nsec) {
+  int add_task(const task_ptr_type &task, time_t timeout_sec, int timeout_nsec) {
     if (!task) {
       assert(task);
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR;
@@ -260,7 +267,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
     // try to cast type
     using pair_type = typename container_t::value_type;
-    detail::task_manager_node<task_t> task_node;
+    detail::task_manager_node<task_type> task_node;
     task_node.task_ = task;
     task_node.timer_node = task_timeout_timer_.end();
 
@@ -274,14 +281,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-    id_t task_id = task->get_id();
+    id_type task_id = task->get_id();
     if (tasks_.end() != tasks_.find(task_id)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST;
     }
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-    if (!task_t::task_manager_helper::setup_task_manager(*task, reinterpret_cast<void *>(this),
-                                                         &task_cleanup_callback)) {
+    if (!task_type::task_manager_helper::setup_task_manager(*task, reinterpret_cast<void *>(this),
+                                                            &task_cleanup_callback)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER;
     }
 #endif
@@ -290,7 +297,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     std::pair<typename container_t::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
     if (false == res.second) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-      task_t::task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
+      task_type::task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
 #endif
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_EXTERNAL_INSERT_FAILED;
     }
@@ -308,7 +315,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @return 0 or error code
    *
    */
-  int add_task(const task_ptr_t &task) { return add_task(task, 0, 0); }
+  int add_task(const task_ptr_type &task) { return add_task(task, 0, 0); }
 
   /**
    * @brief set or update task timeout
@@ -324,7 +331,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    *       set_timeout(TASK_ID, 0, 0) means the task with TASK_ID will never expire.
    * @see tick
    */
-  int set_timeout(id_t id, time_t timeout_sec, int timeout_nsec) {
+  int set_timeout(id_type id, time_t timeout_sec, int timeout_nsec) {
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
@@ -350,14 +357,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @param confirm_ptr check task ptr before just remove by id
    * @return 0 or error code
    */
-  inline int remove_task(id_t id, const task_ptr_t &confirm_ptr) { return remove_task(id, confirm_ptr.get()); }
+  inline int remove_task(id_type id, const task_ptr_type &confirm_ptr) { return remove_task(id, confirm_ptr.get()); }
 
   /**
    * @brief remove task in this manager
    * @param id task id
    * @return 0 or error code
    */
-  inline int remove_task(id_t id) { return remove_task(id, nullptr); }
+  inline int remove_task(id_type id) { return remove_task(id, nullptr); }
 
   /**
    * @brief remove task in this manager
@@ -365,12 +372,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @param confirm_ptr check task ptr before just remove by id
    * @return 0 or error code
    */
-  int remove_task(id_t id, const task_t *confirm_ptr) {
+  int remove_task(id_type id, const task_type *confirm_ptr) {
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_t task_inst;
+    task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
@@ -395,7 +402,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     if (task_inst) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
       // already cleanup, there is no need to cleanup again
-      task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+      task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 
       EN_TASK_STATUS task_status = task_inst->get_status();
@@ -412,9 +419,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @param id task id
    * @return smart pointer of task
    */
-  task_ptr_t find_task(id_t id) {
+  task_ptr_type find_task(id_type id) {
     if (flags_ & flag_t::EN_TM_IN_RESET) {
-      return task_ptr_t();
+      return task_ptr_type();
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
@@ -423,7 +430,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
     using iter_type = typename container_t::iterator;
     iter_type iter = tasks_.find(id);
-    if (tasks_.end() == iter) return task_ptr_t();
+    if (tasks_.end() == iter) return task_ptr_type();
 
     return iter->second.task_;
   }
@@ -432,22 +439,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   // int scheduling_once();
   // int scheduling_loop();
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int start(id_t id, void *priv_data = nullptr) {
+  int start(id_type id, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = start(id, eptrs, priv_data);
-    task_t::maybe_rethrow(eptrs);
+    task_type::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int start(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
+  int start(id_type id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int start(id_t id, void *priv_data = nullptr) {
+  int start(id_type id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_t task_inst;
+    task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
@@ -480,22 +487,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int resume(id_t id, void *priv_data = nullptr) {
+  int resume(id_type id, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = resume(id, eptrs, priv_data);
-    task_t::maybe_rethrow(eptrs);
+    task_type::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int resume(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
+  int resume(id_type id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int resume(id_t id, void *priv_data = nullptr) {
+  int resume(id_type id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_t task_inst;
+    task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
@@ -528,22 +535,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int cancel(id_t id, void *priv_data = nullptr) {
+  int cancel(id_type id, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = cancel(id, eptrs, priv_data);
-    task_t::maybe_rethrow(eptrs);
+    task_type::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int cancel(id_t id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
+  int cancel(id_type id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int cancel(id_t id, void *priv_data = nullptr) {
+  int cancel(id_type id, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_t task_inst;
+    task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
@@ -565,7 +572,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     if (task_inst) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
       // already cleanup, there is no need to cleanup again
-      task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+      task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
       return task_inst->cancel(unhandled, priv_data);
@@ -578,23 +585,23 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
+  int kill(id_type id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
     std::list<std::exception_ptr> eptrs;
     int ret = kill(id, eptrs, status, priv_data);
-    task_t::maybe_rethrow(eptrs);
+    task_type::maybe_rethrow(eptrs);
     return ret;
   }
 
-  int kill(id_t id, std::list<std::exception_ptr> &unhandled, enum EN_TASK_STATUS status,
+  int kill(id_type id, std::list<std::exception_ptr> &unhandled, enum EN_TASK_STATUS status,
            void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
 #else
-  int kill(id_t id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
+  int kill(id_type id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
 #endif
     if (flags_ & flag_t::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_t task_inst;
+    task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
@@ -616,7 +623,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     if (task_inst) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
       // already cleanup, there is no need to cleanup again
-      task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+      task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
       return task_inst->kill(unhandled, status, priv_data);
@@ -628,7 +635,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
   }
 
-  int kill(id_t id, void *priv_data = nullptr) { return kill(id, EN_TS_KILLED, priv_data); }
+  int kill(id_type id, void *priv_data = nullptr) { return kill(id, EN_TS_KILLED, priv_data); }
 
   /**
    * @brief active tick event and deal with clock
@@ -665,10 +672,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      std::set<detail::task_timer_node<task_t> > real_checkpoints;
-      for (typename std::set<detail::task_timer_node<task_t> >::iterator iter = task_timeout_timer_.begin();
+      std::set<detail::task_timer_node<task_type> > real_checkpoints;
+      for (typename std::set<detail::task_timer_node<task_type> >::iterator iter = task_timeout_timer_.begin();
            task_timeout_timer_.end() != iter; ++iter) {
-        detail::task_timer_node<task_t> new_checkpoint = (*iter);
+        detail::task_timer_node<task_type> new_checkpoint = (*iter);
         new_checkpoint.expired_time.tv_sec += sec;
         new_checkpoint.expired_time.tv_nsec += nsec;
         real_checkpoints.insert(new_checkpoint);
@@ -684,7 +691,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #endif
     // remove timeout tasks
     while (false == task_timeout_timer_.empty()) {
-      task_ptr_t task_inst;
+      task_ptr_type task_inst;
 
       {
         // hold lock
@@ -692,7 +699,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
         libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-        const typename std::set<detail::task_timer_node<task_t> >::value_type &timer_node =
+        const typename std::set<detail::task_timer_node<task_type> >::value_type &timer_node =
             *task_timeout_timer_.begin();
         // all tasks those expired time less than now are timeout
         if (now_tick_time <= timer_node.expired_time) {
@@ -717,7 +724,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       if (task_inst && !task_inst->is_exiting()) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
         // already cleanup, there is no need to cleanup again
-        task_t::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+        task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         task_inst->kill(eptrs, EN_TS_TIMEOUT, nullptr);
@@ -730,7 +737,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     last_tick_time_ = now_tick_time;
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    task_t::maybe_rethrow(eptrs);
+    task_type::maybe_rethrow(eptrs);
 #endif
     return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
@@ -763,12 +770,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @brief get all task checkpoints, this api is just used for provide information to users
    * @return task checkpoints
    */
-  inline const std::set<detail::task_timer_node<task_t> > &get_checkpoints() const LIBCOPP_MACRO_NOEXCEPT {
+  inline const std::set<detail::task_timer_node<task_type> > &get_checkpoints() const LIBCOPP_MACRO_NOEXCEPT {
     return task_timeout_timer_;
   }
 
  private:
-  void set_timeout_timer(detail::task_manager_node<task_t> &node, time_t timeout_sec, int timeout_nsec) {
+  void set_timeout_timer(detail::task_manager_node<task_type> &node, time_t timeout_sec, int timeout_nsec) {
     remove_timeout_timer(node);
 
     if (timeout_sec <= 0 && timeout_nsec <= 0) {
@@ -779,19 +786,19 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       return;
     }
 
-    detail::task_timer_node<task_t> timer_node;
+    detail::task_timer_node<task_type> timer_node;
     timer_node.task_id = node.task_->get_id();
     timer_node.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
     timer_node.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
 
-    std::pair<typename std::set<detail::task_timer_node<task_t> >::iterator, bool> res =
+    std::pair<typename std::set<detail::task_timer_node<task_type> >::iterator, bool> res =
         task_timeout_timer_.insert(timer_node);
     if (res.second) {
       node.timer_node = res.first;
     }
   }
 
-  void remove_timeout_timer(detail::task_manager_node<task_t> &node) {
+  void remove_timeout_timer(detail::task_manager_node<task_type> &node) {
     if (node.timer_node != task_timeout_timer_.end()) {
       task_timeout_timer_.erase(node.timer_node);
       node.timer_node = task_timeout_timer_.end();
@@ -799,19 +806,19 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-  static void task_cleanup_callback(void *self_ptr, task_t &task_inst) {
+  static void task_cleanup_callback(void *self_ptr, task_type &task_inst) {
     if (nullptr == self_ptr) {
       return;
     }
 
-    reinterpret_cast<self_t *>(self_ptr)->remove_task(task_inst.get_id(), &task_inst);
+    reinterpret_cast<self_type *>(self_ptr)->remove_task(task_inst.get_id(), &task_inst);
   }
 #endif
 
  private:
   container_t tasks_;
   detail::tickspec_t last_tick_time_;
-  std::set<detail::task_timer_node<task_t> > task_timeout_timer_;
+  std::set<detail::task_timer_node<task_type> > task_timeout_timer_;
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
   libcopp::util::lock::spin_lock action_lock_;

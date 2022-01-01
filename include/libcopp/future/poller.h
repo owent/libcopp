@@ -4,7 +4,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-#include "storage.h"
+#include "libcopp/future/storage.h"
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {

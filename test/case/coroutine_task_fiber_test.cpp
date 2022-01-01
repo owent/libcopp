@@ -12,8 +12,9 @@
 
 #if defined(LIBCOTASK_MACRO_ENABLED) && defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 struct test_context_task_fiber_default_test_macro {
-  typedef copp::allocator::stack_allocator_malloc stack_allocator_t;
-  typedef copp::coroutine_context_fiber_container<stack_allocator_t> coroutine_t;
+  using stack_allocator_type = copp::allocator::stack_allocator_malloc;
+  using coroutine_type = copp::coroutine_context_fiber_container<stack_allocator_type>;
+  using data_type = int;
 };
 
 static int g_test_coroutine_task_fiber_status = 0;
@@ -401,7 +402,7 @@ struct test_context_task_fiber_functor_drived : public cotask::impl::task_action
 
 CASE_TEST(coroutine_task_fiber, functor_drived_action) {
   typedef cotask::task<test_context_task_fiber_default_test_macro>::ptr_t task_ptr_type;
-  cotask::task<test_context_task_fiber_default_test_macro>::coroutine_t::allocator_type alloc;
+  cotask::task<test_context_task_fiber_default_test_macro>::coroutine_type::allocator_type alloc;
   task_ptr_type co_task =
       cotask::task<test_context_task_fiber_default_test_macro>::create_with<test_context_task_fiber_functor_drived>(
           alloc, 0, 0, 1, 3);
@@ -613,9 +614,9 @@ CASE_TEST(coroutine_task_fiber, then) {
 
 typedef copp::stack_pool<copp::allocator::stack_allocator_malloc> test_context_task_fiber_stack_pool_t;
 struct test_context_task_fiber_stack_pool_test_macro_coroutine {
-  typedef copp::allocator::stack_allocator_pool<test_context_task_fiber_stack_pool_t> stack_allocator_t;
-
-  typedef copp::coroutine_context_fiber_container<stack_allocator_t> coroutine_t;
+  using stack_allocator_type = copp::allocator::stack_allocator_pool<test_context_task_fiber_stack_pool_t>;
+  using coroutine_type = copp::coroutine_context_fiber_container<stack_allocator_type>;
+  using data_type = int;
 };
 
 typedef cotask::task<test_context_task_fiber_stack_pool_test_macro_coroutine>

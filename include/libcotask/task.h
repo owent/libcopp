@@ -4,6 +4,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcopp/future/future.h>
 #include <libcopp/future/std_coroutine_generator.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 
@@ -29,21 +30,33 @@ LIBCOPP_COTASK_NAMESPACE_BEGIN
 template <typename TCO_MACRO = macro_coroutine>
 class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
-  using self_t = task<TCO_MACRO>;
-  using ptr_t = libcopp::util::intrusive_ptr<self_t>;
-  using macro_coroutine_t = TCO_MACRO;
+  using macro_coroutine_type = TCO_MACRO;
+  using result_type = LIBCOPP_COPP_NAMESPACE_ID::future::future<typename macro_coroutine_type::data_type>;
+  using self_type = task<macro_coroutine>;
+  using ptr_type = libcopp::util::intrusive_ptr<self_type>;
 
-  using coroutine_t = typename macro_coroutine_t::coroutine_t;
-  using stack_allocator_t = typename macro_coroutine_t::stack_allocator_t;
+  using coroutine_type = typename macro_coroutine_type::coroutine_type;
+  using stack_allocator_type = typename macro_coroutine_type::stack_allocator_type;
 
-  using id_t = typename impl::task_impl::id_t;
-  using id_allocator_t = typename impl::task_impl::id_allocator_t;
+  using id_type = typename impl::task_impl::id_type;
+  using id_allocator_type = typename impl::task_impl::id_allocator_type;
+
+  // Compability with libcopp-1.x
+  using macro_coroutine_t = macro_coroutine_type;
+  using self_t = self_type;
+  using ptr_t = ptr_type;
+  using coroutine_t = coroutine_type;
+  using stack_allocator_t = stack_allocator_type;
+  using id_allocator_t = id_allocator_type;
+  using id_t = id_type;
 
  private:
-  using action_ptr_t = impl::task_impl::action_ptr_t;
+  using action_ptr_type = impl::task_impl::action_ptr_type;
+  // Compability with libcopp-1.x
+  using action_ptr_t = action_ptr_type;
 
   struct task_group {
-    std::list<std::pair<ptr_t, void *> > member_list_;
+    std::list<std::pair<ptr_type, void *> > member_list_;
   };
 
  public:
@@ -70,35 +83,35 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return task smart pointer
    */
   template <typename TAct, typename Ty>
-  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with_delegate(Ty &&callable,
-                                                                 typename coroutine_t::allocator_type &alloc,
-                                                                 size_t stack_size = 0,
-                                                                 size_t private_buffer_size = 0) {
+  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_type create_with_delegate(Ty &&callable,
+                                                                    typename coroutine_type::allocator_type &alloc,
+                                                                    size_t stack_size = 0,
+                                                                    size_t private_buffer_size = 0) {
     using a_t = TAct;
 
     if (0 == stack_size) {
       stack_size = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::default_size();
     }
 
-    size_t action_size = coroutine_t::align_address_size(sizeof(a_t));
-    size_t task_size = coroutine_t::align_address_size(sizeof(self_t));
+    size_t action_size = coroutine_type::align_address_size(sizeof(a_t));
+    size_t task_size = coroutine_type::align_address_size(sizeof(self_type));
 
     if (stack_size <= sizeof(impl::task_impl *) + private_buffer_size + action_size + task_size) {
-      return ptr_t();
+      return ptr_type();
     }
 
-    typename coroutine_t::ptr_t coroutine =
-        coroutine_t::create(typename coroutine_t::callback_t(), alloc, stack_size,
-                            sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
+    typename coroutine_type::ptr_type coroutine =
+        coroutine_type::create(typename coroutine_type::callback_t(), alloc, stack_size,
+                               sizeof(impl::task_impl *) + private_buffer_size, action_size + task_size);
     if (!coroutine) {
-      return ptr_t();
+      return ptr_type();
     }
 
     void *action_addr = sub_buffer_offset(coroutine.get(), action_size);
     void *task_addr = sub_buffer_offset(action_addr, task_size);
 
     // placement new task
-    ptr_t ret(new (task_addr) self_t(stack_size));
+    ptr_type ret(new (task_addr) self_type(stack_size));
     if (!ret) {
       return ret;
     }
@@ -130,14 +143,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return task smart pointer
    */
   template <typename Ty>
-  static inline ptr_t create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
-    typename coroutine_t::allocator_type alloc;
+  static inline ptr_type create(Ty &&functor, size_t stack_size = 0, size_t private_buffer_size = 0) {
+    typename coroutine_type::allocator_type alloc;
     return create(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size);
   }
 
   template <typename Ty>
-  static inline ptr_t create(Ty &&functor, typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
-                             size_t private_buffer_size = 0) {
+  static inline ptr_type create(Ty &&functor, typename coroutine_type::allocator_type &alloc, size_t stack_size = 0,
+                                size_t private_buffer_size = 0) {
     using decay_type = typename std::decay<Ty>::type;
     using a_t = typename std::conditional<std::is_base_of<impl::task_action_impl, decay_type>::value, decay_type,
                                           task_action_functor<decay_type> >::type;
@@ -152,16 +165,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return task smart pointer
    */
   template <typename Ty>
-  static inline ptr_t create(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
-                             size_t private_buffer_size = 0) {
+  static inline ptr_type create(Ty (*func)(void *), typename coroutine_type::allocator_type &alloc,
+                                size_t stack_size = 0, size_t private_buffer_size = 0) {
     using a_t = task_action_function<Ty>;
 
     return create_with_delegate<a_t>(func, alloc, stack_size, private_buffer_size);
   }
 
   template <typename Ty>
-  static inline ptr_t create(Ty (*func)(void *), size_t stack_size = 0, size_t private_buffer_size = 0) {
-    typename coroutine_t::allocator_type alloc;
+  static inline ptr_type create(Ty (*func)(void *), size_t stack_size = 0, size_t private_buffer_size = 0) {
+    typename coroutine_type::allocator_type alloc;
     return create(func, alloc, stack_size, private_buffer_size);
   }
 
@@ -172,17 +185,18 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return task smart pointer
    */
   template <typename Ty, typename TInst>
-  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create(Ty(TInst::*func), TInst *instance,
-                                                   typename coroutine_t::allocator_type &alloc, size_t stack_size = 0,
-                                                   size_t private_buffer_size = 0) {
+  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_type create(Ty(TInst::*func), TInst *instance,
+                                                      typename coroutine_type::allocator_type &alloc,
+                                                      size_t stack_size = 0, size_t private_buffer_size = 0) {
     using a_t = task_action_mem_function<Ty, TInst>;
 
     return create<a_t>(a_t(func, instance), alloc, stack_size, private_buffer_size);
   }
 
   template <typename Ty, typename TInst>
-  static inline ptr_t create(Ty(TInst::*func), TInst *instance, size_t stack_size = 0, size_t private_buffer_size = 0) {
-    typename coroutine_t::allocator_type alloc;
+  static inline ptr_type create(Ty(TInst::*func), TInst *instance, size_t stack_size = 0,
+                                size_t private_buffer_size = 0) {
+    typename coroutine_type::allocator_type alloc;
     return create(func, instance, alloc, stack_size, private_buffer_size);
   }
 
@@ -193,8 +207,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return task smart pointer
    */
   template <typename Ty, typename... TParams>
-  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_t create_with(typename coroutine_t::allocator_type &alloc, size_t stack_size,
-                                                        size_t private_buffer_size, TParams &&...args) {
+  static LIBCOPP_COTASK_API_HEAD_ONLY ptr_type create_with(typename coroutine_type::allocator_type &alloc,
+                                                           size_t stack_size, size_t private_buffer_size,
+                                                           TParams &&...args) {
     using a_t = Ty;
 
     return create(a_t(std::forward<TParams>(args)...), alloc, stack_size, private_buffer_size);
@@ -203,15 +218,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   /**
    * @brief add next task to run when task finished
    * @note please not to make tasks refer to each other. [it will lead to memory leak]
-   * @note [don't do that] ptr_t a = ..., b = ...; a.next(b); b.next(a);
+   * @note [don't do that] ptr_type a = ..., b = ...; a.next(b); b.next(a);
    * @param next_task next stack
    * @param priv_data priv_data passed to resume or start next stack
    * @return next_task if success , or self if failed
    */
-  inline ptr_t next(ptr_t next_task, void *priv_data = nullptr) {
+  inline ptr_type next(ptr_type next_task, void *priv_data = nullptr) {
     // can not refers to self
     if (this == next_task.get() || !next_task) {
-      return ptr_t(this);
+      return ptr_type(this);
     }
 
     // can not add next task when finished
@@ -243,13 +258,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return the created task if success , or self if failed
    */
   template <typename Ty>
-  inline ptr_t next(Ty &&functor, void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
+  inline ptr_type next(Ty &&functor, void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(std::forward<Ty>(functor), stack_size, private_buffer_size), priv_data);
   }
 
   template <typename Ty>
-  inline ptr_t next(Ty &&functor, typename coroutine_t::allocator_type &alloc, void *priv_data = nullptr,
-                    size_t stack_size = 0, size_t private_buffer_size = 0) {
+  inline ptr_type next(Ty &&functor, typename coroutine_type::allocator_type &alloc, void *priv_data = nullptr,
+                       size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size), priv_data);
   }
 
@@ -262,14 +277,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return the created task if success , or self if failed
    */
   template <typename Ty>
-  inline ptr_t next(Ty (*func)(void *), void *priv_data = nullptr, size_t stack_size = 0,
-                    size_t private_buffer_size = 0) {
+  inline ptr_type next(Ty (*func)(void *), void *priv_data = nullptr, size_t stack_size = 0,
+                       size_t private_buffer_size = 0) {
     return next(create(func, stack_size, private_buffer_size), priv_data);
   }
 
   template <typename Ty>
-  inline ptr_t next(Ty (*func)(void *), typename coroutine_t::allocator_type &alloc, void *priv_data = nullptr,
-                    size_t stack_size = 0, size_t private_buffer_size = 0) {
+  inline ptr_type next(Ty (*func)(void *), typename coroutine_type::allocator_type &alloc, void *priv_data = nullptr,
+                       size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(func, alloc, stack_size, private_buffer_size), priv_data);
   }
 
@@ -283,26 +298,26 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return the created task if success , or self if failed
    */
   template <typename Ty, typename TInst>
-  inline ptr_t next(Ty(TInst::*func), TInst *instance, void *priv_data = nullptr, size_t stack_size = 0,
-                    size_t private_buffer_size = 0) {
+  inline ptr_type next(Ty(TInst::*func), TInst *instance, void *priv_data = nullptr, size_t stack_size = 0,
+                       size_t private_buffer_size = 0) {
     return next(create(func, instance, stack_size, private_buffer_size), priv_data);
   }
 
   template <typename Ty, typename TInst>
-  inline ptr_t next(Ty(TInst::*func), TInst *instance, typename coroutine_t::allocator_type &alloc,
-                    void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
+  inline ptr_type next(Ty(TInst::*func), TInst *instance, typename coroutine_type::allocator_type &alloc,
+                       void *priv_data = nullptr, size_t stack_size = 0, size_t private_buffer_size = 0) {
     return next(create(func, instance, alloc, stack_size, private_buffer_size), priv_data);
   }
 
   /**
    * @brief await_task another cotask to finish
    * @note please not to make tasks refer to each other. [it will lead to memory leak]
-   * @note [don't do that] ptr_t a = ..., b = ...; a.await_task(b); b.await_task(a);
+   * @note [don't do that] ptr_type a = ..., b = ...; a.await_task(b); b.await_task(a);
    * @param wait_task which stack to wait for
    * @note we will loop wait and ignore any resume(...) call
    * @return 0 or error code
    */
-  inline int await_task(ptr_t wait_task) {
+  inline int await_task(ptr_type wait_task) {
     if (!wait_task) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR;
     }
@@ -325,7 +340,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     // add to next list failed
-    if (wait_task->next(ptr_t(this)).get() != this) {
+    if (wait_task->next(ptr_type(this)).get() != this) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_ADD_NEXT_FAILED;
     }
 
@@ -343,18 +358,18 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
   template <typename TTask>
   inline int await_task(TTask *wait_task) {
-    return await_task(ptr_t(wait_task));
+    return await_task(ptr_type(wait_task));
   }
 
   /**
    * @brief add task to run when task finished
    * @note please not to make tasks refer to each other. [it will lead to memory leak]
-   * @note [don't do that] ptr_t a = ..., b = ...; a.then(b); b.then(a);
+   * @note [don't do that] ptr_type a = ..., b = ...; a.then(b); b.then(a);
    * @param next_task then stack
    * @param priv_data priv_data passed to resume or start the stack
    * @return next_task if success , or self if failed
    */
-  inline ptr_t then(ptr_t next_task, void *priv_data = nullptr) { return next(next_task, priv_data); }
+  inline ptr_type then(ptr_type next_task, void *priv_data = nullptr) { return next(next_task, priv_data); }
 
   /**
    * @brief create next task with functor using the same allocator and private buffer size as this task
@@ -364,7 +379,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * @return the created task if success , or self if failed
    */
   template <typename Ty>
-  inline ptr_t then(Ty &&functor, void *priv_data = nullptr) {
+  inline ptr_type then(Ty &&functor, void *priv_data = nullptr) {
     if (!coroutine_obj_) {
       then(create(std::forward<Ty>(functor), stack_size_, get_private_buffer_size()), priv_data);
     }
@@ -375,7 +390,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
   template <typename Ty>
-  inline ptr_t then(Ty (*func)(void *), void *priv_data = nullptr) {
+  inline ptr_type then(Ty (*func)(void *), void *priv_data = nullptr) {
     if (!coroutine_obj_) {
       return then(create(func, stack_size_, get_private_buffer_size()), priv_data);
     }
@@ -387,7 +402,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * get current running task and convert to task object
    * @return task smart pointer
    */
-  static self_t *this_task() { return dynamic_cast<self_t *>(impl::task_impl::this_task()); }
+  static self_type *this_task() { return dynamic_cast<self_type *>(impl::task_impl::this_task()); }
 
  public:
   virtual ~task() {
@@ -398,8 +413,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
   }
 
-  inline typename coroutine_t::ptr_t &get_coroutine_context() LIBCOPP_MACRO_NOEXCEPT { return coroutine_obj_; }
-  inline const typename coroutine_t::ptr_t &get_coroutine_context() const LIBCOPP_MACRO_NOEXCEPT {
+  inline typename coroutine_type::ptr_type &get_coroutine_context() LIBCOPP_MACRO_NOEXCEPT { return coroutine_obj_; }
+  inline const typename coroutine_type::ptr_type &get_coroutine_context() const LIBCOPP_MACRO_NOEXCEPT {
     return coroutine_obj_;
   }
 
@@ -446,7 +461,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     } while (true);
 
     // use this smart ptr to avoid destroy of this
-    // ptr_t protect_from_destroy(this);
+    // ptr_type protect_from_destroy(this);
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
     std::exception_ptr eptr;
@@ -601,7 +616,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
   virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT {
-    return std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_fiber, coroutine_t>::value;
+    return std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_fiber, coroutine_type>::value;
   }
 #endif
 
@@ -634,7 +649,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   static UTIL_FORCEINLINE void maybe_rethrow(std::list<std::exception_ptr> &eptrs) {
     for (std::list<std::exception_ptr>::iterator iter = eptrs.begin(); iter != eptrs.end(); ++iter) {
-      coroutine_t::maybe_rethrow(*iter);
+      coroutine_type::maybe_rethrow(*iter);
     }
   }
 #endif
@@ -646,10 +661,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #else
   void active_next_tasks() {
 #endif
-    std::list<std::pair<ptr_t, void *> > next_list;
+    std::list<std::pair<ptr_type, void *> > next_list;
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
     void *manager_ptr;
-    void (*manager_fn)(void *, self_t &);
+    void (*manager_fn)(void *, self_type &);
 #endif
     // first, lock and swap container
     {
@@ -666,7 +681,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     // then, do all the pending tasks
-    for (typename std::list<std::pair<ptr_t, void *> >::iterator iter = next_list.begin(); iter != next_list.end();
+    for (typename std::list<std::pair<ptr_type, void *> >::iterator iter = next_list.begin(); iter != next_list.end();
          ++iter) {
       if (!iter->first || EN_TS_INVALID == iter->first->get_status()) {
         continue;
@@ -712,11 +727,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #endif
   }
 
+  int _notify_finished(
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int _notify_finished(std::list<std::exception_ptr> &unhandled, void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
-#else
-  int _notify_finished(void *priv_data) {
+      std::list<std::exception_ptr> &unhandled,
 #endif
+      void *priv_data) LIBCOPP_MACRO_NOEXCEPT {
     // first, make sure coroutine finished.
     if (coroutine_obj_ && false == coroutine_obj_->is_finished()) {
       // make sure this task will not be destroyed when running
@@ -745,7 +760,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     return ret;
   }
 
-  friend void intrusive_ptr_add_ref(self_t *p) {
+  friend void intrusive_ptr_add_ref(self_type *p) {
     if (p == nullptr) {
       return;
     }
@@ -753,7 +768,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     ++p->ref_count_;
   }
 
-  friend void intrusive_ptr_release(self_t *p) {
+  friend void intrusive_ptr_release(self_type *p) {
     if (p == nullptr) {
       return;
     }
@@ -761,7 +776,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     size_t left = --p->ref_count_;
     if (0 == left) {
       // save coroutine context first, make sure it's still available after destroy task
-      typename coroutine_t::ptr_t coro = p->coroutine_obj_;
+      typename coroutine_type::ptr_type coro = p->coroutine_obj_;
 
       // then, find and destroy action
       void *action_ptr = reinterpret_cast<void *>(p->_get_action());
@@ -783,7 +798,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    private:
     template <typename, typename>
     friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
-    static bool setup_task_manager(self_t &task_inst, void *manager_ptr, void (*fn)(void *, self_t &)) {
+    static bool setup_task_manager(self_type &task_inst, void *manager_ptr, void (*fn)(void *, self_type &)) {
 #  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
 #  endif
@@ -796,7 +811,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
       return true;
     }
 
-    static bool cleanup_task_manager(self_t &task_inst, void *manager_ptr) {
+    static bool cleanup_task_manager(self_type &task_inst, void *manager_ptr) {
 #  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
 #  endif
@@ -819,7 +834,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     awaitable_base_type &operator=(const awaitable_base_type &) = delete;
 
    public:
-    awaitable_base_type(ptr_t t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}
+    awaitable_base_type(ptr_type t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}
 
     awaitable_base_type(awaitable_base_type &&other)
         : refer_task_(other.refer_task_), await_handle_iter_(other.await_handle_iter_) {
@@ -860,15 +875,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
    protected:
-    ptr_t refer_task_;
+    ptr_type refer_task_;
     typename std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>::iterator await_handle_iter_;
   };
 
-  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_type{ptr_t(this)}; }
+  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_type{ptr_type(this)}; }
 #endif
  private:
   size_t stack_size_;
-  typename coroutine_t::ptr_t coroutine_obj_;
+  typename coroutine_type::ptr_type coroutine_obj_;
   task_group next_list_;
 
   // ============== action information ==============
@@ -884,7 +899,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   // ============== binding to task manager ==============
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
   void *binding_manager_ptr_;
-  void (*binding_manager_fn_)(void *, self_t &);
+  void (*binding_manager_fn_)(void *, self_type &);
 #endif
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE

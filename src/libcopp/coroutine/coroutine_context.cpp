@@ -93,7 +93,7 @@ LIBCOPP_COPP_API bool coroutine_context_base::check_flags(int flags) const LIBCO
   return 0 != (flags_ & flags);
 }
 
-LIBCOPP_COPP_API int coroutine_context_base::set_runner(callback_t &&runner) {
+LIBCOPP_COPP_API int coroutine_context_base::set_runner(callback_type &&runner) {
   if (!runner) {
     return COPP_EC_ARGS_ERROR;
   }
@@ -275,7 +275,7 @@ LIBCOPP_COPP_API coroutine_context::coroutine_context() LIBCOPP_MACRO_NOEXCEPT :
 
 LIBCOPP_COPP_API coroutine_context::~coroutine_context() {}
 
-LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_t &&runner,
+LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_type &&runner,
                                                const stack_context &callee_stack, size_t coroutine_size,
                                                size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT {
   if (nullptr == p) {
