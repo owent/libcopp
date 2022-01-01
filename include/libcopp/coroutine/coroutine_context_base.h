@@ -67,13 +67,10 @@ class coroutine_context_base {
  public:
   using callback_type = std::function<int(void *)>;
 
-  // Compability with libcopp-1.x
-  using callback_t = callback_type;
-
   /**
    * @brief status of safe coroutine context base
    */
-  struct LIBCOPP_COPP_API status_t {
+  struct LIBCOPP_COPP_API status_type {
     enum type {
       EN_CRS_INVALID = 0,  //!< EN_CRS_INVALID
       EN_CRS_READY,        //!< EN_CRS_READY
@@ -83,7 +80,7 @@ class coroutine_context_base {
     };
   };
 
-  struct LIBCOPP_COPP_API flag_t {
+  struct LIBCOPP_COPP_API flag_type {
     enum type {
       EN_CFT_UNKNOWN = 0,
       EN_CFT_FINISHED = 0x01,
@@ -91,6 +88,11 @@ class coroutine_context_base {
       EN_CFT_MASK = 0xFF,
     };
   };
+
+  // Compability with libcopp-1.x
+  using callback_t = callback_type;
+  using status_t = status_type;
+  using flag_t = flag_type;
 
  protected:
   int runner_ret_code_;  /** coroutine return code **/

@@ -146,20 +146,13 @@ template <typename TTask,
 class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
  public:
   using task_type = TTask;
-  using container_t = TTaskContainer;
+  using container_type = TTaskContainer;
   using id_type = typename task_type::id_type;
   using task_ptr_type = typename task_type::ptr_type;
-  using self_type = task_manager<task_type, container_t>;
+  using self_type = task_manager<task_type, container_type>;
   using ptr_type = std::shared_ptr<self_type>;
 
-  // Compability with libcopp-1.x
-  using id_t = id_type;
-  using self_t = self_type;
-  using task_t = task_type;
-  using task_ptr_t = task_ptr_type;
-  using ptr_t = ptr_type;
-
-  struct flag_t {
+  struct flag_type {
     enum type {
       EN_TM_NONE = 0x00,
       EN_TM_IN_TICK = 0x01,
@@ -167,25 +160,34 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     };
   };
 
+  // Compability with libcopp-1.x
+  using id_t = id_type;
+  using self_t = self_type;
+  using task_t = task_type;
+  using task_ptr_t = task_ptr_type;
+  using ptr_t = ptr_type;
+  using container_t = container_type;
+  using flag_t = flag_type;
+
  private:
-  struct flag_guard_t {
+  struct flag_guard_type {
     int *data_;
-    typename flag_t::type flag_;
-    inline flag_guard_t(int *flags, typename flag_t::type v) : data_(flags), flag_(v) {
+    typename flag_type::type flag_;
+    inline flag_guard_type(int *flags, typename flag_type::type v) : data_(flags), flag_(v) {
       if (nullptr == data_ || (*data_ & flag_)) {
-        flag_ = flag_t::EN_TM_NONE;
+        flag_ = flag_type::EN_TM_NONE;
         data_ = nullptr;
       } else {
         (*data_) |= flag_;
       }
     }
-    inline ~flag_guard_t() {
+    inline ~flag_guard_type() {
       if (*this) {
         (*data_) &= ~flag_;
       }
     }
 
-    inline operator bool() { return nullptr != data_ && flag_t::EN_TM_NONE != flag_; }
+    inline operator bool() { return nullptr != data_ && flag_type::EN_TM_NONE != flag_; }
   };
 
  public:
@@ -200,7 +202,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   }
 
   void reset() {
-    flag_guard_t reset_flag(&flags_, flag_t::EN_TM_IN_RESET);
+    flag_guard_type reset_flag(&flags_, flag_type::EN_TM_IN_RESET);
     if (!reset_flag) {
       return;
     }
@@ -212,7 +214,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      for (typename container_t::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
+      for (typename container_type::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
         all_tasks.push_back(iter->second.task_);
         remove_timeout_timer(iter->second);
       }
@@ -257,7 +259,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR;
     }
 
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -266,7 +268,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
 
     // try to cast type
-    using pair_type = typename container_t::value_type;
+    using pair_type = typename container_type::value_type;
     detail::task_manager_node<task_type> task_node;
     task_node.task_ = task;
     task_node.timer_node = task_timeout_timer_.end();
@@ -294,7 +296,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #endif
 
     // try to insert to container
-    std::pair<typename container_t::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
+    std::pair<typename container_type::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
     if (false == res.second) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
       task_type::task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
@@ -332,7 +334,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @see tick
    */
   int set_timeout(id_type id, time_t timeout_sec, int timeout_nsec) {
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -341,7 +343,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      using iter_type = typename container_t::iterator;
+      using iter_type = typename container_type::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
 
@@ -373,7 +375,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @return 0 or error code
    */
   int remove_task(id_type id, const task_type *confirm_ptr) {
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -383,7 +385,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      using iter_type = typename container_t::iterator;
+      using iter_type = typename container_type::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
@@ -420,7 +422,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @return smart pointer of task
    */
   task_ptr_type find_task(id_type id) {
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return task_ptr_type();
     }
 
@@ -428,7 +430,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-    using iter_type = typename container_t::iterator;
+    using iter_type = typename container_type::iterator;
     iter_type iter = tasks_.find(id);
     if (tasks_.end() == iter) return task_ptr_type();
 
@@ -450,7 +452,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #else
   int start(id_type id, void *priv_data = nullptr) {
 #endif
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -460,7 +462,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      using iter_type = typename container_t::iterator;
+      using iter_type = typename container_type::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
 
@@ -498,7 +500,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #else
   int resume(id_type id, void *priv_data = nullptr) {
 #endif
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -508,7 +510,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      using iter_type = typename container_t::iterator;
+      using iter_type = typename container_type::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
 
@@ -546,7 +548,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #else
   int cancel(id_type id, void *priv_data = nullptr) {
 #endif
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -556,7 +558,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      using iter_type = typename container_t::iterator;
+      using iter_type = typename container_type::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
@@ -597,7 +599,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #else
   int kill(id_type id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
 #endif
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -607,7 +609,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
 #endif
 
-      using iter_type = typename container_t::iterator;
+      using iter_type = typename container_type::iterator;
       iter_type iter = tasks_.find(id);
       if (tasks_.end() == iter) {
         return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
@@ -656,12 +658,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     now_tick_time.tv_nsec = nsec;
 
     // we will ignore tick when in a recursive call
-    flag_guard_t tick_flag(&flags_, flag_t::EN_TM_IN_TICK);
+    flag_guard_type tick_flag(&flags_, flag_type::EN_TM_IN_TICK);
     if (!tick_flag) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     }
 
-    if (flags_ & flag_t::EN_TM_IN_RESET) {
+    if (flags_ & flag_type::EN_TM_IN_RESET) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -707,7 +709,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
         }
 
         // check expire time(may be changed)
-        using iter_type = typename container_t::iterator;
+        using iter_type = typename container_type::iterator;
 
         iter_type iter = tasks_.find(timer_node.task_id);
 
@@ -764,7 +766,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @brief task container, this api is just used for provide information to users
    * @return task container
    */
-  inline const container_t &get_container() const LIBCOPP_MACRO_NOEXCEPT { return tasks_; }
+  inline const container_type &get_container() const LIBCOPP_MACRO_NOEXCEPT { return tasks_; }
 
   /**
    * @brief get all task checkpoints, this api is just used for provide information to users
@@ -816,7 +818,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 #endif
 
  private:
-  container_t tasks_;
+  container_type tasks_;
   detail::tickspec_t last_tick_time_;
   std::set<detail::task_timer_node<task_type> > task_timeout_timer_;
 

@@ -67,12 +67,12 @@ LIBCOPP_COPP_API coroutine_context_base::coroutine_context_base() LIBCOPP_MACRO_
       runner_(nullptr),
       priv_data_(nullptr),
       private_buffer_size_(0),
-      status_(status_t::EN_CRS_INVALID) {}
+      status_(status_type::EN_CRS_INVALID) {}
 
 LIBCOPP_COPP_API coroutine_context_base::~coroutine_context_base() {}
 
 LIBCOPP_COPP_API bool coroutine_context_base::set_flags(int flags) LIBCOPP_MACRO_NOEXCEPT {
-  if (flags & flag_t::EN_CFT_MASK) {
+  if (flags & flag_type::EN_CFT_MASK) {
     return false;
   }
 
@@ -81,7 +81,7 @@ LIBCOPP_COPP_API bool coroutine_context_base::set_flags(int flags) LIBCOPP_MACRO
 }
 
 LIBCOPP_COPP_API bool coroutine_context_base::unset_flags(int flags) LIBCOPP_MACRO_NOEXCEPT {
-  if (flags & flag_t::EN_CFT_MASK) {
+  if (flags & flag_type::EN_CFT_MASK) {
     return false;
   }
 
@@ -98,8 +98,8 @@ LIBCOPP_COPP_API int coroutine_context_base::set_runner(callback_type &&runner) 
     return COPP_EC_ARGS_ERROR;
   }
 
-  int from_status = status_t::EN_CRS_INVALID;
-  if (false == status_.compare_exchange_strong(from_status, status_t::EN_CRS_READY,
+  int from_status = status_type::EN_CRS_INVALID;
+  if (false == status_.compare_exchange_strong(from_status, status_type::EN_CRS_READY,
                                                libcopp::util::lock::memory_order_acq_rel,
                                                libcopp::util::lock::memory_order_acquire)) {
     return COPP_EC_ALREADY_INITED;
@@ -110,8 +110,8 @@ LIBCOPP_COPP_API int coroutine_context_base::set_runner(callback_type &&runner) 
 }
 
 LIBCOPP_COPP_API bool coroutine_context_base::is_finished() const LIBCOPP_MACRO_NOEXCEPT {
-  // return !!(flags_ & flag_t::EN_CFT_FINISHED);
-  return status_.load(libcopp::util::lock::memory_order_acquire) >= status_t::EN_CRS_FINISHED;
+  // return !!(flags_ & flag_type::EN_CFT_FINISHED);
+  return status_.load(libcopp::util::lock::memory_order_acquire) >= status_type::EN_CRS_FINISHED;
 }
 
 LIBCOPP_COPP_API coroutine_context_base *coroutine_context_base::get_this_coroutine_base() LIBCOPP_MACRO_NOEXCEPT {
@@ -195,7 +195,7 @@ struct libcopp_internal_api_set {
     }
 #endif
 
-    ins_ptr->flags_ |= coroutine_context::flag_t::EN_CFT_FINISHED;
+    ins_ptr->flags_ |= coroutine_context::flag_type::EN_CFT_FINISHED;
     // add memory fence to flush flags_(used in is_finished())
     // LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
 
@@ -347,30 +347,30 @@ LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
   {
     coroutine_context_base *this_ctx = detail::get_this_coroutine_context();
-    if (this_ctx && this_ctx->check_flags(flag_t::EN_CFT_IS_FIBER)) {
+    if (this_ctx && this_ctx->check_flags(flag_type::EN_CFT_IS_FIBER)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_CAN_NOT_USE_CROSS_FCONTEXT_AND_FIBER;
     }
   }
 #endif
 
-  int from_status = status_t::EN_CRS_READY;
+  int from_status = status_type::EN_CRS_READY;
   do {
-    if (from_status < status_t::EN_CRS_READY) {
+    if (from_status < status_type::EN_CRS_READY) {
       return COPP_EC_NOT_INITED;
     }
 
-    if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING,
+    if (status_.compare_exchange_strong(from_status, status_type::EN_CRS_RUNNING,
                                         libcopp::util::lock::memory_order_acq_rel,
                                         libcopp::util::lock::memory_order_acquire)) {
       break;
     } else {
       // finished or stoped
-      if (from_status > status_t::EN_CRS_RUNNING) {
+      if (from_status > status_type::EN_CRS_RUNNING) {
         return COPP_EC_NOT_READY;
       }
 
       // already running
-      if (status_t::EN_CRS_RUNNING == from_status) {
+      if (status_type::EN_CRS_RUNNING == from_status) {
         return COPP_EC_IS_RUNNING;
       }
     }
@@ -392,9 +392,9 @@ LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
 #endif
 
   // Move changing status to EN_CRS_EXITED is finished
-  if (check_flags(flag_t::EN_CFT_FINISHED)) {
+  if (check_flags(flag_type::EN_CFT_FINISHED)) {
     // if in finished status, change it to exited
-    status_.store(status_t::EN_CRS_EXITED, libcopp::util::lock::memory_order_release);
+    status_.store(status_type::EN_CRS_EXITED, libcopp::util::lock::memory_order_release);
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -418,20 +418,20 @@ LIBCOPP_COPP_API int coroutine_context::yield(void **priv_data) LIBCOPP_MACRO_NO
     return COPP_EC_NOT_INITED;
   }
 
-  int from_status = status_t::EN_CRS_RUNNING;
-  int to_status = status_t::EN_CRS_READY;
-  if (check_flags(flag_t::EN_CFT_FINISHED)) {
-    to_status = status_t::EN_CRS_FINISHED;
+  int from_status = status_type::EN_CRS_RUNNING;
+  int to_status = status_type::EN_CRS_READY;
+  if (check_flags(flag_type::EN_CFT_FINISHED)) {
+    to_status = status_type::EN_CRS_FINISHED;
   }
   if (false == status_.compare_exchange_strong(from_status, to_status, libcopp::util::lock::memory_order_acq_rel,
                                                libcopp::util::lock::memory_order_acquire)) {
     switch (from_status) {
-      case status_t::EN_CRS_INVALID:
+      case status_type::EN_CRS_INVALID:
         return COPP_EC_NOT_INITED;
-      case status_t::EN_CRS_READY:
+      case status_type::EN_CRS_READY:
         return COPP_EC_NOT_RUNNING;
-      case status_t::EN_CRS_FINISHED:
-      case status_t::EN_CRS_EXITED:
+      case status_type::EN_CRS_FINISHED:
+      case status_type::EN_CRS_EXITED:
         return COPP_EC_ALREADY_EXIST;
       default:
         return COPP_EC_UNKNOWN;
@@ -460,7 +460,7 @@ namespace this_coroutine {
 LIBCOPP_COPP_API coroutine_context *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
   coroutine_context_base *ret = detail::get_this_coroutine_context();
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
-  if (ret && ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
+  if (ret && ret->check_flags(coroutine_context_base::flag_type::EN_CFT_IS_FIBER)) {
     ret = nullptr;
   }
 #endif

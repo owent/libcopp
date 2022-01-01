@@ -20,8 +20,12 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 template <typename TAlloc>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  public:
-  using allocator_t = TAlloc;
-  using ptr_t = std::shared_ptr<stack_pool<TAlloc> >;
+  using allocator_type = TAlloc;
+  using ptr_type = std::shared_ptr<stack_pool<TAlloc> >;
+
+  // Compability with libcopp-1.x
+  using allocator_t = allocator_type;
+  using ptr_t = ptr_type;
 
   struct limit_t {
     size_t used_stack_number;
@@ -48,7 +52,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   stack_pool(const stack_pool &) = delete;
 
  public:
-  static ptr_t create() { return std::make_shared<stack_pool>(constructor_delegator()); }
+  static ptr_type create() { return std::make_shared<stack_pool>(constructor_delegator()); }
 
   stack_pool(constructor_delegator) {
     memset(&limits_, 0, sizeof(limits_));
@@ -61,8 +65,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   inline const limit_t &get_limit() const { return limits_; }
 
   // configure
-  inline allocator_t &get_origin_allocator() LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
-  inline const allocator_t &get_origin_allocator() const LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
+  inline allocator_type &get_origin_allocator() LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
+  inline const allocator_type &get_origin_allocator() const LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
 
   size_t set_stack_size(size_t sz) {
     if (sz <= LIBCOPP_COPP_NAMESPACE_ID::stack_traits::minimum_size()) {
@@ -294,7 +298,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  private:
   limit_t limits_;
   configure_t conf_;
-  allocator_t alloc_;
+  allocator_type alloc_;
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
   libcopp::util::lock::spin_lock action_lock_;
 #endif

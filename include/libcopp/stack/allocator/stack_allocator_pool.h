@@ -26,11 +26,14 @@ namespace allocator {
 template <typename TPool>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
  public:
-  using pool_t = TPool;
+  using pool_type = TPool;
+
+  // Compability with libcopp-1.x
+  using pool_t = pool_type;
 
  public:
   stack_allocator_pool() LIBCOPP_MACRO_NOEXCEPT {}
-  stack_allocator_pool(const std::shared_ptr<pool_t> &p) LIBCOPP_MACRO_NOEXCEPT : pool_(p) {}
+  stack_allocator_pool(const std::shared_ptr<pool_type> &p) LIBCOPP_MACRO_NOEXCEPT : pool_(p) {}
   ~stack_allocator_pool() {}
 
   /**
@@ -39,7 +42,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
    * @param max_size buffer size
    * @note must be called before allocate operation
    */
-  void attach(const std::shared_ptr<pool_t> &p) LIBCOPP_MACRO_NOEXCEPT { pool_ = p; }
+  void attach(const std::shared_ptr<pool_type> &p) LIBCOPP_MACRO_NOEXCEPT { pool_ = p; }
 
   /**
    * allocate memory and attach to stack context [standard function]
@@ -66,7 +69,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
   }
 
  private:
-  std::shared_ptr<pool_t> pool_;
+  std::shared_ptr<pool_type> pool_;
 };
 }  // namespace allocator
 LIBCOPP_COPP_NAMESPACE_END

@@ -27,12 +27,14 @@ class coroutine_context : public coroutine_context_base {
  public:
   using ptr_type = libcopp::util::intrusive_ptr<coroutine_context>;
   using callback_type = coroutine_context_base::callback_type;
-  using status_t = coroutine_context_base::status_t;
-  using flag_t = coroutine_context_base::flag_t;
+  using status_type = coroutine_context_base::status_type;
+  using flag_type = coroutine_context_base::flag_type;
 
   // Compability with libcopp-1.x
   using ptr_t = ptr_type;
   using callback_t = callback_type;
+  using status_t = status_type;
+  using flag_t = flag_type;
 
  private:
   using coroutine_context_base::flags_;
