@@ -615,7 +615,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
-  virtual bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT {
+  bool is_fiber() const LIBCOPP_MACRO_NOEXCEPT override {
     return std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_fiber, coroutine_type>::value;
   }
 #endif

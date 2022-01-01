@@ -77,7 +77,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_functor : public impl::task_actio
   task_action_functor(const task_action_functor &other, TARG &&...) : functor_(other.functor_) {}
 
   ~task_action_functor() {}
-  virtual int operator()(void *priv_data) {
+  int operator()(void *priv_data) override {
     return detail::task_action_functor_check::call(&value_type::operator(), functor_, priv_data);
   }
 
@@ -123,7 +123,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_acti
   task_action_function(value_type func) : func_(func) {}
   ~task_action_function() {}
 
-  virtual int operator()(void *priv_data) {
+  int operator()(void *priv_data) override {
     return invoker<Ty, std::is_integral<typename std::decay<Ty>::type>::value>::invoke(*this, priv_data);
   }
 
@@ -169,7 +169,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_
   task_action_mem_function(value_type func, Tc *inst) : instacne_(inst), func_(func) {}
   ~task_action_mem_function() {}
 
-  virtual int operator()(void *priv_data) {
+  int operator()(void *priv_data) override {
     return invoker<Ty, std::is_integral<typename std::decay<Ty>::type>::value>::invoke(*this, priv_data);
   }
 
