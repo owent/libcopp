@@ -6,34 +6,27 @@
 
 #include <assert.h>
 
-#if defined(__cpp_impl_three_way_comparison)
-#  include <compare>
-#endif
-
-#include <libcopp/utils/uint64_id_allocator.h>
-
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
 
 #include "libcopp/future/future.h"
-#include "libcopp/future/std_coroutine_common.h"
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
-LIBCOPP_COTASK_NAMESPACE_BEGIN
+LIBCOPP_COPP_NAMESPACE_BEGIN
 
 template <class TDATA>
-struct LIBCOPP_COTASK_API_HEAD_ONLY awaitable_trait {
+struct LIBCOPP_COTASK_API_HEAD_ONLY callable_data_trait {
   using type = TDATA;
 };
 
 template <class TDATATRAIT>
-class LIBCOPP_COPP_API_HEAD_ONLY task_data_future
+class LIBCOPP_COPP_API_HEAD_ONLY callable_data_future
     : public LIBCOPP_COPP_NAMESPACE_ID::future::future<typename TDATATRAIT::type> {
  public:
   using data_trait = TDATATRAIT;
-  using self_type = task_data_future<data_trait>;
+  using self_type = callable_data_future<data_trait>;
   using base_type = LIBCOPP_COPP_NAMESPACE_ID::future::future<typename TDATATRAIT::type>;
   using poller_type = typename base_type::poller_type;
   using storage_type = typename base_type::storage_type;
@@ -42,23 +35,20 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_data_future
 };
 
 template <class TDATATRAIT>
-class LIBCOPP_COPP_API_HEAD_ONLY task_context;
+class LIBCOPP_COPP_API_HEAD_ONLY callable_context;
 
 template <class TDATATRAIT>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise;
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise;
 
 namespace details {
 template <class TDATATRAIT, class... TARGS>
-LIBCOPP_COPP_API_HEAD_ONLY std::shared_ptr<task_context<TDATATRAIT>> make_task_context(task_promise<TDATATRAIT> &,
-                                                                                       TARGS &&...);
+LIBCOPP_COPP_API_HEAD_ONLY std::shared_ptr<callable_context<TDATATRAIT>> make_callable_context(
+    callable_promise<TDATATRAIT> &, TARGS &&...);
 }  // namespace details
 
 template <class TDATATRAIT>
-class LIBCOPP_COPP_API_HEAD_ONLY task_future;
+class LIBCOPP_COPP_API_HEAD_ONLY callable_future;
 
-template <class TDATATRAIT>
-class LIBCOPP_COPP_API_HEAD_ONLY task_data_generator;
-
-LIBCOPP_COTASK_NAMESPACE_END
+LIBCOPP_COPP_NAMESPACE_END
 
 #endif

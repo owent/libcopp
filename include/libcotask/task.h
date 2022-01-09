@@ -31,7 +31,9 @@ template <typename TCO_MACRO = macro_coroutine>
 class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   using macro_coroutine_type = TCO_MACRO;
-  using result_type = LIBCOPP_COPP_NAMESPACE_ID::future::future<typename macro_coroutine_type::data_type>;
+  using future_type =
+      impl::task_action_future<typename macro_coroutine_type::data_type,
+                               typename task_data_ptr_selector<typename macro_coroutine_type::data_type>::type>;
   using self_type = task<macro_coroutine_type>;
   using ptr_type = libcopp::util::intrusive_ptr<self_type>;
 

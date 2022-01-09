@@ -5,6 +5,7 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <assert.h>
+#include <type_traits>
 
 #if defined(__cpp_impl_three_way_comparison)
 #  include <compare>
@@ -23,45 +24,80 @@
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 
-template <class TAWAITABLE>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise {
+template <class TDATATRAIT, bool RETURN_VOID>
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
+
+template <class TDATATRAIT>
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TDATATRAIT, true> {
  public:
-  using awaitable_type = TAWAITABLE;
-  using self_type = task_promise<awaitable_type>;
-  using future_type = task_future<awaitable_type>;
+  using data_trait = TDATATRAIT;
+
+  void return_void() {
+    // TODO(owent): reset current
+    if (context_) {
+      context_->reset_data(true);
+      context_->reset_current_handle(nullptr);
+    }
+  }
+
+ protected:
+  std::shared_ptr<task_context<data_trait>> context_;
+};
+
+template <class TDATATRAIT>
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TDATATRAIT, false> {
+ public:
+  using data_trait = TDATATRAIT;
+
+  template <class TARG>
+  void return_value(TARG &&value) {
+    // TODO(owent): reset current
+    if (context_) {
+      context_->reset_data(std::forward<TARG>(value));
+      context_->reset_current_handle(nullptr);
+    }
+  }
+
+ protected:
+  std::shared_ptr<task_context<data_trait>> context_;
+};
+
+template <class TDATATRAIT>
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise
+    : public task_promise_base<TDATATRAIT,
+                               std::is_same<typename std::decay<typename TDATATRAIT::type>::type, void>::value> {
+ public:
+  using data_trait = TDATATRAIT;
+  using self_type = task_promise<data_trait>;
+  using future_type = task_future<data_trait>;
+  using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<self_type>;
+  using anonymous_handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<>;
 
  public:
   template <class... TARGS>
-  task_promise(TARGS &&...args) : context_{details::make_task_context(*this, std::forward<TARGS>(args)...)} {}
+  task_promise(TARGS &&...args) {}
 
-  task_future<awaitable_type> get_return_object() noexcept;
-  auto initial_suspend() noexcept { return std::suspend_never{}; }
+  std::shared_ptr<task_context<data_trait>> &get_context() noexcept { return context_; }
+  const std::shared_ptr<task_context<data_trait>> &get_context() const noexcept { return context_; }
+
+ public:
+  // ============ C++ 20 coroutine ============
+  task_future<data_trait> get_return_object() noexcept;
+
+  // We need to call start/resume to start a coroutine and setup current TLS variables.
+  auto initial_suspend() noexcept { return LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE::suspend_always{}; }
+  auto final_suspend() noexcept { return LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE::suspend_never{}; }
 
   void unhandled_exception() noexcept {
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    if (likely(runtime_)) {
-      runtime_->unhandle_exception = std::current_exception();
+    if (likely(context_)) {
+      context_->unhandle_exception_ = std::current_exception();
+      return;
     }
+    throw;
 #  endif
   }
-
- private:
-  std::shared_ptr<task_context<awaitable_type>> context_;
 };
-
-namespace details {
-template <class TAWAITABLE, class... TARGS>
-LIBCOPP_COPP_API_HEAD_ONLY std::shared_ptr<task_context<TAWAITABLE>> make_task_context(
-    task_promise<TAWAITABLE> &promise, TARGS &&...) {
-  return std::make_shared<task_context<TAWAITABLE>>(LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::allocate(),
-                                                    std::forward<TARGS>(args)...);
-}
-}  // namespace details
-
-template <class TAWAITABLE>
-task_future<TAWAITABLE> task_promise<TAWAITABLE>::get_return_object() noexcept {
-  return task_future<awaitable_type>{context_};
-}
 
 LIBCOPP_COTASK_NAMESPACE_END
 

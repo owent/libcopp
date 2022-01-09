@@ -4,6 +4,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcopp/future/future.h>
 #include <libcopp/utils/std/coroutine.h>
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
@@ -12,7 +13,8 @@ namespace impl {
 
 class task_impl;
 
-class LIBCOPP_COTASK_API task_action_future_base {
+template <class T, class TPTR = typename LIBCOPP_COPP_NAMESPACE_ID::future::poll_storage_ptr_selector<T>::type>
+class LIBCOPP_COPP_API_HEAD_ONLY task_action_future : public LIBCOPP_COPP_NAMESPACE_ID::future::future<T, TPTR> {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
   // TODO(owent): promise type for C++20 coroutine
   struct promise_type {
