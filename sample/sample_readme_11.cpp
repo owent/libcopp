@@ -10,7 +10,7 @@
 struct my_task_macro_t {
   using stack_allocator_type = copp::coroutine_fiber_context_default::allocator_type;
   using coroutine_type = copp::coroutine_fiber_context_default;
-  using data_type = int;
+  using value_type = int;
 };
 
 typedef cotask::task<my_task_macro_t> my_task_t;

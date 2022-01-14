@@ -211,7 +211,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     // first, lock and reset all data
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       for (typename container_type::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
@@ -280,7 +281,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
     // lock before we will operator tasks_
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
 
     id_type task_id = task->get_id();
@@ -340,7 +342,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
 
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -382,7 +385,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -427,7 +431,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
 
     using iter_type = typename container_type::iterator;
@@ -459,7 +464,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -507,7 +513,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -555,7 +562,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -606,7 +614,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -671,7 +680,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
     if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
       // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
 
       std::set<detail::task_timer_node<task_type> > real_checkpoints;
@@ -698,7 +708,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       {
         // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-        libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+            action_lock_);
 #endif
 
         const typename std::set<detail::task_timer_node<task_type> >::value_type &timer_node =
@@ -823,7 +834,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
   std::set<detail::task_timer_node<task_type> > task_timeout_timer_;
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-  libcopp::util::lock::spin_lock action_lock_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;
 #endif
   int flags_;
 };

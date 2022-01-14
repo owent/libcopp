@@ -127,7 +127,7 @@ struct libcopp_fiber_internal_api_set {
 
     ins_ptr->flags_ |= coroutine_context_fiber::flag_type::EN_CFT_FINISHED;
     // add memory fence to flush flags_(used in is_finished())
-    // LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
+    // LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
     ins_ptr->yield();
   }
 };
@@ -266,8 +266,8 @@ LIBCOPP_COPP_API int coroutine_context_fiber::start(void *priv_data) {
     }
 
     if (status_.compare_exchange_strong(from_status, status_type::EN_CRS_RUNNING,
-                                        libcopp::util::lock::memory_order_acq_rel,
-                                        libcopp::util::lock::memory_order_acquire)) {
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire)) {
       break;
     } else {
       // finished or stoped
@@ -289,7 +289,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::start(void *priv_data) {
   // Move changing status to EN_CRS_EXITED is finished
   if (check_flags(flag_type::EN_CFT_FINISHED)) {
     // if in finished status, change it to exited
-    status_.store(status_type::EN_CRS_EXITED, libcopp::util::lock::memory_order_release);
+    status_.store(status_type::EN_CRS_EXITED, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
   }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -319,8 +319,9 @@ LIBCOPP_COPP_API int coroutine_context_fiber::yield(void **priv_data) LIBCOPP_MA
   if (check_flags(flag_type::EN_CFT_FINISHED)) {
     to_status = status_type::EN_CRS_FINISHED;
   }
-  if (false == status_.compare_exchange_strong(from_status, to_status, libcopp::util::lock::memory_order_acq_rel,
-                                               libcopp::util::lock::memory_order_acquire)) {
+  if (false == status_.compare_exchange_strong(from_status, to_status,
+                                               LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                               LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire)) {
     switch (from_status) {
       case status_type::EN_CRS_INVALID:
         return COPP_EC_NOT_INITED;

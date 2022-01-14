@@ -1,19 +1,26 @@
-/*
- * shell_fonts.h
- *
- *  Created on: 2014年3月11日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#include <algorithm>
-#include <cstdlib>
-#include <set>
+// Copyright 2022 owent
 
 #include "cli/shell_font.h"
 
+#include <algorithm>
+#include <cstdlib>
+#include <unordered_set>
+
 #define SHELL_FONT_SET_OPT_END "\033[0m"
+
+#ifndef UTIL_STRFUNC_STRCASE_CMP
+#  if defined(_MSC_VER) && _MSC_VER >= 1600
+#    define UTIL_STRFUNC_STRCASE_CMP(l, r) _stricmp(l, r)
+#    define UTIL_STRFUNC_STRNCASE_CMP(l, r, s) _strnicmp(l, r, s)
+#    define UTIL_STRFUNC_STRCMP(l, r) strcmp(l, r)
+#    define UTIL_STRFUNC_STRNCMP(l, r, s) strncmp(l, r, s)
+#  else
+#    define UTIL_STRFUNC_STRCASE_CMP(l, r) strcasecmp(l, r)
+#    define UTIL_STRFUNC_STRNCASE_CMP(l, r, s) strncasecmp(l, r, s)
+#    define UTIL_STRFUNC_STRCMP(l, r) strcmp(l, r)
+#    define UTIL_STRFUNC_STRNCMP(l, r, s) strncmp(l, r, s)
+#  endif
+#endif
 
 namespace util {
 namespace cli {
@@ -26,6 +33,42 @@ static char tolower(char c) {
 
   return c;
 }
+
+static std::string getenv(const char *name) {
+  std::string ret;
+#if (defined(_MSC_VER) && _MSC_VER >= 1600) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L)
+  size_t len = 0;
+  if (0 != getenv_s(&len, nullptr, 0, name)) {
+    return ret;
+  }
+  if (len == 0) {
+    return ret;
+  }
+
+  ret.resize(len, 0);
+  if (0 != getenv_s(&len, &ret[0], ret.size(), name)) {
+    ret.clear();
+    return ret;
+  }
+
+  while (!ret.empty() && ret[ret.size() - 1] == '\0') {
+    ret.pop_back();
+  }
+
+  return ret;
+#else
+  char *val = ::getenv(name);
+  if (nullptr != val) {
+    ret = val;
+  }
+
+  while (!ret.empty() && ret[ret.size() - 1] == '\0') {
+    ret.pop_back();
+  }
+  return ret;
+#endif
+}
+
 }  // namespace detail
 
 shell_font::shell_font(int iFlag) : m_iFlag(iFlag) {}
@@ -90,7 +133,7 @@ std::string shell_font::GetStyleCode() { return GetStyleCode(m_iFlag); }
 std::string shell_font::GetStyleCloseCode() { return SHELL_FONT_SET_OPT_END; }
 
 static int _check_term_color_status() {
-  std::set<std::string> color_term;
+  std::unordered_set<std::string> color_term;
   color_term.insert("eterm");
   color_term.insert("ansi");
   color_term.insert("color-xterm");
@@ -110,7 +153,6 @@ static int _check_term_color_status() {
   color_term.insert("dtterm");
   color_term.insert("eterm-color");
   color_term.insert("gnome");
-  color_term.insert("gnome-256color");
   color_term.insert("jfbterm");
   color_term.insert("konsole");
   color_term.insert("kterm");
@@ -119,50 +161,88 @@ static int _check_term_color_status() {
   color_term.insert("mach-color");
   color_term.insert("mlterm");
   color_term.insert("putty");
-  color_term.insert("rxvt");
-  color_term.insert("rxvt-256color");
-  color_term.insert("rxvt-cygwin");
-  color_term.insert("rxvt-cygwin-native");
-  color_term.insert("rxvt-unicode");
-  color_term.insert("rxvt-unicode256");
-  color_term.insert("screen");
-  color_term.insert("screen-256color");
-  color_term.insert("screen-256color-bce");
-  color_term.insert("screen-bce");
-  color_term.insert("screen-256color-bce");
-  color_term.insert("screen-bce");
-  color_term.insert("screen-w");
-  color_term.insert("screen.linux");
-  color_term.insert("vt100");
-  color_term.insert("xterm");
-  color_term.insert("xterm-16color");
-  color_term.insert("xterm-256color");
-  color_term.insert("xterm-88color");
-  color_term.insert("xterm-color");
-  color_term.insert("xterm-debian");
+  std::unordered_set<std::string> color_term_prefix;
+  color_term_prefix.insert("xterm");
+  color_term_prefix.insert("screen");
+  color_term_prefix.insert("vt100");
+  color_term_prefix.insert("vt220");
+  color_term_prefix.insert("rxvt");
 
-  std::string my_term_name;
+  do {
+    std::string term_name = detail::getenv("TERM");
+    if (term_name.empty()) {
+      break;
+    }
 
-#ifdef _MSC_VER
-  char *term_name = nullptr;
-  size_t term_name_len = 0;
-  _dupenv_s(&term_name, &term_name_len, "TERM");
-#else
-  char *term_name = getenv("TERM");
-#endif
-  if (nullptr != term_name) {
-#ifdef _MSC_VER
-    my_term_name.assign(term_name, term_name_len);
-    ::free(term_name);
-#else
-    my_term_name = term_name;
-#endif
+    std::transform(term_name.begin(), term_name.end(), term_name.begin(), detail::tolower);
+
+    if (color_term.end() != color_term.find(term_name)) {
+      return 1;
+    }
+    for (auto &prefix : color_term_prefix) {
+      if (0 == UTIL_STRFUNC_STRNCMP(term_name.c_str(), prefix.c_str(), prefix.size())) {
+        return 1;
+      }
+    }
+
+    // Special rule
+    if (term_name.size() >= 4 && 0 == UTIL_STRFUNC_STRNCMP(term_name.c_str() + term_name.size() - 4, "-256", 4)) {
+      return 1;
+    }
+
+    if (term_name.size() >= 9 && 0 == UTIL_STRFUNC_STRNCMP(term_name.c_str() + term_name.size() - 9, "-256color", 9)) {
+      return 1;
+    }
+  } while (false);
+
+  {
+    std::string tf_build = detail::getenv("TF_BUILD");
+    std::string agent_name = detail::getenv("AGENT_NAME");
+    if (!tf_build.empty() && !agent_name.empty()) {
+      return 1;
+    }
   }
 
-  std::transform(my_term_name.begin(), my_term_name.end(), my_term_name.begin(), detail::tolower);
+  if (!detail::getenv("COLORTERM").empty()) {
+    return 1;
+  }
 
-  if (color_term.end() == color_term.find(my_term_name)) return -1;
-  return 1;
+  do {
+    std::string term_program = detail::getenv("TERM_PROGRAM");
+    if (term_program.empty()) {
+      break;
+    }
+    std::transform(term_program.begin(), term_program.end(), term_program.begin(), detail::tolower);
+    if (term_program.find("apple_terminal") != std::string::npos ||
+        term_program.find("iterm.app") != std::string::npos) {
+      return 1;
+    }
+  } while (false);
+
+  // Detect CI
+  do {
+    std::string ci = detail::getenv("CI");
+    if (ci.empty()) {
+      break;
+    }
+    const char *known_ci_names[] = {"travis",         "circleci",  "appveyor", "gitlab_ci",
+                                    "github_actions", "buildkite", "drone"};
+    for (auto known_ci_name : known_ci_names) {
+      if (0 == UTIL_STRFUNC_STRCASE_CMP(ci.c_str(), known_ci_name)) {
+        return 1;
+      }
+    }
+
+    std::string ci_name = detail::getenv("CI_NAME");
+    if (ci_name.empty()) {
+      break;
+    }
+    if (0 == UTIL_STRFUNC_STRCASE_CMP(ci_name.c_str(), "codeship")) {
+      return 1;
+    }
+  } while (false);
+
+  return -1;
 }
 
 std::string shell_font::GenerateString(const std::string &strInput, int iFlag) {

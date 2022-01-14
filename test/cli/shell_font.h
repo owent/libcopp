@@ -1,16 +1,4 @@
-/*
- * shell_fonts.h
- *
- *  Created on: 2014-03-11
- *      Author: owent
- *
- *  Released under the MIT license
- * @history
- *    2015-06-30  Support Windows console
- */
-
-#ifndef UTIL_CLI_SHELLFONT_H
-#define UTIL_CLI_SHELLFONT_H
+// Copyright 2022 owent
 
 #pragma once
 
@@ -206,5 +194,3 @@ class shell_stream {
 
 }  // namespace cli
 }  // namespace util
-
-#endif /* SHELLFONT_H_ */

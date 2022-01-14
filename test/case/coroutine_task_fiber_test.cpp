@@ -1,3 +1,8 @@
+// Copyright 2022 owent
+
+#include <libcopp/stack/stack_pool.h>
+#include <libcotask/task.h>
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -5,16 +10,13 @@
 #include <set>
 #include <vector>
 
-#include <libcopp/stack/stack_pool.h>
-#include <libcotask/task.h>
-
 #include "frame/test_macros.h"
 
 #if defined(LIBCOTASK_MACRO_ENABLED) && defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 struct test_context_task_fiber_default_test_macro {
   using stack_allocator_type = copp::allocator::stack_allocator_malloc;
   using coroutine_type = copp::coroutine_context_fiber_container<stack_allocator_type>;
-  using data_type = int;
+  using value_type = int;
 };
 
 static int g_test_coroutine_task_fiber_status = 0;
@@ -616,7 +618,7 @@ typedef copp::stack_pool<copp::allocator::stack_allocator_malloc> test_context_t
 struct test_context_task_fiber_stack_pool_test_macro_coroutine {
   using stack_allocator_type = copp::allocator::stack_allocator_pool<test_context_task_fiber_stack_pool_t>;
   using coroutine_type = copp::coroutine_context_fiber_container<stack_allocator_type>;
-  using data_type = int;
+  using value_type = int;
 };
 
 typedef cotask::task<test_context_task_fiber_stack_pool_test_macro_coroutine>
@@ -647,7 +649,7 @@ CASE_TEST(coroutine_task_fiber, then_with_stack_pool) {
   CASE_EXPECT_EQ(g_test_coroutine_task_fiber_on_finished, 5);
 }
 
-static libcopp::util::lock::atomic_int_type<int> g_test_context_task_fiber_test_atomic;
+static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_context_task_fiber_test_atomic;
 static constexpr const int g_test_context_task_fiber_test_mt_run_times = 10000;
 static size_t g_test_context_task_fiber_test_mt_max_run_thread_number = 0;
 enum {

@@ -16,7 +16,7 @@ typedef copp::stack_pool<copp::allocator::default_statck_allocator> stack_pool_t
 struct sample_macro_coroutine {
   using stack_allocator_type = copp::allocator::stack_allocator_pool<stack_pool_t>;
   using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
-  using data_type = int;
+  using value_type = int;
 };
 
 // create a stack pool

@@ -1,3 +1,5 @@
+// Copyright 2022 owent
+
 #include <cstdio>
 #include <cstring>
 #include <ctime>

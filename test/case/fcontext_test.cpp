@@ -1,8 +1,10 @@
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-
-#include "libcopp/utils/config/libcopp_build_features.h"
 
 #if defined(LIBCOPP_MACRO_USE_VALGRIND)
 #  include <valgrind/valgrind.h>

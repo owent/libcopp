@@ -10,9 +10,6 @@
  *
  */
 
-#ifndef LIBCOPP_UTIL_INTRUSIVE_PTR_H
-#define LIBCOPP_UTIL_INTRUSIVE_PTR_H
-
 #pragma once
 
 #include <assert.h>
@@ -26,7 +23,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-namespace libcopp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {
 //
 //  intrusive_ptr
@@ -368,13 +365,14 @@ std::basic_ostream<E, T> &operator<<(std::basic_ostream<E, T> &os, intrusive_ptr
   return os;
 }
 }  // namespace util
-}  // namespace libcopp
+LIBCOPP_COPP_NAMESPACE_END
 
 #if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
-#  define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE \
-    ::libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<size_t> >
+#  define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE            \
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type< \
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t> >
 #else
-#  define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE ::libcopp::util::lock::atomic_int_type<size_t>
+#  define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t>
 #endif
 
 #define LIBCOPP_UTIL_INTRUSIVE_PTR_REF_MEMBER_DECL(T)            \
@@ -409,5 +407,3 @@ std::basic_ostream<E, T> &operator<<(std::basic_ostream<E, T> &os, intrusive_ptr
       delete p;                                   \
     }                                             \
   }
-
-#endif

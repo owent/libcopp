@@ -17,7 +17,7 @@ LIBCOPP_COTASK_NAMESPACE_BEGIN
 struct LIBCOPP_COTASK_API_HEAD_ONLY macro_coroutine {
   using stack_allocator_type = LIBCOPP_COPP_NAMESPACE_ID::allocator::default_statck_allocator;
   using coroutine_type = LIBCOPP_COPP_NAMESPACE_ID::coroutine_context_container<stack_allocator_type>;
-  using type = int;
+  using value_type = int;
 };
 
 template <class T>

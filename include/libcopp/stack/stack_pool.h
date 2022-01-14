@@ -110,7 +110,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
    */
   void allocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
     // check limit
     if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
@@ -177,7 +178,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
     assert(ctx.sp && ctx.size > 0);
     do {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
       // check ctx
       if (ctx.sp == nullptr || 0 == ctx.size) {
@@ -234,7 +236,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
 
     size_t keep_size = limits_.free_stack_size >> 1;
@@ -275,14 +278,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       }
     }
 
-    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
+    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
 
     return ret;
   }
 
   void clear() {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
 
     limits_.free_stack_size = 0;
@@ -292,7 +296,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       alloc_.deallocate(*iter);
     }
 
-    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
+    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
   }
 
  private:
@@ -300,7 +304,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   configure_t conf_;
   allocator_type alloc_;
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-  libcopp::util::lock::spin_lock action_lock_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;
 #endif
   std::list<stack_context> free_list_;
 };

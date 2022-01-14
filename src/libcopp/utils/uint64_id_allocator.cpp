@@ -16,7 +16,7 @@ namespace details {
 
 // TIMESTAMP:32|SEQUENCE:24 -> about 16M id per second
 static uint64_t allocate_id_by_atomic() {
-  static libcopp::util::lock::atomic_int_type<uint64_t> seq_alloc(0);
+  static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<uint64_t> seq_alloc(0);
 
   //
   static constexpr const size_t seq_bits = 24;
@@ -37,13 +37,14 @@ static uint64_t allocate_id_by_atomic() {
       }
 
       // if failed, maybe another thread do it
-      if (seq_alloc.compare_exchange_strong(res, now_time << seq_bits, libcopp::util::lock::memory_order_acq_rel,
-                                            libcopp::util::lock::memory_order_acquire)) {
+      if (seq_alloc.compare_exchange_strong(res, now_time << seq_bits,
+                                            LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                            LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire)) {
         ret = now_time << seq_bits;
       }
     } else {
-      if (seq_alloc.compare_exchange_weak(res, next_ret, libcopp::util::lock::memory_order_acq_rel,
-                                          libcopp::util::lock::memory_order_acquire)) {
+      if (seq_alloc.compare_exchange_weak(res, next_ret, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire)) {
         ret = next_ret;
       }
     }

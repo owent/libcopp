@@ -32,10 +32,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   using macro_coroutine_type = TCO_MACRO;
   using future_type =
-      impl::task_action_future<typename macro_coroutine_type::data_type,
-                               typename task_data_ptr_selector<typename macro_coroutine_type::data_type>::type>;
+      impl::task_action_future<typename macro_coroutine_type::value_type,
+                               typename task_data_ptr_selector<typename macro_coroutine_type::value_type>::type>;
   using self_type = task<macro_coroutine_type>;
-  using ptr_type = libcopp::util::intrusive_ptr<self_type>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<self_type>;
 
   using coroutine_type = typename macro_coroutine_type::coroutine_type;
   using stack_allocator_type = typename macro_coroutine_type::stack_allocator_type;
@@ -244,7 +244,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(inner_action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        inner_action_lock_);
 #endif
 
     next_list_.member_list_.push_back(std::make_pair(next_task, priv_data));
@@ -671,7 +672,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     // first, lock and swap container
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(inner_action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          inner_action_lock_);
 #endif
       next_list.swap(next_list_.member_list_);
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
@@ -804,7 +806,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
     static bool setup_task_manager(self_type &task_inst, void *manager_ptr, void (*fn)(void *, self_type &)) {
 #  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          task_inst.inner_action_lock_);
 #  endif
       if (task_inst.binding_manager_ptr_ != nullptr) {
         return false;
@@ -817,7 +820,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
     static bool cleanup_task_manager(self_type &task_inst, void *manager_ptr) {
 #  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(task_inst.inner_action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          task_inst.inner_action_lock_);
 #  endif
       if (task_inst.binding_manager_ptr_ != manager_ptr) {
         return false;
@@ -894,10 +898,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   void (*action_destroy_fn_)(void *);
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-  libcopp::util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
-  libcopp::util::lock::spin_lock inner_action_lock_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock inner_action_lock_;
 #else
-  libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<size_t> > ref_count_; /** ref_count **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t> >
+      ref_count_; /** ref_count **/
 #endif
 
   // ============== binding to task manager ==============
@@ -913,7 +919,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <typename TCO_MACRO>
-auto operator co_await(libcopp::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
+auto operator co_await(LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
   using awaitable = typename task<TCO_MACRO>::awaitable_base_type;
   return awaitable{t};
 }

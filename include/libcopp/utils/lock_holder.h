@@ -12,16 +12,13 @@
  * @history
  */
 
-#ifndef LIBCOPP_UTIL_LOCK_LOCK_HOLDER_H
-#define LIBCOPP_UTIL_LOCK_LOCK_HOLDER_H
-
 #pragma once
 
 #include <cstring>
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-namespace libcopp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {
 namespace lock {
 namespace detail {
@@ -121,6 +118,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY write_lock_holder
 };
 }  // namespace lock
 }  // namespace util
-}  // namespace libcopp
-
-#endif /* LIBCOPP_UTIL_LOCK_LOCK_HOLDER_H */
+LIBCOPP_COPP_NAMESPACE_END

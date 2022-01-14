@@ -22,7 +22,7 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
  */
 class coroutine_context_fiber : public coroutine_context_base {
  public:
-  using ptr_type = libcopp::util::intrusive_ptr<coroutine_context_fiber>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<coroutine_context_fiber>;
 
   using callback_type = coroutine_context_base::callback_type;
   using status_type = coroutine_context_base::status_type;

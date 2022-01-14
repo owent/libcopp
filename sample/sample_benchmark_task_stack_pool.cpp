@@ -46,7 +46,7 @@ int max_task_number = 100000;  // 协程Task数量
 struct my_macro_coroutine {
   using stack_allocator_type = copp::allocator::stack_allocator_pool<stack_pool_t>;
   using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
-  using data_type = int;
+  using value_type = int;
 };
 
 typedef cotask::task<my_macro_coroutine> my_task_t;

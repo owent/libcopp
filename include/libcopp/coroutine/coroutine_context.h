@@ -25,7 +25,7 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
  */
 class coroutine_context : public coroutine_context_base {
  public:
-  using ptr_type = libcopp::util::intrusive_ptr<coroutine_context>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<coroutine_context>;
   using callback_type = coroutine_context_base::callback_type;
   using status_type = coroutine_context_base::status_type;
   using flag_type = coroutine_context_base::flag_type;

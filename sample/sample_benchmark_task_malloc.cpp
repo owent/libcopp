@@ -41,7 +41,7 @@ size_t stack_size = 16 * 1024;
 struct my_macro_coroutine {
   using stack_allocator_type = copp::allocator::stack_allocator_malloc;
   using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
-  using data_type = int;
+  using value_type = int;
 };
 
 using my_task_t = cotask::task<my_macro_coroutine>;

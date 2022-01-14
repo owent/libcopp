@@ -1,12 +1,14 @@
+// Copyright 2022 owent
+
+#include <libcopp/stack/stack_pool.h>
+#include <libcotask/task.h>
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <set>
 #include <vector>
-
-#include <libcopp/stack/stack_pool.h>
-#include <libcotask/task.h>
 
 #include "frame/test_macros.h"
 
@@ -584,7 +586,7 @@ typedef copp::stack_pool<copp::allocator::stack_allocator_malloc> test_context_t
 struct test_context_task_stack_pool_test_macro_coroutine {
   using stack_allocator_type = copp::allocator::stack_allocator_pool<test_context_task_stack_pool_t>;
   using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
-  using data_type = int;
+  using value_type = int;
 };
 
 typedef cotask::task<test_context_task_stack_pool_test_macro_coroutine> test_context_task_stack_pool_test_task_t;
@@ -640,7 +642,7 @@ CASE_TEST(coroutine_task, github_issues_18) {
   }
 }
 
-static libcopp::util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
+static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
 static constexpr const int g_test_context_task_test_mt_run_times = 10000;
 static size_t g_test_context_task_test_mt_max_run_thread_number = 0;
 enum {

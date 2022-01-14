@@ -63,8 +63,9 @@ LIBCOPP_COTASK_API task_impl::action_ptr_type task_impl::_get_action() { return 
 
 LIBCOPP_COTASK_API bool task_impl::_cas_status(EN_TASK_STATUS &expected, EN_TASK_STATUS desired) {
   uint32_t expected_int = expected;
-  bool ret = status_.compare_exchange_weak(expected_int, desired, libcopp::util::lock::memory_order_acq_rel,
-                                           libcopp::util::lock::memory_order_acquire);
+  bool ret =
+      status_.compare_exchange_weak(expected_int, desired, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                    LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire);
   expected = static_cast<EN_TASK_STATUS>(expected_int);
   return ret;
 }

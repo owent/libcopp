@@ -102,9 +102,10 @@ class coroutine_context_base {
   size_t private_buffer_size_;
 
 #if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
-  libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<int> > status_; /** status **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<int> >
+      status_; /** status **/
 #else
-  libcopp::util::lock::atomic_int_type<int> status_; /** status **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> status_; /** status **/
 #endif
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR

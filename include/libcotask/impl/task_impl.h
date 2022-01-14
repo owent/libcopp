@@ -72,7 +72,7 @@ class UTIL_SYMBOL_VISIBLE task_impl {
    * @return task status
    */
   UTIL_FORCEINLINE EN_TASK_STATUS get_status() const LIBCOPP_MACRO_NOEXCEPT {
-    return static_cast<EN_TASK_STATUS>(status_.load(libcopp::util::lock::memory_order_acquire));
+    return static_cast<EN_TASK_STATUS>(status_.load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire));
   }
 
   LIBCOPP_COTASK_API virtual bool is_canceled() const LIBCOPP_MACRO_NOEXCEPT;
@@ -146,9 +146,11 @@ class UTIL_SYMBOL_VISIBLE task_impl {
 
  private:
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-  ::libcopp::util::lock::atomic_int_type<uint32_t> status_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<uint32_t> status_;
 #else
-  ::libcopp::util::lock::atomic_int_type< ::libcopp::util::lock::unsafe_int_type<uint32_t> > status_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<uint32_t> >
+      status_;
 #endif
 };
 }  // namespace impl
