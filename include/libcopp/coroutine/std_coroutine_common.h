@@ -104,6 +104,8 @@ class promise_base_type {
       } else {
         promise = nullptr;
       }
+
+      return *this;
     }
     inline handle_delegate &operator=(std::nullptr_t) noexcept {
       handle = nullptr;

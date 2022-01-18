@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include <unordered_set>
 
 #define SHELL_FONT_SET_OPT_END "\033[0m"

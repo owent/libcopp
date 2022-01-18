@@ -53,13 +53,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
     has_return_ = true;
   }
 
-  inline typename value_type& data() noexcept { return data_; }
-  inline const typename value_type& data() const noexcept { return data_; }
+  inline value_type& data() noexcept { return data_; }
+  inline const value_type& data() const noexcept { return data_; }
 
   inline bool has_return() const noexcept { return has_return_; }
 
  protected:
-  typename value_type data_;
+  value_type data_;
   bool has_return_ = false;
 };
 
