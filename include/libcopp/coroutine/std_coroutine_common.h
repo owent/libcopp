@@ -6,10 +6,16 @@
 #include <libcopp/utils/std/coroutine.h>
 
 #include <assert.h>
+#include <memory>
 #include <type_traits>
+#include <unordered_set>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
+#endif
+
+#ifdef __cpp_impl_three_way_comparison
+#  include <compare>
 #endif
 
 #include "libcopp/future/future.h"
@@ -20,12 +26,13 @@
 LIBCOPP_COPP_NAMESPACE_BEGIN
 
 enum class LIBCOPP_COPP_API_HEAD_ONLY promise_status : uint8_t {
-  kCreated = 0,
-  kRunning = 1,
-  kDone = 2,
-  kCancle = 3,
-  kKilled = 4,
-  kTimeout = 5,
+  kInvalid = 0,
+  kCreated = 1,
+  kRunning = 2,
+  kDone = 3,
+  kCancle = 4,
+  kKilled = 5,
+  kTimeout = 6,
 };
 
 class promise_base_type;
@@ -37,16 +44,93 @@ concept DerivedPromiseBaseType = std::is_base_of<promise_base_type, T>::value;
 
 class promise_base_type {
  public:
+  using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type>;
+  using type_erased_handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<>;
+  struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate {
+    type_erased_handle_type handle;
+    promise_base_type *promise;
+
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+    template <DerivedPromiseBaseType TPROMISE>
+#  else
+    template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+#  endif
+    explicit handle_delegate(
+        const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &origin_handle) noexcept
+        : handle{origin_handle} {
+      if (handle) {
+        promise = &origin_handle.promise();
+      } else {
+        promise = nullptr;
+      }
+    }
+
+    explicit handle_delegate(std::nullptr_t) noexcept : handle{nullptr}, promise{nullptr} {}
+
+    friend inline bool operator==(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle == r.handle;
+    }
+    friend inline bool operator!=(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle != r.handle;
+    }
+    friend inline bool operator<(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle < r.handle;
+    }
+    friend inline bool operator<=(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle <= r.handle;
+    }
+    friend inline bool operator>(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle > r.handle;
+    }
+    friend inline bool operator>=(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle >= r.handle;
+    }
+    inline operator bool() const noexcept { return !!handle; }
+
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+    template <DerivedPromiseBaseType TPROMISE>
+#  else
+    template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+#  endif
+    inline handle_delegate &operator=(
+        const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &origin_handle) noexcept {
+      handle = origin_handle;
+      if (handle) {
+        promise = &origin_handle.promise();
+      } else {
+        promise = nullptr;
+      }
+    }
+    inline handle_delegate &operator=(std::nullptr_t) noexcept {
+      handle = nullptr;
+      promise = nullptr;
+      return *this;
+    }
+  };
+
+  struct pick_promise_status_awaitable {
+    promise_status data;
+
+    LIBCOPP_COPP_API pick_promise_status_awaitable() noexcept;
+    LIBCOPP_COPP_API pick_promise_status_awaitable(pick_promise_status_awaitable &&other) noexcept;
+    LIBCOPP_COPP_API ~pick_promise_status_awaitable();
+    pick_promise_status_awaitable(const pick_promise_status_awaitable &) = delete;
+    pick_promise_status_awaitable &operator=(const pick_promise_status_awaitable &) = delete;
+
+    LIBCOPP_COPP_API_HEAD_ONLY inline bool await_ready() const noexcept { return true; }
+    LIBCOPP_COPP_API_HEAD_ONLY inline promise_status await_resume() const noexcept { return data; }
+    LIBCOPP_COPP_API_HEAD_ONLY inline void await_suspend(type_erased_handle_type) noexcept {}
+  };
+
+ public:
   LIBCOPP_COPP_API promise_base_type();
   LIBCOPP_COPP_API ~promise_base_type();
 
   LIBCOPP_COPP_API bool set_status(promise_status value, promise_status *expect = nullptr) noexcept;
   LIBCOPP_COPP_API promise_status get_status() const noexcept;
 
-  LIBCOPP_COPP_API LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type> get_waiting_handle()
-      const noexcept;
-
   LIBCOPP_COPP_API void set_waiting_handle(std::nullptr_t) noexcept;
+  LIBCOPP_COPP_API void set_waiting_handle(handle_delegate handle);
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>
 #  else
@@ -57,20 +141,86 @@ class promise_base_type {
     if (nullptr == handle) {
       set_waiting_handle(nullptr);
     } else {
-      set_waiting_handle(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<>::from_address(handle.address()));
+      set_waiting_handle(handle_delegate{handle});
     }
   }
 
-  LIBCOPP_COPP_API void resume_waiting();
+  /**
+   * @brief Resume waiting handle, this should only be called in await_resume and after this call, callee maybe
+   * destroyed
+   */
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+  template <DerivedPromiseBaseType TPROMISE>
+#  else
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+#  endif
+  LIBCOPP_COPP_API_HEAD_ONLY inline void resume_waiting(
+      const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle, bool inherit_status) {
+    resume_waiting(handle_delegate{handle}, inherit_status);
+  };
+
+  LIBCOPP_COPP_API void resume_waiting(handle_delegate current_delegate, bool inherit_status);
+
+  // C++20 coroutine
+  struct LIBCOPP_COPP_API_HEAD_ONLY final_awaitable {
+    inline bool await_ready() const noexcept { return false; }
+    inline void await_resume() const noexcept {}
+
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+    template <DerivedPromiseBaseType TPROMISE>
+#  else
+    template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+#  endif
+    inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> self) noexcept {
+      self.promise().resume_callers();
+    }
+  };
+  final_awaitable final_suspend() noexcept { return {}; }
+
+  LIBCOPP_COPP_API void add_caller(handle_delegate handle) noexcept;
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+  template <DerivedPromiseBaseType TPROMISE>
+#  else
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+#  endif
+  LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
+      const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle) noexcept {
+    add_caller(handle_delegate{handle});
+  }
+
+  LIBCOPP_COPP_API void remove_caller(handle_delegate handle, bool inherit_status) noexcept;
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+  template <DerivedPromiseBaseType TPROMISE>
+#  else
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+#  endif
+  LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
+      const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle, bool inherit_status) noexcept {
+    remove_caller(handle_delegate{handle}, inherit_status);
+  }
+
+  LIBCOPP_COPP_API pick_promise_status_awaitable yield_value(pick_promise_status_awaitable &&args) const noexcept;
+  static LIBCOPP_COPP_API_HEAD_ONLY inline pick_promise_status_awaitable pick_current_status() noexcept { return {}; }
 
  private:
-  LIBCOPP_COPP_API void set_waiting_handle(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<> handle);
+  LIBCOPP_COPP_API void resume_callers();
 
  private:
   // promise_status
   util::lock::atomic_int_type<uint8_t> status_;
   // We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
-  LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<> current_waiting_;
+  handle_delegate current_waiting_;
+  handle_delegate unique_caller_;
+
+  // hash for handle_delegate
+  struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash {
+    inline size_t operator()(const handle_delegate &handle_delegate) const noexcept {
+      return std::hash<void *>()(handle_delegate.handle.address());
+    }
+  };
+
+  // Mostly, there is only one caller for a promise, we needn't hash map to store one handle
+  std::unique_ptr<std::unordered_set<handle_delegate, handle_delegate_hash>> multiple_callers_;
 };
 
 class awaitable_base_type {
@@ -78,11 +228,10 @@ class awaitable_base_type {
   LIBCOPP_COPP_API awaitable_base_type();
   LIBCOPP_COPP_API ~awaitable_base_type();
 
-  LIBCOPP_COPP_API LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type> get_caller()
-      const noexcept;
+  LIBCOPP_COPP_API promise_base_type::handle_delegate get_caller() const noexcept;
 
-  LIBCOPP_COPP_API void set_caller(
-      const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type> &handle) noexcept;
+  LIBCOPP_COPP_API void set_caller(promise_base_type::handle_delegate caller) noexcept;
+  LIBCOPP_COPP_API void set_caller(std::nullptr_t) noexcept;
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>
@@ -94,13 +243,12 @@ class awaitable_base_type {
     if (nullptr == handle) {
       set_caller(nullptr);
     } else {
-      set_caller(
-          LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type>::from_promise(handle.promise()));
+      set_caller(promise_base_type::handle_delegate{handle});
     }
   }
 
  private:
-  LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type> caller_;
+  promise_base_type::handle_delegate caller_;
 };
 
 template <class TDATA>
