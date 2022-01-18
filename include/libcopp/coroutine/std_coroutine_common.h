@@ -18,6 +18,10 @@
 #  include <compare>
 #endif
 
+#if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  include <variant>
+#endif
+
 #include "libcopp/future/future.h"
 #include "libcopp/utils/atomic_int_type.h"
 
@@ -210,7 +214,6 @@ class promise_base_type {
   util::lock::atomic_int_type<uint8_t> status_;
   // We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
   handle_delegate current_waiting_;
-  handle_delegate unique_caller_;
 
   // hash for handle_delegate
   struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash {
@@ -219,8 +222,14 @@ class promise_base_type {
     }
   };
 
+  using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+  std::variant<handle_delegate, multi_caller_set> callers_;
+#  else
+  handle_delegate unique_caller_;
   // Mostly, there is only one caller for a promise, we needn't hash map to store one handle
-  std::unique_ptr<std::unordered_set<handle_delegate, handle_delegate_hash>> multiple_callers_;
+  std::unique_ptr<multi_caller_set> multiple_callers_;
+#  endif
 };
 
 class awaitable_base_type {

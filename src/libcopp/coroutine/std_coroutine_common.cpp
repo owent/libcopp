@@ -21,7 +21,15 @@ LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::~pick_promise_status_awaitable() {}
 
 LIBCOPP_COPP_API promise_base_type::promise_base_type()
-    : status_{static_cast<uint8_t>(promise_status::kCreated)}, current_waiting_{nullptr}, unique_caller_{nullptr} {}
+    : status_{static_cast<uint8_t>(promise_status::kCreated)},
+      current_waiting_{nullptr},
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+      callers_(handle_delegate{nullptr})
+#  else
+      unique_caller_(nullptr)
+#  endif
+{
+}
 
 LIBCOPP_COPP_API promise_base_type::~promise_base_type() {}
 
@@ -64,20 +72,49 @@ LIBCOPP_COPP_API void promise_base_type::add_caller(handle_delegate delegate) no
     return;
   }
 
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+  if (std::holds_alternative<multi_caller_set>(callers_)) {
+    std::get<multi_caller_set>(callers_).insert(delegate);
+    return;
+  }
+
+  if (!std::get<handle_delegate>(callers_)) {
+    std::get<handle_delegate>(callers_) = delegate;
+    return;
+  }
+
+  // convert to multiple caller
+  multi_caller_set callers;
+  callers.insert(std::get<handle_delegate>(callers_));
+  callers.insert(delegate);
+  callers_.emplace<multi_caller_set>(std::move(callers));
+#  else
   if (!unique_caller_.handle) {
     unique_caller_ = delegate;
     return;
   }
 
   if (!multiple_callers_) {
-    multiple_callers_.reset(new std::unordered_set<handle_delegate, handle_delegate_hash>());
+    multiple_callers_.reset(new multi_caller_set());
   }
   multiple_callers_->insert(delegate);
+#  endif
 }
 
 LIBCOPP_COPP_API void promise_base_type::remove_caller(handle_delegate delegate, bool inherit_status) noexcept {
   bool has_caller = false;
   do {
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+    if (std::holds_alternative<multi_caller_set>(callers_)) {
+      has_caller = std::get<multi_caller_set>(callers_).erase(delegate) > 0;
+      break;
+    }
+
+    if (std::get<handle_delegate>(callers_).handle == delegate.handle) {
+      std::get<handle_delegate>(callers_) = nullptr;
+      has_caller = true;
+    }
+#  else
     if (unique_caller_.handle == delegate.handle) {
       unique_caller_ = nullptr;
       has_caller = true;
@@ -87,6 +124,7 @@ LIBCOPP_COPP_API void promise_base_type::remove_caller(handle_delegate delegate,
     if (multiple_callers_) {
       has_caller = multiple_callers_->erase(delegate) > 0;
     }
+#  endif
   } while (false);
 
   if (has_caller && inherit_status && nullptr != delegate.promise && get_status() < promise_status::kDone &&
@@ -102,9 +140,26 @@ LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable promise_base_t
 }
 
 LIBCOPP_COPP_API void promise_base_type::resume_callers() {
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+  if (std::holds_alternative<handle_delegate>(callers_)) {
+    auto caller = std::get<handle_delegate>(callers_);
+    std::get<handle_delegate>(callers_) = nullptr;
+    if (caller.handle && !caller.handle.done()) {
+      caller.handle.resume();
+    }
+  } else if (std::holds_alternative<multi_caller_set>(callers_)) {
+    multi_caller_set callers;
+    callers.swap(std::get<multi_caller_set>(callers_));
+    for (auto &caller : callers) {
+      if (caller.handle && !caller.handle.done()) {
+        caller.handle.resume();
+      }
+    }
+  }
+#  else
   auto unique_caller = unique_caller_;
   unique_caller_ = nullptr;
-  std::unique_ptr<std::unordered_set<handle_delegate, handle_delegate_hash>> multiple_callers;
+  std::unique_ptr<multi_caller_set> multiple_callers;
   multiple_callers.swap(multiple_callers_);
 
   // The promise object may be destroyed after first caller.resume()
@@ -119,6 +174,7 @@ LIBCOPP_COPP_API void promise_base_type::resume_callers() {
       }
     }
   }
+#  endif
 }
 
 LIBCOPP_COPP_API awaitable_base_type::awaitable_base_type() : caller_{nullptr} {}
