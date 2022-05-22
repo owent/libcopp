@@ -74,13 +74,13 @@
  *******************************************************/
 
 .text
-.globl _copp_make_fcontext
+.globl _copp_make_fcontext_v2
 .align 2
-_copp_make_fcontext:
+_copp_make_fcontext_v2:
     # save return address into R6
     mflr  r6
 
-    # first arg of copp_make_fcontext() == top address of context-function
+    # first arg of copp_make_fcontext_v2() == top address of context-function
     # shift address in R3 to lower 16 byte boundary
     clrrwi  r3, r3, 4
 
@@ -88,7 +88,7 @@ _copp_make_fcontext:
     # including 64 byte of linkage + parameter area (R1  16 == 0)
     subi  r3, r3, 336
 
-    # third arg of copp_make_fcontext() == address of context-function
+    # third arg of copp_make_fcontext_v2() == address of context-function
     stw  r5, 240(r3)
 
     # set back-chain to zero

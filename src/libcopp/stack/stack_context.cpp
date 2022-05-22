@@ -1,8 +1,12 @@
-#include <cstring>
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/stack/stack_context.h>
 
-namespace copp {
+#include <cstring>
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 
 LIBCOPP_COPP_API stack_context::stack_context() LIBCOPP_MACRO_NOEXCEPT : size(0),
                                                                          sp(nullptr)
@@ -58,4 +62,4 @@ LIBCOPP_COPP_API void stack_context::copy_from(const stack_context &other) LIBCO
   valgrind_stack_id = other.valgrind_stack_id;
 #endif
 }
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END

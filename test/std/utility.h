@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file utility.h
  * @brief 导入公共高级库
  * Licensed under the MIT licenses.

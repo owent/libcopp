@@ -13,11 +13,9 @@
  *     2021-07-19 Remove supporting of old compilers.
  */
 
-#ifndef LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_H
-#define LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_H
-
 #pragma once
 
+#include <libcopp/utils/features.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
 // patch for old gcc
@@ -78,7 +76,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-namespace libcopp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {
 namespace lock {
 #ifdef __LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD
@@ -116,21 +114,23 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   atomic_int_type() LIBCOPP_MACRO_NOEXCEPT : data_() {}
   atomic_int_type(value_type desired) LIBCOPP_MACRO_NOEXCEPT : data_(desired) {}
 
-  inline void store(value_type desired, ::libcopp::util::lock::memory_order order =
-                                            ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline void store(value_type desired,
+                    LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     data_.store(desired, order);
   }
   inline void store(value_type desired,
-                    ::libcopp::util::lock::memory_order order =
-                        ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                    LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     data_.store(desired, order);
   }
 
-  inline value_type load(::libcopp::util::lock::memory_order order = ::libcopp::util::lock::memory_order_seq_cst) const
-      LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) const LIBCOPP_MACRO_NOEXCEPT {
     return data_.load(order);
   }
-  inline value_type load(::libcopp::util::lock::memory_order order = ::libcopp::util::lock::memory_order_seq_cst) const
+  inline value_type load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) const
       volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.load(order);
   }
@@ -157,107 +157,117 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   inline value_type operator--(int) volatile LIBCOPP_MACRO_NOEXCEPT { return data_--; }
 
   inline value_type exchange(value_type desired,
-                             ::libcopp::util::lock::memory_order order = ::libcopp::util::lock::memory_order_seq_cst)
-      LIBCOPP_MACRO_NOEXCEPT {
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     return data_.exchange(desired, order);
   }
-  inline value_type exchange(value_type desired,
-                             ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type exchange(
+      value_type desired,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.exchange(desired, order);
-  }
-
-  inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    ::libcopp::util::lock::memory_order success,
-                                    ::libcopp::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_weak(expected, desired, success, failure);
-  }
-  inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    ::libcopp::util::lock::memory_order success,
-                                    ::libcopp::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_weak(expected, desired, success, failure);
   }
 
   inline bool compare_exchange_weak(
-      value_type &expected, value_type desired,
-      ::libcopp::util::lock::memory_order order = ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_weak(expected, desired, order);
+      value_type &expected, value_type desired, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_weak(expected, desired, success, failure);
   }
-  inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    ::libcopp::util::lock::memory_order order =
-                                        ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_weak(expected, desired, order);
+  inline bool compare_exchange_weak(
+      value_type &expected, value_type desired, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_weak(expected, desired, success, failure);
   }
 
-  inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      ::libcopp::util::lock::memory_order success,
-                                      ::libcopp::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_strong(expected, desired, success, failure);
+  inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                    LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst)
+      LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_weak(expected, desired, order);
   }
-  inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      ::libcopp::util::lock::memory_order success,
-                                      ::libcopp::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_strong(expected, desired, success, failure);
+  inline bool compare_exchange_weak(
+      value_type &expected, value_type desired,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_weak(expected, desired, order);
   }
 
   inline bool compare_exchange_strong(
-      value_type &expected, value_type desired,
-      ::libcopp::util::lock::memory_order order = ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.compare_exchange_strong(expected, desired, order);
+      value_type &expected, value_type desired, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_strong(expected, desired, success, failure);
   }
+  inline bool compare_exchange_strong(
+      value_type &expected, value_type desired, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_strong(expected, desired, success, failure);
+  }
+
   inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      ::libcopp::util::lock::memory_order order =
-                                          ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                                      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst)
+      LIBCOPP_MACRO_NOEXCEPT {
+    return data_.compare_exchange_strong(expected, desired, order);
+  }
+  inline bool compare_exchange_strong(
+      value_type &expected, value_type desired,
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.compare_exchange_strong(expected, desired, order);
   }
 
-  inline value_type fetch_add(value_type arg, ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.fetch_add(arg, order);
-  }
   inline value_type fetch_add(value_type arg,
-                              ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+    return data_.fetch_add(arg, order);
+  }
+  inline value_type fetch_add(
+      value_type arg, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_add(arg, order);
   }
 
-  inline value_type fetch_sub(value_type arg, ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.fetch_sub(arg, order);
-  }
   inline value_type fetch_sub(value_type arg,
-                              ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+    return data_.fetch_sub(arg, order);
+  }
+  inline value_type fetch_sub(
+      value_type arg, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_sub(arg, order);
   }
 
-  inline value_type fetch_and(value_type arg, ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    return data_.fetch_and(arg, order);
-  }
   inline value_type fetch_and(value_type arg,
-                              ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+    return data_.fetch_and(arg, order);
+  }
+  inline value_type fetch_and(
+      value_type arg, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_and(arg, order);
   }
 
-  inline value_type fetch_or(value_type arg, ::libcopp::util::lock::memory_order order =
-                                                 ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_or(value_type arg,
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_or(arg, order);
   }
-  inline value_type fetch_or(value_type arg,
-                             ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_or(
+      value_type arg, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_or(arg, order);
   }
 
-  inline value_type fetch_xor(value_type arg, ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_xor(value_type arg,
+                              LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_xor(arg, order);
   }
-  inline value_type fetch_xor(value_type arg,
-                              ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_xor(
+      value_type arg, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_.fetch_xor(arg, order);
   }
 };
@@ -343,8 +353,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 
   atomic_int_type(value_type desired) LIBCOPP_MACRO_NOEXCEPT : data_(desired) {}
 
-  inline void store(value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                            ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline void store(value_type desired,
+                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     __atomic_store_n(&data_, desired, order);
 #  else
@@ -353,8 +364,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   }
 
   inline void store(value_type desired,
-                    EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                        ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     __atomic_store_n(&data_, desired, order);
 #  else
@@ -362,8 +373,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type load(EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                             ::libcopp::util::lock::memory_order_seq_cst) const LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type load(EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) const LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_load_n(&data_, order);
 #  else
@@ -372,8 +383,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type load(EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                             ::libcopp::util::lock::memory_order_seq_cst) const volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type load(EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) const
+      volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_load_n(&data_, order);
 #  else
@@ -404,8 +416,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   inline value_type operator--(int) volatile LIBCOPP_MACRO_NOEXCEPT { return fetch_sub(1); }
 
   inline value_type exchange(value_type desired,
-                             EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+                             EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_exchange_n(&data_, desired, order);
 #  else
@@ -417,9 +429,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type exchange(value_type desired,
-                             EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type exchange(
+      value_type desired,
+      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_exchange_n(&data_, desired, order);
 #  else
@@ -431,24 +444,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline bool compare_exchange_weak(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
-#  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
-#  else
-    if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
-      return true;
-    } else {
-      expected = data_;
-      return false;
-    }
-#  endif
-  }
-
-  inline bool compare_exchange_weak(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure)
+      LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
 #  else
@@ -462,10 +461,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   }
 
   inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                        ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order
+                                        failure) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
+    return __atomic_compare_exchange_n(&data_, &expected, desired, true, success, failure);
 #  else
     if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
       return true;
@@ -477,8 +477,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   }
 
   inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                        ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst)
+      LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
 #  else
@@ -491,11 +492,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline bool compare_exchange_strong(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_weak(
+      value_type &expected, value_type desired,
+      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_compare_exchange_n(&data_, &expected, desired, false, success, failure);
+    return __atomic_compare_exchange_n(&data_, &expected, desired, true, order, order);
 #  else
     if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
       return true;
@@ -506,9 +508,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline bool compare_exchange_strong(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure)
+      LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_compare_exchange_n(&data_, &expected, desired, false, success, failure);
 #  else
@@ -522,10 +525,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   }
 
   inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                          ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order
+                                          failure) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_compare_exchange_n(&data_, &expected, desired, false, order, order);
+    return __atomic_compare_exchange_n(&data_, &expected, desired, false, success, failure);
 #  else
     if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
       return true;
@@ -537,8 +541,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
   }
 
   inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                          ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst)
+      LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_compare_exchange_n(&data_, &expected, desired, false, order, order);
 #  else
@@ -551,17 +556,34 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type fetch_add(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_strong(
+      value_type &expected, value_type desired,
+      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_fetch_add(&data_, arg, order);
+    return __atomic_compare_exchange_n(&data_, &expected, desired, false, order, order);
 #  else
-    return __sync_fetch_and_add(&data_, arg);
+    if (__sync_bool_compare_and_swap(&data_, expected, desired)) {
+      return true;
+    } else {
+      expected = data_;
+      return false;
+    }
 #  endif
   }
+
   inline value_type fetch_add(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+#  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+    return __atomic_fetch_add(&data_, arg, order);
+#  else
+    return __sync_fetch_and_add(&data_, arg);
+#  endif
+  }
+  inline value_type fetch_add(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_add(&data_, arg, order);
 #  else
@@ -569,17 +591,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type fetch_sub(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-#  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_fetch_sub(&data_, arg, order);
-#  else
-    return __sync_fetch_and_sub(&data_, arg);
-#  endif
-  }
   inline value_type fetch_sub(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+#  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+    return __atomic_fetch_sub(&data_, arg, order);
+#  else
+    return __sync_fetch_and_sub(&data_, arg);
+#  endif
+  }
+  inline value_type fetch_sub(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_sub(&data_, arg, order);
 #  else
@@ -587,17 +610,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type fetch_and(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-#  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
-    return __atomic_fetch_and(&data_, arg, order);
-#  else
-    return __sync_fetch_and_and(&data_, arg);
-#  endif
-  }
   inline value_type fetch_and(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+#  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
+    return __atomic_fetch_and(&data_, arg, order);
+#  else
+    return __sync_fetch_and_and(&data_, arg);
+#  endif
+  }
+  inline value_type fetch_and(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_and(&data_, arg, order);
 #  else
@@ -605,17 +629,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type fetch_or(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                 ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_or(value_type arg,
+                             EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_or(&data_, arg, order);
 #  else
     return __sync_fetch_and_or(&data_, arg);
 #  endif
   }
-  inline value_type fetch_or(value_type arg,
-                             EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_or(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_or(&data_, arg, order);
 #  else
@@ -623,17 +648,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type {
 #  endif
   }
 
-  inline value_type fetch_xor(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_xor(value_type arg,
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_xor(&data_, arg, order);
 #  else
     return __sync_fetch_and_xor(&data_, arg);
 #  endif
   }
-  inline value_type fetch_xor(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_xor(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_ATOMIC_GCC_ATOMIC)
     return __atomic_fetch_xor(&data_, arg, order);
 #  else
@@ -667,22 +693,24 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type<unsafe_int_type<Ty> > {
   atomic_int_type() : data_() {}
   atomic_int_type(value_type desired) : data_(desired) {}
 
-  inline void store(value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                            ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline void store(value_type desired,
+                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     data_ = desired;
   }
   inline void store(value_type desired,
-                    EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                        ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     data_ = desired;
   }
 
-  inline value_type load(EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                             ::libcopp::util::lock::memory_order_seq_cst) const LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type load(EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) const LIBCOPP_MACRO_NOEXCEPT {
     return data_;
   }
-  inline value_type load(EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                             ::libcopp::util::lock::memory_order_seq_cst) const volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type load(EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                             LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) const
+      volatile LIBCOPP_MACRO_NOEXCEPT {
     return data_;
   }
 
@@ -708,15 +736,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type<unsafe_int_type<Ty> > {
   inline value_type operator--(int) volatile LIBCOPP_MACRO_NOEXCEPT { return data_--; }
 
   inline value_type exchange(value_type desired,
-                             EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+                             EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ = desired;
     return ret;
   }
-  inline value_type exchange(value_type desired,
-                             EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type exchange(
+      value_type desired,
+      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ = desired;
     return ret;
@@ -724,125 +753,139 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type<unsafe_int_type<Ty> > {
 
  private:
   inline bool cas(value_type &expected, value_type desired) LIBCOPP_MACRO_NOEXCEPT {
-    if (likely(data_ == expected)) {
+    COPP_LIKELY_IF(data_ == expected) {
       data_ = desired;
       return true;
-    } else {
+    }
+    else {
       expected = data_;
       return false;
     }
   }
 
  public:
-  inline bool compare_exchange_weak(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure)
+      LIBCOPP_MACRO_NOEXCEPT {
     return cas(expected, desired);
   }
-  inline bool compare_exchange_weak(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_weak(value_type &expected, value_type desired,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order
+                                        failure) volatile LIBCOPP_MACRO_NOEXCEPT {
     return cas(expected, desired);
   }
 
   inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                        ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+                                    EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst)
+      LIBCOPP_MACRO_NOEXCEPT {
     return cas(expected, desired);
   }
-  inline bool compare_exchange_weak(value_type &expected, value_type desired,
-                                    EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                        ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
-    return cas(expected, desired);
-  }
-
-  inline bool compare_exchange_strong(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) LIBCOPP_MACRO_NOEXCEPT {
-    return cas(expected, desired);
-  }
-  inline bool compare_exchange_strong(
-      value_type &expected, value_type desired, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order success,
-      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order failure) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline bool compare_exchange_weak(
+      value_type &expected, value_type desired,
+      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     return cas(expected, desired);
   }
 
   inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                          ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order failure)
+      LIBCOPP_MACRO_NOEXCEPT {
     return cas(expected, desired);
   }
   inline bool compare_exchange_strong(value_type &expected, value_type desired,
-                                      EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                          ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order success,
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order
+                                          failure) volatile LIBCOPP_MACRO_NOEXCEPT {
     return cas(expected, desired);
   }
 
-  inline value_type fetch_add(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    value_type ret = data_;
-    data_ += arg;
-    return ret;
+  inline bool compare_exchange_strong(value_type &expected, value_type desired,
+                                      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst)
+      LIBCOPP_MACRO_NOEXCEPT {
+    return cas(expected, desired);
   }
+  inline bool compare_exchange_strong(
+      value_type &expected, value_type desired,
+      EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+    return cas(expected, desired);
+  }
+
   inline value_type fetch_add(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+    value_type ret = data_;
+    data_ += arg;
+    return ret;
+  }
+  inline value_type fetch_add(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ += arg;
     return ret;
   }
 
-  inline value_type fetch_sub(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    value_type ret = data_;
-    data_ -= arg;
-    return ret;
-  }
   inline value_type fetch_sub(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+    value_type ret = data_;
+    data_ -= arg;
+    return ret;
+  }
+  inline value_type fetch_sub(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ -= arg;
     return ret;
   }
 
-  inline value_type fetch_and(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
-    value_type ret = data_;
-    data_ &= arg;
-    return ret;
-  }
   inline value_type fetch_and(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+    value_type ret = data_;
+    data_ &= arg;
+    return ret;
+  }
+  inline value_type fetch_and(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ &= arg;
     return ret;
   }
 
-  inline value_type fetch_or(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                 ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_or(value_type arg,
+                             EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ |= arg;
     return ret;
   }
-  inline value_type fetch_or(value_type arg,
-                             EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                 ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_or(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ |= arg;
     return ret;
   }
 
-  inline value_type fetch_xor(value_type arg, EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                                  ::libcopp::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_xor(value_type arg,
+                              EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ ^= arg;
     return ret;
   }
-  inline value_type fetch_xor(value_type arg,
-                              EXPLICIT_UNUSED_ATTR ::libcopp::util::lock::memory_order order =
-                                  ::libcopp::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
+  inline value_type fetch_xor(
+      value_type arg, EXPLICIT_UNUSED_ATTR LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order order =
+                          LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_seq_cst) volatile LIBCOPP_MACRO_NOEXCEPT {
     value_type ret = data_;
     data_ ^= arg;
     return ret;
@@ -850,6 +893,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type<unsafe_int_type<Ty> > {
 };
 }  // namespace lock
 }  // namespace util
-}  // namespace libcopp
-
-#endif /* LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_H */
+LIBCOPP_COPP_NAMESPACE_END

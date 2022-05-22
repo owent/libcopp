@@ -1,3 +1,7 @@
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 #endif
@@ -6,8 +10,6 @@ extern "C" {
 #include <Windows.h>
 #include <assert.h>
 }
-
-#include "libcopp/stack/stack_traits.h"
 
 #if defined(COPP_MACRO_COMPILER_MSVC)
 #  pragma warning(push)
@@ -26,6 +28,7 @@ extern "C" {
 #endif
 
 #include "libcopp/stack/stack_context.h"
+#include "libcopp/stack/stack_traits.h"
 
 // x86_64
 // test x86_64 before i386 because icc might
@@ -44,7 +47,7 @@ extern "C" {
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 
 namespace detail {
 #if __cplusplus < 201103L
@@ -111,7 +114,7 @@ LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacks
   // page size must be 2^N
   return static_cast<std::size_t>((stacksize + stack_traits::page_size() - 1) & (~(stack_traits::page_size() - 1)));
 }
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX

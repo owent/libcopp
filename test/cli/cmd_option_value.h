@@ -1,4 +1,4 @@
-﻿#ifndef UTIL_CLI_CMDOPTIONVALUE_H
+#ifndef UTIL_CLI_CMDOPTIONVALUE_H
 #define UTIL_CLI_CMDOPTIONVALUE_H
 
 #pragma once

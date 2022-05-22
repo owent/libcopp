@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file explicit_declare.h
  * @brief 导入继承关系约束<br />
  * Licensed under the MIT licenses.

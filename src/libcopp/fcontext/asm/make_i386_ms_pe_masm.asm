@@ -26,8 +26,8 @@
 _exit PROTO, value:SDWORD
 .code
 
-copp_make_fcontext PROC EXPORT
-    ; first arg of copp_make_fcontext() == top of context-stack
+copp_make_fcontext_v2 PROC EXPORT
+    ; first arg of copp_make_fcontext_v2() == top of context-stack
     mov  eax, [esp+04h]
 
     ; reserve space for first argument of context-function
@@ -47,11 +47,11 @@ copp_make_fcontext PROC EXPORT
     ; save x87 control-word
     fnstcw  [eax+04h]
 
-    ; first arg of copp_make_fcontext() == top of context-stack
+    ; first arg of copp_make_fcontext_v2() == top of context-stack
     mov  ecx, [esp+04h]
     ; save top address of context stack as 'base'
     mov  [eax+014h], ecx
-    ; second arg of copp_make_fcontext() == size of context-stack
+    ; second arg of copp_make_fcontext_v2() == size of context-stack
     mov  edx, [esp+08h]
     ; negate stack size for LEA instruction (== substraction)
     neg  edx
@@ -65,7 +65,7 @@ copp_make_fcontext PROC EXPORT
 	xor  ecx, ecx
     mov  [eax+08h], ecx
 
-    ; third arg of copp_make_fcontext() == address of context-function
+    ; third arg of copp_make_fcontext_v2() == address of context-function
     ; stored in EBX
     mov  ecx, [esp+0ch]
     mov  [eax+024h], ecx
@@ -73,7 +73,7 @@ copp_make_fcontext PROC EXPORT
     ; compute abs address of label trampoline
     mov  ecx, trampoline
     ; save address of trampoline as return-address for context-function
-    ; will be entered after calling copp_jump_fcontext() first time
+    ; will be entered after calling copp_jump_fcontext_v2() first time
     mov  [eax+02ch], ecx
 
     ; compute abs address of label finish
@@ -136,5 +136,5 @@ finish:
     ; exit application
     call  _exit
     hlt
-copp_make_fcontext ENDP
+copp_make_fcontext_v2 ENDP
 END

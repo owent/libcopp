@@ -1,4 +1,4 @@
-﻿#include <inttypes.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <cstdio>
 #include <cstring>
@@ -21,10 +21,10 @@ int my_runner(void *) {
 }
 
 int main() {
-  typedef copp::coroutine_context_default coroutine_t;
+  typedef copp::coroutine_context_default coroutine_type;
 
   // create a coroutine
-  copp::coroutine_context_default::ptr_t co_obj = coroutine_t::create(my_runner);
+  copp::coroutine_context_default::ptr_t co_obj = coroutine_type::create(my_runner);
   std::cout << "cortoutine " << co_obj << " is created." << std::endl;
 
   // start a coroutine

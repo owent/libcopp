@@ -1,11 +1,6 @@
-﻿/*
- * couroutine_context_this_coroutine_test.cpp
- *
- *  Created on: 2014年3月17日
- *      Author: owent
- *
- *  Released under the MIT license
- */
+// Copyright 2022 owent
+
+#include "frame/test_macros.h"
 
 #include <assert.h>
 #include <algorithm>
@@ -19,8 +14,6 @@
 #include <memory>
 #include <thread>
 #include <vector>
-
-#include "frame/test_macros.h"
 
 #include <libcopp/coroutine/coroutine_context_container.h>
 #include <libcotask/task.h>

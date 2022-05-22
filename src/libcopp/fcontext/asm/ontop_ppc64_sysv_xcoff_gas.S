@@ -1,6 +1,6 @@
 .align 2
-.globl .copp_ontop_fcontext
-.copp_ontop_fcontext:
+.globl .copp_ontop_fcontext_v2
+.copp_ontop_fcontext_v2:
     # reserve space on stack
     subi  1, 1, 184
 

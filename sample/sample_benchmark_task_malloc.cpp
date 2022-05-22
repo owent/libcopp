@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_stress_test_task_malloc.cpp
  *
  *  Created on: 2014年5月11日
@@ -39,12 +39,12 @@ int max_task_number = 100000;  // 协程Task数量
 size_t stack_size = 16 * 1024;
 
 struct my_macro_coroutine {
-  typedef copp::allocator::stack_allocator_malloc stack_allocator_t;
-
-  typedef copp::coroutine_context_container<stack_allocator_t> coroutine_t;
+  using stack_allocator_type = copp::allocator::stack_allocator_malloc;
+  using coroutine_type = copp::coroutine_context_container<stack_allocator_type>;
+  using value_type = int;
 };
 
-typedef cotask::task<my_macro_coroutine> my_task_t;
+using my_task_t = cotask::task<my_macro_coroutine>;
 
 std::vector<my_task_t::ptr_t> task_arr;
 

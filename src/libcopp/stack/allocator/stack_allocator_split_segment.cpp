@@ -1,3 +1,12 @@
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
+
+#include <libcopp/stack/allocator/stack_allocator_split_segment.h>
+#include <libcopp/stack/stack_context.h>
+#include <libcopp/stack/stack_traits.h>
+#include <libcopp/fcontext/fcontext.hpp>
+
 extern "C" {
 #include <signal.h>
 }
@@ -6,11 +15,6 @@ extern "C" {
 #include <algorithm>
 #include <cstring>
 #include <limits>
-
-#include <libcopp/stack/allocator/stack_allocator_split_segment.h>
-#include <libcopp/stack/stack_context.h>
-#include <libcopp/stack/stack_traits.h>
-#include <libcopp/fcontext/fcontext.hpp>
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
@@ -28,7 +32,7 @@ void __splitstack_block_signals_context(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 
 LIBCOPP_COPP_API stack_allocator_split_segment::stack_allocator_split_segment() LIBCOPP_MACRO_NOEXCEPT {}
@@ -67,7 +71,7 @@ LIBCOPP_COPP_API void stack_allocator_split_segment::deallocate(stack_context &c
   __splitstack_releasecontext(ctx.segments_ctx);
 }
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX

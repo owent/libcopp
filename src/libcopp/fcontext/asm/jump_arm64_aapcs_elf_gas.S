@@ -54,9 +54,9 @@
 .file "jump_arm64_aapcs_elf_gas.S"
 .text
 .align  2
-.global copp_jump_fcontext
-.type   copp_jump_fcontext, %function
-copp_jump_fcontext:
+.global copp_jump_fcontext_v2
+.type   copp_jump_fcontext_v2, %function
+copp_jump_fcontext_v2:
     # prepare stack for GP + FPU
     sub  sp, sp, #0xb0
 
@@ -109,6 +109,6 @@ copp_jump_fcontext:
     add  sp, sp, #0xb0
 
     ret x4
-.size   copp_jump_fcontext,.-copp_jump_fcontext
+.size   copp_jump_fcontext_v2,.-copp_jump_fcontext_v2
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

@@ -1,11 +1,11 @@
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_BASE_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_BASE_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/utils/atomic_int_type.h>
-#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/intrusive_ptr.h>
 #include <libcopp/fcontext/all.hpp>
@@ -17,7 +17,7 @@
 #  include <exception>
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 
 namespace details {
 template <size_t N1, size_t N2, bool BIGGER_THAN_16>
@@ -41,16 +41,18 @@ struct LIBCOPP_COPP_API_HEAD_ONLY align_helper {
 // We should align to at least 16 bytes, @see https://wiki.osdev.org/System_V_ABI for more details
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || \
     (defined(_MSC_VER) && _MSC_VER >= 1900)
-#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<sizeof(max_align_t), 16>::value
+#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE \
+    LIBCOPP_COPP_NAMESPACE_ID::details::align_helper<sizeof(max_align_t), 16>::value
 #else
-#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE ::copp::details::align_helper<2 * sizeof(size_t), 16>::value
+#  define COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE \
+    LIBCOPP_COPP_NAMESPACE_ID::details::align_helper<2 * sizeof(size_t), 16>::value
 #endif
 
 // Some architecture may require stack to be aligned to 64
 // @see "3.2.2 The Stack Frame" of https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf
 // More documents about x86/x86_64 canbe found at https://stackoverflow.com/tags/x86/info
 #define COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE \
-  ::copp::details::align_helper<COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE, 64>::value
+  LIBCOPP_COPP_NAMESPACE_ID::details::align_helper<COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE, 64>::value
 
 static_assert(COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE % 16,
               "COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE");
@@ -63,12 +65,12 @@ static_assert(COROUTINE_CONTEXT_STACK_ALIGN_UNIT_SIZE >= 16 && 0 == COROUTINE_CO
  */
 class coroutine_context_base {
  public:
-  using callback_t = std::function<int(void *)>;
+  using callback_type = std::function<int(void *)>;
 
   /**
    * @brief status of safe coroutine context base
    */
-  struct LIBCOPP_COPP_API status_t {
+  struct LIBCOPP_COPP_API status_type {
     enum type {
       EN_CRS_INVALID = 0,  //!< EN_CRS_INVALID
       EN_CRS_READY,        //!< EN_CRS_READY
@@ -78,7 +80,7 @@ class coroutine_context_base {
     };
   };
 
-  struct LIBCOPP_COPP_API flag_t {
+  struct LIBCOPP_COPP_API flag_type {
     enum type {
       EN_CFT_UNKNOWN = 0,
       EN_CFT_FINISHED = 0x01,
@@ -87,17 +89,23 @@ class coroutine_context_base {
     };
   };
 
+  // Compability with libcopp-1.x
+  using callback_t = callback_type;
+  using status_t = status_type;
+  using flag_t = flag_type;
+
  protected:
-  int runner_ret_code_; /** coroutine return code **/
-  int flags_;           /** flags **/
-  callback_t runner_;   /** coroutine runner **/
+  int runner_ret_code_;  /** coroutine return code **/
+  int flags_;            /** flags **/
+  callback_type runner_; /** coroutine runner **/
   void *priv_data_;
   size_t private_buffer_size_;
 
 #if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
-  libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<int> > status_; /** status **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<int> >
+      status_; /** status **/
 #else
-  libcopp::util::lock::atomic_int_type<int> status_; /** status **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> status_; /** status **/
 #endif
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -155,7 +163,7 @@ class coroutine_context_base {
    * @param runner
    * @return COPP_EC_SUCCESS or error code
    */
-  LIBCOPP_COPP_API int set_runner(callback_t &&runner);
+  LIBCOPP_COPP_API int set_runner(callback_type &&runner);
 
   /**
    * get runner of this coroutine context (const)
@@ -220,7 +228,7 @@ class coroutine_context_base {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   static inline void maybe_rethrow(std::exception_ptr &inout) {
-    if (unlikely(inout)) {
+    COPP_UNLIKELY_IF(inout) {
       std::exception_ptr eptr;
       std::swap(eptr, inout);
       std::rethrow_exception(eptr);
@@ -244,6 +252,4 @@ class coroutine_context_base {
    */
   static LIBCOPP_COPP_API void set_this_coroutine_base(coroutine_context_base *ctx) LIBCOPP_MACRO_NOEXCEPT;
 };
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

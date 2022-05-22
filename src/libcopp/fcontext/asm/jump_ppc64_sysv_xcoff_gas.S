@@ -7,8 +7,8 @@
 */
 
 .align 2
-.globl .copp_jump_fcontext
-.copp_jump_fcontext:
+.globl .copp_jump_fcontext_v2
+.copp_jump_fcontext_v2:
     # reserve space on stack
     subi  1, 1, 184
 

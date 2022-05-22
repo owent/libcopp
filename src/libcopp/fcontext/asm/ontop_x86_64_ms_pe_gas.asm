@@ -89,10 +89,10 @@
 .file	"ontop_x86_64_ms_pe_gas.asm"
 .text
 .p2align 4,,15
-.globl	copp_ontop_fcontext
-.def	copp_ontop_fcontext;	.scl	2;	.type	32;	.endef
-.seh_proc	copp_ontop_fcontext
-copp_ontop_fcontext:
+.globl	copp_ontop_fcontext_v2
+.def	copp_ontop_fcontext_v2;	.scl	2;	.type	32;	.endef
+.seh_proc	copp_ontop_fcontext_v2
+copp_ontop_fcontext_v2:
 .seh_endprologue
 
     leaq  -0x118(%rsp), %rsp /* prepare stack */
@@ -208,4 +208,4 @@ copp_ontop_fcontext:
 .seh_endproc
 
 .section .drectve
-.ascii " -export:\"copp_ontop_fcontext\""
+.ascii " -export:\"copp_ontop_fcontext_v2\""

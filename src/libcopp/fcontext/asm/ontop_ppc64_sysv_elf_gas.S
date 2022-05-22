@@ -67,33 +67,33 @@
  *******************************************************/
 
 .file "ontop_ppc64_sysv_elf_gas.S"
-.globl copp_ontop_fcontext
+.globl copp_ontop_fcontext_v2
 #if _CALL_ELF == 2
 	.text
 	.align 2
-copp_ontop_fcontext:
-        addis   %r2, %r12, .TOC.-copp_ontop_fcontext@ha
-        addi    %r2, %r2, .TOC.-copp_ontop_fcontext@l
-        .localentry copp_ontop_fcontext, . - copp_ontop_fcontext
+copp_ontop_fcontext_v2:
+        addis   %r2, %r12, .TOC.-copp_ontop_fcontext_v2@ha
+        addi    %r2, %r2, .TOC.-copp_ontop_fcontext_v2@l
+        .localentry copp_ontop_fcontext_v2, . - copp_ontop_fcontext_v2
 #else
 	.section ".opd","aw"
 	.align 3
-copp_ontop_fcontext:
+copp_ontop_fcontext_v2:
 # ifdef _CALL_LINUX
-        .quad   .L.copp_ontop_fcontext,.TOC.@tocbase,0
-        .type   copp_ontop_fcontext,@function
+        .quad   .L.copp_ontop_fcontext_v2,.TOC.@tocbase,0
+        .type   copp_ontop_fcontext_v2,@function
         .text
         .align 2
-.L.copp_ontop_fcontext:
+.L.copp_ontop_fcontext_v2:
 # else
-        .hidden .copp_ontop_fcontext
-        .globl  .copp_ontop_fcontext
-        .quad   .copp_ontop_fcontext,.TOC.@tocbase,0
-        .size   copp_ontop_fcontext,24
-        .type   .copp_ontop_fcontext,@function
+        .hidden .copp_ontop_fcontext_v2
+        .globl  .copp_ontop_fcontext_v2
+        .quad   .copp_ontop_fcontext_v2,.TOC.@tocbase,0
+        .size   copp_ontop_fcontext_v2,24
+        .type   .copp_ontop_fcontext_v2,@function
         .text
         .align 2
-.copp_ontop_fcontext:
+.copp_ontop_fcontext_v2:
 # endif
 #endif
     # reserve space on stack
@@ -209,7 +209,7 @@ return_to_ctx:
     bctr
 
 #if _CALL_ELF == 2
-	.size copp_ontop_fcontext, .-copp_ontop_fcontext
+	.size copp_ontop_fcontext_v2, .-copp_ontop_fcontext_v2
 #else
 use_entry_arg:
     # compute return-value struct address
@@ -233,9 +233,9 @@ use_entry_arg:
 
     b  return_to_ctx
 # ifdef _CALL_LINUX
-	.size .copp_ontop_fcontext, .-.L.copp_ontop_fcontext
+	.size .copp_ontop_fcontext_v2, .-.L.copp_ontop_fcontext_v2
 # else
-	.size .copp_ontop_fcontext, .-.copp_ontop_fcontext
+	.size .copp_ontop_fcontext_v2, .-.copp_ontop_fcontext_v2
 # endif
 #endif
 

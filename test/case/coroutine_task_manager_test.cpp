@@ -1,10 +1,13 @@
+// Copyright 2022 owent
+
+#include <libcotask/task.h>
+#include <libcotask/task_manager.h>
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <memory>
 
-#include <libcotask/task.h>
-#include <libcotask/task_manager.h>
 #include "frame/test_macros.h"
 
 #ifdef LIBCOTASK_MACRO_ENABLED
@@ -316,7 +319,7 @@ CASE_TEST(coroutine_task_manager, protect_this_task) {
   CASE_EXPECT_EQ(3, (int)g_test_coroutine_task_manager_status);
 }
 
-static libcopp::util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
+static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
 
 static constexpr const int test_context_task_manager_action_mt_run_times = 10000;
 enum { test_context_task_manager_action_mt_thread_num = 1000 };

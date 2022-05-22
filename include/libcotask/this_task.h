@@ -1,20 +1,12 @@
-﻿/*
- * this_task.h
- *
- *  Created on: 2014年4月2日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COTASK_THIS_TASK_H
-#define COTASK_THIS_TASK_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcotask/impl/task_impl.h>
 
-namespace cotask {
+LIBCOPP_COTASK_NAMESPACE_BEGIN
 namespace this_task {
 
 /**
@@ -32,6 +24,4 @@ LIBCOPP_COTASK_API_HEAD_ONLY Tt *get() {
   return dynamic_cast<Tt *>(get_task());
 }
 }  // namespace this_task
-}  // namespace cotask
-
-#endif /* _COTASK_THIS_TASK_H_ */
+LIBCOPP_COTASK_NAMESPACE_END

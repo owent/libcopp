@@ -1,11 +1,8 @@
+// Copyright 2022 owent
 
-//          Copyright Oliver Kowalke 2009.
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
+#pragma once
 
-#ifndef _COPP_BOOST_CONTEXT_FCONTEXT_H
-#define _COPP_BOOST_CONTEXT_FCONTEXT_H
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #if defined(__PGI)
 #  include <stdint.h>
@@ -25,7 +22,7 @@ using intptr_t = int;
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace fcontext {
 using fcontext_t = void*;
 
@@ -34,19 +31,18 @@ struct transfer_t {
   void* data;
 };
 
-extern "C" COPP_BOOST_CONTEXT_DECL transfer_t COPP_BOOST_CONTEXT_CALLDECL copp_jump_fcontext(fcontext_t const to,
-                                                                                             void* vp);
+extern "C" COPP_BOOST_CONTEXT_DECL transfer_t COPP_BOOST_CONTEXT_CALLDECL copp_jump_fcontext_v2(fcontext_t const to,
+                                                                                                void* vp);
 
-extern "C" COPP_BOOST_CONTEXT_DECL fcontext_t COPP_BOOST_CONTEXT_CALLDECL copp_make_fcontext(void* sp, std::size_t size,
-                                                                                             void (*fn)(transfer_t));
+extern "C" COPP_BOOST_CONTEXT_DECL fcontext_t COPP_BOOST_CONTEXT_CALLDECL copp_make_fcontext_v2(void* sp,
+                                                                                                std::size_t size,
+                                                                                                void (*fn)(transfer_t));
 
 extern "C" COPP_BOOST_CONTEXT_DECL transfer_t COPP_BOOST_CONTEXT_CALLDECL
-copp_ontop_fcontext(fcontext_t const to, void* vp, transfer_t (*fn)(transfer_t));
+copp_ontop_fcontext_v2(fcontext_t const to, void* vp, transfer_t (*fn)(transfer_t));
 }  // namespace fcontext
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX
 #endif
-
-#endif  // _COPP_BOOST_CONTEXT_FCONTEXT_H

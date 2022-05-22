@@ -52,14 +52,14 @@
 
 .file "make_ppc32_sysv_elf_gas.S"
 .text
-.globl copp_make_fcontext
+.globl copp_make_fcontext_v2
 .align 2
-.type copp_make_fcontext,@function
-copp_make_fcontext:
+.type copp_make_fcontext_v2,@function
+copp_make_fcontext_v2:
     # save return address into R6
     mflr  %r6
 
-    # first arg of copp_make_fcontext() == top address of context-function
+    # first arg of copp_make_fcontext_v2() == top address of context-function
     # shift address in R3 to lower 16 byte boundary
     clrrwi  %r3, %r3, 4
 
@@ -67,7 +67,7 @@ copp_make_fcontext:
     # and parameter area + 240 bytes of context-data (R1 % 16 == 0)
     subi  %r3, %r3, 16 + 240
 
-    # third arg of copp_make_fcontext() == address of context-function
+    # third arg of copp_make_fcontext_v2() == address of context-function
 #ifdef __linux__
     # save context-function as PC
     stw  %r5, 16(%r3)
@@ -111,7 +111,7 @@ copp_make_fcontext:
 
 #ifndef __linux__
 trampoline:
-    # On systems other than Linux, copp_jump_fcontext is returning the
+    # On systems other than Linux, copp_jump_fcontext_v2 is returning the
     # transfer_t in R3:R4, but we need to pass transfer_t * R3 to
     # our context-function.
     lwz   %r0, 8(%r1)   # address of context-function
@@ -136,7 +136,7 @@ finish:
     # call _exit(0) with special addend 0x8000 for large model
     li  %r3, 0
     bl  _exit + 0x8000@plt
-.size copp_make_fcontext, .-copp_make_fcontext
+.size copp_make_fcontext_v2, .-copp_make_fcontext_v2
 
 /* Provide the GOT pointer for secure PLT, large model. */
 .section .got2,"aw"

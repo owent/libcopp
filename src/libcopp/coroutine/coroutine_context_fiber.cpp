@@ -1,16 +1,19 @@
-#include <assert.h>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
+// Copyright 2022 owent
 
 #include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/utils/errno.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
 #include <libcopp/coroutine/coroutine_context_fiber.h>
 
+#include <assert.h>
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 struct fiber_context_tls_data_t {
   using jump_src_data_t = coroutine_context_fiber::jump_src_data_t;
 
@@ -49,14 +52,14 @@ static inline fiber_context_tls_data_t::jump_src_data_t &get_this_fiber_jump_src
   return gt_current_fiber.jump_data;
 }
 
-struct libcopp_fiber_inner_api_helper {
+struct libcopp_fiber_internal_api_set {
   using jump_src_data_t = coroutine_context_fiber::jump_src_data_t;
 
   static inline fiber_context_tls_data_t::jump_src_data_t &build_this_fiber_jump_src(coroutine_context_fiber &to_ctx,
                                                                                      void *data) {
     fiber_context_tls_data_t::jump_src_data_t &jump_src = get_this_fiber_jump_src();
 
-    jump_src.from_co = ::copp::this_fiber::get_coroutine();
+    jump_src.from_co = ::LIBCOPP_COPP_NAMESPACE_ID::this_fiber::get_coroutine();
     if (nullptr == jump_src.from_co) {
       jump_src.from_fiber = get_this_fiber_address();
     } else {
@@ -122,9 +125,9 @@ struct libcopp_fiber_inner_api_helper {
     }
 #  endif
 
-    ins_ptr->flags_ |= coroutine_context_fiber::flag_t::EN_CFT_FINISHED;
+    ins_ptr->flags_ |= coroutine_context_fiber::flag_type::EN_CFT_FINISHED;
     // add memory fence to flush flags_(used in is_finished())
-    // LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
+    // LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
     ins_ptr->yield();
   }
 };
@@ -134,7 +137,7 @@ struct libcopp_fiber_inner_api_helper {
  * @param jump_src jump data
  */
 static inline void jump_to(LPVOID to_fiber,
-                           libcopp_fiber_inner_api_helper::jump_src_data_t &jump_src) LIBCOPP_MACRO_NOEXCEPT {
+                           libcopp_fiber_internal_api_set::jump_src_data_t &jump_src) LIBCOPP_MACRO_NOEXCEPT {
   coroutine_context_fiber *restore_co = jump_src.from_co;
 
   SwitchToFiber(to_fiber);
@@ -156,10 +159,10 @@ static inline void jump_to(LPVOID to_fiber,
    */
 
   // update caller of to_co if not jump from yield
-  libcopp_fiber_inner_api_helper::set_caller(jump_src.to_co, jump_src.from_fiber);
+  libcopp_fiber_internal_api_set::set_caller(jump_src.to_co, jump_src.from_fiber);
 
   // There is no need to update fiber's callee_ of from_co
-  // libcopp_fiber_inner_api_helper::set_callee(jump_src->from_co, res.fctx);
+  // libcopp_fiber_internal_api_set::set_callee(jump_src->from_co, res.fctx);
 
   // this_fiber
   coroutine_context_base::set_this_coroutine_base(restore_co);
@@ -169,8 +172,8 @@ LIBCOPP_COPP_API coroutine_context_fiber::coroutine_context_fiber() LIBCOPP_MACR
                                                                                              caller_(nullptr),
                                                                                              callee_(nullptr),
                                                                                              callee_stack_() {
-  flags_ |= flag_t::EN_CFT_IS_FIBER;
-  // set_flags(flag_t::EN_CFT_IS_FIBER); // can not use set_flags to set a coroutine context's flag here
+  flags_ |= flag_type::EN_CFT_IS_FIBER;
+  // set_flags(flag_type::EN_CFT_IS_FIBER); // can not use set_flags to set a coroutine context's flag here
 }
 
 LIBCOPP_COPP_API coroutine_context_fiber::~coroutine_context_fiber() {
@@ -179,7 +182,7 @@ LIBCOPP_COPP_API coroutine_context_fiber::~coroutine_context_fiber() {
   }
 }
 
-LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p, callback_t &&runner,
+LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p, callback_type &&runner,
                                                      const stack_context &callee_stack, size_t coroutine_size,
                                                      size_t private_buffer_size,
                                                      size_t stack_reserve_size_of_fiber) LIBCOPP_MACRO_NOEXCEPT {
@@ -226,7 +229,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p,
   p->callee_ =
       CreateFiberEx(0, stack_reserve_size_of_fiber,
                     0,  // We don't use FIBER_FLAG_FLOAT_SWITCH because fcontext version also don't save XMM0-XMM7
-                    &libcopp_fiber_inner_api_helper::coroutine_fiber_context_callback, p);
+                    &libcopp_fiber_internal_api_set::coroutine_fiber_context_callback, p);
   if (nullptr == p->callee_) {
     return COPP_EC_FCONTEXT_MAKE_FAILED;
   }
@@ -252,51 +255,49 @@ LIBCOPP_COPP_API int coroutine_context_fiber::start(void *priv_data) {
   }
 
   coroutine_context_base *this_ctx = coroutine_context_base::get_this_coroutine_base();
-  if (this_ctx && !this_ctx->check_flags(flag_t::EN_CFT_IS_FIBER)) {
-    return copp::COPP_EC_CAN_NOT_USE_CROSS_FCONTEXT_AND_FIBER;
+  if (this_ctx && !this_ctx->check_flags(flag_type::EN_CFT_IS_FIBER)) {
+    return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_CAN_NOT_USE_CROSS_FCONTEXT_AND_FIBER;
   }
 
-  int from_status = status_t::EN_CRS_READY;
+  int from_status = status_type::EN_CRS_READY;
   do {
-    if (from_status < status_t::EN_CRS_READY) {
+    if (from_status < status_type::EN_CRS_READY) {
       return COPP_EC_NOT_INITED;
     }
 
-    if (status_.compare_exchange_strong(from_status, status_t::EN_CRS_RUNNING,
-                                        libcopp::util::lock::memory_order_acq_rel,
-                                        libcopp::util::lock::memory_order_acquire)) {
+    if (status_.compare_exchange_strong(from_status, status_type::EN_CRS_RUNNING,
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire)) {
       break;
     } else {
       // finished or stoped
-      if (from_status > status_t::EN_CRS_RUNNING) {
+      if (from_status > status_type::EN_CRS_RUNNING) {
         return COPP_EC_NOT_READY;
       }
 
       // already running
-      if (status_t::EN_CRS_RUNNING == from_status) {
+      if (status_type::EN_CRS_RUNNING == from_status) {
         return COPP_EC_IS_RUNNING;
       }
     }
   } while (true);
 
-  libcopp_fiber_inner_api_helper::jump_src_data_t jump_src =
-      libcopp_fiber_inner_api_helper::build_this_fiber_jump_src(*this, priv_data);
+  libcopp_fiber_internal_api_set::jump_src_data_t jump_src =
+      libcopp_fiber_internal_api_set::build_this_fiber_jump_src(*this, priv_data);
   jump_to(callee_, jump_src);
 
   // Move changing status to EN_CRS_EXITED is finished
-  if (check_flags(flag_t::EN_CFT_FINISHED)) {
+  if (check_flags(flag_type::EN_CFT_FINISHED)) {
     // if in finished status, change it to exited
-    status_.store(status_t::EN_CRS_EXITED, libcopp::util::lock::memory_order_release);
+    status_.store(status_type::EN_CRS_EXITED, LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
   }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  if (unlikely(unhandle_exception_)) {
-    std::swap(unhandled, unhandle_exception_);
-  }
+  COPP_UNLIKELY_IF(unhandle_exception_) { std::swap(unhandled, unhandle_exception_); }
 #  endif
 
   return COPP_EC_SUCCESS;
-}  // namespace copp
+}
 
 LIBCOPP_COPP_API int coroutine_context_fiber::resume(void *priv_data) { return start(priv_data); }
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -311,20 +312,21 @@ LIBCOPP_COPP_API int coroutine_context_fiber::yield(void **priv_data) LIBCOPP_MA
     return COPP_EC_NOT_INITED;
   }
 
-  int from_status = status_t::EN_CRS_RUNNING;
-  int to_status = status_t::EN_CRS_READY;
-  if (check_flags(flag_t::EN_CFT_FINISHED)) {
-    to_status = status_t::EN_CRS_FINISHED;
+  int from_status = status_type::EN_CRS_RUNNING;
+  int to_status = status_type::EN_CRS_READY;
+  if (check_flags(flag_type::EN_CFT_FINISHED)) {
+    to_status = status_type::EN_CRS_FINISHED;
   }
-  if (false == status_.compare_exchange_strong(from_status, to_status, libcopp::util::lock::memory_order_acq_rel,
-                                               libcopp::util::lock::memory_order_acquire)) {
+  if (false == status_.compare_exchange_strong(from_status, to_status,
+                                               LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel,
+                                               LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire)) {
     switch (from_status) {
-      case status_t::EN_CRS_INVALID:
+      case status_type::EN_CRS_INVALID:
         return COPP_EC_NOT_INITED;
-      case status_t::EN_CRS_READY:
+      case status_type::EN_CRS_READY:
         return COPP_EC_NOT_RUNNING;
-      case status_t::EN_CRS_FINISHED:
-      case status_t::EN_CRS_EXITED:
+      case status_type::EN_CRS_FINISHED:
+      case status_type::EN_CRS_EXITED:
         return COPP_EC_ALREADY_EXIST;
       default:
         return COPP_EC_UNKNOWN;
@@ -351,7 +353,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::yield(void **priv_data) LIBCOPP_MA
 namespace this_fiber {
 LIBCOPP_COPP_API coroutine_context_fiber *get_coroutine() LIBCOPP_MACRO_NOEXCEPT {
   coroutine_context_base *ret = coroutine_context_base::get_this_coroutine_base();
-  if (ret && !ret->check_flags(coroutine_context_base::flag_t::EN_CFT_IS_FIBER)) {
+  if (ret && !ret->check_flags(coroutine_context_base::flag_type::EN_CFT_IS_FIBER)) {
     ret = nullptr;
   }
   return static_cast<coroutine_context_fiber *>(ret);
@@ -366,6 +368,6 @@ LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
   return COPP_EC_NOT_RUNNING;
 }
 }  // namespace this_fiber
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #endif

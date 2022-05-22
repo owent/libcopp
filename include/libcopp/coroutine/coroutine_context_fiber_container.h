@@ -1,20 +1,18 @@
-/**
- * coroutine context fiber container
- */
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_CONTAINER_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_FIBER_CONTAINER_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include <cstddef>
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/coroutine/coroutine_context_fiber.h>
 #include <libcopp/stack/stack_allocator.h>
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 
+#include <cstddef>
+
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
  * @brief coroutine container
  * contain stack context, stack allocator and runtime fcontext
@@ -26,8 +24,12 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
   using base_type = coroutine_context_fiber;
   using allocator_type = TALLOC;
   using this_type = coroutine_context_fiber_container<allocator_type>;
-  using ptr_t = libcopp::util::intrusive_ptr<this_type>;
-  using callback_t = coroutine_context_fiber::callback_t;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<this_type>;
+  using callback_type = coroutine_context_fiber::callback_type;
+
+  // Compability with libcopp-1.x
+  using ptr_t = ptr_type;
+  using callback_t = callback_type;
 
   COROUTINE_CONTEXT_BASE_USING_BASE(base_type)
 
@@ -62,9 +64,9 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
    * @param coroutine_size extend buffer before coroutine
    * @return COPP_EC_SUCCESS or error code
    */
-  static ptr_t create(callback_t &&runner, allocator_type &alloc, size_t stack_sz = 0, size_t private_buffer_size = 0,
-                      size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
-    ptr_t ret;
+  static ptr_type create(callback_type &&runner, allocator_type &alloc, size_t stack_sz = 0,
+                         size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+    ptr_type ret;
     if (0 == stack_sz) {
       stack_sz = stack_traits::default_size();
     }
@@ -108,41 +110,41 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
   }
 
   template <class TRunner>
-  static inline ptr_t create(TRunner *runner, allocator_type &alloc, size_t stack_size = 0,
-                             size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static inline ptr_type create(TRunner *runner, allocator_type &alloc, size_t stack_size = 0,
+                                size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     if (nullptr == runner) {
-      return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
+      return create(callback_type(), alloc, stack_size, private_buffer_size, coroutine_size);
     }
 
     return create([runner](void *private_data) { return (*runner)(private_data); }, alloc, stack_size,
                   private_buffer_size, coroutine_size);
   }
 
-  static inline ptr_t create(int (*fn)(void *), allocator_type &alloc, size_t stack_size = 0,
-                             size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static inline ptr_type create(int (*fn)(void *), allocator_type &alloc, size_t stack_size = 0,
+                                size_t private_buffer_size = 0, size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     if (nullptr == fn) {
-      return create(callback_t(), alloc, stack_size, private_buffer_size, coroutine_size);
+      return create(callback_type(), alloc, stack_size, private_buffer_size, coroutine_size);
     }
 
-    return create(callback_t(fn), alloc, stack_size, private_buffer_size, coroutine_size);
+    return create(callback_type(fn), alloc, stack_size, private_buffer_size, coroutine_size);
   }
 
-  static ptr_t create(callback_t &&runner, size_t stack_size = 0, size_t private_buffer_size = 0,
-                      size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static ptr_type create(callback_type &&runner, size_t stack_size = 0, size_t private_buffer_size = 0,
+                         size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     allocator_type alloc;
     return create(std::move(runner), alloc, stack_size, private_buffer_size, coroutine_size);
   }
 
   template <class TRunner>
-  static inline ptr_t create(TRunner *runner, size_t stack_size = 0, size_t private_buffer_size = 0,
-                             size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+  static inline ptr_type create(TRunner *runner, size_t stack_size = 0, size_t private_buffer_size = 0,
+                                size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
     return create([runner](void *private_data) { return (*runner)(private_data); }, stack_size, private_buffer_size,
                   coroutine_size);
   }
 
-  static inline ptr_t create(int (*fn)(void *), size_t stack_size = 0, size_t private_buffer_size = 0,
-                             size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
-    return create(callback_t(fn), stack_size, private_buffer_size, coroutine_size);
+  static inline ptr_type create(int (*fn)(void *), size_t stack_size = 0, size_t private_buffer_size = 0,
+                                size_t coroutine_size = 0) LIBCOPP_MACRO_NOEXCEPT {
+    return create(callback_type(fn), stack_size, private_buffer_size, coroutine_size);
   }
 
   inline size_t use_count() const LIBCOPP_MACRO_NOEXCEPT { return ref_count_.load(); }
@@ -180,15 +182,15 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
  private:
   allocator_type alloc_; /** stack allocator **/
 #  if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
-  libcopp::util::lock::atomic_int_type<libcopp::util::lock::unsafe_int_type<size_t> > ref_count_; /** status **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t> >
+      ref_count_; /** status **/
 #  else
-  libcopp::util::lock::atomic_int_type<size_t> ref_count_; /** status **/
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t> ref_count_; /** status **/
 #  endif
 };
 
 using coroutine_fiber_context_default = coroutine_context_fiber_container<allocator::stack_allocator_malloc>;
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END
 
 #endif

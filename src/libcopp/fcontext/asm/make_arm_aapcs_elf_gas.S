@@ -40,18 +40,18 @@
 
 .file "make_arm_aapcs_elf_gas.S"
 .text
-.globl copp_make_fcontext
+.globl copp_make_fcontext_v2
 .align 2
-.type copp_make_fcontext,%function
+.type copp_make_fcontext_v2,%function
 .syntax unified
-copp_make_fcontext:
+copp_make_fcontext_v2:
     @ shift address in A1 to lower 16 byte boundary
     bic  a1, a1, #15
 
     @ reserve space for context-data on context-stack
     sub  a1, a1, #124
 
-    @ third arg of copp_make_fcontext() == address of context-function
+    @ third arg of copp_make_fcontext_v2() == address of context-function
     str  a3, [a1, #104]
 
     @ compute address of returned transfer_t
@@ -75,7 +75,7 @@ finish:
     mov  a1, #0
     @ exit application
     bl  _exit@PLT
-.size copp_make_fcontext,.-copp_make_fcontext
+.size copp_make_fcontext_v2,.-copp_make_fcontext_v2
 
 @ Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

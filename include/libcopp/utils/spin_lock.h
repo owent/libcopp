@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file spin_lock.h
  * @brief 自旋锁
  * Licensed under the MIT licenses.
@@ -22,9 +22,6 @@
  *    2016-06-15
  *         1. using atomic_int_type
  */
-
-#ifndef LIBCOPP_UTIL_LOCK_SPINLOCK_H
-#define LIBCOPP_UTIL_LOCK_SPINLOCK_H
 
 #pragma once
 
@@ -172,7 +169,7 @@
     }                                                             \
   }
 
-namespace libcopp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {
 namespace lock {
 /**
@@ -183,9 +180,9 @@ namespace lock {
 class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
  private:
   typedef enum { UNLOCKED = 0, LOCKED = 1 } lock_state_t;
-  ::libcopp::util::lock::atomic_int_type<
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
 #if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
-      ::libcopp::util::lock::unsafe_int_type<unsigned int>
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<unsigned int>
 #else
       unsigned int
 #endif
@@ -197,29 +194,28 @@ class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
 
   void lock() {
     unsigned char try_times = 0;
-    while (lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
-           LOCKED)
+    while (lock_status_.exchange(static_cast<unsigned int>(LOCKED),
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel) == LOCKED)
       __LIBCOPP_UTIL_LOCK_SPIN_LOCK_WAIT(try_times++); /* busy-wait */
   }
 
   void unlock() {
-    lock_status_.store(static_cast<unsigned int>(UNLOCKED), ::libcopp::util::lock::memory_order_release);
+    lock_status_.store(static_cast<unsigned int>(UNLOCKED),
+                       LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
   }
 
-  bool is_locked() { return lock_status_.load(::libcopp::util::lock::memory_order_acquire) == LOCKED; }
+  bool is_locked() { return lock_status_.load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire) == LOCKED; }
 
   bool try_lock() {
-    return lock_status_.exchange(static_cast<unsigned int>(LOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
-           UNLOCKED;
+    return lock_status_.exchange(static_cast<unsigned int>(LOCKED),
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel) == UNLOCKED;
   }
 
   bool try_unlock() {
-    return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED), ::libcopp::util::lock::memory_order_acq_rel) ==
-           LOCKED;
+    return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED),
+                                 LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel) == LOCKED;
   }
 };
 }  // namespace lock
 }  // namespace util
-}  // namespace libcopp
-
-#endif /* SPINLOCK_H_ */
+LIBCOPP_COPP_NAMESPACE_END

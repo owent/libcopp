@@ -110,16 +110,20 @@ jobs:
           else
             bash ci/do_ci.sh gcc.test ;
           fi
-  vs2019_build: # job id, can be any string
-    name: Visual Studio 2019 Build
+  vs2019_2022_build: # job id, can be any string
+    name: Visual Studio Build
     strategy:
       matrix:
         include:
           - os: windows-latest
-            generator: "Visual Studio 16 2019"
+            generator: "Visual Studio 17 2022"
             build_shared_libs: "ON"
             platform: x64
           - os: windows-latest
+            generator: "Visual Studio 17 2022"
+            build_shared_libs: "OFF"
+            platform: x64
+          - os: windows-2019
             generator: "Visual Studio 16 2019"
             build_shared_libs: "OFF"
             platform: x64
@@ -135,27 +139,7 @@ jobs:
           BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
           CONFIGURATION: RelWithDebInfo
         run: |
-          pwsh ci/do_ci.ps1 msvc.2019.test ;
-  vs2017_build: # job id, can be any string
-    name: Visual Studio 2017 Build
-    strategy:
-      matrix:
-        include:
-          - os: windows-2016
-            generator: "Visual Studio 15 2017 Win64"
-            build_shared_libs: "OFF"
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build & Test
-        shell: pwsh
-        env:
-          CMAKE_GENERATOR: ${{ matrix.generator }}
-          BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
-          CONFIGURATION: RelWithDebInfo
-        run: |
-          pwsh ci/do_ci.ps1 msvc.2017.test ;
+          pwsh ci/do_ci.ps1 "msvc.2019+.test" ;
   mingw_build: # job id, can be any string
     name: MinGW Build
     strategy:

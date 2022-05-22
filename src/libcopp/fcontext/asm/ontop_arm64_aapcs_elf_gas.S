@@ -54,9 +54,9 @@
 .file "ontop_arm64_aapcs_elf_gas.S"
 .text
 .align  2
-.global copp_ontop_fcontext
-.type   copp_ontop_fcontext, %function
-copp_ontop_fcontext:
+.global copp_ontop_fcontext_v2
+.type   copp_ontop_fcontext_v2, %function
+copp_ontop_fcontext_v2:
     # prepare stack for GP + FPU
     sub  sp, sp, #0xb0
 
@@ -108,6 +108,6 @@ copp_ontop_fcontext:
 
     # jump to ontop-function
     ret x2
-.size   copp_ontop_fcontext,.-copp_ontop_fcontext
+.size   copp_ontop_fcontext_v2,.-copp_ontop_fcontext_v2
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

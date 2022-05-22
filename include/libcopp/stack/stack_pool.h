@@ -1,7 +1,8 @@
-#ifndef COPP_STACKCONTEXT_STACK_POOL_H
-#define COPP_STACKCONTEXT_STACK_POOL_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/lock_holder.h>
@@ -15,12 +16,16 @@
 #include <list>
 #include <memory>
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 template <typename TAlloc>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  public:
-  using allocator_t = TAlloc;
-  using ptr_t = std::shared_ptr<stack_pool<TAlloc> >;
+  using allocator_type = TAlloc;
+  using ptr_type = std::shared_ptr<stack_pool<TAlloc> >;
+
+  // Compability with libcopp-1.x
+  using allocator_t = allocator_type;
+  using ptr_t = ptr_type;
 
   struct limit_t {
     size_t used_stack_number;
@@ -47,12 +52,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   stack_pool(const stack_pool &) = delete;
 
  public:
-  static ptr_t create() { return std::make_shared<stack_pool>(constructor_delegator()); }
+  static ptr_type create() { return std::make_shared<stack_pool>(constructor_delegator()); }
 
   stack_pool(constructor_delegator) {
     memset(&limits_, 0, sizeof(limits_));
     memset(&conf_, 0, sizeof(conf_));
-    conf_.stack_size = copp::stack_traits::default_size();
+    conf_.stack_size = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::default_size();
     conf_.auto_gc = true;
   }
   ~stack_pool() { clear(); }
@@ -60,14 +65,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   inline const limit_t &get_limit() const { return limits_; }
 
   // configure
-  inline allocator_t &get_origin_allocator() LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
-  inline const allocator_t &get_origin_allocator() const LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
+  inline allocator_type &get_origin_allocator() LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
+  inline const allocator_type &get_origin_allocator() const LIBCOPP_MACRO_NOEXCEPT { return alloc_; }
 
   size_t set_stack_size(size_t sz) {
-    if (sz <= copp::stack_traits::minimum_size()) {
-      sz = copp::stack_traits::minimum_size();
+    if (sz <= LIBCOPP_COPP_NAMESPACE_ID::stack_traits::minimum_size()) {
+      sz = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::minimum_size();
     } else {
-      sz = copp::stack_traits::round_to_page_size(sz);
+      sz = LIBCOPP_COPP_NAMESPACE_ID::stack_traits::round_to_page_size(sz);
     }
 
     if (sz != conf_.stack_size) {
@@ -105,7 +110,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
    */
   void allocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
     // check limit
     if (0 != conf_.max_stack_number && limits_.used_stack_number >= conf_.max_stack_number) {
@@ -126,20 +132,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       assert(iter != free_list_.rend());
 
       // free limit
-      if (likely(limits_.free_stack_number > 0)) {
-        --limits_.free_stack_number;
-      } else {
+      COPP_LIKELY_IF(limits_.free_stack_number > 0) { --limits_.free_stack_number; }
+      else {
         limits_.free_stack_number = free_list_.size() - 1;
       }
 
-      if (likely(limits_.free_stack_size >= (*iter).size)) {
-        limits_.free_stack_size -= (*iter).size;
-      } else {
+      COPP_LIKELY_IF(limits_.free_stack_size >= (*iter).size) { limits_.free_stack_size -= (*iter).size; }
+      else {
         limits_.free_stack_size = 0;
       }
 
       // make sure the stack must be greater or equal than configure after reset
-      if (likely(iter->size >= conf_.stack_size)) {
+      COPP_LIKELY_IF(iter->size >= conf_.stack_size) {
         ctx = *iter;
         free_list_.pop_back();
 
@@ -147,7 +151,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
         ++limits_.used_stack_number;
         limits_.used_stack_size += ctx.size;
         return;
-      } else {
+      }
+      else {
         // just pop cache
         free_list_.pop_back();
       }
@@ -172,7 +177,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
     assert(ctx.sp && ctx.size > 0);
     do {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+          action_lock_);
 #endif
       // check ctx
       if (ctx.sp == nullptr || 0 == ctx.size) {
@@ -180,15 +186,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       }
 
       // limits
-      if (likely(limits_.used_stack_size >= ctx.size)) {
-        limits_.used_stack_size -= ctx.size;
-      } else {
+      COPP_LIKELY_IF(limits_.used_stack_size >= ctx.size) { limits_.used_stack_size -= ctx.size; }
+      else {
         limits_.used_stack_size = 0;
       }
 
-      if (likely(limits_.used_stack_number > 0)) {
-        --limits_.used_stack_number;
-      }
+      COPP_LIKELY_IF(limits_.used_stack_number > 0) { --limits_.used_stack_number; }
 
       // check size
       if (ctx.size != conf_.stack_size + conf_.stack_offset) {
@@ -229,7 +232,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
 
     size_t keep_size = limits_.free_stack_size >> 1;
@@ -245,15 +249,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       typename std::list<stack_context>::iterator iter = free_list_.begin();
       assert(iter != free_list_.end());
 
-      if (likely(limits_.free_stack_number > 0)) {
-        --limits_.free_stack_number;
-      } else {
+      COPP_LIKELY_IF(limits_.free_stack_number > 0) { --limits_.free_stack_number; }
+      else {
         limits_.free_stack_number = free_list_.size() - 1;
       }
 
-      if (likely(limits_.free_stack_size >= (*iter).size)) {
-        limits_.free_stack_size -= (*iter).size;
-      } else {
+      COPP_LIKELY_IF(limits_.free_stack_size >= (*iter).size) { limits_.free_stack_size -= (*iter).size; }
+      else {
         limits_.free_stack_size = 0;
       }
 
@@ -270,14 +272,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       }
     }
 
-    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
+    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
 
     return ret;
   }
 
   void clear() {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    libcopp::util::lock::lock_holder<libcopp::util::lock::spin_lock> lock_guard(action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
+        action_lock_);
 #endif
 
     limits_.free_stack_size = 0;
@@ -287,18 +290,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       alloc_.deallocate(*iter);
     }
 
-    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(libcopp::util::lock::memory_order_release);
+    LIBCOPP_UTIL_LOCK_ATOMIC_THREAD_FENCE(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
   }
 
  private:
   limit_t limits_;
   configure_t conf_;
-  allocator_t alloc_;
+  allocator_type alloc_;
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-  libcopp::util::lock::spin_lock action_lock_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;
 #endif
   std::list<stack_context> free_list_;
 };
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

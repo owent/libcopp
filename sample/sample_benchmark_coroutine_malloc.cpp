@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_stress_test_coroutine_malloc.cpp
  *
  *  Created on: 2014年5月15日

@@ -1,11 +1,12 @@
-#ifndef COPP_FUTURE_STD_COROUTINE_GENERATOR_H
-#define COPP_FUTURE_STD_COROUTINE_GENERATOR_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include "future.h"
+#include <libcopp/utils/config/libcopp_build_features.h>
 
-namespace copp {
+#include "libcopp/future/future.h"
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
@@ -94,7 +95,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator {
     }
 
     inline future_data_type *await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      if (likely(future_)) {
+      COPP_LIKELY_IF(future_) {
         future_->set_handle(nullptr);
 
         if (future_->is_ready()) {
@@ -144,7 +145,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator {
     generator_waker(future_data_type &fut) : future(&fut) {}
 
     void operator()(context_type &ctx) {
-      if (likely(future)) {
+      COPP_LIKELY_IF(future) {
         if (!future->is_ready()) {
           future->template poll_as<future_data_type>(ctx);
         }
@@ -206,6 +207,4 @@ inline T make_generator(TARGS &&...args) {
 }
 #endif
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

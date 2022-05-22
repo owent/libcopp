@@ -49,7 +49,7 @@ if ($IsWindows) {
 Set-Location "$SCRIPT_DIR/.."
 $RUN_MODE = $args[0]
 
-if ( $RUN_MODE -eq "msvc.2019.test" ) {
+if ( $RUN_MODE -eq "msvc.2019+.test" ) {
   Invoke-Environment "call ""$vsInstallationPath/VC/Auxiliary/Build/vcvars64.bat"""
   New-Item -Path "build_jobs_ci" -ItemType "directory" -Force 
   Set-Location "build_jobs_ci"

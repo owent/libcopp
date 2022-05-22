@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
@@ -8,8 +8,9 @@
 #  include <libcotask/task.h>
 
 struct my_task_macro_t {
-  typedef copp::coroutine_fiber_context_default::allocator_type stack_allocator_t;
-  typedef copp::coroutine_fiber_context_default coroutine_t;
+  using stack_allocator_type = copp::coroutine_fiber_context_default::allocator_type;
+  using coroutine_type = copp::coroutine_fiber_context_default;
+  using value_type = int;
 };
 
 typedef cotask::task<my_task_macro_t> my_task_t;

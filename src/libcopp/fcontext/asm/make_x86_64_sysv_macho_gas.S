@@ -25,10 +25,10 @@
  ****************************************************************************************/
 
 .text
-.globl _copp_make_fcontext
+.globl _copp_make_fcontext_v2
 .align 8
-_copp_make_fcontext:
-    /* first arg of copp_make_fcontext() == top of context-stack */
+_copp_make_fcontext_v2:
+    /* first arg of copp_make_fcontext_v2() == top of context-stack */
     movq  %rdi, %rax
 
     /* shift address in RAX to lower 16 byte boundary */
@@ -38,7 +38,7 @@ _copp_make_fcontext:
     /* on context-function entry: (RSP -0x8) % 16 == 0 */
     leaq  -0x40(%rax), %rax
 
-    /* third arg of copp_make_fcontext() == address of context-function */
+    /* third arg of copp_make_fcontext_v2() == address of context-function */
     /* stored in RBX */
     movq  %rdx, 0x28(%rax)
 
@@ -50,7 +50,7 @@ _copp_make_fcontext:
     /* compute abs address of label trampoline */
     leaq  trampoline(%rip), %rcx
     /* save address of trampoline as return-address for context-function */
-    /* will be entered after calling copp_jump_fcontext() first time */
+    /* will be entered after calling copp_jump_fcontext_v2() first time */
     movq  %rcx, 0x38(%rax)
 
     /* compute abs address of label finish */

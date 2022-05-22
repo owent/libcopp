@@ -39,16 +39,16 @@
  *******************************************************/
 
 .text
-.globl _copp_make_fcontext
+.globl _copp_make_fcontext_v2
 .align 2
-_copp_make_fcontext:
+_copp_make_fcontext_v2:
     @ shift address in A1 to lower 16 byte boundary
     bic  a1, a1, #15
 
     @ reserve space for context-data on context-stack
     sub  a1, a1, #124
 
-    @ third arg of copp_make_fcontext() == address of context-function
+    @ third arg of copp_make_fcontext_v2() == address of context-function
     str  a3, [a1, #108]
 
     @ compute address of returned transfer_t

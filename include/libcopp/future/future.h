@@ -1,14 +1,15 @@
-#ifndef COPP_FUTURE_FUTURE_H
-#define COPP_FUTURE_FUTURE_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <list>
 
-#include "context.h"
-#include "poller.h"
+#include "libcopp/future/context.h"
+#include "libcopp/future/poller.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 
 template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
@@ -149,9 +150,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
     clear_context_waker_type(TCONTEXT &ctx) : context(&ctx) {}
 
     void operator()() LIBCOPP_MACRO_NOEXCEPT {
-      if (likely(context)) {
-        context->set_wake_fn(nullptr);
-      }
+      COPP_LIKELY_IF(context) { context->set_wake_fn(nullptr); }
     }
   };
 
@@ -163,9 +162,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
     future_waker_type(TSELF &s) : self(&s) {}
 
     void operator()(TCONTEXT &ctx) {
-      if (likely(self)) {
-        self->template poll_as<TSELF>(ctx);
-      }
+      COPP_LIKELY_IF(self) { self->template poll_as<TSELF>(ctx); }
     }
 
     // convert type
@@ -183,9 +180,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
     future_waker_type(TSELF &s) : self(&s) {}
 
     void operator()(context<TPD> &ctx) {
-      if (likely(self)) {
-        self->template poll_as<TSELF>(ctx);
-      }
+      COPP_LIKELY_IF(self) { self->template poll_as<TSELF>(ctx); }
     }
   };
 
@@ -193,6 +188,4 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
   std::function<void()> clear_ctx_waker_;
 };
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

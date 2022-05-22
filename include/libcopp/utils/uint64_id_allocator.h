@@ -1,22 +1,14 @@
-/*
- * uint64_id_allocator.h
- *
- *  Created on: 2020-05-18
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef COPP_UTILS_UINT64_ID_ALLOCATOR_H
-#define COPP_UTILS_UINT64_ID_ALLOCATOR_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <stdint.h>
 
 #include "config/libcopp_build_features.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {
 class LIBCOPP_COPP_API uint64_id_allocator {
  public:
@@ -28,6 +20,4 @@ class LIBCOPP_COPP_API uint64_id_allocator {
   static void deallocate(value_type) LIBCOPP_MACRO_NOEXCEPT;
 };
 }  // namespace util
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

@@ -1,7 +1,8 @@
-#ifndef COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_H
-#define COPP_COROUTINE_CONTEXT_COROUTINE_CONTEXT_H
+// Copyright 2022 owent
 
 #pragma once
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include "coroutine_context_base.h"
 
@@ -18,16 +19,22 @@
   using base_type::callee_stack_;                    \
   COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type)
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 /**
- * @brief base type of all coroutine context
+ * @brief base type of all stackful coroutine context
  */
 class coroutine_context : public coroutine_context_base {
  public:
-  using ptr_t = libcopp::util::intrusive_ptr<coroutine_context>;
-  using callback_t = coroutine_context_base::callback_t;
-  using status_t = coroutine_context_base::status_t;
-  using flag_t = coroutine_context_base::flag_t;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<coroutine_context>;
+  using callback_type = coroutine_context_base::callback_type;
+  using status_type = coroutine_context_base::status_type;
+  using flag_type = coroutine_context_base::flag_type;
+
+  // Compability with libcopp-1.x
+  using ptr_t = ptr_type;
+  using callback_t = callback_type;
+  using status_t = status_type;
+  using flag_t = flag_type;
 
  private:
   using coroutine_context_base::flags_;
@@ -46,7 +53,7 @@ class coroutine_context : public coroutine_context_base {
     void *priv_data;
   };
 
-  friend struct LIBCOPP_COPP_API_HEAD_ONLY libcopp_inner_api_helper;
+  friend struct libcopp_internal_api_set;
 
  protected:
   fcontext::fcontext_t caller_; /** caller runtime context **/
@@ -78,7 +85,7 @@ class coroutine_context : public coroutine_context_base {
    * @param private_buffer_size size of private buffer
    * @return COPP_EC_SUCCESS or error code
    */
-  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_t &&runner, const stack_context &callee_stack,
+  static LIBCOPP_COPP_API int create(coroutine_context *p, callback_type &&runner, const stack_context &callee_stack,
                                      size_t coroutine_size, size_t private_buffer_size) LIBCOPP_MACRO_NOEXCEPT;
 
   template <typename TRunner>
@@ -160,6 +167,4 @@ LIBCOPP_COPP_API_HEAD_ONLY Tc *get() {
  */
 LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 }  // namespace this_coroutine
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

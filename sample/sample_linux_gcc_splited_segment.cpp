@@ -1,4 +1,4 @@
-﻿/*
+/*
  * sample_default_manager.cpp
  *
  *  Created on: 2014年3月17日

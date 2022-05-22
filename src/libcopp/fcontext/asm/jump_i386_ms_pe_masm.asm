@@ -24,7 +24,7 @@
 .model flat, c
 .code
 
-copp_jump_fcontext PROC EXPORT
+copp_jump_fcontext_v2 PROC EXPORT
     ; prepare stack
     lea  esp, [esp-02ch]
 
@@ -63,7 +63,7 @@ ENDIF
     ; store ESP (pointing to context-data) in EAX
     mov  eax, esp
 
-    ; firstarg of copp_jump_fcontext() == fcontext to jump to
+    ; firstarg of copp_jump_fcontext_v2() == fcontext to jump to
     mov  ecx, [esp+030h]
     
     ; restore ESP (pointing to context-data) from ECX
@@ -112,5 +112,5 @@ ENDIF
 
     ; jump to context
     jmp ecx
-copp_jump_fcontext ENDP
+copp_jump_fcontext_v2 ENDP
 END

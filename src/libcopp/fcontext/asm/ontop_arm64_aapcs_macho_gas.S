@@ -52,9 +52,9 @@
  *******************************************************/
 
 .text
-.global _copp_ontop_fcontext
+.global _copp_ontop_fcontext_v2
 .balign 16
-_copp_ontop_fcontext:
+_copp_ontop_fcontext_v2:
     ; prepare stack for GP + FPU
     sub  sp, sp, #0xb0
 

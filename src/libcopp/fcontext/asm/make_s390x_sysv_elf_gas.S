@@ -45,8 +45,8 @@
 
 .text
 .align	8
-.global	copp_make_fcontext
-.type	copp_make_fcontext, @function
+.global	copp_make_fcontext_v2
+.type	copp_make_fcontext_v2, @function
 
 #define ARG_OFFSET         0
 #define GR_OFFSET	   16
@@ -58,7 +58,7 @@
 
 /*
 
-fcontext_t copp_make_fcontext( void * sp, std::size_t size, void (* fn)( transfer_t) );
+fcontext_t copp_make_fcontext_v2( void * sp, std::size_t size, void (* fn)( transfer_t) );
 
 Create and return a context below SP to call FN.
 
@@ -69,7 +69,7 @@ r4 - The address of the context function
 
 */
 
-copp_make_fcontext:
+copp_make_fcontext_v2:
 	.machine "z10"
 	/* Align the stack to an 8 byte boundary.  */
 	nill    %r2,0xfff0
@@ -77,7 +77,7 @@ copp_make_fcontext:
 	/* Allocate stack space for the context.  */
 	aghi	%r2,-CONTEXT_SIZE
 
-	/* Set the r2 save slot to zero.  This indicates copp_jump_fcontext
+	/* Set the r2 save slot to zero.  This indicates copp_jump_fcontext_v2
 	   that this is a special context.  */
 	mvghi	GR_OFFSET(%r2),0
 
@@ -99,10 +99,10 @@ copp_make_fcontext:
 
 finish:
 	/* In finish tasks, you load the exit code and exit the
-	   copp_make_fcontext This is called when the context-function is
+	   copp_make_fcontext_v2 This is called when the context-function is
 	   entirely executed.  */
 	lghi	%r2,0
 	brasl	%r14,_exit@PLT
 
-.size   copp_make_fcontext,.-copp_make_fcontext
+.size   copp_make_fcontext_v2,.-copp_make_fcontext_v2
 .section .note.GNU-stack,"",%progbits

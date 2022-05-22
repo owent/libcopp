@@ -1,13 +1,14 @@
-#ifndef COPP_FUTURE_CONTEXT_H
-#define COPP_FUTURE_CONTEXT_H
+// Copyright 2022 owent
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <assert.h>
 
-#include "poller.h"
+#include "libcopp/future/poller.h"
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace future {
 template <class TFUNCTION>
 struct LIBCOPP_COPP_API_HEAD_ONLY context_event_function {
@@ -84,7 +85,7 @@ template <class TPD>
 class LIBCOPP_COPP_API_HEAD_ONLY context {
  public:
   using self_type = context<TPD>;
-  using wake_fn_t = std::function<void(self_type &)>;
+  using wake_callback_type = std::function<void(self_type &)>;
   using value_type = TPD;
 
  private:
@@ -108,16 +109,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY context {
 
   void wake() { wake_fn_.invoke(*this); }
 
-  inline void set_wake_fn(wake_fn_t fn) { wake_fn_.set(std::move(fn)); }
-  inline const wake_fn_t &get_wake_fn() const LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
-  inline wake_fn_t &get_wake_fn() LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
+  inline void set_wake_fn(wake_callback_type fn) { wake_fn_.set(std::move(fn)); }
+  inline const wake_callback_type &get_wake_fn() const LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
+  inline wake_callback_type &get_wake_fn() LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
 
   inline value_type &get_private_data() LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
   inline const value_type &get_private_data() const LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
 
  private:
   value_type private_data_;
-  context_event_function<wake_fn_t> wake_fn_;
+  context_event_function<wake_callback_type> wake_fn_;
 };
 
 template <bool>
@@ -152,8 +153,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY context<void> {
   };
 
   using self_type = context<void>;
-  using wake_fn_t = std::function<void(self_type &)>;
-  using poll_fn_t = std::function<void(self_type &, poll_event_data)>;
+  using wake_callback_type = std::function<void(self_type &)>;
+  using poll_callback_type = std::function<void(self_type &, poll_event_data)>;
   using value_type = void *;
 
  private:
@@ -164,7 +165,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY context<void> {
   context &operator=(context &&) = delete;
 
   struct construct_helper_t {
-    poll_fn_t pool_fn;
+    poll_callback_type pool_fn;
     void *private_data;
 
     template <class U>
@@ -199,17 +200,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY context<void> {
 
   void wake() { wake_fn_.invoke(*this); }
 
-  inline void set_poll_fn(poll_fn_t fn) { poll_fn_.set(std::move(fn)); }
-  inline const poll_fn_t &get_poll_fn() const LIBCOPP_MACRO_NOEXCEPT { return poll_fn_.get(); }
-  inline poll_fn_t &get_poll_fn() LIBCOPP_MACRO_NOEXCEPT { return poll_fn_.get(); }
+  inline void set_poll_fn(poll_callback_type fn) { poll_fn_.set(std::move(fn)); }
+  inline const poll_callback_type &get_poll_fn() const LIBCOPP_MACRO_NOEXCEPT { return poll_fn_.get(); }
+  inline poll_callback_type &get_poll_fn() LIBCOPP_MACRO_NOEXCEPT { return poll_fn_.get(); }
 
-  inline void set_wake_fn(wake_fn_t fn) { wake_fn_.set(std::move(fn)); }
-  inline const wake_fn_t &get_wake_fn() const LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
-  inline wake_fn_t &get_wake_fn() LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
+  inline void set_wake_fn(wake_callback_type fn) { wake_fn_.set(std::move(fn)); }
+  inline const wake_callback_type &get_wake_fn() const LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
+  inline wake_callback_type &get_wake_fn() LIBCOPP_MACRO_NOEXCEPT { return wake_fn_.get(); }
 
-  inline void set_on_destroy(wake_fn_t fn) { on_destroy_fn_.set(std::move(fn)); }
-  inline const wake_fn_t &get_on_destroy() const LIBCOPP_MACRO_NOEXCEPT { return on_destroy_fn_.get(); }
-  inline wake_fn_t &get_on_destroy() LIBCOPP_MACRO_NOEXCEPT { return on_destroy_fn_.get(); }
+  inline void set_on_destroy(wake_callback_type fn) { on_destroy_fn_.set(std::move(fn)); }
+  inline const wake_callback_type &get_on_destroy() const LIBCOPP_MACRO_NOEXCEPT { return on_destroy_fn_.get(); }
+  inline wake_callback_type &get_on_destroy() LIBCOPP_MACRO_NOEXCEPT { return on_destroy_fn_.get(); }
 
   inline void set_private_data(void *ptr) { private_data_ = ptr; }
   inline void *get_private_data() LIBCOPP_MACRO_NOEXCEPT { return private_data_; }
@@ -217,11 +218,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY context<void> {
 
  private:
   value_type private_data_;
-  context_event_function<wake_fn_t> wake_fn_;
-  context_event_function<poll_fn_t> poll_fn_;
-  context_event_function<wake_fn_t> on_destroy_fn_;
+  context_event_function<wake_callback_type> wake_fn_;
+  context_event_function<poll_callback_type> poll_fn_;
+  context_event_function<wake_callback_type> on_destroy_fn_;
 };
 }  // namespace future
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

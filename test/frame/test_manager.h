@@ -1,4 +1,4 @@
-﻿/*
+/*
  * test_manager.h
  *
  *  Created on: 2014年3月11日

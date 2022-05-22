@@ -1,14 +1,14 @@
-#ifndef COPP_STACKCONTEXT_STACKCONTEXT_H
-#define COPP_STACKCONTEXT_STACKCONTEXT_H
+// Copyright 2022 owent
 
 #pragma once
 
-#include <cstddef>
-
 #include <libcopp/utils/config/libcopp_build_features.h>
+
 #include <libcopp/utils/features.h>
 
-namespace copp {
+#include <cstddef>
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
 struct LIBCOPP_COPP_API stack_context {
   size_t size; /** @brief stack size **/
   void *sp;    /** @brief stack end pointer **/
@@ -34,6 +34,4 @@ struct LIBCOPP_COPP_API stack_context {
 
   void copy_from(const stack_context &other) LIBCOPP_MACRO_NOEXCEPT;
 };
-}  // namespace copp
-
-#endif
+LIBCOPP_COPP_NAMESPACE_END

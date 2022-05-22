@@ -1,10 +1,6 @@
-#include <assert.h>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <limits>
-#include <memory>
-#include <numeric>
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/stack/allocator/stack_allocator_malloc.h>
 #include <libcopp/stack/stack_context.h>
@@ -14,11 +10,19 @@
 #  include <valgrind/valgrind.h>
 #endif
 
+#include <assert.h>
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+#include <memory>
+#include <numeric>
+
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_PREFIX
 #endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace allocator {
 LIBCOPP_COPP_API stack_allocator_malloc::stack_allocator_malloc() LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_malloc::~stack_allocator_malloc() {}
@@ -68,7 +72,7 @@ LIBCOPP_COPP_API void stack_allocator_malloc::deallocate(stack_context &ctx) LIB
   free(start_ptr);
 }
 }  // namespace allocator
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_SUFFIX

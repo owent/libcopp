@@ -72,13 +72,13 @@
  *  -------------------------------------------------  *
  *                                                     *
  *******************************************************/
-.globl .copp_jump_fcontext
-.globl  copp_jump_fcontext[DS]
+.globl .copp_jump_fcontext_v2
+.globl  copp_jump_fcontext_v2[DS]
 .align 2 
-.csect	copp_jump_fcontext[DS]
-copp_jump_fcontext:
-  .long	.copp_jump_fcontext
-.copp_jump_fcontext:
+.csect	copp_jump_fcontext_v2[DS]
+copp_jump_fcontext_v2:
+  .long	.copp_jump_fcontext_v2
+.copp_jump_fcontext_v2:
     # reserve space on stack
     subi  r1, r1, 244
 

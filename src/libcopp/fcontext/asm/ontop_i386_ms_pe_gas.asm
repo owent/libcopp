@@ -32,9 +32,9 @@
 .def	@feat.00;	.scl	3;	.type	0;	.endef
 .set    @feat.00,   1
 
-.globl	_copp_ontop_fcontext
-.def	_copp_ontop_fcontext;	.scl	2;	.type	32;	.endef
-_copp_ontop_fcontext:
+.globl	_copp_ontop_fcontext_v2
+.def	_copp_ontop_fcontext_v2;	.scl	2;	.type	32;	.endef
+_copp_ontop_fcontext_v2:
     /* prepare stack */
     leal  -0x2c(%esp), %esp
 
@@ -71,19 +71,19 @@ _copp_ontop_fcontext:
     /* store ESP (pointing to context-data) in ECX */
     movl  %esp, %ecx
 
-    /* first arg of copp_ontop_fcontext() == fcontext to jump to */
+    /* first arg of copp_ontop_fcontext_v2() == fcontext to jump to */
     movl  0x30(%esp), %eax
 
 	/* pass parent fcontext_t */
 	movl  %ecx, 0x30(%eax)
 
-    /* second arg of copp_ontop_fcontext() == data to be transferred */
+    /* second arg of copp_ontop_fcontext_v2() == data to be transferred */
     movl  0x34(%esp), %ecx
 
 	/* pass data */
 	movl  %ecx, 0x34(%eax)
 
-    /* third arg of copp_ontop_fcontext() == ontop-function */
+    /* third arg of copp_ontop_fcontext_v2() == ontop-function */
     movl  0x38(%esp), %ecx
 
     /* restore ESP (pointing to context-data) from EDX */
@@ -128,4 +128,4 @@ _copp_ontop_fcontext:
     jmp  *%ecx
 
 .section .drectve
-.ascii " -export:\"copp_ontop_fcontext\""
+.ascii " -export:\"copp_ontop_fcontext_v2\""

@@ -1,6 +1,10 @@
+// Copyright 2022 owent
+
+#include <libcopp/utils/config/libcopp_build_features.h>
+
 #if !defined(_MSC_VER)
 
-#  include "libcopp/stack/stack_traits.h"
+#  include <libcopp/stack/stack_traits.h>
 
 extern "C" {
 #  include <assert.h>
@@ -25,7 +29,7 @@ extern "C" {
 #    include COPP_ABI_PREFIX
 #  endif
 
-namespace copp {
+LIBCOPP_COPP_NAMESPACE_BEGIN
 
 namespace detail {
 static std::size_t pagesize() {
@@ -71,7 +75,7 @@ LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacks
   // page size must be 2^N
   return static_cast<std::size_t>((stacksize + detail::pagesize() - 1) & (~(detail::pagesize() - 1)));
 }
-}  // namespace copp
+LIBCOPP_COPP_NAMESPACE_END
 
 #  ifdef COPP_HAS_ABI_HEADERS
 #    include COPP_ABI_SUFFIX

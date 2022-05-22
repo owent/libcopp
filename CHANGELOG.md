@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.0.0
+
+1. Add ABI tag for all c++ codes
+  > We will keep ABI compatitablity for all assemblly APIs and will change the suffix when ABI changed.
+2. \[TODO\] Change the return type to `cotask::impl::task_action_future<T, TPTR>` (aka `cotask::task<T>::future_type`)
+  + Add `value_type` to task_macro ( `macro_coroutine` )
+  + Add API `task_action_impl::get_task_id`
+  + Add internal API`task_action_impl::get_task`
+  + Store result data into `cotask::task<...>`
+3. \[Previous\] Redesign C++ 20 coroutine support.
+
 ## 1.5.0
 
 1. \[BREAK CHANGES\] We need gcc 4.8+, Clang 4.0+ or MSVC 1900(Visual Studio 2017)+
@@ -9,7 +20,7 @@
   + Remove `libcopp/utils/config/compiler_features.h`
   + Remove `libcopp/utils/std/functional.h`
   + Remove `libcopp/utils/std/smart_ptr.h`
-2. 
+
 
 ## 1.4.1
 

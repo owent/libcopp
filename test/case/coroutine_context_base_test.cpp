@@ -1,8 +1,11 @@
+// Copyright 2022 owent
+
+#include <libcopp/coroutine/coroutine_context_container.h>
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 
-#include <libcopp/coroutine/coroutine_context_container.h>
 #include "frame/test_macros.h"
 
 typedef copp::coroutine_context_container<copp::allocator::stack_allocator_memory>
@@ -46,7 +49,7 @@ CASE_TEST(coroutine, context_base) {
 
     CASE_EXPECT_TRUE(!!co);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_RUNNING, co->yield());
 
     co->start();
 
@@ -57,8 +60,8 @@ CASE_TEST(coroutine, context_base) {
     ++g_test_coroutine_base_status;
     CASE_EXPECT_EQ(g_test_coroutine_base_status, 5);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_READY, co->resume());
-    CASE_EXPECT_EQ(::copp::COPP_EC_ALREADY_EXIST, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_READY, co->resume());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST, co->yield());
   }
 
   {
@@ -79,7 +82,7 @@ CASE_TEST(coroutine, context_base) {
 
     CASE_EXPECT_TRUE(!!co);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_RUNNING, co->yield());
 
     co->start();
 
@@ -90,8 +93,8 @@ CASE_TEST(coroutine, context_base) {
     ++g_test_coroutine_base_status;
     CASE_EXPECT_EQ(g_test_coroutine_base_status, 5);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_READY, co->resume());
-    CASE_EXPECT_EQ(::copp::COPP_EC_ALREADY_EXIST, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_READY, co->resume());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST, co->yield());
   }
 
   delete[] stack_buff;
@@ -234,7 +237,7 @@ CASE_TEST(coroutine, coroutine_context_throw_exception) {
 
     CASE_EXPECT_TRUE(!!co);
 
-    CASE_EXPECT_EQ(::copp::COPP_EC_NOT_RUNNING, co->yield());
+    CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_RUNNING, co->yield());
 
     co->start();
   } catch (const std::exception &e) {

@@ -4,16 +4,16 @@
       (See accompanying file LICENSE_1_0.txt or copy at
           http://www.boost.org/LICENSE_1_0.txt)
 */
-	.globl	copp_make_fcontext[DS]
-	.globl .copp_make_fcontext[PR]
+	.globl	copp_make_fcontext_v2[DS]
+	.globl .copp_make_fcontext_v2[PR]
 	.align 2 
-	.csect .copp_make_fcontext[PR], 3
-	.globl _copp_make_fcontext
-#._copp_make_fcontext:
+	.csect .copp_make_fcontext_v2[PR], 3
+	.globl _copp_make_fcontext_v2
+#._copp_make_fcontext_v2:
     # save return address into R6
     mflr  6
 
-    # first arg of copp_make_fcontext() == top address of context-function
+    # first arg of copp_make_fcontext_v2() == top address of context-function
     # shift address in R3 to lower 16 byte boundary
     clrrwi  3, 3, 4
 
@@ -21,7 +21,7 @@
     # including 64 byte of linkage + parameter area (R1 % 16 == 0)
     subi  3, 3, 248
 
-    # third arg of copp_make_fcontext() == address of context-function
+    # third arg of copp_make_fcontext_v2() == address of context-function
     stw  5, 176(3)
 
     # set back-chain to zero
