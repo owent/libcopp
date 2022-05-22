@@ -33,6 +33,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
  public:
   using value_type = TVALUE;
 
+  callable_promise_base() = default;
+
   void return_void() noexcept {
     if (get_status() < promise_status::kDone) {
       set_status(promise_status::kDone);
@@ -44,6 +46,9 @@ template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public promise_base_type {
  public:
   using value_type = TVALUE;
+
+  template <class... TARGS>
+  callable_promise_base(TARGS&&... args) : data_(std::forward<TARGS>(args)...), has_return_(false) {}
 
   void return_value(value_type value) {
     if (get_status() < promise_status::kDone) {
@@ -60,7 +65,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
 
  protected:
   value_type data_;
-  bool has_return_ = false;
+  bool has_return_;
 };
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -203,6 +208,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   class promise_type
       : public callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value> {
    public:
+    template <class... TARGS>
+    promise_type(TARGS&&... args)
+        : callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value>(
+              std::forward<TARGS>(args)...) {}
+
     auto get_return_object() noexcept {
       return self_type{LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>::from_promise(*this)};
     }
@@ -255,6 +265,30 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   inline promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
 
   static auto yield_status() noexcept { return promise_base_type::pick_current_status(); }
+
+  /**
+   * @brief Custom start run callable
+   * @note This function is not thread safety and should not be called when it's co_await by another callable or task
+   *
+   * @return current status
+   */
+  promise_status start() noexcept {
+    if (!current_handle_) {
+      return promise_status::kInvalid;
+    }
+
+    if (current_handle_.done()) {
+      return promise_status::kDone;
+    }
+
+    promise_status check_status = get_status();
+    if (promise_status::kCreated != check_status) {
+      return check_status;
+    }
+
+    current_handle_.resume();
+    return get_status();
+  }
 
   /**
    * @brief Get the internal handle object

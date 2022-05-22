@@ -171,6 +171,12 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
     out.second.reset(&out.first);
   }
 
+  template <class... U>
+  static UTIL_FORCEINLINE void construct_storage(storage_type &out, U &&...in) LIBCOPP_MACRO_NOEXCEPT {
+    out.first = value_type(std::forward<U>(in)...);
+    out.second.reset(&out.first);
+  }
+
   static UTIL_FORCEINLINE void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
     if (in.second) {
       out.first = in.first;
@@ -226,6 +232,11 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base : public std::false_type {
                                              bool>::type = false>
   static UTIL_FORCEINLINE void construct_storage(storage_type &out, std::shared_ptr<U> &&in) LIBCOPP_MACRO_NOEXCEPT {
     out = std::move(std::static_pointer_cast<typename ptr_type::element_type>(in));
+  }
+
+  template <class... U>
+  static UTIL_FORCEINLINE void construct_storage(storage_type &out, U &&...in) LIBCOPP_MACRO_NOEXCEPT {
+    out.reset(new value_type(std::forward<U>(in)...));
   }
 
   static UTIL_FORCEINLINE void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
