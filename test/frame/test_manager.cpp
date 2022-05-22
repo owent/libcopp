@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <libcopp/utils/config/compile_optimize.h>
+#include <libcopp/utils/features.h>
 
 #include "cli/cmd_option.h"
 #include "cli/cmd_option_phoenix.h"
@@ -449,7 +450,7 @@ void test_manager::set_counter_ptr(int *success_counter_ptr, int *failed_counter
 
 void test_manager::inc_success_counter() {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  if (likely(nullptr != block && nullptr != block->success_counter_ptr)) {
+  COPP_LIKELY_IF(nullptr != block && nullptr != block->success_counter_ptr) {
     ++(*block->success_counter_ptr);
     return;
   }
@@ -462,7 +463,7 @@ void test_manager::inc_success_counter() {
 
 void test_manager::inc_failed_counter() {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  if (likely(nullptr != block && nullptr != block->failed_counter_ptr)) {
+  COPP_LIKELY_IF(nullptr != block && nullptr != block->failed_counter_ptr) {
     ++(*block->failed_counter_ptr);
     return;
   }

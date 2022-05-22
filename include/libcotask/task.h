@@ -450,15 +450,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     EN_TASK_STATUS from_status = expected_status;
 
     do {
-      if (unlikely(from_status >= EN_TS_DONE)) {
-        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_FINISHED;
-      }
+      COPP_UNLIKELY_IF(from_status >= EN_TS_DONE) { return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_FINISHED; }
 
-      if (unlikely(from_status == EN_TS_RUNNING)) {
-        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING;
-      }
+      COPP_UNLIKELY_IF(from_status == EN_TS_RUNNING) { return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING; }
 
-      if (likely(_cas_status(from_status, EN_TS_RUNNING))) {  // Atomic.CAS here
+      COPP_LIKELY_IF(_cas_status(from_status, EN_TS_RUNNING)) {  // Atomic.CAS here
         break;
       }
     } while (true);
@@ -479,7 +475,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     from_status = EN_TS_RUNNING;
     if (is_completed()) {  // Atomic.CAS here
       while (from_status < EN_TS_DONE) {
-        if (likely(_cas_status(from_status, EN_TS_DONE))) {  // Atomic.CAS here
+        COPP_LIKELY_IF(_cas_status(from_status, EN_TS_DONE)) {  // Atomic.CAS here
           break;
         }
       }
@@ -503,7 +499,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         break;
       }
 
-      if (likely(_cas_status(from_status, EN_TS_WAITING))) {  // Atomic.CAS here
+      COPP_LIKELY_IF(_cas_status(from_status, EN_TS_WAITING)) {  // Atomic.CAS here
         break;
         // waiting
       }
@@ -555,9 +551,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING;
       }
 
-      if (likely(_cas_status(from_status, EN_TS_CANCELED))) {
-        break;
-      }
+      COPP_LIKELY_IF(_cas_status(from_status, EN_TS_CANCELED)) { break; }
     } while (true);
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -584,9 +578,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     EN_TASK_STATUS from_status = get_status();
 
     do {
-      if (likely(_cas_status(from_status, status))) {
-        break;
-      }
+      COPP_LIKELY_IF(_cas_status(from_status, status)) { break; }
     } while (true);
 
     if (EN_TS_RUNNING != from_status) {
@@ -864,20 +856,18 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     inline bool await_ready() const LIBCOPP_MACRO_NOEXCEPT { return !refer_task_ || refer_task_->is_completed(); }
 
     inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) LIBCOPP_MACRO_NOEXCEPT {
-      if (likely(refer_task_)) {
+      COPP_LIKELY_IF(refer_task_) {
         await_handle_iter_ = refer_task_->next_std_handles_.insert(refer_task_->next_std_handles_.end(), h);
       }
     }
 
     inline int await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      if (likely(refer_task_ && await_handle_iter_ != refer_task_->next_std_handles_.end())) {
+      COPP_LIKELY_IF(refer_task_ && await_handle_iter_ != refer_task_->next_std_handles_.end()) {
         refer_task_->next_std_handles_.erase(await_handle_iter_);
         await_handle_iter_ = refer_task_->next_std_handles_.end();
       }
 
-      if (likely(refer_task_)) {
-        return refer_task_->get_ret_code();
-      }
+      COPP_LIKELY_IF(refer_task_) { return refer_task_->get_ret_code(); }
 
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }

@@ -140,7 +140,7 @@ struct task_waker {
 
   void operator()(context_type &ctx) {
     // if waker->self == nullptr, the future is already destroyed, then handle is also invalid
-    if (likely(runtime)) {
+    COPP_LIKELY_IF(runtime) {
       if (!runtime->done() && !runtime->future.is_ready()) {
         runtime->future.template poll_as<typename TPROMISE::future_data_type>(ctx);
       }
@@ -188,15 +188,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
 
     template <typename U>
     void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<U> handle) {
-      if (likely(promise && promise->runtime_)) {
-        if (unlikely(promise->runtime_->handle)) {
-          promise->runtime_->handle.resume();
-        }
+      COPP_LIKELY_IF(promise && promise->runtime_) {
+        COPP_UNLIKELY_IF(promise->runtime_->handle) { promise->runtime_->handle.resume(); }
         promise->runtime_->handle = handle;
       }
 
-      if (likely(handle)) {
-        if (likely(handle.promise().runtime_)) {
+      COPP_LIKELY_IF(handle) {
+        COPP_LIKELY_IF(handle.promise().runtime_) {
           runtime_type &runtime = *handle.promise().runtime_;
           handle.promise().get_context().set_wake_fn(task_waker<U>{handle.promise().runtime_});
           // Can not set waker clear functor, because even future is polled outside
@@ -213,9 +211,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
     }
 
     inline void await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      if (likely(promise && promise->runtime_)) {
-        promise->runtime_->status = task_status::kRunning;
-      }
+      COPP_LIKELY_IF(promise && promise->runtime_) { promise->runtime_->status = task_status::kRunning; }
     }
   };
 
@@ -230,8 +226,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
         LIBCOPP_MACRO_NOEXCEPT {}
 
     void await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      if (likely(promise)) {
-        if (likely(promise->runtime_)) {
+      COPP_LIKELY_IF(promise) {
+        COPP_LIKELY_IF(promise->runtime_) {
           promise->runtime_->status = task_status::kDone;
           promise->runtime_->handle = nullptr;
         }
@@ -292,9 +288,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
 
   void unhandled_exception() LIBCOPP_MACRO_NOEXCEPT {
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    if (likely(runtime_)) {
-      runtime_->unhandle_exception = std::current_exception();
-    }
+    COPP_LIKELY_IF(runtime_) { runtime_->unhandle_exception = std::current_exception(); }
 #  endif
   }
 
@@ -313,9 +307,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base_type {
 
   template <class U>
   auto yield_value(pick_future_awaitable<U> &&args) {
-    if (likely(runtime_)) {
-      args.data = &runtime_->future;
-    } else {
+    COPP_LIKELY_IF(runtime_) { args.data = &runtime_->future; }
+    else {
       args.data = nullptr;
     }
 
@@ -505,7 +498,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   //
   //         poller_type await_resume() {
   //             awaitable_base_type::await_resume();
-  //             if (likely(refer_task_)) {
+  //             COPP_LIKELY_IF(refer_task_) {
   //                 poller_type *ret = refer_task_->poll_data();
   //                 if (nullptr != ret) {
   //                     return std::move(*ret);
@@ -527,9 +520,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 
       value_type *await_resume() {
         awaitable_base_type::await_resume();
-        if (likely(refer_task_)) {
-          return refer_task_->data();
-        }
+        COPP_LIKELY_IF(refer_task_) { return refer_task_->data(); }
 
         return nullptr;
       }
@@ -539,9 +530,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   }
 
   inline bool done() const LIBCOPP_MACRO_NOEXCEPT {
-    if (likely(runtime_)) {
-      return runtime_->done();
-    }
+    COPP_LIKELY_IF(runtime_) { return runtime_->done(); }
 
     return true;
   }
@@ -551,7 +540,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 #  else
   inline const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
 #  endif
-    if (likely(runtime_)) {
+    COPP_LIKELY_IF(runtime_) {
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
       maybe_rethrow();
 #  endif
@@ -566,7 +555,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 #  else
   inline value_type *data() LIBCOPP_MACRO_NOEXCEPT {
 #  endif
-    if (likely(runtime_)) {
+    COPP_LIKELY_IF(runtime_) {
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
       maybe_rethrow();
 #  endif
@@ -577,17 +566,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   }
 
   inline const poller_type *poll_data() const LIBCOPP_MACRO_NOEXCEPT {
-    if (likely(runtime_)) {
-      return &runtime_->future.poll_data();
-    }
+    COPP_LIKELY_IF(runtime_) { return &runtime_->future.poll_data(); }
 
     return nullptr;
   }
 
   inline poller_type *poll_data() LIBCOPP_MACRO_NOEXCEPT {
-    if (likely(runtime_)) {
-      return &runtime_->future.poll_data();
-    }
+    COPP_LIKELY_IF(runtime_) { return &runtime_->future.poll_data(); }
 
     return nullptr;
   }
@@ -617,9 +602,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   }
 
   inline uint64_t get_task_id() const LIBCOPP_MACRO_NOEXCEPT {
-    if (likely(runtime_)) {
-      return runtime_->task_id;
-    }
+    COPP_LIKELY_IF(runtime_) { return runtime_->task_id; }
 
     const context_type *ctx = get_context();
     if (ctx) {
@@ -639,8 +622,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
  private:
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   inline void maybe_rethrow() {
-    if (likely(runtime_)) {
-      if (unlikely(runtime_->unhandle_exception)) {
+    COPP_LIKELY_IF(runtime_) {
+      COPP_UNLIKELY_IF(runtime_->unhandle_exception) {
         std::exception_ptr eptr;
         std::swap(eptr, runtime_->unhandle_exception);
         std::rethrow_exception(eptr);

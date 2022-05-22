@@ -87,42 +87,77 @@
 // ---------------- function flags ----------------
 
 // ================ branch prediction information ================
-#ifndef likely
-#  ifdef __GNUC__
-#    define likely(x) __builtin_expect(!!(x), 1)
-#  else
-#    define likely(x) !!(x)
+#if !defined(COPP_LIKELY_IF) && defined(__cplusplus)
+// GCC 9 has likely attribute but do not support declare it at the beginning of statement
+#  if defined(__has_cpp_attribute) && (defined(__clang__) || !defined(__GNUC__) || __GNUC__ > 9)
+#    if __has_cpp_attribute(likely)
+#      define COPP_LIKELY_IF(...) if (__VA_ARGS__) [[likely]]
+#    endif
 #  endif
 #endif
-
-#ifndef unlikely
-#  ifdef __GNUC__
-#    define unlikely(x) __builtin_expect(!!(x), 0)
-#  else
-#    define unlikely(x) !!(x)
-#  endif
+#if !defined(COPP_LIKELY_IF) && (defined(__clang__) || defined(__GNUC__))
+#  define COPP_LIKELY_IF(...) if (__builtin_expect(!!(__VA_ARGS__), true))
+#endif
+#ifndef COPP_LIKELY_IF
+#  define COPP_LIKELY_IF(...) if (__VA_ARGS__)
 #endif
 
-#ifndef unreachable
-#  ifdef __GNUC__
-#    ifdef __clang__
-#      if __has_builtin(__builtin_unreachable)
-#        define unreachable() __builtin_unreachable()
+#if !defined(COPP_UNLIKELY_IF) && defined(__cplusplus)
+// GCC 9 has likely attribute but do not support declare it at the beginning of statement
+#  if defined(__has_cpp_attribute) && (defined(__clang__) || !defined(__GNUC__) || __GNUC__ > 9)
+#    if __has_cpp_attribute(likely)
+#      define COPP_UNLIKELY_IF(...) if (__VA_ARGS__) [[unlikely]]
+#    endif
+#  endif
+#endif
+#if !defined(COPP_UNLIKELY_IF) && (defined(__clang__) || defined(__GNUC__))
+#  define COPP_UNLIKELY_IF(...) if (__builtin_expect(!!(__VA_ARGS__), false))
+#endif
+#ifndef COPP_UNLIKELY_IF
+#  define COPP_UNLIKELY_IF(...) if (__VA_ARGS__)
+#endif
+
+// ---------------- branch prediction information ----------------
+
+#if !defined(COPP_NORETURN_ATTR) && defined(__has_cpp_attribute)
+#  if __has_cpp_attribute(noreturn)
+#    define COPP_NORETURN_ATTR [[noreturn]]
+#  endif
+#endif
+#ifndef COPP_NORETURN_ATTR
+#  define COPP_NORETURN_ATTR
+#endif
+
+#ifndef COPP_UNREACHABLE
+#  if defined(__cpp_lib_unreachable)
+#    if __cpp_lib_unreachable
+#      define COPP_UNREACHABLE() std::unreachable()
+#    endif
+#  endif
+#  if !defined(COPP_UNREACHABLE) && defined(unreachable)
+#    define COPP_UNREACHABLE() unreachable()
+#  endif
+#  if !defined(COPP_UNREACHABLE)
+#    ifdef __GNUC__
+#      ifdef __clang__
+#        if __has_builtin(__builtin_unreachable)
+#          define COPP_UNREACHABLE() __builtin_unreachable()
+#        endif
 #      else
-#        define unreachable() abort()
-#      endif
-#    else
-#      if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-#        define unreachable() __builtin_unreachable()
-#      else
-#        define unreachable() abort()
+#        if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#          define COPP_UNREACHABLE() __builtin_unreachable()
+#        endif
 #      endif
 #    endif
-#  else
-#    define unreachable() abort()
 #  endif
 #endif
-// ---------------- branch prediction information ----------------
+#if !defined(COPP_UNREACHABLE)
+#  if defined(_DEBUG) || !defined(NDEBUG)
+#    define COPP_UNREACHABLE() std::abort()
+#  else
+#    define COPP_UNREACHABLE()
+#  endif
+#endif
 
 #include "errno.h"
 

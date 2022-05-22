@@ -46,9 +46,14 @@ template <class T>
 concept DerivedPromiseBaseType = std::is_base_of<promise_base_type, T>::value;
 #  endif
 
-class promise_base_type {
+class promise_caller_manager {
+ private:
+  promise_caller_manager(const promise_caller_manager &) = delete;
+  promise_caller_manager(promise_caller_manager &&) = delete;
+  promise_caller_manager &operator=(const promise_caller_manager &) = delete;
+  promise_caller_manager &operator=(promise_caller_manager &&) = delete;
+
  public:
-  using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type>;
   using type_erased_handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<>;
   struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate {
     type_erased_handle_type handle;
@@ -113,6 +118,45 @@ class promise_base_type {
       return *this;
     }
   };
+
+  LIBCOPP_COPP_API promise_caller_manager();
+  LIBCOPP_COPP_API ~promise_caller_manager();
+
+  LIBCOPP_COPP_API void add_caller(handle_delegate handle) noexcept;
+
+  /**
+   * @brief Remove caller handle delegate
+   *
+   * @param handle the handle to remove
+   * @return true when handle is removed, false if it's not found
+   */
+  LIBCOPP_COPP_API bool remove_caller(handle_delegate handle) noexcept;
+
+  LIBCOPP_COPP_API size_t resume_callers();
+
+ private:
+  // hash for handle_delegate
+  struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash {
+    inline size_t operator()(const handle_delegate &handle_delegate) const noexcept {
+      return std::hash<void *>()(handle_delegate.handle.address());
+    }
+  };
+
+  using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+  std::variant<handle_delegate, multi_caller_set> callers_;
+#  else
+  handle_delegate unique_caller_;
+  // Mostly, there is only one caller for a promise, we needn't hash map to store one handle
+  std::unique_ptr<multi_caller_set> multiple_callers_;
+#  endif
+};
+
+class promise_base_type {
+ public:
+  using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_base_type>;
+  using type_erased_handle_type = promise_caller_manager::type_erased_handle_type;
+  using handle_delegate = promise_caller_manager::handle_delegate;
 
   struct pick_promise_status_awaitable {
     promise_status data;
@@ -217,21 +261,8 @@ class promise_base_type {
   // We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
   handle_delegate current_waiting_;
 
-  // hash for handle_delegate
-  struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash {
-    inline size_t operator()(const handle_delegate &handle_delegate) const noexcept {
-      return std::hash<void *>()(handle_delegate.handle.address());
-    }
-  };
-
-  using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
-  std::variant<handle_delegate, multi_caller_set> callers_;
-#  else
-  handle_delegate unique_caller_;
-  // Mostly, there is only one caller for a promise, we needn't hash map to store one handle
-  std::unique_ptr<multi_caller_set> multiple_callers_;
-#  endif
+  // caller manager
+  promise_caller_manager caller_manager_;
 };
 
 class awaitable_base_type {
