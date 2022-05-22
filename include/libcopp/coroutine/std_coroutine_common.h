@@ -162,10 +162,11 @@ class promise_base_type {
     promise_status data;
 
     LIBCOPP_COPP_API pick_promise_status_awaitable() noexcept;
+    LIBCOPP_COPP_API pick_promise_status_awaitable(promise_status status) noexcept;
     LIBCOPP_COPP_API pick_promise_status_awaitable(pick_promise_status_awaitable &&other) noexcept;
-    LIBCOPP_COPP_API pick_promise_status_awaitable(const pick_promise_status_awaitable &) noexcept;
+    LIBCOPP_COPP_API pick_promise_status_awaitable(const pick_promise_status_awaitable &) = delete;
     LIBCOPP_COPP_API pick_promise_status_awaitable &operator=(pick_promise_status_awaitable &&) noexcept;
-    LIBCOPP_COPP_API pick_promise_status_awaitable &operator=(const pick_promise_status_awaitable &) noexcept;
+    LIBCOPP_COPP_API pick_promise_status_awaitable &operator=(const pick_promise_status_awaitable &) = delete;
     LIBCOPP_COPP_API ~pick_promise_status_awaitable();
 
     LIBCOPP_COPP_API_HEAD_ONLY inline bool await_ready() const noexcept { return true; }

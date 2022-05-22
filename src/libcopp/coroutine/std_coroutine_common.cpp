@@ -101,7 +101,8 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
     callers.swap(std::get<multi_caller_set>(callers_));
     for (auto &caller : callers) {
       if (caller.handle && !caller.handle.done()) {
-        caller.handle.resume();
+        type_erased_handle_type handle = caller.handle;
+        handle.resume();
         ++resume_count;
       }
     }
@@ -121,7 +122,8 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   if (multiple_callers) {
     for (auto &caller : *multiple_callers) {
       if (caller.handle && !caller.handle.done()) {
-        caller.handle.resume();
+        type_erased_handle_type handle = caller.handle;
+        handle.resume();
         ++resume_count;
       }
     }
@@ -134,21 +136,15 @@ LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_
     : data(promise_status::kInvalid) {}
 
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_status_awaitable(
-    pick_promise_status_awaitable &&other) noexcept
-    : data(other.data) {}
+    promise_status status) noexcept
+    : data(status) {}
 
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_status_awaitable(
-    const pick_promise_status_awaitable &other) noexcept
+    pick_promise_status_awaitable &&other) noexcept
     : data(other.data) {}
 
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable &
 promise_base_type::pick_promise_status_awaitable::operator=(pick_promise_status_awaitable &&other) noexcept {
-  data = other.data;
-  return *this;
-}
-
-LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable &
-promise_base_type::pick_promise_status_awaitable::operator=(const pick_promise_status_awaitable &other) noexcept {
   data = other.data;
   return *this;
 }
@@ -197,7 +193,7 @@ LIBCOPP_COPP_API void promise_base_type::resume_waiting(handle_delegate current_
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable promise_base_type::yield_value(
     pick_promise_status_awaitable &&args) const noexcept {
   args.data = static_cast<promise_status>(status_.load());
-  return args;
+  return pick_promise_status_awaitable{args.data};
 }
 
 LIBCOPP_COPP_API void promise_base_type::add_caller(handle_delegate delegate) noexcept {
