@@ -53,7 +53,7 @@ static copp::callable_future<int> callable_func_await_int() {
         ++g_suspend_generator_count;
         g_pending_int_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_int_type::context_type& ctx) { ++g_resume_generator_count; }};
+      [](const generator_promise_future_int_type::context_type&) { ++g_resume_generator_count; }};
 
   // await left value
   CASE_EXPECT_FALSE(gen_left_value.is_ready());
@@ -73,14 +73,14 @@ static copp::callable_future<int> callable_func_await_int() {
         ++g_suspend_generator_count;
         g_pending_int_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_int_type::context_type& ctx) { ++g_resume_generator_count; }};
+      [](const generator_promise_future_int_type::context_type&) { ++g_resume_generator_count; }};
 
   generator_promise_future_void_type gen_left_void{
       [](generator_promise_future_void_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
         g_pending_void_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_void_type::context_type& ctx) { ++g_resume_generator_count; }};
+      [](const generator_promise_future_void_type::context_type&) { ++g_resume_generator_count; }};
 
   // await left value
   CASE_EXPECT_FALSE(gen_left_void.is_ready());
@@ -100,7 +100,7 @@ static copp::callable_future<int> callable_func_await_int() {
         ++g_suspend_generator_count;
         g_pending_void_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_void_type::context_type& ctx) { ++g_resume_generator_count; }};
+      [](const generator_promise_future_void_type::context_type&) { ++g_resume_generator_count; }};
 
   co_return x1 + x2;
 }
