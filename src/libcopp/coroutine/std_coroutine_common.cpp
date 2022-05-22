@@ -137,6 +137,22 @@ LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_
     pick_promise_status_awaitable &&other) noexcept
     : data(other.data) {}
 
+LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_status_awaitable(
+    const pick_promise_status_awaitable &other) noexcept
+    : data(other.data) {}
+
+LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable &
+promise_base_type::pick_promise_status_awaitable::operator=(pick_promise_status_awaitable &&other) noexcept {
+  data = other.data;
+  return *this;
+}
+
+LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable &
+promise_base_type::pick_promise_status_awaitable::operator=(const pick_promise_status_awaitable &other) noexcept {
+  data = other.data;
+  return *this;
+}
+
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::~pick_promise_status_awaitable() {}
 
 LIBCOPP_COPP_API promise_base_type::promise_base_type()
