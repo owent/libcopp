@@ -263,6 +263,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    * @return internal handle
    */
   inline const handle_type& get_internal_handle() const noexcept { return current_handle_; }
+  inline handle_type& get_internal_handle() noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal promise object
@@ -270,6 +271,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal promise object
    */
+  inline const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
   inline promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
 
   /**
@@ -279,6 +281,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    * @return internal promise object
    */
   inline const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
+  inline promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
 
  private:
   handle_type current_handle_;
