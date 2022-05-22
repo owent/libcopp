@@ -57,7 +57,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
 
   UTIL_FORCEINLINE void reset_value() { data_.reset_data(); }
 
-  LIBCOPP_COPP_API void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
+  void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>
@@ -69,7 +69,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
     add_caller(handle_delegate{handle});
   }
 
-  inline LIBCOPP_COPP_API void remove_caller(handle_delegate handle) noexcept { caller_manager_.remove_caller(handle); }
+  inline void remove_caller(handle_delegate handle) noexcept { caller_manager_.remove_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>

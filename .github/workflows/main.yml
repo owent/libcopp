@@ -111,7 +111,7 @@ jobs:
             bash ci/do_ci.sh gcc.test ;
           fi
   vs2019_2022_build: # job id, can be any string
-    name: Visual Studio 2019 Build
+    name: Visual Studio Build
     strategy:
       matrix:
         include:

@@ -164,8 +164,6 @@ class promise_base_type {
     LIBCOPP_COPP_API pick_promise_status_awaitable() noexcept;
     LIBCOPP_COPP_API pick_promise_status_awaitable(pick_promise_status_awaitable &&other) noexcept;
     LIBCOPP_COPP_API ~pick_promise_status_awaitable();
-    pick_promise_status_awaitable(const pick_promise_status_awaitable &) = delete;
-    pick_promise_status_awaitable &operator=(const pick_promise_status_awaitable &) = delete;
 
     LIBCOPP_COPP_API_HEAD_ONLY inline bool await_ready() const noexcept { return true; }
     LIBCOPP_COPP_API_HEAD_ONLY inline promise_status await_resume() const noexcept { return data; }
