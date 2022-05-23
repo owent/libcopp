@@ -221,7 +221,7 @@ CASE_TEST(callable_promise, killed_by_caller_resume_waiting) {
   CASE_EXPECT_FALSE(f.is_ready());
 
   // Mock to kill by caller
-  f.kill(copp::promise_status::kKilled);
+  f.kill(copp::promise_status::kKilled, true);
   CASE_EXPECT_TRUE(f.is_ready());
   CASE_EXPECT_EQ(f.get_internal_promise().data(), -static_cast<int>(copp::promise_status::kKilled));
 
@@ -240,7 +240,7 @@ CASE_TEST(callable_promise, killed_by_caller_drop_generator) {
   CASE_EXPECT_FALSE(f.is_ready());
 
   // Mock to kill by caller
-  f.kill(copp::promise_status::kKilled);
+  f.kill(copp::promise_status::kKilled, true);
   CASE_EXPECT_TRUE(f.is_ready());
   CASE_EXPECT_EQ(f.get_internal_promise().data(), -static_cast<int>(copp::promise_status::kKilled));
 

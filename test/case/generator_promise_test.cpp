@@ -233,7 +233,7 @@ CASE_TEST(generator_promise, caller_killed) {
     f.start();
 
     // Mock to kill by caller
-    f.kill(copp::promise_status::kKilled);
+    f.kill(copp::promise_status::kKilled, true);
     CASE_EXPECT_TRUE(f.is_ready());
 
     CASE_EXPECT_EQ(old_resume_generator_count + 1, g_resume_generator_count);
@@ -250,7 +250,7 @@ CASE_TEST(generator_promise, caller_killed) {
     f.start();
 
     // Mock to kill by caller
-    f.kill(copp::promise_status::kKilled);
+    f.kill(copp::promise_status::kKilled, true);
     CASE_EXPECT_TRUE(f.is_ready());
 
     CASE_EXPECT_EQ(old_resume_generator_count + 1, g_resume_generator_count);

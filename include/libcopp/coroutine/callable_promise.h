@@ -70,9 +70,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
 
   template <class... TARGS>
   callable_promise_base(TARGS&&... args)
-      : data_(
-            callable_promise_value_constructor<value_type, std::is_default_constructible<value_type>::value>::construct(
-                std::forward<TARGS>(args)...)),
+      : data_(callable_promise_value_constructor<value_type, !std::is_constructible<value_type, TARGS...>::value>::
+                  construct(std::forward<TARGS>(args)...)),
         has_return_(false) {}
 
   void return_value(value_type value) {
@@ -318,11 +317,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   /**
    * @brief Kill callable
    * @param target_status status to set
+   * @param force_resume force resume and ignore if there is no waiting handle
    * @note This function is safe only when bith call and callee are copp components
    *
    * @return true if killing or killed
    */
-  bool kill(promise_status target_status = promise_status::kKilled) noexcept {
+  bool kill(promise_status target_status = promise_status::kKilled, bool force_resume = false) noexcept {
     if (target_status < promise_status::kDone) {
       return false;
     }
@@ -349,7 +349,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
         continue;
       }
 
-      if (current_handle_.promise().is_waiting()) {
+      if (force_resume || current_handle_.promise().is_waiting()) {
         current_handle_.resume();
       }
       break;
