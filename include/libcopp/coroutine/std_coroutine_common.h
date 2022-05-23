@@ -181,6 +181,7 @@ class promise_base_type {
   LIBCOPP_COPP_API bool set_status(promise_status value, promise_status *expect = nullptr) noexcept;
   LIBCOPP_COPP_API promise_status get_status() const noexcept;
 
+  LIBCOPP_COPP_API bool is_waiting() const noexcept;
   LIBCOPP_COPP_API void set_waiting_handle(std::nullptr_t) noexcept;
   LIBCOPP_COPP_API void set_waiting_handle(handle_delegate handle);
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS

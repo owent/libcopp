@@ -33,6 +33,8 @@ struct benchmark_no_trivial_message_t {
 
   // For callable
   benchmark_no_trivial_message_t() : data(0) {}
+  template <class TFirst, class... TRest, typename = std::enable_if_t<!std::is_same_v<std::decay_t<TFirst>, int64_t>>>
+  benchmark_no_trivial_message_t(TFirst &&, TRest &&...) : data(0) {}
 
   // For generator
   benchmark_no_trivial_message_t(int64_t input) : data(input) {}

@@ -73,7 +73,17 @@ if ( $RUN_MODE -eq "msvc.2019+.test" ) {
   }
 
   & cmake --build . --config RelWithDebInfo --target run_sample
+
+  if ( $LastExitCode -ne 0 ) {
+    exit $LastExitCode
+  }
+
   & cmake --build . --config RelWithDebInfo --target run_test
+
+  if ( $LastExitCode -ne 0 ) {
+    exit $LastExitCode
+  }
+
   & cmake --build . --config RelWithDebInfo --target benchmark
 }
 elseif ( $RUN_MODE -eq "msvc.2017.test" ) {
@@ -100,7 +110,17 @@ elseif ( $RUN_MODE -eq "msvc.2017.test" ) {
   }
 
   & cmake --build . --config $Env:CONFIGURATION --target run_sample
+
+  if ( $LastExitCode -ne 0 ) {
+    exit $LastExitCode
+  }
+
   & cmake --build . --config $Env:CONFIGURATION --target run_test
+
+  if ( $LastExitCode -ne 0 ) {
+    exit $LastExitCode
+  }
+  
   & cmake --build . --config $Env:CONFIGURATION --target benchmark
 }
 

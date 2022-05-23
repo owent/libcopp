@@ -174,6 +174,8 @@ LIBCOPP_COPP_API promise_status promise_base_type::get_status() const noexcept {
   return static_cast<promise_status>(status_.load());
 }
 
+LIBCOPP_COPP_API bool promise_base_type::is_waiting() const noexcept { return current_waiting_; }
+
 LIBCOPP_COPP_API void promise_base_type::set_waiting_handle(std::nullptr_t) noexcept { current_waiting_ = nullptr; }
 
 LIBCOPP_COPP_API void promise_base_type::set_waiting_handle(handle_delegate handle) { current_waiting_ = handle; }

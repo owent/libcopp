@@ -139,7 +139,7 @@ jobs:
           BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
           CONFIGURATION: RelWithDebInfo
         run: |
-          pwsh ci/do_ci.ps1 "msvc.2019+.test" ;
+          pwsh -File ci/do_ci.ps1 "msvc.2019+.test" ;
   mingw_build: # job id, can be any string
     name: MinGW Build
     strategy:

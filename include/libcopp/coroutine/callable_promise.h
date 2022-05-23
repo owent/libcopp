@@ -268,26 +268,69 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
 
   /**
    * @brief Custom start run callable
-   * @note This function is not thread safety and should not be called when it's co_await by another callable or task
+   * @note This function should not be called when it's co_await by another callable or task
    *
-   * @return current status
+   * @return true if start run success
    */
-  promise_status start() noexcept {
+  bool start() noexcept {
     if (!current_handle_) {
-      return promise_status::kInvalid;
+      return false;
     }
 
     if (current_handle_.done()) {
-      return promise_status::kDone;
+      return false;
     }
 
-    promise_status check_status = get_status();
-    if (promise_status::kCreated != check_status) {
-      return check_status;
+    promise_status expect_status = promise_status::kCreated;
+    if (!current_handle_.promise().set_status(promise_status::kRunning, &expect_status)) {
+      return false;
     }
 
     current_handle_.resume();
-    return get_status();
+    return true;
+  }
+
+  /**
+   * @brief Kill callable
+   * @param target_status status to set
+   * @note This function is safe only when bith call and callee are copp components
+   *
+   * @return true if killing or killed
+   */
+  bool kill(promise_status target_status = promise_status::kKilled) noexcept {
+    if (target_status < promise_status::kDone) {
+      return false;
+    }
+
+    bool ret = true;
+    while (true) {
+      if (!current_handle_) {
+        ret = false;
+        break;
+      }
+
+      if (current_handle_.done()) {
+        ret = false;
+        break;
+      }
+
+      promise_status current_status = get_status();
+      if (current_status >= promise_status::kDone) {
+        ret = false;
+        break;
+      }
+
+      if (!current_handle_.promise().set_status(target_status, &current_status)) {
+        continue;
+      }
+
+      if (current_handle_.promise().is_waiting()) {
+        current_handle_.resume();
+      }
+      break;
+    }
+
+    return ret;
   }
 
   /**
