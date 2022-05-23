@@ -42,13 +42,38 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
   }
 };
 
+template <class TVALUE, bool IS_DEFAULT_CONSTRUCTIBLE>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor;
+
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor<TVALUE, true> {
+ public:
+  template <class... TARGS>
+  static inline TVALUE construct(TARGS&&...) {
+    return TVALUE{};
+  }
+};
+
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor<TVALUE, false> {
+ public:
+  template <class... TARGS>
+  static inline TVALUE construct(TARGS&&... args) {
+    return TVALUE{std::forward<TARGS>(args)...};
+  }
+};
+
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public promise_base_type {
  public:
   using value_type = TVALUE;
 
   template <class... TARGS>
-  callable_promise_base(TARGS&&... args) : data_(std::forward<TARGS>(args)...), has_return_(false) {}
+  callable_promise_base(TARGS&&... args)
+      : data_(
+            callable_promise_value_constructor<value_type, std::is_default_constructible<value_type>::value>::construct(
+                std::forward<TARGS>(args)...)),
+        has_return_(false) {}
 
   void return_value(value_type value) {
     if (get_status() < promise_status::kDone) {
