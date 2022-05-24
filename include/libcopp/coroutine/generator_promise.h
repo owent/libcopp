@@ -245,7 +245,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 
     if (caller) {
       if (nullptr != context_) {
-        if (!context_->is_ready()) {
+        if (!context_->is_ready() && nullptr != caller.promise) {
           error_status = caller.promise->get_status();
         }
 

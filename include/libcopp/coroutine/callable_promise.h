@@ -277,7 +277,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   }
 
   ~callable_future() {
-    while (current_handle_ && !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
+    while (current_handle_ && !current_handle_.done() &&
+           !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
       current_handle_.resume();
     }
 

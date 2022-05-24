@@ -83,11 +83,12 @@ static void benchmark_round(int index) {
     ++round;
     continue_flag = false;
     for (auto& generator_context : g_benchmark_generator_list) {
-      if (generator_context) {
-        generator_context->set_value(round);
+      benchmark_generator_future_type::context_pointer_type move_context;
+      move_context.swap(generator_context);
+      if (move_context) {
+        move_context->set_value(round);
         ++real_switch_times;
         continue_flag = true;
-        generator_context.reset();
       }
     }
   }
