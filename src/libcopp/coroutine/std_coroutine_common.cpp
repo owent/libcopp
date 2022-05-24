@@ -92,7 +92,7 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   if (std::holds_alternative<handle_delegate>(callers_)) {
     auto caller = std::get<handle_delegate>(callers_);
     std::get<handle_delegate>(callers_) = nullptr;
-    if (caller.handle && !caller.handle.done()) {
+    if (caller.handle && !caller.handle.done() && !caller.promise->check_flag(promise_flag::kDestroying)) {
       caller.handle.resume();
       ++resume_count;
     }
@@ -100,7 +100,7 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
     multi_caller_set callers;
     callers.swap(std::get<multi_caller_set>(callers_));
     for (auto &caller : callers) {
-      if (caller.handle && !caller.handle.done()) {
+      if (caller.handle && !caller.handle.done() && !caller.promise->check_flag(promise_flag::kDestroying)) {
         type_erased_handle_type handle = caller.handle;
         handle.resume();
         ++resume_count;
@@ -114,14 +114,15 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   multiple_callers.swap(multiple_callers_);
 
   // The promise object may be destroyed after first caller.resume()
-  if (unique_caller.handle && !unique_caller.handle.done()) {
+  if (unique_caller.handle && !unique_caller.handle.done() &&
+      !unique_caller.promise->check_flag(promise_flag::kDestroying)) {
     unique_caller.handle.resume();
     ++resume_count;
   }
 
   if (multiple_callers) {
     for (auto &caller : *multiple_callers) {
-      if (caller.handle && !caller.handle.done()) {
+      if (caller.handle && !caller.handle.done() && !caller.promise->check_flag(promise_flag::kDestroying)) {
         type_erased_handle_type handle = caller.handle;
         handle.resume();
         ++resume_count;
@@ -172,6 +173,21 @@ LIBCOPP_COPP_API bool promise_base_type::set_status(promise_status value, promis
 
 LIBCOPP_COPP_API promise_status promise_base_type::get_status() const noexcept {
   return static_cast<promise_status>(status_.load());
+}
+
+LIBCOPP_COPP_API bool promise_base_type::check_flag(promise_flag flag) const noexcept {
+  if (flag >= promise_flag::kMax) {
+    return false;
+  }
+
+  return flags_.test(static_cast<size_t>(flag));
+}
+
+LIBCOPP_COPP_API void promise_base_type::set_flag(promise_flag flag, bool value) noexcept {
+  if (flag >= promise_flag::kMax) {
+    return;
+  }
+  flags_.set(static_cast<size_t>(flag), value);
 }
 
 LIBCOPP_COPP_API bool promise_base_type::is_waiting() const noexcept { return current_waiting_; }

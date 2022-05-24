@@ -6,6 +6,7 @@
 #include <libcopp/utils/std/coroutine.h>
 
 #include <assert.h>
+#include <bitset>
 #include <memory>
 #include <type_traits>
 #include <unordered_set>
@@ -37,6 +38,12 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY promise_status : uint8_t {
   kCancle = 4,
   kKilled = 5,
   kTimeout = 6,
+};
+
+enum class LIBCOPP_COPP_API_HEAD_ONLY promise_flag : uint8_t {
+  kDestroying = 0,
+  kFinalSuspend = 1,
+  kMax,
 };
 
 class promise_base_type;
@@ -180,6 +187,8 @@ class promise_base_type {
 
   LIBCOPP_COPP_API bool set_status(promise_status value, promise_status *expect = nullptr) noexcept;
   LIBCOPP_COPP_API promise_status get_status() const noexcept;
+  LIBCOPP_COPP_API bool check_flag(promise_flag flag) const noexcept;
+  LIBCOPP_COPP_API void set_flag(promise_flag flag, bool value) noexcept;
 
   LIBCOPP_COPP_API bool is_waiting() const noexcept;
   LIBCOPP_COPP_API void set_waiting_handle(std::nullptr_t) noexcept;
@@ -225,6 +234,7 @@ class promise_base_type {
     template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
     inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> self) noexcept {
+      self.promise().set_flag(promise_flag::kFinalSuspend, true);
       self.promise().resume_callers();
     }
   };
@@ -259,6 +269,9 @@ class promise_base_type {
   LIBCOPP_COPP_API void resume_callers();
 
  private:
+  // promise_flags
+  std::bitset<static_cast<size_t>(promise_flag::kMax)> flags_;
+
   // promise_status
   util::lock::atomic_int_type<uint8_t> status_;
   // We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
