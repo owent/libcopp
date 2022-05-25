@@ -83,7 +83,7 @@ CASE_TEST(callable_promise, callable_future_integer_need_resume) {
   copp::callable_future<int> f = callable_func_await_int();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
@@ -107,7 +107,7 @@ CASE_TEST(callable_promise, callable_future_integer_ready) {
   copp::callable_future<int> f = callable_func_await_int_ready();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_TRUE(f.is_ready());
@@ -138,7 +138,7 @@ CASE_TEST(callable_promise, callable_future_void_need_resume) {
   copp::callable_future<void> f = callable_func_await_void();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
@@ -159,7 +159,7 @@ CASE_TEST(callable_promise, callable_future_void_ready) {
   copp::callable_future<void> f = callable_func_await_void_ready();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   callable_promise_test_pending_awaitable::resume_all();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
@@ -181,7 +181,7 @@ CASE_TEST(callable_promise, callable_future_int_await_void) {
   copp::callable_future<int> f = callable_func_int_await_void();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
@@ -215,14 +215,13 @@ CASE_TEST(callable_promise, killed_by_caller_resume_waiting) {
   copp::callable_future<int> f = callable_func_killed_by_caller_l1();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
 
   // Mock to kill by caller
-  f.get_internal_promise().set_status(copp::promise_status::kKilled);
-  f.get_internal_handle().resume();
+  f.kill(copp::promise_status::kKilled, true);
   CASE_EXPECT_TRUE(f.is_ready());
   CASE_EXPECT_EQ(f.get_internal_promise().data(), -static_cast<int>(copp::promise_status::kKilled));
 
@@ -235,14 +234,13 @@ CASE_TEST(callable_promise, killed_by_caller_drop_generator) {
   copp::callable_future<int> f = callable_func_killed_by_caller_l2();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
   // Start
-  f.get_internal_handle().resume();
+  f.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
 
   // Mock to kill by caller
-  f.get_internal_promise().set_status(copp::promise_status::kKilled);
-  f.get_internal_handle().resume();
+  f.kill(copp::promise_status::kKilled, true);
   CASE_EXPECT_TRUE(f.is_ready());
   CASE_EXPECT_EQ(f.get_internal_promise().data(), -static_cast<int>(copp::promise_status::kKilled));
 

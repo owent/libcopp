@@ -178,11 +178,11 @@ Custom Build
     .. code-block:: shell
 
         # Run test => Required: PROJECT_ENABLE_UNITTEST=YES
-        cmake --build . --config RelWithDebInfo --target run_test # or make run_test when using Makefile
+        ctest -VV . -C RelWithDebInfo -L libcopp.unit_test
         # Run sample => Required: PROJECT_ENABLE_SAMPLE=YES
-        cmake --build . --config RelWithDebInfo --target run_sample # or make run_sample when using Makefile
+        ctest -VV . -C RelWithDebInfo -L libcopp.sample
         # Run benchmark => Required: PROJECT_ENABLE_SAMPLE=YES
-        cmake --build . --config RelWithDebInfo --target benchmark # or make benchmark when using Makefile
+        ctest -VV . -C RelWithDebInfo -L libcopp.benchmark
 
 5. Install *[optional]*
     .. code-block:: shell

@@ -138,19 +138,14 @@ endif()
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src")
 
 if(_VALGRIND_EXECUTABLE)
-  echowithcolor(COLOR GREEN "-- Memcheck: valgrind found at ${_VALGRIND_EXECUTABLE}, enable target 'memcheck'")
-  add_custom_target(memcheck)
-  add_custom_target(callgrind)
+  echowithcolor(COLOR GREEN "-- Memcheck: valgrind found at ${_VALGRIND_EXECUTABLE}")
 endif()
 
 if(PROJECT_ENABLE_SAMPLE)
-  add_custom_target(benchmark)
-  add_custom_target(run_sample)
   add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/sample")
 endif()
 
-if(PROJECT_ENABLE_UNITTEST)
-  add_custom_target(run_test)
+if(PROJECT_ENABLE_UNITTEST OR BUILD_TESTING)
   add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/test")
 endif()
 

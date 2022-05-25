@@ -57,7 +57,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
 
   UTIL_FORCEINLINE void reset_value() { data_.reset_data(); }
 
-  void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
+  inline void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>
@@ -245,7 +245,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 
     if (caller) {
       if (nullptr != context_) {
-        if (!context_->is_ready()) {
+        if (!context_->is_ready() && nullptr != caller.promise) {
           error_status = caller.promise->get_status();
         }
 

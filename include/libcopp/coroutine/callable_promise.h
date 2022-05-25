@@ -33,6 +33,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
  public:
   using value_type = TVALUE;
 
+  callable_promise_base() = default;
+
   void return_void() noexcept {
     if (get_status() < promise_status::kDone) {
       set_status(promise_status::kDone);
@@ -40,10 +42,37 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
   }
 };
 
+template <class TVALUE, bool IS_DEFAULT_CONSTRUCTIBLE>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor;
+
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor<TVALUE, true> {
+ public:
+  template <class... TARGS>
+  static inline TVALUE construct(TARGS&&...) {
+    return TVALUE{};
+  }
+};
+
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor<TVALUE, false> {
+ public:
+  template <class... TARGS>
+  static inline TVALUE construct(TARGS&&... args) {
+    return TVALUE{std::forward<TARGS>(args)...};
+  }
+};
+
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public promise_base_type {
  public:
   using value_type = TVALUE;
+
+  template <class... TARGS>
+  callable_promise_base(TARGS&&... args)
+      : data_(callable_promise_value_constructor<value_type, !std::is_constructible<value_type, TARGS...>::value>::
+                  construct(std::forward<TARGS>(args)...)),
+        has_return_(false) {}
 
   void return_value(value_type value) {
     if (get_status() < promise_status::kDone) {
@@ -60,7 +89,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
 
  protected:
   value_type data_;
-  bool has_return_ = false;
+  bool has_return_;
 };
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -203,6 +232,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   class promise_type
       : public callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value> {
    public:
+    template <class... TARGS>
+    promise_type(TARGS&&... args)
+        : callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value>(
+              std::forward<TARGS>(args)...) {}
+
     auto get_return_object() noexcept {
       return self_type{LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>::from_promise(*this)};
     }
@@ -243,7 +277,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   }
 
   ~callable_future() {
+    while (current_handle_ && !current_handle_.done() &&
+           !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
+      current_handle_.resume();
+    }
+
     if (current_handle_) {
+      current_handle_.promise().set_flag(promise_flag::kDestroying, true);
       current_handle_.destroy();
     }
   }
@@ -255,6 +295,77 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   inline promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
 
   static auto yield_status() noexcept { return promise_base_type::pick_current_status(); }
+
+  /**
+   * @brief Custom start run callable
+   * @note This function should not be called when it's co_await by another callable or task
+   *
+   * @return true if start run success
+   */
+  bool start() noexcept {
+    if (!current_handle_) {
+      return false;
+    }
+
+    if (current_handle_.done()) {
+      return false;
+    }
+
+    promise_status expect_status = promise_status::kCreated;
+    if (!current_handle_.promise().set_status(promise_status::kRunning, &expect_status)) {
+      return false;
+    }
+
+    if (!current_handle_.promise().check_flag(promise_flag::kDestroying)) {
+      current_handle_.resume();
+    }
+    return true;
+  }
+
+  /**
+   * @brief Kill callable
+   * @param target_status status to set
+   * @param force_resume force resume and ignore if there is no waiting handle
+   * @note This function is safe only when bith call and callee are copp components
+   *
+   * @return true if killing or killed
+   */
+  bool kill(promise_status target_status = promise_status::kKilled, bool force_resume = false) noexcept {
+    if (target_status < promise_status::kDone) {
+      return false;
+    }
+
+    bool ret = true;
+    while (true) {
+      if (!current_handle_) {
+        ret = false;
+        break;
+      }
+
+      if (current_handle_.done()) {
+        ret = false;
+        break;
+      }
+
+      promise_status current_status = get_status();
+      if (current_status >= promise_status::kDone) {
+        ret = false;
+        break;
+      }
+
+      if (!current_handle_.promise().set_status(target_status, &current_status)) {
+        continue;
+      }
+
+      if ((force_resume || current_handle_.promise().is_waiting()) &&
+          !current_handle_.promise().check_flag(promise_flag::kDestroying)) {
+        current_handle_.resume();
+      }
+      break;
+    }
+
+    return ret;
+  }
 
   /**
    * @brief Get the internal handle object

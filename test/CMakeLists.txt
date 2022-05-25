@@ -82,26 +82,19 @@ if(MSVC AND MSVC_VERSION LESS 1910)
   target_compile_options(libcopp_unit_test PRIVATE /wd4503)
 endif()
 
-add_custom_target(
-  run_test_libcopp_unit_test
-  libcopp_unit_test
-  WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-add_dependencies(run_test run_test_libcopp_unit_test)
-add_dependencies(run_test_libcopp_unit_test libcopp_unit_test)
+add_test(
+  NAME "libcopp.unit_test"
+  COMMAND "$<TARGET_FILE:libcopp_unit_test>"
+  WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+set_tests_properties("libcopp.unit_test" PROPERTIES LABELS "libcopp;test;libcopp.unit_test")
 
 if(_VALGRIND_EXECUTABLE)
-  add_custom_target(
-    run_memcheck_libcopp_unit_test
-    ${_VALGRIND_EXECUTABLE}
-    "--max-threads=4096"
-    "--tool=memcheck"
-    "--log-file=libcopp_unit_test.memcheck.log"
-    --leak-check=full
-    --show-leak-kinds=all
-    --malloc-fill=ef
-    --free-fill=e5
-    $<TARGET_FILE:libcopp_unit_test>
-    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  add_dependencies(memcheck run_memcheck_libcopp_unit_test)
-  add_dependencies(run_memcheck_libcopp_unit_test libcopp_unit_test)
+  add_test(
+    NAME "libcopp.unit_test-memcheck"
+    COMMAND
+      "${_VALGRIND_EXECUTABLE}" "--max-threads=4096" "--tool=memcheck" "--log-file=libcopp_unit_test.memcheck.log"
+      "--leak-check=full" "--show-leak-kinds=all" "--malloc-fill=ef" "--free-fill=e5" "$<TARGET_FILE:libcopp_unit_test>"
+    WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+  set_tests_properties("libcopp.unit_test-memcheck" PROPERTIES LABELS "libcopp;memcheck;libcopp.memcheck")
+
 endif()

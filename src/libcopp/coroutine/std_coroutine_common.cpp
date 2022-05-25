@@ -92,7 +92,8 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   if (std::holds_alternative<handle_delegate>(callers_)) {
     auto caller = std::get<handle_delegate>(callers_);
     std::get<handle_delegate>(callers_) = nullptr;
-    if (caller.handle && !caller.handle.done()) {
+    if (caller.handle && !caller.handle.done() &&
+        (nullptr == caller.promise || !caller.promise->check_flag(promise_flag::kDestroying))) {
       caller.handle.resume();
       ++resume_count;
     }
@@ -100,7 +101,8 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
     multi_caller_set callers;
     callers.swap(std::get<multi_caller_set>(callers_));
     for (auto &caller : callers) {
-      if (caller.handle && !caller.handle.done()) {
+      if (caller.handle && !caller.handle.done() &&
+          (nullptr == caller.promise || !caller.promise->check_flag(promise_flag::kDestroying))) {
         type_erased_handle_type handle = caller.handle;
         handle.resume();
         ++resume_count;
@@ -114,14 +116,16 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   multiple_callers.swap(multiple_callers_);
 
   // The promise object may be destroyed after first caller.resume()
-  if (unique_caller.handle && !unique_caller.handle.done()) {
+  if (unique_caller.handle && !unique_caller.handle.done() &&
+      (nullptr == unique_caller.promise || !unique_caller.promise->check_flag(promise_flag::kDestroying))) {
     unique_caller.handle.resume();
     ++resume_count;
   }
 
   if (multiple_callers) {
     for (auto &caller : *multiple_callers) {
-      if (caller.handle && !caller.handle.done()) {
+      if (caller.handle && !caller.handle.done() &&
+          (nullptr == caller.promise || !caller.promise->check_flag(promise_flag::kDestroying))) {
         type_erased_handle_type handle = caller.handle;
         handle.resume();
         ++resume_count;
@@ -174,6 +178,23 @@ LIBCOPP_COPP_API promise_status promise_base_type::get_status() const noexcept {
   return static_cast<promise_status>(status_.load());
 }
 
+LIBCOPP_COPP_API bool promise_base_type::check_flag(promise_flag flag) const noexcept {
+  if (flag >= promise_flag::kMax) {
+    return false;
+  }
+
+  return flags_.test(static_cast<size_t>(flag));
+}
+
+LIBCOPP_COPP_API void promise_base_type::set_flag(promise_flag flag, bool value) noexcept {
+  if (flag >= promise_flag::kMax) {
+    return;
+  }
+  flags_.set(static_cast<size_t>(flag), value);
+}
+
+LIBCOPP_COPP_API bool promise_base_type::is_waiting() const noexcept { return current_waiting_; }
+
 LIBCOPP_COPP_API void promise_base_type::set_waiting_handle(std::nullptr_t) noexcept { current_waiting_ = nullptr; }
 
 LIBCOPP_COPP_API void promise_base_type::set_waiting_handle(handle_delegate handle) { current_waiting_ = handle; }
@@ -184,8 +205,9 @@ LIBCOPP_COPP_API void promise_base_type::resume_waiting(handle_delegate current_
   if (waiting_delegate.handle && !waiting_delegate.handle.done()) {
     current_waiting_ = nullptr;
     // Prevent the waiting coroutine remuse this again.
-    assert(waiting_delegate.promise);
-    waiting_delegate.promise->remove_caller(current_delegate, inherit_status);
+    if (nullptr != waiting_delegate.promise) {
+      waiting_delegate.promise->remove_caller(current_delegate, inherit_status);
+    }
     waiting_delegate.handle.resume();
   }
 }
@@ -201,8 +223,9 @@ LIBCOPP_COPP_API void promise_base_type::add_caller(handle_delegate delegate) no
 }
 
 LIBCOPP_COPP_API void promise_base_type::remove_caller(handle_delegate delegate, bool inherit_status) noexcept {
-  if (caller_manager_.remove_caller(delegate) && inherit_status && nullptr != delegate.promise &&
-      get_status() < promise_status::kDone && delegate.promise->get_status() > promise_status::kDone) {
+  bool remove_caller_success = caller_manager_.remove_caller(delegate);
+  if (remove_caller_success && inherit_status && nullptr != delegate.promise && get_status() < promise_status::kDone &&
+      delegate.promise->get_status() > promise_status::kDone) {
     set_status(delegate.promise->get_status());
   }
 }

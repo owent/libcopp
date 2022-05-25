@@ -75,6 +75,10 @@ jobs:
           - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc-latest
+            mode: memcheck
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc-latest
             no_exception: 1
           - os: ubuntu-latest
             triplet: x64-linux
@@ -100,16 +104,24 @@ jobs:
           BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
           NO_EXCEPTION: ${{ matrix.no_exception }}
           THREAD_UNSAFE: ${{ matrix.thread_unsafe }}
+          CI_MODE: ${{ matrix.mode }}
         run: |
           if [[ "xgcc-4.8" == "x$USE_CC" ]]; then
-            sudo apt-get update ;
-            sudo apt-get install --no-install-recommends --no-install-suggests -y g++-4.8 ;
-            bash ci/do_ci.sh gcc.legacy.test ;
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends --no-install-suggests -y g++-4.8
+            if [[ "x$CI_MODE" == "x" ]]; then
+              CI_MODE=gcc.legacy.test
+            fi
           elif [[ "x$USE_CC" =~ xclang.* ]]; then
-            bash ci/do_ci.sh clang.test ;
+            if [[ "x$CI_MODE" == "x" ]]; then
+              CI_MODE=clang.test
+            fi
           else
-            bash ci/do_ci.sh gcc.test ;
+            if [[ "x$CI_MODE" == "x" ]]; then
+              CI_MODE=gcc.test
+            fi
           fi
+          bash ci/do_ci.sh $CI_MODE
   vs2019_2022_build: # job id, can be any string
     name: Visual Studio Build
     strategy:
@@ -138,8 +150,12 @@ jobs:
           CMAKE_PLATFORM: ${{ matrix.platform }}
           BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
           CONFIGURATION: RelWithDebInfo
+          CI_MODE: ${{ matrix.mode }}
         run: |
-          pwsh ci/do_ci.ps1 "msvc.2019+.test" ;
+          if(!(Test-Path ENV:CI_MODE)) {
+            $ENV:CI_MODE="msvc.2019+.test"
+          }
+          pwsh -File ci/do_ci.ps1 "$ENV:CI_MODE"
   mingw_build: # job id, can be any string
     name: MinGW Build
     strategy:

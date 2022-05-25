@@ -21,9 +21,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
  public:
   inline poller() LIBCOPP_MACRO_NOEXCEPT { poll_storage::construct_default_storage(storage_data_); }
 
-  template <class U>
-  inline poller(U &&in) LIBCOPP_MACRO_NOEXCEPT {
-    setup_from(std::forward<U>(in));
+  template <class... U>
+  inline poller(U &&...in) LIBCOPP_MACRO_NOEXCEPT {
+    setup_from(std::forward<U>(in)...);
   }
 
   inline poller(self_type &&other) LIBCOPP_MACRO_NOEXCEPT { setup_from(std::move(other)); }
@@ -66,9 +66,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
     poll_storage::construct_storage(storage_data_, std::move(in));
   }
 
-  template <class TARGS>
-  inline void setup_from(TARGS &&args) {
-    poll_storage::construct_storage(storage_data_, std::forward<TARGS>(args));
+  template <class... TARGS>
+  inline void setup_from(TARGS &&...args) {
+    poll_storage::construct_storage(storage_data_, std::forward<TARGS>(args)...);
   }
 
   inline void setup_from(self_type &&other) {
