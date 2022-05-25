@@ -72,19 +72,19 @@ if ( $RUN_MODE -eq "msvc.2019+.test" ) {
     exit $LastExitCode
   }
 
-  & cmake --build . --config RelWithDebInfo --target run_sample
+  & ctest -VV . -C RelWithDebInfo -L libcopp.sample
 
   if ( $LastExitCode -ne 0 ) {
     exit $LastExitCode
   }
 
-  & cmake --build . --config RelWithDebInfo --target run_test
+  & ctest -VV . -C RelWithDebInfo -L libcopp.unit_test
 
   if ( $LastExitCode -ne 0 ) {
     exit $LastExitCode
   }
 
-  & cmake --build . --config RelWithDebInfo --target benchmark
+  & ctest -VV . -C RelWithDebInfo -L libcopp.benchmark
 }
 elseif ( $RUN_MODE -eq "msvc.2017.test" ) {
   Invoke-Environment "call ""$vsInstallationPath/VC/Auxiliary/Build/vcvars64.bat"""
@@ -109,19 +109,19 @@ elseif ( $RUN_MODE -eq "msvc.2017.test" ) {
     exit $LastExitCode
   }
 
-  & cmake --build . --config $Env:CONFIGURATION --target run_sample
+  & ctest -VV . -C $Env:CONFIGURATION -L libcopp.sample
 
   if ( $LastExitCode -ne 0 ) {
     exit $LastExitCode
   }
 
-  & cmake --build . --config $Env:CONFIGURATION --target run_test
+  & ctest -VV . -C $Env:CONFIGURATION -L libcopp.unit_test
 
   if ( $LastExitCode -ne 0 ) {
     exit $LastExitCode
   }
   
-  & cmake --build . --config $Env:CONFIGURATION --target benchmark
+  & ctest -VV . -C $Env:CONFIGURATION -L libcopp.benchmark
 }
 
 Set-Location $WORK_DIR

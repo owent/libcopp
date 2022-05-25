@@ -10,6 +10,8 @@
   + Add internal API`task_action_impl::get_task`
   + Store result data into `cotask::task<...>`
 3. \[Previous\] Redesign C++ 20 coroutine support.
+4. Using ctest to maintain test and samples
+5. Fix compatibility for C++20 attributes and macros
 
 ## 1.5.0
 
