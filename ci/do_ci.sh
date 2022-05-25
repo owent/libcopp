@@ -121,7 +121,7 @@ else
   exit 1
 fi
 
-if [[ "$1" != "memcheck" ]]; then
+if [[ "$1" == "memcheck" ]]; then
   echo "============================== run valgrind memcheck =============================="
   ctest -VV . -C $CONFIGURATION -L libcopp.memcheck
   for MEMCHECK_REPORT in $(find . -maxdepth 5 -name "*.memcheck.log"); do
