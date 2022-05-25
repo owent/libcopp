@@ -122,8 +122,12 @@ else
 fi
 
 if [[ "$1" != "memcheck" ]]; then
-  echo "============================== run benchmark =============================="
+  echo "============================== run valgrind memcheck =============================="
   ctest -VV . -C $CONFIGURATION -L libcopp.memcheck
+  for MEMCHECK_REPORT in $(find . -maxdepth 5 -name "*.memcheck.log"); do
+    echo "------------------------------ valgrind memcheck : $MEMCHECK_REPORT ------------------------------"
+    cat "$MEMCHECK_REPORT"
+  done
 elif [[ "x$THREAD_UNSAFE" != "x" ]]; then
   echo "============================== run benchmark =============================="
   ctest -VV . -C $CONFIGURATION -L libcopp.benchmark
