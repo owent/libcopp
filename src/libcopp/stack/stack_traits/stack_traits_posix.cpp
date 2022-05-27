@@ -6,6 +6,9 @@
 
 #  include <libcopp/stack/stack_traits.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 extern "C" {
 #  include <assert.h>
 #  include <signal.h>
@@ -28,6 +31,9 @@ extern "C" {
 #  ifdef COPP_HAS_ABI_HEADERS
 #    include COPP_ABI_PREFIX
 #  endif
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 

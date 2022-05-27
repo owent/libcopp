@@ -4,8 +4,14 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <assert.h>
 #include <stdint.h>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
@@ -193,7 +199,9 @@ LIBCOPP_COPP_API void promise_base_type::set_flag(promise_flag flag, bool value)
   flags_.set(static_cast<size_t>(flag), value);
 }
 
-LIBCOPP_COPP_API bool promise_base_type::is_waiting() const noexcept { return current_waiting_; }
+LIBCOPP_COPP_API bool promise_base_type::is_waiting() const noexcept {
+  return current_waiting_ || check_flag(promise_flag::kInternalWaitting);
+}
 
 LIBCOPP_COPP_API void promise_base_type::set_waiting_handle(std::nullptr_t) noexcept { current_waiting_ = nullptr; }
 
@@ -202,6 +210,8 @@ LIBCOPP_COPP_API void promise_base_type::set_waiting_handle(handle_delegate hand
 LIBCOPP_COPP_API void promise_base_type::resume_waiting(handle_delegate current_delegate, bool inherit_status) {
   // Atfer resume(), this object maybe destroyed.
   auto waiting_delegate = current_waiting_;
+
+  // Resume the waiting promise.
   if (waiting_delegate.handle && !waiting_delegate.handle.done()) {
     current_waiting_ = nullptr;
     // Prevent the waiting coroutine remuse this again.
@@ -209,6 +219,10 @@ LIBCOPP_COPP_API void promise_base_type::resume_waiting(handle_delegate current_
       waiting_delegate.promise->remove_caller(current_delegate, inherit_status);
     }
     waiting_delegate.handle.resume();
+  } else if (current_delegate.handle && !current_delegate.handle.done() &&
+             check_flag(promise_flag::kInternalWaitting)) {
+    // If we are waiting for a internal awaitable object, we also allow to resume it.
+    current_delegate.handle.resume();
   }
 }
 

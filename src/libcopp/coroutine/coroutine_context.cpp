@@ -7,15 +7,21 @@
 
 #include <libcopp/coroutine/coroutine_context.h>
 
-#include <assert.h>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #if defined(COPP_MACRO_THREAD_LOCAL)
 // using thread_local
 #else
 #  include <pthread.h>
 #endif
+#include <assert.h>
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {

@@ -10,12 +10,18 @@
 #include <libcopp/utils/intrusive_ptr.h>
 #include <libcopp/fcontext/all.hpp>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <cstddef>
 #include <functional>
 #include <memory>
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 

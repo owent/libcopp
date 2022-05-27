@@ -15,9 +15,13 @@
 
 #pragma once
 
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/std/explicit_declare.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 // patch for old gcc
 #ifndef __STDC_LIMIT_MACROS
 #  define _UNDEF__STDC_LIMIT_MACROS
@@ -74,7 +78,9 @@
 
 #include <cstddef>
 
-#include <libcopp/utils/config/libcopp_build_features.h>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {

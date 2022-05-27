@@ -13,6 +13,9 @@
 #include <libcotask/task_macros.h>
 #include <libcotask/this_task.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
@@ -24,6 +27,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <list>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 

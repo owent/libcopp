@@ -13,9 +13,15 @@
 
 #include <libcotask/task_actions.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <stdint.h>
 #include <list>
 #include <memory>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 enum EN_TASK_STATUS {

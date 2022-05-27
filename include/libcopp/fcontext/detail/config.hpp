@@ -7,8 +7,14 @@
 #ifndef _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H
 #define _COPP_BOOST_CONTEXT_DETAIL_CONFIG_H
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 // required for SD-6 compile-time integer sequences
 #include <utility>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #ifdef _COPP_BOOST_CONTEXT_DECL
 #  undef _COPP_BOOST_CONTEXT_DECL

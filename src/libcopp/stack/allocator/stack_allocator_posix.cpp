@@ -23,12 +23,18 @@ extern "C" {
 #include <unistd.h>
 }
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <assert.h>
 #include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <limits>
 #include <numeric>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #ifdef COPP_HAS_ABI_HEADERS
 #  include COPP_ABI_PREFIX

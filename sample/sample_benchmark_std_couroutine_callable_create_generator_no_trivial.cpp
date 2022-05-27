@@ -64,8 +64,10 @@ benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) 
   int64_t result = 0;
 
   while (left_switch_count-- > 0) {
-    auto offset = co_await benchmark_generator_future_type(
-        [idx](benchmark_generator_future_type::context_pointer_type ctx) { g_benchmark_generator_list[idx] = ctx; });
+    auto offset =
+        co_await benchmark_generator_future_type([idx](benchmark_generator_future_type::context_pointer_type ctx) {
+          g_benchmark_generator_list[idx] = std::move(ctx);
+        });
     result += offset.data;
   }
 

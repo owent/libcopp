@@ -4,6 +4,9 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <assert.h>
 #include <functional>
 #include <type_traits>
@@ -11,6 +14,9 @@
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
 #endif
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #include "libcopp/coroutine/std_coroutine_common.h"
 #include "libcopp/future/future.h"
@@ -221,6 +227,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
       set_caller(caller);
       context_->add_caller(caller);
 
+      // Allow kill resume to forward error information
+      caller.promise().set_flag(promise_flag::kInternalWaitting, true);
+
       // Custom event. awaitable object may be deleted after this call
       if (await_suspend_callback_) {
         await_suspend_callback_(context_->shared_from_this());
@@ -244,6 +253,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
     auto caller = get_caller();
 
     if (caller) {
+      if (nullptr != caller.promise) {
+        caller.promise->set_flag(promise_flag::kInternalWaitting, false);
+      }
       if (nullptr != context_) {
         if (!context_->is_ready() && nullptr != caller.promise) {
           error_status = caller.promise->get_status();

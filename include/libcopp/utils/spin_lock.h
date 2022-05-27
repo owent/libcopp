@@ -41,7 +41,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-#include "atomic_int_type.h"
+#include <libcopp/utils/atomic_int_type.h>
 
 /**
  * ==============================================
@@ -115,8 +115,14 @@
  * ==============================================
  */
 #if defined(__LIBCOPP_UTIL_LOCK_ATOMIC_INT_TYPE_ATOMIC_STD)
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #  include <chrono>
 #  include <thread>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #  if defined(__GNUC__) && !defined(__clang__)
 #    if (__GNUC__ * 100 + __GNUC_MINOR__) <= 407
