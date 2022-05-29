@@ -9,7 +9,13 @@
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/utils/errno.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <cstddef>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 LIBCOPP_COPP_NAMESPACE_BEGIN

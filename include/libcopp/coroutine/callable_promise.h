@@ -4,8 +4,14 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <assert.h>
 #include <type_traits>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
@@ -137,6 +143,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
       set_caller(caller);
       caller.promise().set_waiting_handle(callee_);
       callee_.promise().add_caller(caller);
+
+      caller.promise().set_flag(promise_flag::kInternalWaitting, true);
     } else {
       // Already done and can not suspend again
       caller.resume();
@@ -153,8 +161,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
     auto& callee_promise = get_callee().promise();
 
     if (caller) {
+      if (nullptr != caller.promise) {
+        caller.promise->set_flag(promise_flag::kInternalWaitting, false);
+        caller.promise->set_waiting_handle(nullptr);
+      }
       callee_promise.remove_caller(caller, true);
-      caller.promise->set_waiting_handle(nullptr);
       set_caller(nullptr);
     }
 
@@ -255,7 +266,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
+#  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
     void unhandled_exception() { throw; }
+#  endif
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
   using awaitable_type = callable_awaitable<promise_type, std::is_void<typename std::decay<value_type>::type>::value>;
@@ -290,7 +303,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
 
   awaitable_type operator co_await() { return awaitable_type{current_handle_}; }
 
-  inline bool is_ready() const noexcept { return current_handle_.done(); }
+  inline bool is_ready() const noexcept {
+    if (!current_handle_) {
+      return true;
+    }
+
+    return current_handle_.done() || current_handle_.promise().check_flag(promise_flag::kFinalSuspend);
+  }
 
   inline promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
 

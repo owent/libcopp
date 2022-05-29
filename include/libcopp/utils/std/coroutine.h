@@ -17,6 +17,9 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 #  if defined(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE) && LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
 #    include <experimental/coroutine>
@@ -28,6 +31,9 @@
 #    define LIBCOPP_MACRO_FUTURE_COROUTINE_TYPE(T) std::coroutine_handle<T>
 #  endif
 #endif
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #if defined(LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE) && LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
 #  define LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE std::experimental::

@@ -6,12 +6,6 @@
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/stack/stack_traits.h>
 
-#include <assert.h>
-#include <algorithm>
-#include <cstring>
-#include <limits>
-#include <numeric>
-
 #ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 #endif
@@ -19,6 +13,18 @@
 extern "C" {
 #include <Windows.h>
 }
+
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
+#include <assert.h>
+#include <algorithm>
+#include <cstring>
+#include <limits>
+#include <numeric>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #if defined(COPP_MACRO_COMPILER_MSVC)
 #  pragma warning(push)

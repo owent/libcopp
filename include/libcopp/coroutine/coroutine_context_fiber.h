@@ -4,7 +4,13 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <cstddef>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #include "coroutine_context.h"
 
@@ -14,7 +20,7 @@
 #    define WIN32_LEAN_AND_MEAN
 #  endif
 
-#  include <Windows.h>
+#  include <Windows.h>  // NOLINT(build/include_order)
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 /**

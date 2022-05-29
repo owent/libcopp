@@ -8,10 +8,15 @@
 #include <libcotask/impl/task_action_impl.h>
 #include <libcotask/impl/task_impl.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
+#include <assert.h>
 #include <algorithm>
 #include <cstdlib>
-
-#include <assert.h>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 namespace impl {

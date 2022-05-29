@@ -5,10 +5,16 @@
 #include <libcopp/utils/atomic_int_type.h>
 #include <libcopp/utils/uint64_id_allocator.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #if defined(THREAD_TLS_USE_PTHREAD) && THREAD_TLS_USE_PTHREAD
 #  include <pthread.h>
 #endif
 #include <ctime>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace util {

@@ -63,8 +63,9 @@ std::vector<benchmark_generator_future_type::context_pointer_type> g_benchmark_g
 benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) {
   int64_t result = 0;
 
-  benchmark_generator_future_type generator{
-      [idx](benchmark_generator_future_type::context_pointer_type ctx) { g_benchmark_generator_list[idx] = ctx; }};
+  benchmark_generator_future_type generator{[idx](benchmark_generator_future_type::context_pointer_type ctx) {
+    g_benchmark_generator_list[idx] = std::move(ctx);
+  }};
   while (left_switch_count-- > 0) {
     generator.get_context()->reset_value();
     auto offset = co_await generator;

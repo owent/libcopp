@@ -5,6 +5,9 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/std/coroutine.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <assert.h>
 #include <bitset>
 #include <memory>
@@ -22,6 +25,9 @@
 #if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
 #  include <variant>
 #endif
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #include "libcopp/future/future.h"
 #include "libcopp/utils/atomic_int_type.h"
@@ -43,6 +49,7 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY promise_status : uint8_t {
 enum class LIBCOPP_COPP_API_HEAD_ONLY promise_flag : uint8_t {
   kDestroying = 0,
   kFinalSuspend = 1,
+  kInternalWaitting = 2,
   kMax,
 };
 
@@ -140,6 +147,8 @@ class promise_caller_manager {
   LIBCOPP_COPP_API bool remove_caller(handle_delegate handle) noexcept;
 
   LIBCOPP_COPP_API size_t resume_callers();
+
+  LIBCOPP_COPP_API bool has_multiple_callers() const noexcept;
 
  private:
   // hash for handle_delegate

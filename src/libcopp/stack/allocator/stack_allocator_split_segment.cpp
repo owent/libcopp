@@ -7,6 +7,9 @@
 #include <libcopp/stack/stack_traits.h>
 #include <libcopp/fcontext/fcontext.hpp>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 extern "C" {
 #include <signal.h>
 }
@@ -15,6 +18,9 @@ extern "C" {
 #include <algorithm>
 #include <cstring>
 #include <limits>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {

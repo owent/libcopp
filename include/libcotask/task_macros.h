@@ -11,7 +11,13 @@
 #include <libcotask/core/standard_new_allocator.h>
 #include <libcotask/impl/task_impl.h>
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #include <stdint.h>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 struct LIBCOPP_COTASK_API_HEAD_ONLY macro_coroutine {

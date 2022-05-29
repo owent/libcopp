@@ -6,6 +6,10 @@
 #  define WIN32_LEAN_AND_MEAN
 #endif
 
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
+
 extern "C" {
 #include <Windows.h>
 #include <assert.h>
@@ -26,6 +30,9 @@ extern "C" {
 #  include <mutex>
 #  include <thread>
 #endif
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 #include "libcopp/stack/stack_context.h"
 #include "libcopp/stack/stack_traits.h"

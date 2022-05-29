@@ -1,97 +1,52 @@
 /*
- * sample_readme_7.cpp
+ * sample_readme_8.cpp
  *
- *  Created on: 2020-05-25
+ *  Created on: 2020-05-22
  *      Author: owent
  *
  *  Released under the MIT license
  */
 
+#include <assert.h>
 #include <iostream>
+#include <string>
 
 // include manager header file
-#include <libcopp/future/std_coroutine_task.h>
+#include <libcopp/coroutine/callable_promise.h>
+#include <libcopp/coroutine/generator_promise.h>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
-static copp::future::task_future<int> call_for_coroutine_task_with_int_result() {
-  // ... any code
-  co_return 123;
+using my_generator = copp::generator_future<int>;
+std::list<my_generator::context_pointer_type> g_sample_executor;
+
+static void generator_callback(my_generator::context_pointer_type ctx) {
+  g_sample_executor.emplace_back(std::move(ctx));
 }
 
-static copp::future::task_future<void> call_for_coroutine_task_with_void_result() {
-  // ... any code
+static copp::callable_future<void> coroutine_simulator_rpc() {
+  my_generator generator_object{generator_callback};
+  auto value1 = co_await generator_object;
+  std::cout << "co_await named generator: " << value1 << std::endl;
+  auto value2 = co_await my_generator{generator_callback};
+  std::cout << "co_await temporary generator: " << value2 << std::endl;
+
+  generator_object.get_context()->reset_value();
+  auto value3 = co_await generator_object;
+  std::cout << "reset and co_await named generator again: " << value3 << std::endl;
   co_return;
 }
 
-struct sample_task_waker_t;
-typedef copp::future::task_future<int, sample_task_waker_t> sample_task_t;
-typedef copp::future::task_future_data<int> sample_future_t;
-typedef copp::future::task_context<sample_task_waker_t> sample_task_context_t;
-
-std::list<std::pair<sample_task_context_t *, int> > g_sample_executor;
-
-struct sample_task_waker_t {
-  std::list<std::pair<sample_task_context_t *, int> >::iterator refer_to;
-
-  sample_task_waker_t() { refer_to = g_sample_executor.end(); }
-
-  ~sample_task_waker_t() {
-    if (refer_to != g_sample_executor.end()) {
-      g_sample_executor.erase(refer_to);
-    }
-  }
-
-  void operator()(sample_future_t &fut, sample_task_context_t &ctx) {
-    if (refer_to == g_sample_executor.end()) {
-      // Add to custom executor when first polled
-      refer_to = g_sample_executor.insert(g_sample_executor.end(), std::make_pair(&ctx, 0));
-      return;
-    }
-
-    if (0 != (*refer_to).second) {
-      fut.poll_data() = (*refer_to).second;
-      // Because return type is a trivial type, we can just assign to value
-      // It the return type is a trivial type, we can use
-      //     fut.poll_data() = copp::future::make_unique<T>(...);
-      //   or
-      //     fut.poll_data() = std::make_unique<T>(...);
-      //   to set the result data.
-      g_sample_executor.erase(refer_to);
-      refer_to = g_sample_executor.end();
-    }
-  }
-};
-
-static sample_task_t call_for_coroutine_task_with_custom_waker() {
-  // suspend and wait custom waker
-  (void)co_await LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_always();
-  // ... any code
-  // We can get the pointer to the future and th context of current task by co_yield current_future_data and
-  // current_context
-  sample_future_t *future = co_yield sample_task_t::current_future_data();
-  sample_task_context_t *context = co_yield sample_task_t::current_context();
-  if (future && context && future->is_ready()) {
-    // The return value will be ignored when the future is already set by custom waker
-    std::cout << "Coroutine: " << context->get_task_id() << " already got future data " << (*future->data())
-              << " and will ignore co_return." << std::endl;
-  }
-  co_return 123;
-}
-
 int main() {
-  copp::future::task_future<int> t1 = call_for_coroutine_task_with_int_result();
-  copp::future::task_future<void> t2 = call_for_coroutine_task_with_void_result();
-  sample_task_t t3 = call_for_coroutine_task_with_custom_waker();
-  std::cout << "Coroutine t1: " << t1.get_task_id() << " -> " << *t1.data() << std::endl;
-  std::cout << "Coroutine t2: " << t2.get_task_id() << " -> " << (t2.done() ? "done" : "running") << std::endl;
+  int result = 191;
+  auto f = coroutine_simulator_rpc();
+  f.start();
 
   while (!g_sample_executor.empty()) {
-    (*g_sample_executor.begin()).second = 456;
-    (*g_sample_executor.begin()).first->wake();
+    auto ctx = g_sample_executor.front();
+    g_sample_executor.pop_front();
+    ctx->set_value(++result);
   }
-
-  std::cout << "Coroutine t3: " << t3.get_task_id() << " -> " << *t3.data() << std::endl;
   return 0;
 }
 #else

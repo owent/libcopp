@@ -53,35 +53,26 @@ This is a simple example of using ``then`` and ``await_task`` for cotask:
     :encoding: utf-8
 
 
-Using copp::future::future_with_waker and prepare for c++20 coroutine
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This is a simple example of using copp::future::future_with_waker<RESULT> and using copp::future::context<RESULT>:
-
-.. literalinclude:: ../../../sample/sample_readme_6.cpp
-    :language: cpp
-    :encoding: utf-8
-
 Using c++20 coroutine
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: ../../../sample/sample_readme_7.cpp
+.. literalinclude:: ../../../sample/sample_readme_6.cpp
     :language: cpp
     :encoding: utf-8
 
 Using c++20 coroutine with custom generator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: ../../../sample/sample_readme_8.cpp
+.. literalinclude:: ../../../sample/sample_readme_7.cpp
     :language: cpp
     :encoding: utf-8
 
-Custom error (timeout for example) when polling c++20 coroutine task or generator
+Custom error (timeout for example) for c++20 coroutine
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By add context into custom executor or manager and remove it when destroyed, we can add more flexible error handling or procedure.
+By implementing ``std_coroutine_default_error_transform<CustomType>`` , we can transform error code of libcopp to our custom type.
 
-.. literalinclude:: ../../../sample/sample_readme_9.cpp
+.. literalinclude:: ../../../sample/sample_readme_8.cpp
     :language: cpp
     :encoding: utf-8
 
@@ -90,7 +81,7 @@ Let c++20 coroutine work with cotask::task<MACRO>
 
 This is a simple example to let c++20 coroutine await cotask::task
 
-.. literalinclude:: ../../../sample/sample_readme_10.cpp
+.. literalinclude:: ../../../sample/sample_readme_9.cpp
     :language: cpp
     :encoding: utf-8
 
@@ -100,6 +91,6 @@ Using ``SetUnhandledExceptionFilter`` on Windows with cotask::task<MACRO>
 
 Some applications will use ``SetUnhandledExceptionFilter`` to catch unhandled exception and analysis crash problem. But ``SetUnhandledExceptionFilter`` is only works with `coroutine context of windows fiber <https://github.com/owent/libcopp/blob/v2/include/libcopp/coroutine/coroutine_context_fiber_container.h>`_ . This is a sample of using **windows fiber** as coroutine context in ``cotask::task<MACRO>`` .
 
-.. literalinclude:: ../../../sample/sample_readme_11.cpp
+.. literalinclude:: ../../../sample/sample_readme_10.cpp
     :language: cpp
     :encoding: utf-8

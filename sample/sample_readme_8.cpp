@@ -1,109 +1,96 @@
 /*
- * sample_readme_8.cpp
+ * sample_readme_9.cpp
  *
- *  Created on: 2020-05-22
+ *  Created on: 2020-05-20
  *      Author: owent
  *
  *  Released under the MIT license
  */
 
-#include <assert.h>
 #include <iostream>
-#include <string>
 
 // include manager header file
-#include <libcopp/future/std_coroutine_generator.h>
-#include <libcopp/future/std_coroutine_task.h>
+#include <libcopp/coroutine/callable_promise.h>
+#include <libcopp/coroutine/generator_promise.h>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
-struct sample_message_t {
+// ============================ types for task and generator ============================
+class sample_message_t {
+ public:
   int ret_code;
-  std::string response;
+
+  sample_message_t() : ret_code(0) {}
+  sample_message_t(int c) : ret_code(c) {}
+  sample_message_t(const sample_message_t &) = default;
+  sample_message_t &operator=(const sample_message_t &) = default;
+  sample_message_t(sample_message_t &&) = default;
+  sample_message_t &operator=(sample_message_t &&) = default;
+  ~sample_message_t() {}
 };
 
-struct sample_generator_waker_t;
+#  define SAMPLE_TIMEOUT_ERROR_CODE (-500)
 
-typedef copp::future::result_type<sample_message_t, int32_t> sample_result_t;
-typedef copp::future::task_future<sample_result_t> sample_task_t;
-typedef copp::future::generator_future_data<sample_result_t> sample_future_t;
-typedef copp::future::generator_context<sample_generator_waker_t> sample_generator_context_t;
-
-std::list<std::pair<sample_generator_context_t *, std::string> > g_sample_executor;
-
-struct sample_generator_waker_t {
-  int32_t code;
-  std::list<std::pair<sample_generator_context_t *, std::string> >::iterator refer_to;
-
-  // All parameter passed into generator will be forward here
-  sample_generator_waker_t(int32_t c) : code(c) { refer_to = g_sample_executor.end(); }
-
-  ~sample_generator_waker_t() {
-    if (refer_to != g_sample_executor.end()) {
-      g_sample_executor.erase(refer_to);
+LIBCOPP_COPP_NAMESPACE_BEGIN
+template <>
+struct std_coroutine_default_error_transform<sample_message_t> {
+  using type = sample_message_t;
+  type operator()(promise_status in) const {
+    if (in == promise_status::kTimeout) {
+      return sample_message_t{SAMPLE_TIMEOUT_ERROR_CODE};
     }
-  }
-
-  void operator()(sample_future_t &fut, sample_generator_context_t &ctx) {
-    if (refer_to == g_sample_executor.end()) {
-      // Add to custom executor when first polled
-      refer_to = g_sample_executor.insert(g_sample_executor.end(), std::make_pair(&ctx, std::string()));
-      return;
-    }
-
-    if (!(*refer_to).second.empty()) {
-      // generator finished and produce a result message
-      sample_message_t msg;
-      msg.ret_code = code;
-      msg.response.swap((*refer_to).second);
-
-      fut.poll_data() = sample_result_t::make_success(msg);
-      // Because sample_result_t is not a trivial type, upper code is equal to these codes below:
-      // auto ptr = std::make_unique<sample_result_t>(sample_result_t::create_success(std::move(msg)));
-      // fut.poll_data() = std::move(ptr);
-
-      g_sample_executor.erase(refer_to);
-      refer_to = g_sample_executor.end();
-    }
+    return sample_message_t{static_cast<int>(in)};
   }
 };
-typedef copp::future::generator<sample_result_t, sample_generator_waker_t> sample_generator_t;
+LIBCOPP_COPP_NAMESPACE_END
 
-static copp::future::task_future<void> call_for_noop_task() { co_return; }
+using int_generator = copp::generator_future<int>;
+std::list<int_generator::context_pointer_type> g_int_executor;
+using custom_generator = copp::generator_future<sample_message_t>;
+std::list<custom_generator::context_pointer_type> g_sample_executor;
 
-static copp::future::task_future<int> call_for_coroutine_task() {
-  // We can start a subtask and await it
-  copp::future::task_future<void> t = call_for_noop_task();
-  (void)co_await t;
+static void int_generator_callback(int_generator::context_pointer_type ctx) {
+  g_int_executor.emplace_back(std::move(ctx));
+}
 
-  sample_generator_t generator = copp::future::make_generator<sample_generator_t>(200);
-  auto result = co_await generator;
+static void custom_generator_callback(custom_generator::context_pointer_type ctx) {
+  g_sample_executor.emplace_back(std::move(ctx));
+}
 
-  if (result) {
-    if (result->is_success()) {
-      std::cout << "Got response message: " << result->get_success()->response << std::endl;
-      co_return result->get_success()->ret_code;
-    } else {
-      co_return *result->get_error();
-    }
-  }
-  co_return 0;
+static copp::callable_future<int> coroutine_simulator_rpc_integer_l2() {
+  auto result = co_await int_generator{int_generator_callback};
+  co_return result;
+}
+
+static copp::callable_future<void> coroutine_simulator_rpc_integer() {
+  auto result = co_await coroutine_simulator_rpc_integer_l2();
+  std::cout << "int generator is killed with code: " << result << std::endl;
+  co_return;
+}
+
+static copp::callable_future<int> coroutine_simulator_rpc_custom_l2() {
+  auto result = co_await custom_generator{custom_generator_callback};
+  co_return result.ret_code;
+}
+
+static copp::callable_future<void> coroutine_simulator_rpc_custom() {
+  auto result = co_await coroutine_simulator_rpc_custom_l2();
+  std::cout << "custom generator is killed with code: " << result << std::endl;
+  co_return;
 }
 
 int main() {
-  copp::future::task_future<int> t = call_for_coroutine_task();
-  assert(false == t.done());
-  assert(nullptr == t.data());  // Task isn't finished and has no data
+  // sample for await generator and timeout
+  auto f1 = coroutine_simulator_rpc_integer();
+  f1.start();
+  f1.kill(copp::promise_status::kCancle, true);
+  std::cout << "int generator is killed" << std::endl;
 
-  while (!g_sample_executor.empty()) {
-    // async jobs finished and wake coroutine here
-    g_sample_executor.begin()->second = "Hello World!";
-    g_sample_executor.begin()->first->wake();
-  }
-
-  assert(t.done());
-  assert(t.data());  // Task is finished and has data
-  std::cout << "Task " << t.get_task_id() << " finished and got result: " << *t.data() << std::endl;
+  // sample for await task and timeout
+  auto f2 = coroutine_simulator_rpc_custom();
+  f2.start();
+  f2.kill(copp::promise_status::kTimeout, true);
+  std::cout << "custom generator is killed" << std::endl;
   return 0;
 }
 #else
