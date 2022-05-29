@@ -142,6 +142,28 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   return resume_count;
 }
 
+LIBCOPP_COPP_API bool promise_caller_manager::has_multiple_callers() const noexcept {
+#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+  if (std::holds_alternative<handle_delegate>(callers_)) {
+    return false;
+  } else if (std::holds_alternative<multi_caller_set>(callers_)) {
+    return std::get<multi_caller_set>(callers_).size() > 1;
+  }
+  return false;
+#  else
+  size_t count = 0;
+  if (unique_caller.handle && !unique_caller.handle.done() &&
+      (nullptr == unique_caller.promise || !unique_caller.promise->check_flag(promise_flag::kDestroying))) {
+    ++count;
+  }
+
+  if (multiple_callers_) {
+    count += multiple_callers_.size();
+  }
+  return count > 1;
+#  endif
+}
+
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::pick_promise_status_awaitable() noexcept
     : data(promise_status::kInvalid) {}
 

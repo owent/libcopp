@@ -1,5 +1,6 @@
 // Copyright 2022 owent
 
+#include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/stack/stack_pool.h>
 #include <libcotask/task.h>
 
@@ -723,5 +724,41 @@ CASE_TEST(coroutine_task, mt_run_competition) {
   CASE_MSG_INFO() << "Coroutine tasks are run on " << g_test_context_task_test_mt_max_run_thread_number
                   << " threads at most." << std::endl;
 }
+
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
+static copp::callable_future<int> call_for_await_cotask(cotask::task<>::ptr_t t) {
+  if (t) {
+    co_return co_await t;
+  }
+
+  co_return 0;
+}
+
+static int cotask_action_callback(void *) {
+  int ret = 234;
+  void *ptr = nullptr;
+  cotask::this_task::get_task()->yield(&ptr);
+  if (ptr != nullptr) {
+    ret = *reinterpret_cast<int *>(ptr);
+  }
+  return ret;
+}
+
+CASE_TEST(coroutine_task, callable_future_co_await) {
+  cotask::task<>::ptr_t co_task = cotask::task<>::create(cotask_action_callback);
+
+  auto t = call_for_await_cotask(co_task);
+  t.start();
+  co_task->start();
+  CASE_EXPECT_FALSE(t.is_ready());
+
+  int res = 345;
+  co_task->resume(reinterpret_cast<void *>(&res));
+
+  CASE_EXPECT_TRUE(t.is_ready());
+
+  CASE_EXPECT_EQ(res, t.get_internal_promise().data());
+}
+#  endif
 
 #endif

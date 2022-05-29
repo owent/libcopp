@@ -22,7 +22,8 @@ std::list<generator_promise_future_void_type::context_pointer_type> g_pending_vo
 size_t g_resume_generator_count = 0;
 size_t g_suspend_generator_count = 0;
 
-void resume_pending_contexts(std::list<int> values) {
+size_t resume_pending_contexts(std::list<int> values) {
+  size_t ret = 0;
   while (!g_pending_int_contexts.empty() || !g_pending_void_contexts.empty()) {
     if (!g_pending_int_contexts.empty()) {
       auto ctx = *g_pending_int_contexts.begin();
@@ -35,14 +36,20 @@ void resume_pending_contexts(std::list<int> values) {
       } else {
         ctx->set_value(0);
       }
+
+      ++ret;
     }
 
     if (!g_pending_void_contexts.empty()) {
       auto ctx = *g_pending_void_contexts.begin();
       g_pending_void_contexts.pop_front();
       ctx->set_value();
+
+      ++ret;
     }
   }
+
+  return ret;
 }
 
 }  // namespace
@@ -261,15 +268,13 @@ CASE_TEST(generator_promise, caller_killed) {
 }
 
 class test_context_transform_error_code_type {
- private:
-  test_context_transform_error_code_type(const test_context_transform_error_code_type &) = delete;
-  test_context_transform_error_code_type &operator=(const test_context_transform_error_code_type &) = delete;
-
  public:
   int code;
 
   test_context_transform_error_code_type() : code(0) {}
   test_context_transform_error_code_type(int c) : code(c) {}
+  test_context_transform_error_code_type(const test_context_transform_error_code_type &) = default;
+  test_context_transform_error_code_type &operator=(const test_context_transform_error_code_type &) = default;
   test_context_transform_error_code_type(test_context_transform_error_code_type &&) = default;
   test_context_transform_error_code_type &operator=(test_context_transform_error_code_type &&) = default;
   ~test_context_transform_error_code_type() {}
@@ -314,6 +319,50 @@ CASE_TEST(generator_promise, transform_error_code) {
   f2.kill(copp::promise_status::kTimeout, true);
 
   g_test_context_transform_error_code_generator_executor.clear();
+}
+
+static copp::callable_future<int> callable_func_multiple_await_int(
+    generator_promise_future_int_type &shared_generator) {
+  auto result = co_await shared_generator;
+  co_return result;
+}
+
+CASE_TEST(generator_promise, miltiple_wait_int_generator) {
+  size_t old_resume_generator_count = g_resume_generator_count;
+  size_t old_suspend_generator_count = g_suspend_generator_count;
+
+  generator_promise_future_int_type int_generator{
+      [](generator_promise_future_int_type::context_pointer_type ctx) {
+        ++g_suspend_generator_count;
+        if (g_pending_int_contexts.end() ==
+            std::find(g_pending_int_contexts.begin(), g_pending_int_contexts.end(), ctx)) {
+          g_pending_int_contexts.push_back(ctx);
+        }
+      },
+      [](const generator_promise_future_int_type::context_type &) { ++g_resume_generator_count; }};
+
+  copp::callable_future<int> f1 = callable_func_multiple_await_int(int_generator);
+  copp::callable_future<int> f2 = callable_func_multiple_await_int(int_generator);
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f1.get_status()));
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f2.get_status()));
+  // Start
+  f1.start();
+  f2.start();
+
+  CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f1.get_status()));
+  CASE_EXPECT_FALSE(f1.is_ready());
+  CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f2.get_status()));
+  CASE_EXPECT_FALSE(f2.is_ready());
+
+  CASE_EXPECT_EQ(1, resume_pending_contexts({143}));
+
+  CASE_EXPECT_TRUE(f1.is_ready());
+  CASE_EXPECT_EQ(143, f1.get_internal_promise().data());
+  CASE_EXPECT_TRUE(f2.is_ready());
+  CASE_EXPECT_EQ(143, f2.get_internal_promise().data());
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 2, g_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 2, g_suspend_generator_count);
 }
 
 #else

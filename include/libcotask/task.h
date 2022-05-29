@@ -4,8 +4,8 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcopp/coroutine/std_coroutine_common.h>
 #include <libcopp/future/future.h>
-#include <libcopp/future/std_coroutine_generator.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/stack/stack_traits.h>
@@ -419,6 +419,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     // inited but not finished will trigger timeout or finish other actor
     if (status < EN_TS_DONE && status > EN_TS_CREATED) {
       kill(EN_TS_TIMEOUT);
+    } else if (status <= EN_TS_CREATED) {
+#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+      std::list<std::exception_ptr> eptrs;
+      active_next_tasks(eptrs);
+      // next tasks
+      maybe_rethrow(eptrs);
+#else
+      active_next_tasks();
+#endif
     }
   }
 
@@ -705,20 +714,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-    // and then, resume all std coroutine handles
-    while (!next_std_handles_.empty()) {
-      if (!*next_std_handles_.begin()) {
-        next_std_handles_.pop_front();
-        continue;
-      }
-
-      if ((*next_std_handles_.begin()).done()) {
-        next_std_handles_.pop_front();
-        continue;
-      }
-
-      (*next_std_handles_.begin()).resume();
-    }
+    caller_manager_.resume_callers();
 #endif
 
     // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
@@ -834,56 +830,85 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
  public:
-  class awaitable_base_type {
-   private:
-    awaitable_base_type(const awaitable_base_type &) = delete;
-    awaitable_base_type &operator=(const awaitable_base_type &) = delete;
+  class LIBCOPP_COPP_API_HEAD_ONLY stackful_task_awaitable : public LIBCOPP_COPP_NAMESPACE_ID::awaitable_base_type {
+   public:
+    using task_ptr_type = ptr_type;
+    using value_type = typename macro_coroutine_type::value_type;
 
    public:
-    awaitable_base_type(ptr_type t) : refer_task_(t), await_handle_iter_(t->next_std_handles_.end()) {}
+    explicit stackful_task_awaitable(task_ptr_type waiting_task) : waiting_task_(std::move(waiting_task)) {}
 
-    awaitable_base_type(awaitable_base_type &&other)
-        : refer_task_(other.refer_task_), await_handle_iter_(other.await_handle_iter_) {
-      if (other.refer_task_) {
-        other.await_handle_iter_ = other.refer_task_->next_std_handles_.end();
-        other.refer_task_.reset();
-      }
-    }
-    awaitable_base_type &operator=(awaitable_base_type &&other) {
-      refer_task_ = other.refer_task_;
-      await_handle_iter_ = other.await_handle_iter_;
-
-      if (other.refer_task_) {
-        other.await_handle_iter_ = other.refer_task_->next_std_handles_.end();
-        other.refer_task_.reset();
-      }
-    }
-
-    inline bool await_ready() const LIBCOPP_MACRO_NOEXCEPT { return !refer_task_ || refer_task_->is_completed(); }
-
-    inline void await_suspend(LIBCOPP_MACRO_FUTURE_COROUTINE_VOID h) LIBCOPP_MACRO_NOEXCEPT {
-      COPP_LIKELY_IF(refer_task_) {
-        await_handle_iter_ = refer_task_->next_std_handles_.insert(refer_task_->next_std_handles_.end(), h);
-      }
-    }
-
-    inline int await_resume() LIBCOPP_MACRO_NOEXCEPT {
-      COPP_LIKELY_IF(refer_task_ && await_handle_iter_ != refer_task_->next_std_handles_.end()) {
-        refer_task_->next_std_handles_.erase(await_handle_iter_);
-        await_handle_iter_ = refer_task_->next_std_handles_.end();
+    inline bool await_ready() const noexcept {
+      if (!waiting_task_) {
+        return true;
       }
 
-      COPP_LIKELY_IF(refer_task_) { return refer_task_->get_ret_code(); }
-
-      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
+      return waiting_task_->is_exiting();
     }
 
-   protected:
-    ptr_type refer_task_;
-    typename std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID>::iterator await_handle_iter_;
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+    template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TCPROMISE>
+#  else
+    template <class TCPROMISE, typename = std::enable_if_t<
+                                   std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value> >
+#  endif
+    inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+      if (waiting_task_ && !waiting_task_->is_exiting() &&
+          caller.promise().get_status() < LIBCOPP_COPP_NAMESPACE_ID::promise_status::kDone) {
+        set_caller(caller);
+        waiting_task_->caller_manager_.add_caller(
+            LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager::handle_delegate{caller});
+
+        // Allow kill resume to forward error information
+        caller.promise().set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kInternalWaitting, true);
+      } else {
+        // Already done and can not suspend again
+        caller.resume();
+      }
+    }
+
+    inline value_type await_resume() {
+      if (!waiting_task_) {
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_INITED;
+      }
+
+      value_type ret;
+      if (waiting_task_->is_exiting()) {
+        switch (waiting_task_->get_status()) {
+          case EN_TS_CANCELED:
+          case EN_TS_KILLED:
+          case EN_TS_TIMEOUT:
+            ret = LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_EXITING;
+            break;
+          default:
+            ret = waiting_task_->get_ret_code();
+            break;
+        }
+      } else {
+        ret = LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_KILLED;
+      }
+
+      // caller maybe null if the callable is already ready when co_await
+      auto caller = get_caller();
+
+      if (caller) {
+        if (nullptr != caller.promise) {
+          caller.promise->set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kInternalWaitting, false);
+        }
+
+        waiting_task_->caller_manager_.remove_caller(caller);
+        set_caller(nullptr);
+      }
+
+      return ret;
+    }
+
+   private:
+    // caller manager
+    task_ptr_type waiting_task_;
   };
 
-  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return awaitable_base_type{ptr_type(this)}; }
+  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return stackful_task_awaitable{ptr_type(this)}; }
 #endif
  private:
   size_t stack_size_;
@@ -909,14 +934,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #endif
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-  std::list<LIBCOPP_MACRO_FUTURE_COROUTINE_VOID> next_std_handles_;
+  LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager caller_manager_;
 #endif
 };
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <typename TCO_MACRO>
 auto operator co_await(LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
-  using awaitable = typename task<TCO_MACRO>::awaitable_base_type;
+  using awaitable = typename task<TCO_MACRO>::stackful_task_awaitable;
   return awaitable{t};
 }
 #endif

@@ -148,6 +148,8 @@ class promise_caller_manager {
 
   LIBCOPP_COPP_API size_t resume_callers();
 
+  LIBCOPP_COPP_API bool has_multiple_callers() const noexcept;
+
  private:
   // hash for handle_delegate
   struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash {

@@ -87,8 +87,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
 
+  inline bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
+
  protected:
-  inline UTIL_FORCEINLINE void wake() { caller_manager_.resume_callers(); }
+  UTIL_FORCEINLINE void wake() { caller_manager_.resume_callers(); }
 
  protected:
   future::future<TVALUE> data_;
@@ -334,13 +336,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
       : base_type(context, await_suspend_callback, await_resume_callback) {}
 
   inline value_type await_resume() {
+    bool has_multiple_callers = get_context()->has_multiple_callers();
     promise_status error_status = detach();
 
     if (promise_status::kDone != error_status) {
       return promise_error_transform<value_type>()(error_status);
     }
 
-    return std::move(*get_context()->data());
+    if (has_multiple_callers) {
+      return *get_context()->data();
+    } else {
+      return std::move(*get_context()->data());
+    }
   }
 
  private:
