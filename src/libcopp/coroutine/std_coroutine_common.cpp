@@ -152,13 +152,13 @@ LIBCOPP_COPP_API bool promise_caller_manager::has_multiple_callers() const noexc
   return false;
 #  else
   size_t count = 0;
-  if (unique_caller.handle && !unique_caller.handle.done() &&
-      (nullptr == unique_caller.promise || !unique_caller.promise->check_flag(promise_flag::kDestroying))) {
+  if (unique_caller_.handle && !unique_caller_.handle.done() &&
+      (nullptr == unique_caller_.promise || !unique_caller_.promise->check_flag(promise_flag::kDestroying))) {
     ++count;
   }
 
   if (multiple_callers_) {
-    count += multiple_callers_.size();
+    count += multiple_callers_->size();
   }
   return count > 1;
 #  endif
