@@ -106,14 +106,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_function : public impl::task_acti
 
   template <class Tz>
   struct invoker<Tz, true> {
-    static UTIL_FORCEINLINE int invoke(task_action_function &in, void *priv_data) {
+    UTIL_FORCEINLINE static int invoke(task_action_function &in, void *priv_data) {
       return static_cast<int>((*in.func_)(priv_data));
     }
   };
 
   template <class Tz>
   struct invoker<Tz, false> {
-    static UTIL_FORCEINLINE int invoke(task_action_function &in, void *priv_data) {
+    UTIL_FORCEINLINE static int invoke(task_action_function &in, void *priv_data) {
       (*in.func_)(priv_data);
       return 0;
     }
@@ -152,14 +152,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_action_mem_function : public impl::task_
 
   template <class Tz>
   struct invoker<Tz, true> {
-    static UTIL_FORCEINLINE int invoke(task_action_mem_function &in, void *priv_data) {
+    UTIL_FORCEINLINE static int invoke(task_action_mem_function &in, void *priv_data) {
       return static_cast<int>((in.instacne_->*in.func_)(priv_data));
     }
   };
 
   template <class Tz>
   struct invoker<Tz, false> {
-    static UTIL_FORCEINLINE int invoke(task_action_mem_function &in, void *priv_data) {
+    UTIL_FORCEINLINE static int invoke(task_action_mem_function &in, void *priv_data) {
       (in.instacne_->*in.func_)(priv_data);
       return 0;
     }

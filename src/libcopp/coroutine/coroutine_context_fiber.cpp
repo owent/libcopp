@@ -78,13 +78,13 @@ struct libcopp_fiber_internal_api_set {
     return jump_src;
   }
 
-  static UTIL_FORCEINLINE void set_caller(coroutine_context_fiber *src, LPVOID fctx) {
+  UTIL_FORCEINLINE static void set_caller(coroutine_context_fiber *src, LPVOID fctx) {
     if (nullptr != src) {
       src->caller_ = fctx;
     }
   }
 
-  // static UTIL_FORCEINLINE void set_callee(coroutine_context_fiber *src, LPVOID fctx) {
+  // UTIL_FORCEINLINE static void set_callee(coroutine_context_fiber *src, LPVOID fctx) {
   //     if (nullptr != src) {
   //         src->callee_ = fctx;
   //     }

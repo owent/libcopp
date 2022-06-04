@@ -132,20 +132,20 @@ LIBCOPP_COPP_API void coroutine_context_base::set_this_coroutine_base(coroutine_
 struct libcopp_internal_api_set {
   using jump_src_data_t = coroutine_context::jump_src_data_t;
 
-  static UTIL_FORCEINLINE void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+  UTIL_FORCEINLINE static void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
     if (nullptr != src) {
       src->caller_ = fctx;
     }
   }
 
-  static UTIL_FORCEINLINE void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+  UTIL_FORCEINLINE static void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
     if (nullptr != src) {
       src->callee_ = fctx;
     }
   }
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-  static UTIL_FORCEINLINE void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
+  UTIL_FORCEINLINE static void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
                                                       EXPLICIT_UNUSED_ATTR stack_context &to_sctx,
                                                       libcopp_internal_api_set::jump_src_data_t &jump_transfer) {
     if (nullptr != jump_transfer.from_co) {

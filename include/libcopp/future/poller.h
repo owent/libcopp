@@ -57,7 +57,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
   UTIL_FORCEINLINE void swap(self_type &other) LIBCOPP_MACRO_NOEXCEPT {
     poll_storage::swap(storage_data_, other.storage_data_);
   }
-  friend UTIL_FORCEINLINE void swap(self_type &l, self_type &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  UTIL_FORCEINLINE friend void swap(self_type &l, self_type &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
 
  private:
   template <class U, class UDELETER,
