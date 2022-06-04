@@ -5,7 +5,7 @@ on: # @see https://help.github.com/en/articles/events-that-trigger-workflows#web
     branches: # Array of patterns that match refs/heads
       - v2
   pull_request:
-    branches: [ v2 ]
+    branches: [v2]
 
 jobs:
   format:
@@ -173,6 +173,13 @@ jobs:
           BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
         run: |
           C:/msys64/msys2_shell.cmd -mingw64 -defterm -no-start -here -lc "ci/do_ci.sh msys2.mingw.test"
+      - name: Cache packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:/msys64/var/cache/pacman/pkg
+            C:/msys64/var/lib/pacman
+          key: ${{ runner.os }}-${ hashFiles('.github/workflows/main.yml') } }}
   coverage: # job id, can be any string
     name: Coverage
     # This job runs on Linux
@@ -200,4 +207,4 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
           fail_ci_if_error: true
-          gcov_args: '-lp'
+          gcov_args: "-lp"
