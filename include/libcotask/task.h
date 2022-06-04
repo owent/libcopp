@@ -657,7 +657,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   inline size_t use_count() const { return ref_count_.load(); }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  static UTIL_FORCEINLINE void maybe_rethrow(std::list<std::exception_ptr> &eptrs) {
+  UTIL_FORCEINLINE static void maybe_rethrow(std::list<std::exception_ptr> &eptrs) {
     for (std::list<std::exception_ptr>::iterator iter = eptrs.begin(); iter != eptrs.end(); ++iter) {
       coroutine_type::maybe_rethrow(*iter);
     }

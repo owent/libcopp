@@ -200,7 +200,7 @@ class coroutine_context_base {
   UTIL_FORCEINLINE size_t get_private_buffer_size() const LIBCOPP_MACRO_NOEXCEPT { return private_buffer_size_; }
 
  public:
-  static UTIL_FORCEINLINE size_t align_private_data_size(size_t sz) {
+  UTIL_FORCEINLINE static size_t align_private_data_size(size_t sz) {
     // static size_t random_index = 0;
     // constexpr const size_t random_mask = 63;
     constexpr const size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
