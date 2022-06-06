@@ -33,16 +33,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base;
 template <class TVALUE, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate;
 
-template <class TVALUE>
+template <class TVALUE, class TPRIVATE_DATA>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context;
 
-template <class TVALUE>
+template <class TVALUE, class TPRIVATE_DATA>
 class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 
-template <class TVALUE, bool RETURN_VOID>
+template <class TVALUE, class TPRIVATE_DATA, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
 
-template <class TPROMISE, bool RETURN_VOID>
+template <class TCONTEXT, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable;
 
 template <class TVALUE>
@@ -96,7 +96,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
   UTIL_FORCEINLINE id_type get_id() const noexcept { return id_; }
 
-  inline void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
+  UTIL_FORCEINLINE void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TPROMISE>
@@ -104,12 +104,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   template <class TPROMISE, typename = std::enable_if_t<
                                 std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TPROMISE>::value> >
 #  endif
-  inline LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& handle) noexcept {
     add_caller(handle_delegate{handle});
   }
 
-  inline void remove_caller(handle_delegate handle) noexcept { caller_manager_.remove_caller(handle); }
+  UTIL_FORCEINLINE void remove_caller(handle_delegate handle) noexcept { caller_manager_.remove_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TPROMISE>
@@ -117,21 +117,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   template <class TPROMISE, typename = std::enable_if_t<
                                 std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TPROMISE>::value> >
 #  endif
-  inline LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& handle, bool inherit_status) noexcept {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
 
-  inline bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
+  UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
 
  protected:
   UTIL_FORCEINLINE void wake() { caller_manager_.resume_callers(); }
 
  private:
-  template <class TVALUE, bool RETURN_VOID>
+  template <class TVALUE, class TPRIVATE_DATA, bool RETURN_VOID>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
 
-  inline void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
+  UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
 
  protected:
   LIBCOPP_COPP_NAMESPACE_ID::future::future<TVALUE> data_;
@@ -220,13 +220,37 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public t
   using base_type::wake;
 };
 
+template <class TPRIVATE_DATA>
+class LIBCOPP_COPP_API_HEAD_ONLY task_private_data {
+  TPRIVATE_DATA* data;
+
+  inline task_private_data() noexcept : data_(nullptr) {}
+  inline task_private_data(TPRIVATE_DATA* input) noexcept : data_(input) {}
+  inline task_private_data(task_private_data&& other) noexcept = default;
+  inline task_private_data& operator=(task_private_data&&) noexcept = default;
+  inline task_private_data(const task_private_data&) = delete;
+  inline task_private_data& operator=(const task_private_data&) = delete;
+  inline ~task_private_data() {}
+
+  inline bool await_ready() const noexcept { return true; }
+  inline TPRIVATE_DATA* await_resume() const noexcept { return data_; }
+  inline void await_suspend(LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::type_erased_handle_type) noexcept {}
+
+ private:
+  template <class TVALUE, class TPRIVATE_DATA>
+  friend class LIBCOPP_COPP_API_HEAD_ONLY task_context;
+
+  TPRIVATE_DATA* data_;
+};
+
 template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY task_context
+class LIBCOPP_COPP_API_HEAD_ONLY task_context<TVALUE, void>
     : public task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE> > {
+      public std::enable_shared_from_this<task_context<TVALUE, void> > {
  public:
   using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
+  using private_data_type = void;
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
@@ -235,18 +259,55 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context
   using base_type::is_pending;
   using base_type::is_ready;
   using base_type::set_value;
+
+  template <class... TARGS>
+  task_context(TARGS&&...) {}
 };
 
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, true> : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
+template <class TVALUE, class TPRIVATE_DATA>
+class LIBCOPP_COPP_API_HEAD_ONLY task_context
+    : public task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
+      public std::enable_shared_from_this<task_context<TVALUE, TPRIVATE_DATA> > {
+ public:
+  using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
+  using value_type = typename base_type::value_type;
+  using private_data_type = TPRIVATE_DATA;
+  using handle_delegate = typename base_type::handle_delegate;
+  using task_status_type = typename base_type::task_status_type;
+  using promise_flag = typename base_type::promise_flag;
+
+ public:
+  using base_type::is_pending;
+  using base_type::is_ready;
+  using base_type::set_value;
+
+  template <class... TARGS>
+  task_context(TARGS&&... args)
+      : private_data_(
+            LIBCOPP_COPP_NAMESPACE_ID::callable_promise_value_constructor<
+                private_data_type,
+                !std::is_constructible<private_data_type, TARGS...>::value>::construct(std::forward<TARGS>(args)...)) {}
+
+  private_data_type& get_private_data() noexcept { return private_data_; }
+  const private_data_type& get_private_data() const noexcept { return private_data_; }
+
+ private:
+  private_data_type private_data_;
+};
+
+template <class TVALUE, class TPRIVATE_DATA>
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
+    : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
  public:
   using value_type = TVALUE;
-  using context_type = task_context<value_type>;
+  using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using private_data_type = typename context_type::private_data_type;
   using context_pointer_type = std::shared_ptr<context_type>;
   using handle_delegate = typename context_type::handle_delegate;
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
 
-  task_promise_base() : context_(std::make_shared<context_type>()) {}
+  template <class... TARGS>
+  task_promise_base(TARGS&&... args) : context_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_void() noexcept {
     if (get_status() < task_status_type::kDone) {
@@ -255,14 +316,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, true> : public LIBCOP
     COPP_LIKELY_IF(context_) { context_->set_value(); }
   }
 
-  inline bool has_return() const noexcept { return context_ && context_->is_ready(); }
+  UTIL_FORCEINLINE bool has_return() const noexcept { return context_ && context_->is_ready(); }
 
-  const context_pointer_type& get_context() const noexcept { return context_; }
+  UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
 
  protected:
-  template <class TPROMISE,
-            typename = std::enable_if_t<std::is_base_of<task_promise_base<TVALUE, true>, TPROMISE>::value> >
-  inline void initialize_promise(
+  template <class TPROMISE, typename = std::enable_if_t<
+                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, true>, TPROMISE>::value> >
+  UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
     COPP_LIKELY_IF(context_) { context_->initialize_handle(handle_delegate{origin_handle}); }
   }
@@ -271,16 +332,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, true> : public LIBCOP
   context_pointer_type context_;
 };
 
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, false>
+template <class TVALUE, class TPRIVATE_DATA>
+class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
     : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
  public:
   using value_type = TVALUE;
-  using context_type = task_context<value_type>;
+  using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using private_data_type = typename context_type::private_data_type;
   using context_pointer_type = std::shared_ptr<context_type>;
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
 
-  task_promise_base() : context_(std::make_shared<context_type>()) {}
+  template <class... TARGS>
+  task_promise_base(TARGS&&... args) : context_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_value(value_type value) {
     if (get_status() < task_status_type::kDone) {
@@ -298,14 +361,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, false>
     return nullptr;
   }
 
-  inline bool has_return() const noexcept { return context_ && context_->is_ready(); }
+  UTIL_FORCEINLINE bool has_return() const noexcept { return context_ && context_->is_ready(); }
 
-  const context_pointer_type& get_context() const noexcept { return context_; }
+  UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
 
  protected:
-  template <class TPROMISE,
-            typename = std::enable_if_t<std::is_base_of<task_promise_base<TVALUE, false>, TPROMISE>::value> >
-  inline void initialize_promise(
+  template <class TPROMISE, typename = std::enable_if_t<
+                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, false>, TPROMISE>::value> >
+  UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
     COPP_LIKELY_IF(context_) { context_->initialize_handle(handle_delegate{origin_handle}); }
   }
@@ -390,7 +453,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
    *
    * @return context
    */
-  inline context_type* get_context() noexcept { return context_; }
+  UTIL_FORCEINLINE context_type* get_context() noexcept { return context_; }
 
  private:
   context_type* context_;
@@ -457,20 +520,25 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task_a
   using base_type::get_context;
 };
 
-template <class TVALUE>
+template <class TVALUE, class TPRIVATE_DATA>
 class LIBCOPP_COPP_API_HEAD_ONLY task_future {
  public:
   using value_type = TVALUE;
-  using self_type = task_future<value_type>;
-  using context_type = task_context<value_type>;
-  using context_pointer_type = std::shared_ptr<context_pointer_type>;
+  using self_type = task_future<value_type, TPRIVATE_DATA>;
+  using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using private_data_type = typename context_type::private_data_type;
+  using context_pointer_type = std::shared_ptr<context_type>;
   using task_status_type = typename context_type::task_status_type;
   using promise_flag = typename context_type::promise_flag;
-  class promise_type
-      : public task_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value> {
+
+  using promise_base_type =
+      task_promise_base<value_type, private_data_type, std::is_void<typename std::decay<value_type>::type>::value>;
+  class promise_type : public promise_base_type {
    public:
     template <class... TARGS>
-    promise_type(TARGS&&...) {}
+    promise_type(TARGS&&... args) : promise_base_type(std::forward<TARGS>(args)...) {}
+
+    using promise_base_type::get_context;
 
     auto get_return_object() noexcept { return self_type{get_context()}; }
 
@@ -492,6 +560,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 #  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
     void unhandled_exception() { throw; }
 #  endif
+
+    template <class TCONVERT_PRIVATE_DATA>
+    inline task_private_data<TCONVERT_PRIVATE_DATA> yield_value(
+        task_private_data<TCONVERT_PRIVATE_DATA>&& input) noexcept {
+      if (get_context()) {
+        input.data_ = &get_context()->get_private_data();
+      } else {
+        input.data_ = nullptr;
+      }
+      return context_type::pick_private_data_awaitable(input.data_);
+    }
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
   using awaitable_type = task_awaitable<promise_type, std::is_void<typename std::decay<value_type>::type>::value>;
@@ -510,7 +589,27 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     return context_->get_status();
   }
 
-  static auto yield_status() noexcept { return promise_base_type::pick_current_status(); }
+  UTIL_FORCEINLINE static auto yield_status() noexcept {
+    return LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::pick_current_status();
+  }
+
+  template <class = typename std::enable_if<!std::is_same<private_data_type, void>::value>::type>
+  inline private_data_type* get_private_data() noexcept {
+    if (!context_) {
+      return nullptr;
+    }
+
+    return &context_->get_private_data();
+  }
+
+  template <class = typename std::enable_if<!std::is_same<private_data_type, void>::value>::type>
+  inline const private_data_type* get_private_data() const noexcept {
+    if (!context_) {
+      return nullptr;
+    }
+
+    return &context_->get_private_data();
+  }
 
   /**
    * @brief Custom start run callable
@@ -589,7 +688,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
    *
    * @return internal handle
    */
-  inline const handle_type& get_internal_handle() const noexcept { return current_handle_; }
+  UTIL_FORCEINLINE const handle_type& get_internal_handle() const noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal handle object
@@ -597,7 +696,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
    *
    * @return internal handle
    */
-  inline handle_type& get_internal_handle() noexcept { return current_handle_; }
+  UTIL_FORCEINLINE handle_type& get_internal_handle() noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal promise object
@@ -605,7 +704,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
    *
    * @return internal promise object
    */
-  inline const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
+  UTIL_FORCEINLINE const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
 
   /**
    * @brief Get the internal promise object
@@ -613,7 +712,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
    *
    * @return internal promise object
    */
-  inline promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
+  UTIL_FORCEINLINE promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
 
  private:
   context_pointer_type context_;
