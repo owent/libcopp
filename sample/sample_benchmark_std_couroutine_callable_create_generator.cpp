@@ -35,7 +35,7 @@ std::vector<std::unique_ptr<benchmark_callable_future_type>> g_benchmark_callabl
 std::vector<benchmark_generator_future_type::context_pointer_type> g_benchmark_generator_list;
 
 int switch_count = 100;
-int max_task_number = 100000;  // 协程Task数量
+int max_task_number = 100000;
 
 benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) {
   int64_t result = 0;
@@ -115,7 +115,7 @@ static void benchmark_round(int index) {
 }
 
 int main(int argc, char* argv[]) {
-  puts("###################### std callable - generator - trivial ###################");
+  puts("###################### std callable - create generator - trivial ###################");
   printf("########## Cmd:");
   for (int i = 0; i < argc; ++i) {
     printf(" %s", argv[i]);

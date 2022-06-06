@@ -57,37 +57,37 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
   ~generator_context_base() { wake(); }
 
  public:
-  UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT { return data_.is_ready(); }
+  UTIL_FORCEINLINE bool is_ready() const noexcept { return data_.is_ready(); }
 
-  UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT { return data_.is_pending(); }
+  UTIL_FORCEINLINE bool is_pending() const noexcept { return data_.is_pending(); }
 
   UTIL_FORCEINLINE void reset_value() { data_.reset_data(); }
 
-  inline void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
+  UTIL_FORCEINLINE void add_caller(handle_delegate handle) noexcept { caller_manager_.add_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>
 #  else
   template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value> >
 #  endif
-  inline LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& handle) noexcept {
     add_caller(handle_delegate{handle});
   }
 
-  inline void remove_caller(handle_delegate handle) noexcept { caller_manager_.remove_caller(handle); }
+  UTIL_FORCEINLINE void remove_caller(handle_delegate handle) noexcept { caller_manager_.remove_caller(handle); }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TPROMISE>
 #  else
   template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value> >
 #  endif
-  inline LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& handle, bool inherit_status) noexcept {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
 
-  inline bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
+  UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
 
  protected:
   UTIL_FORCEINLINE void wake() { caller_manager_.resume_callers(); }
@@ -150,7 +150,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, false> : pub
     }
   }
 
-  UTIL_FORCEINLINE const value_type* data() const LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE const value_type* data() const noexcept {
     if (!is_ready()) {
       return nullptr;
     }
@@ -158,7 +158,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, false> : pub
     return data_.data();
   }
 
-  UTIL_FORCEINLINE value_type* data() LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE value_type* data() noexcept {
     if (!is_ready()) {
       return nullptr;
     }
@@ -244,11 +244,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 
  protected:
   inline promise_status detach() noexcept {
-    promise_status error_status;
+    promise_status result_status;
     if (nullptr != context_ && context_->is_ready()) {
-      error_status = promise_status::kDone;
+      result_status = promise_status::kDone;
     } else {
-      error_status = promise_status::kKilled;
+      result_status = promise_status::kKilled;
     }
 
     // caller maybe null if the callable is already ready when co_await
@@ -260,20 +260,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
       }
       if (nullptr != context_) {
         if (!context_->is_ready() && nullptr != caller.promise) {
-          error_status = caller.promise->get_status();
+          result_status = caller.promise->get_status();
         }
 
         context_->remove_caller(caller);
+        set_caller(nullptr);
 
         // Custom event
         if (await_resume_callback_) {
           await_resume_callback_(*context_);
         }
+      } else {
+        set_caller(nullptr);
       }
-      set_caller(nullptr);
     }
 
-    return error_status;
+    return result_status;
   }
 
   /**
@@ -337,10 +339,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
 
   inline value_type await_resume() {
     bool has_multiple_callers = get_context()->has_multiple_callers();
-    promise_status error_status = detach();
+    promise_status result_status = detach();
 
-    if (promise_status::kDone != error_status) {
-      return promise_error_transform<value_type>()(error_status);
+    if (promise_status::kDone != result_status) {
+      return promise_error_transform<value_type>()(result_status);
     }
 
     if (has_multiple_callers) {
@@ -416,9 +418,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
     return promise_status::kRunning;
   }
 
-  inline const std::shared_ptr<context_type>& get_context() const noexcept { return context_; }
+  UTIL_FORCEINLINE const std::shared_ptr<context_type>& get_context() const noexcept { return context_; }
 
-  inline std::shared_ptr<context_type>& get_context() noexcept { return context_; }
+  UTIL_FORCEINLINE std::shared_ptr<context_type>& get_context() noexcept { return context_; }
 
  private:
   std::shared_ptr<context_type> context_;

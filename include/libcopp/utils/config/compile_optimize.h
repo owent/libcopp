@@ -115,14 +115,17 @@
 
 #ifndef UTIL_FORCEINLINE
 #  if defined(__clang__)
-#    if __has_attribute(always_inline)
-#      define UTIL_FORCEINLINE __attribute__((always_inline))
+#    if __cplusplus >= 201103L
+#      define UTIL_FORCEINLINE [[gnu::always_inline]] inline
 #    else
-#      define UTIL_FORCEINLINE inline
+#      define UTIL_FORCEINLINE __attribute__((always_inline)) inline
 #    endif
-
 #  elif defined(__GNUC__) && __GNUC__ > 3
-#    define UTIL_FORCEINLINE __attribute__((always_inline))
+#    if __cplusplus >= 201103L && (__GNUC__ * 100 + __GNUC_MINOR__) >= 408
+#      define UTIL_FORCEINLINE [[gnu::always_inline]] inline
+#    else
+#      define UTIL_FORCEINLINE __attribute__((always_inline)) inline
+#    endif
 #  elif defined(_MSC_VER)
 #    define UTIL_FORCEINLINE __forceinline
 #  else
@@ -130,20 +133,23 @@
 #  endif
 #endif
 
-#ifndef UTIL_NOINLINE
-#  if defined(_MSC_VER)
-#    define UTIL_NOINLINE __declspec(noinline)
-#  elif defined(__GNUC__) && __GNUC__ > 3
-// Clang also defines __GNUC__ (as 4)
-#    if defined(__CUDACC__)
-// nvcc doesn't always parse __noinline__,
-// see: https://svn.boost.org/trac/boost/ticket/9392
-#      define UTIL_NOINLINE __attribute__((noinline))
+#ifndef UTIL_NOINLINE_NOCLONE
+#  if defined(__clang__)
+#    if __cplusplus >= 201103L
+#      define UTIL_NOINLINE_NOCLONE [[gnu::noinline]]
 #    else
-#      define UTIL_NOINLINE __attribute__((__noinline__))
+#      define UTIL_NOINLINE_NOCLONE __attribute__((noinline))
 #    endif
+#  elif defined(__GNUC__) && __GNUC__ > 3
+#    if __cplusplus >= 201103L && (__GNUC__ * 100 + __GNUC_MINOR__) >= 408
+#      define UTIL_NOINLINE_NOCLONE [[gnu::noinline, gnu::noclone]]
+#    else
+#      define UTIL_NOINLINE_NOCLONE __attribute__((noinline, noclone))
+#    endif
+#  elif defined(_MSC_VER)
+#    define UTIL_NOINLINE_NOCLONE __declspec(noinline)
 #  else
-#    define UTIL_NOINLINE
+#    define UTIL_NOINLINE_NOCLONE
 #  endif
 #endif
 

@@ -55,7 +55,7 @@ template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor<TVALUE, true> {
  public:
   template <class... TARGS>
-  static inline TVALUE construct(TARGS&&...) {
+  inline static TVALUE construct(TARGS&&...) {
     return TVALUE{};
   }
 };
@@ -64,7 +64,7 @@ template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_value_constructor<TVALUE, false> {
  public:
   template <class... TARGS>
-  static inline TVALUE construct(TARGS&&... args) {
+  inline static TVALUE construct(TARGS&&... args) {
     return TVALUE{std::forward<TARGS>(args)...};
   }
 };
@@ -88,10 +88,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
     has_return_ = true;
   }
 
-  inline value_type& data() noexcept { return data_; }
-  inline const value_type& data() const noexcept { return data_; }
+  UTIL_FORCEINLINE value_type& data() noexcept { return data_; }
+  UTIL_FORCEINLINE const value_type& data() const noexcept { return data_; }
 
-  inline bool has_return() const noexcept { return has_return_; }
+  UTIL_FORCEINLINE bool has_return() const noexcept { return has_return_; }
 
  protected:
   value_type data_;
@@ -112,7 +112,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
  public:
   callable_awaitable_base(handle_type handle) : callee_{handle} {}
 
-  inline bool await_ready() noexcept {
+  UTIL_FORCEINLINE bool await_ready() noexcept {
     if (!callee_) {
       return true;
     }
@@ -151,8 +151,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
     }
   }
 
-  inline handle_type& get_callee() noexcept { return callee_; }
-  inline const handle_type& get_callee() const noexcept { return callee_; }
+  UTIL_FORCEINLINE handle_type& get_callee() noexcept { return callee_; }
+  UTIL_FORCEINLINE const handle_type& get_callee() const noexcept { return callee_; }
 
  protected:
   inline void detach() noexcept {
@@ -199,7 +199,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, true> : public cal
   using base_type::set_caller;
   callable_awaitable(handle_type handle) : base_type(handle) {}
 
-  inline void await_resume() {
+  UTIL_FORCEINLINE void await_resume() {
     detach();
     get_callee().promise().resume_waiting(get_callee(), true);
   }
@@ -311,7 +311,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
     return current_handle_.done() || current_handle_.promise().check_flag(promise_flag::kFinalSuspend);
   }
 
-  inline promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
+  UTIL_FORCEINLINE promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
 
   static auto yield_status() noexcept { return promise_base_type::pick_current_status(); }
 
@@ -392,7 +392,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal handle
    */
-  inline const handle_type& get_internal_handle() const noexcept { return current_handle_; }
+  UTIL_FORCEINLINE const handle_type& get_internal_handle() const noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal handle object
@@ -400,7 +400,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal handle
    */
-  inline handle_type& get_internal_handle() noexcept { return current_handle_; }
+  UTIL_FORCEINLINE handle_type& get_internal_handle() noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal promise object
@@ -408,7 +408,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal promise object
    */
-  inline const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
+  UTIL_FORCEINLINE const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
 
   /**
    * @brief Get the internal promise object
@@ -416,7 +416,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal promise object
    */
-  inline promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
+  UTIL_FORCEINLINE promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
 
  private:
   handle_type current_handle_;

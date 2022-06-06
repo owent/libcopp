@@ -1,8 +1,7 @@
 // Copyright 2022 owent
-// std coroutine no trivial callable benchmark
+// std coroutine trivial callable benchmark
 
 #include <libcopp/coroutine/callable_promise.h>
-#include <libcopp/coroutine/generator_promise.h>
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -28,58 +27,26 @@
 #    define CALC_NS_AVG_CLOCK(x, y) (1000000LL * static_cast<long long>((x) / (CLOCKS_PER_SEC / 1000)) / (y ? y : 1))
 #  endif
 
-struct benchmark_no_trivial_message_t {
-  ~benchmark_no_trivial_message_t() {}
-
-  // For callable
-  benchmark_no_trivial_message_t() : data(0) {}
-  template <class TFirst, class... TRest, typename = std::enable_if_t<!std::is_same_v<std::decay_t<TFirst>, int64_t>>>
-  benchmark_no_trivial_message_t(TFirst &&, TRest &&...) : data(0) {}
-
-  // For generator
-  benchmark_no_trivial_message_t(int64_t input) : data(input) {}
-  benchmark_no_trivial_message_t(const benchmark_no_trivial_message_t &) = default;
-  benchmark_no_trivial_message_t(benchmark_no_trivial_message_t &&) = default;
-  benchmark_no_trivial_message_t &operator=(const benchmark_no_trivial_message_t &) = default;
-  benchmark_no_trivial_message_t &operator=(benchmark_no_trivial_message_t &&) = default;
-
-  int64_t data;
-};
-
-LIBCOPP_COPP_NAMESPACE_BEGIN
-template <>
-struct std_coroutine_default_error_transform<benchmark_no_trivial_message_t> {
-  using type = benchmark_no_trivial_message_t;
-  type operator()(promise_status in) const { return benchmark_no_trivial_message_t{static_cast<int64_t>(in)}; }
-};
-LIBCOPP_COPP_NAMESPACE_END
-
-using benchmark_callable_future_type = copp::callable_future<benchmark_no_trivial_message_t>;
-using benchmark_generator_future_type = copp::generator_future<benchmark_no_trivial_message_t>;
+using benchmark_callable_future_type = copp::callable_future<int64_t>;
 
 std::vector<std::unique_ptr<benchmark_callable_future_type>> g_benchmark_callable_list;
-std::vector<benchmark_generator_future_type::context_pointer_type> g_benchmark_generator_list;
 
-benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) {
-  int64_t result = 0;
+int recursive_count = 100;
+int max_task_number = 100000;
 
-  while (left_switch_count-- > 0) {
-    auto offset =
-        co_await benchmark_generator_future_type([idx](benchmark_generator_future_type::context_pointer_type ctx) {
-          g_benchmark_generator_list[idx] = std::move(ctx);
-        });
-    result += offset.data;
+benchmark_callable_future_type run_benchmark(size_t idx, int left_recursive_count) {
+  int64_t result = idx + left_recursive_count;
+
+  if (left_recursive_count > 1) {
+    auto gen_res = co_await run_benchmark(idx, left_recursive_count - 1);
+    result += gen_res;
   }
 
-  co_return benchmark_no_trivial_message_t{result};
+  co_return result;
 }
-
-int switch_count = 100;
-int max_task_number = 100000;
 
 static void benchmark_round(int index) {
   g_benchmark_callable_list.reserve(static_cast<size_t>(max_task_number));
-  g_benchmark_generator_list.resize(static_cast<size_t>(max_task_number), nullptr);
 
   printf("### Round: %d ###\n", index);
 
@@ -89,8 +56,7 @@ static void benchmark_round(int index) {
   // create coroutines callable
   while (g_benchmark_callable_list.size() < static_cast<size_t>(max_task_number)) {
     g_benchmark_callable_list.push_back(std::unique_ptr<benchmark_callable_future_type>(
-        new benchmark_callable_future_type(run_benchmark(g_benchmark_callable_list.size(), switch_count))));
-    g_benchmark_callable_list.back()->start();
+        new benchmark_callable_future_type(run_benchmark(g_benchmark_callable_list.size(), recursive_count))));
   }
 
   time_t end_time = time(nullptr);
@@ -103,22 +69,11 @@ static void benchmark_round(int index) {
   begin_clock = end_clock;
 
   // yield & resume from runner
-  bool continue_flag = true;
   long long real_switch_times = static_cast<long long>(0);
-  int32_t round = 0;
 
-  while (continue_flag) {
-    ++round;
-    continue_flag = false;
-    for (auto &generator_context : g_benchmark_generator_list) {
-      benchmark_generator_future_type::context_pointer_type move_context;
-      move_context.swap(generator_context);
-      if (move_context) {
-        move_context->set_value(benchmark_no_trivial_message_t{round});
-        ++real_switch_times;
-        continue_flag = true;
-      }
-    }
+  for (auto& callable : g_benchmark_callable_list) {
+    callable->start();
+    real_switch_times += recursive_count;
   }
 
   end_time = time(nullptr);
@@ -131,7 +86,6 @@ static void benchmark_round(int index) {
   begin_clock = end_clock;
 
   g_benchmark_callable_list.clear();
-  g_benchmark_generator_list.clear();
 
   end_time = time(nullptr);
   end_clock = CALC_CLOCK_NOW();
@@ -140,8 +94,8 @@ static void benchmark_round(int index) {
          CALC_NS_AVG_CLOCK(end_clock - begin_clock, max_task_number));
 }
 
-int main(int argc, char *argv[]) {
-  puts("###################### std callable - create generator - no trivial ###################");
+int main(int argc, char* argv[]) {
+  puts("###################### std callable - recursive ###################");
   printf("########## Cmd:");
   for (int i = 0; i < argc; ++i) {
     printf(" %s", argv[i]);
@@ -153,7 +107,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (argc > 2) {
-    switch_count = atoi(argv[2]);
+    recursive_count = atoi(argv[2]);
   }
 
   for (int i = 1; i <= 5; ++i) {

@@ -39,11 +39,11 @@ void make_unique(TARGS &&...) = delete;
 
 template <class T>
 struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_deleter {
-  inline void operator()(T *) const LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void operator()(T *) const LIBCOPP_MACRO_NOEXCEPT {
     // Do nothing
   }
   template <class U>
-  inline void operator()(U *) const LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void operator()(U *) const LIBCOPP_MACRO_NOEXCEPT {
     // Do nothing
   }
 };
@@ -411,23 +411,23 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
   friend struct _make_result_instance_helper;
 
   template <class TARGS>
-  inline void construct_success(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void construct_success(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
     make_success_base(std::forward<TARGS>(args));
   }
 
   template <class TARGS>
-  inline void construct_error(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void construct_error(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
     make_error_base(std::forward<TARGS>(args));
   }
 
   template <class TARGS>
-  inline void make_success_base(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void make_success_base(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
     success_data_ = args;
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class TARGS>
-  inline void make_error_base(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void make_error_base(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
     error_data_ = args;
     mode_ = EN_RESULT_ERROR;
   }
@@ -498,7 +498,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
     return *this;
   }
 
-  inline void swap(result_base &other) LIBCOPP_MACRO_NOEXCEPT {
+  UTIL_FORCEINLINE void swap(result_base &other) LIBCOPP_MACRO_NOEXCEPT {
     using std::swap;
     success_storage_type::swap(success_data_, other.success_data_);
     error_storage_type::swap(error_data_, other.error_data_);
@@ -514,34 +514,34 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
   friend struct _make_result_instance_helper;
 
   template <class... TARGS>
-  inline void construct_success(TARGS &&...args) {
+  UTIL_FORCEINLINE void construct_success(TARGS &&...args) {
     reset();
     success_storage_type::construct_storage(success_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
-  inline void construct_error(TARGS &&...args) {
+  UTIL_FORCEINLINE void construct_error(TARGS &&...args) {
     reset();
     error_storage_type::construct_storage(error_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
   template <class... TARGS>
-  inline void make_success_base(TARGS &&...args) {
+  UTIL_FORCEINLINE void make_success_base(TARGS &&...args) {
     reset();
     make_object<success_storage_type>(success_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
-  inline void make_error_base(TARGS &&...args) {
+  UTIL_FORCEINLINE void make_error_base(TARGS &&...args) {
     reset();
     make_object<error_storage_type>(error_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
-  void reset() {
+  inline void reset() {
     if (EN_RESULT_SUCCESS == mode_) {
       success_storage_type::destroy_storage(success_data_);
     } else if (EN_RESULT_ERROR == mode_) {
@@ -553,12 +553,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
 
  private:
   template <class TSTORAGE, class... TARGS>
-  static inline void make_object(typename TSTORAGE::storage_type &out, TARGS &&...args) {
+  UTIL_FORCEINLINE static void make_object(typename TSTORAGE::storage_type &out, TARGS &&...args) {
     TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...);
   }
 
   template <class TSTORAGE, class... TARGS>
-  static inline void make_object(std::shared_ptr<typename TSTORAGE::storage_type> &out, TARGS &&...args) {
+  UTIL_FORCEINLINE static void make_object(std::shared_ptr<typename TSTORAGE::storage_type> &out, TARGS &&...args) {
     TSTORAGE::construct_storage(out, std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
   }
 
@@ -578,7 +578,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
   using type = std::unique_ptr<TRESULT>;
 
   template <class... TARGS>
-  static inline type make_success(TARGS &&...args) {
+  inline static type make_success(TARGS &&...args) {
     type ret = LIBCOPP_COPP_NAMESPACE_ID::future::make_unique<TRESULT>();
     if (ret) {
       ret->make_success_base(std::forward<TARGS>(args)...);
@@ -588,7 +588,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
   }
 
   template <class... TARGS>
-  static inline type make_error(TARGS &&...args) {
+  inline static type make_error(TARGS &&...args) {
     type ret = LIBCOPP_COPP_NAMESPACE_ID::future::make_unique<TRESULT>();
     if (ret) {
       ret->make_error_base(std::forward<TARGS>(args)...);
@@ -603,14 +603,14 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, true> {
   using type = TRESULT;
 
   template <class... TARGS>
-  static inline type make_success(TARGS &&...args) {
+  UTIL_FORCEINLINE static type make_success(TARGS &&...args) {
     TRESULT ret;
     ret.make_success_base(std::forward<TARGS>(args)...);
     return ret;
   }
 
   template <class... TARGS>
-  static inline type make_error(TARGS &&...args) {
+  UTIL_FORCEINLINE static type make_error(TARGS &&...args) {
     TRESULT ret;
     ret.make_error_base(std::forward<TARGS>(args)...);
     return ret;
@@ -632,14 +632,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_type
   using storage_type = typename _make_instance_type::type;
 
   template <class... TARGS>
-  static inline self_type create_success(TARGS &&...args) {
+  UTIL_FORCEINLINE static self_type create_success(TARGS &&...args) {
     self_type ret;
     ret.construct_success(std::forward<TARGS>(args)...);
     return ret;
   }
 
   template <class... TARGS>
-  static inline self_type create_error(TARGS &&...args) {
+  UTIL_FORCEINLINE static self_type create_error(TARGS &&...args) {
     self_type ret;
     ret.construct_error(std::forward<TARGS>(args)...);
     return ret;
@@ -647,12 +647,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_type
 
  public:
   template <class... TARGS>
-  static inline storage_type make_success(TARGS &&...args) {
+  UTIL_FORCEINLINE static storage_type make_success(TARGS &&...args) {
     return _make_instance_type::make_success(std::forward<TARGS>(args)...);
   }
 
   template <class... TARGS>
-  static inline storage_type make_error(TARGS &&...args) {
+  UTIL_FORCEINLINE static storage_type make_error(TARGS &&...args) {
     return _make_instance_type::make_error(std::forward<TARGS>(args)...);
   }
 };
