@@ -832,11 +832,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   class LIBCOPP_COPP_API_HEAD_ONLY stackful_task_awaitable : public LIBCOPP_COPP_NAMESPACE_ID::awaitable_base_type {
    public:
-    using task_ptr_type = ptr_type;
     using value_type = typename macro_coroutine_type::value_type;
 
    public:
-    explicit stackful_task_awaitable(task_ptr_type waiting_task) : waiting_task_(std::move(waiting_task)) {}
+    explicit stackful_task_awaitable(self_type *waiting_task) : waiting_task_(waiting_task) {}
 
     inline bool await_ready() const noexcept {
       if (!waiting_task_) {
@@ -905,10 +904,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
    private:
     // caller manager
-    task_ptr_type waiting_task_;
+    self_type *waiting_task_;
   };
 
-  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return stackful_task_awaitable{ptr_type(this)}; }
+  auto operator co_await() & LIBCOPP_MACRO_NOEXCEPT { return stackful_task_awaitable{this}; }
 #endif
  private:
   size_t stack_size_;
@@ -942,7 +941,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 template <typename TCO_MACRO>
 auto operator co_await(LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
   using awaitable = typename task<TCO_MACRO>::stackful_task_awaitable;
-  return awaitable{t};
+  return awaitable{t.get()};
 }
 #endif
 LIBCOPP_COTASK_NAMESPACE_END

@@ -58,7 +58,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
   UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
 
   template <class U>
-  inline void reset_data(U &&in) {
+  UTIL_FORCEINLINE void reset_data(U &&in) {
     poll_data_ = std::forward<U>(in);
   }
 

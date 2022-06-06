@@ -76,7 +76,7 @@ benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) 
 }
 
 int switch_count = 100;
-int max_task_number = 100000;  // 协程Task数量
+int max_task_number = 100000;
 
 static void benchmark_round(int index) {
   g_benchmark_callable_list.reserve(static_cast<size_t>(max_task_number));
@@ -142,7 +142,7 @@ static void benchmark_round(int index) {
 }
 
 int main(int argc, char *argv[]) {
-  puts("###################### std callable - generator - no trivial ###################");
+  puts("###################### std callable - reuse generator - no trivial ###################");
   printf("########## Cmd:");
   for (int i = 0; i < argc; ++i) {
     printf(" %s", argv[i]);

@@ -726,7 +726,7 @@ CASE_TEST(coroutine_task, mt_run_competition) {
 }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-static copp::callable_future<int> call_for_await_cotask(cotask::task<>::ptr_t t) {
+static copp::callable_future<int> call_for_await_cotask(const cotask::task<>::ptr_t &t) {
   if (t) {
     co_return co_await t;
   }
@@ -759,6 +759,21 @@ CASE_TEST(coroutine_task, callable_future_co_await) {
 
   CASE_EXPECT_EQ(res, t.get_internal_promise().data());
 }
+
+CASE_TEST(coroutine_task, callable_future_co_await_do_not_start) {
+  cotask::task<>::ptr_t co_task = cotask::task<>::create(cotask_action_callback);
+
+  auto t = call_for_await_cotask(co_task);
+  t.start();
+  CASE_EXPECT_FALSE(t.is_ready());
+
+  co_task.reset();
+
+  CASE_EXPECT_TRUE(t.is_ready());
+
+  CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_IS_KILLED, t.get_internal_promise().data());
+}
+
 #  endif
 
 #endif
