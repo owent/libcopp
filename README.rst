@@ -329,7 +329,7 @@ FAQ
 Q: How to enable c++20 coroutine
 
 | ANS: Add ``/std:c++latest /await`` for MSVC or ``-std=c++20 -fcoroutines-ts -stdlib=libc++`` for clang or ``-std=c++20 -fcoroutines`` for gcc.
-If you are using clang 14 or above, just use ``-std=c++20 -stdlib=libc++``.
+If you are using clang 14 or above, just use ``-std=c++20 -stdlib=libc++``.Or if you are using MSVC 1932 or above, just use ``/std:c++latest``.
 
 Q: Will libcopp handle exception?
 
