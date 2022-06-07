@@ -74,8 +74,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
     wake();
 
-    if (current_handle_.promise) {
-      current_handle_.promise().set_flag(promise_flag::kDestroying, true);
+    if (nullptr != current_handle_.promise) {
+      current_handle_.promise->set_flag(promise_flag::kDestroying, true);
     }
     if (current_handle_.handle) {
       current_handle_.handle.destroy();
@@ -134,10 +134,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   UTIL_FORCEINLINE void wake() { caller_manager_.resume_callers(); }
 
  private:
-  template <class TVALUE, class TPRIVATE_DATA, bool RETURN_VOID>
+  template <class, class, bool>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
 
-  template <class TVALUE, class TPRIVATE_DATA>
+  template <class, class>
   class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
@@ -201,7 +201,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public t
 
   ~task_context_delegate() {
     if (is_pending()) {
-      set_value(promise_error_transform<value_type>()(task_status_type::kKilled));
+      set_value(LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(task_status_type::kKilled));
     } else {
       wake();
     }
@@ -251,7 +251,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_private_data {
   inline void await_suspend(LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::type_erased_handle_type) noexcept {}
 
  private:
-  template <class TVALUE, class TPRIVATE_DATA>
+  template <class, class>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_context;
 
   TPRIVATE_DATA* data_;
@@ -520,7 +520,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task_a
     task_status_type result_status = detach();
 
     if (task_status_type::kDone != result_status) {
-      return promise_error_transform<value_type>()(result_status);
+      return LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(result_status);
     }
 
     if (has_multiple_callers) {
@@ -546,7 +546,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   using context_pointer_type = std::shared_ptr<context_type>;
   using task_status_type = typename context_type::task_status_type;
   using promise_flag = typename context_type::promise_flag;
-  using context_type = task_context<value_type, TPRIVATE_DATA>;
 
   using promise_base_type =
       task_promise_base<value_type, private_data_type, std::is_void<typename std::decay<value_type>::type>::value>;
