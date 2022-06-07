@@ -61,7 +61,7 @@ static void benchmark_round(int index) {
   printf("### Round: %d ###\n", index);
 
   // create generators
-  for (size_t i = 0; i < max_task_number; ++i) {
+  for (int i = 0; i < max_task_number; ++i) {
     g_benchmark_generator_list.emplace_back(
         benchmark_generator_future_type([i](benchmark_generator_future_type::context_pointer_type) {}));
   }
@@ -88,8 +88,8 @@ static void benchmark_round(int index) {
   // yield & resume from runner
   long long real_switch_times = static_cast<long long>(0);
 
-  for (size_t i = 0; i < max_task_number; ++i) {
-    g_benchmark_generator_list[i].get_context()->set_value(static_cast<int64_t>(i));
+  for (int i = 0; i < max_task_number; ++i) {
+    g_benchmark_generator_list[i].get_context()->set_value(i);
   }
 
   end_time = time(nullptr);
