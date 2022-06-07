@@ -2,6 +2,7 @@
 // std coroutine trivial callable benchmark
 
 #include <libcopp/coroutine/callable_promise.h>
+#include <libcopp/coroutine/generator_promise.h>
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -28,17 +29,25 @@
 #  endif
 
 using benchmark_callable_future_type = copp::callable_future<int64_t>;
+using benchmark_generator_future_type = copp::generator_future<int64_t>;
 
 std::vector<std::unique_ptr<benchmark_callable_future_type>> g_benchmark_callable_list;
+std::vector<benchmark_generator_future_type> g_benchmark_generator_list;
 
 int recursive_count = 100;
 int max_task_number = 100000;
 
-benchmark_callable_future_type run_benchmark(size_t idx, int left_recursive_count) {
-  int64_t result = idx + left_recursive_count;
+benchmark_callable_future_type run_benchmark(size_t idx, int left_recursive_count,
+                                             benchmark_generator_future_type* first_hang) {
+  int64_t result = left_recursive_count;
+  if (nullptr != first_hang) {
+    result += co_await *first_hang;
+  } else {
+    result += idx;
+  }
 
   if (left_recursive_count > 1) {
-    auto gen_res = co_await run_benchmark(idx, left_recursive_count - 1);
+    auto gen_res = co_await run_benchmark(idx, left_recursive_count - 1, nullptr);
     result += gen_res;
   }
 
@@ -47,16 +56,24 @@ benchmark_callable_future_type run_benchmark(size_t idx, int left_recursive_coun
 
 static void benchmark_round(int index) {
   g_benchmark_callable_list.reserve(static_cast<size_t>(max_task_number));
+  g_benchmark_generator_list.reserve(static_cast<size_t>(max_task_number));
 
   printf("### Round: %d ###\n", index);
+
+  // create generators
+  for (size_t i = 0; i < max_task_number; ++i) {
+    g_benchmark_generator_list.emplace_back(
+        benchmark_generator_future_type([i](benchmark_generator_future_type::context_pointer_type) {}));
+  }
 
   time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines callable
   while (g_benchmark_callable_list.size() < static_cast<size_t>(max_task_number)) {
+    size_t idx = g_benchmark_callable_list.size();
     g_benchmark_callable_list.push_back(std::unique_ptr<benchmark_callable_future_type>(
-        new benchmark_callable_future_type(run_benchmark(g_benchmark_callable_list.size(), recursive_count))));
+        new benchmark_callable_future_type(run_benchmark(idx, recursive_count, &g_benchmark_generator_list[idx]))));
   }
 
   time_t end_time = time(nullptr);
@@ -71,9 +88,8 @@ static void benchmark_round(int index) {
   // yield & resume from runner
   long long real_switch_times = static_cast<long long>(0);
 
-  for (auto& callable : g_benchmark_callable_list) {
-    callable->start();
-    real_switch_times += recursive_count;
+  for (size_t i = 0; i < max_task_number; ++i) {
+    g_benchmark_generator_list[i].get_context()->set_value(static_cast<int64_t>(i));
   }
 
   end_time = time(nullptr);

@@ -63,7 +63,7 @@ std::vector<benchmark_generator_future_type::context_pointer_type> g_benchmark_g
 benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) {
   int64_t result = 0;
 
-  while (left_switch_count-- > 0) {
+  while (left_switch_count-- >= 0) {
     auto offset =
         co_await benchmark_generator_future_type([idx](benchmark_generator_future_type::context_pointer_type ctx) {
           g_benchmark_generator_list[idx] = std::move(ctx);
@@ -90,7 +90,6 @@ static void benchmark_round(int index) {
   while (g_benchmark_callable_list.size() < static_cast<size_t>(max_task_number)) {
     g_benchmark_callable_list.push_back(std::unique_ptr<benchmark_callable_future_type>(
         new benchmark_callable_future_type(run_benchmark(g_benchmark_callable_list.size(), switch_count))));
-    g_benchmark_callable_list.back()->start();
   }
 
   time_t end_time = time(nullptr);

@@ -130,6 +130,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
       return true;
     }
 
+    if (callee_.promise().check_flag(promise_flag::kFinalSuspend)) {
+      return true;
+    }
+
     return callee_.done();
   }
 
@@ -254,15 +258,20 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
 
     struct initial_awaitable {
       inline bool await_ready() const noexcept { return false; }
+
       inline void await_resume() const noexcept {
         if (handle.promise().get_status() == promise_status::kCreated) {
           promise_status excepted = promise_status::kCreated;
           handle.promise().set_status(promise_status::kRunning, &excepted);
         }
       }
+
       inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> caller) noexcept {
         handle = caller;
+
+        caller.resume();
       }
+
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
@@ -314,32 +323,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   UTIL_FORCEINLINE promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
 
   static auto yield_status() noexcept { return promise_base_type::pick_current_status(); }
-
-  /**
-   * @brief Custom start run callable
-   * @note This function should not be called when it's co_await by another callable or task
-   *
-   * @return true if start run success
-   */
-  bool start() noexcept {
-    if (!current_handle_) {
-      return false;
-    }
-
-    if (current_handle_.done()) {
-      return false;
-    }
-
-    promise_status expect_status = promise_status::kCreated;
-    if (!current_handle_.promise().set_status(promise_status::kRunning, &expect_status)) {
-      return false;
-    }
-
-    if (!current_handle_.promise().check_flag(promise_flag::kDestroying)) {
-      current_handle_.resume();
-    }
-    return true;
-  }
 
   /**
    * @brief Kill callable

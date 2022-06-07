@@ -39,7 +39,6 @@ int main() {
 
   // We should not explict call start and get_internal_handle().resume() in a real usage
   // It's only allowed to start and resume by co_wait the callable_future object
-  rpc_result.start();
   rpc_result.get_internal_handle().resume();  // resume co_await LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE suspend_always();
 
   std::cout << "Current coroutine callable status: " << static_cast<uint32_t>(rpc_result.get_status()) << std::endl;

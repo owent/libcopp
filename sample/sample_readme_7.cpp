@@ -40,7 +40,6 @@ static copp::callable_future<void> coroutine_simulator_rpc() {
 int main() {
   int result = 191;
   auto f = coroutine_simulator_rpc();
-  f.start();
 
   while (!g_sample_executor.empty()) {
     auto ctx = g_sample_executor.front();

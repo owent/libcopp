@@ -82,13 +82,11 @@ static copp::callable_future<void> coroutine_simulator_rpc_custom() {
 int main() {
   // sample for await generator and timeout
   auto f1 = coroutine_simulator_rpc_integer();
-  f1.start();
   f1.kill(copp::promise_status::kCancle, true);
   std::cout << "int generator is killed" << std::endl;
 
   // sample for await task and timeout
   auto f2 = coroutine_simulator_rpc_custom();
-  f2.start();
   f2.kill(copp::promise_status::kTimeout, true);
   std::cout << "custom generator is killed" << std::endl;
   return 0;

@@ -40,7 +40,6 @@ int main() {
   my_task_t::ptr_t co_task = my_task_t::create(cotask_action_callback);
 
   auto t = call_for_await_cotask(co_task);
-  t.start();
   co_task->start();
 
   int res = 345;
