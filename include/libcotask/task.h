@@ -939,7 +939,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <typename TCO_MACRO>
-auto operator co_await(LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<task<TCO_MACRO> > t) LIBCOPP_MACRO_NOEXCEPT {
+auto operator co_await(const LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<task<TCO_MACRO> > &t)
+    LIBCOPP_MACRO_NOEXCEPT {
   using awaitable = typename task<TCO_MACRO>::stackful_task_awaitable;
   return awaitable{t.get()};
 }
