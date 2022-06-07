@@ -748,7 +748,6 @@ CASE_TEST(coroutine_task, callable_future_co_await) {
   cotask::task<>::ptr_t co_task = cotask::task<>::create(cotask_action_callback);
 
   auto t = call_for_await_cotask(co_task);
-  t.start();
   co_task->start();
   CASE_EXPECT_FALSE(t.is_ready());
 
@@ -764,7 +763,6 @@ CASE_TEST(coroutine_task, callable_future_co_await_do_not_start) {
   cotask::task<>::ptr_t co_task = cotask::task<>::create(cotask_action_callback);
 
   auto t = call_for_await_cotask(co_task);
-  t.start();
   CASE_EXPECT_FALSE(t.is_ready());
 
   co_task.reset();

@@ -117,9 +117,6 @@ CASE_TEST(generator_promise, basic_int_generator) {
   size_t old_suspend_generator_count = g_suspend_generator_count;
 
   copp::callable_future<int> f = callable_func_await_int();
-  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
-  // Start
-  f.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
@@ -235,9 +232,6 @@ CASE_TEST(generator_promise, caller_killed) {
     size_t old_suspend_generator_count = g_suspend_generator_count;
 
     copp::callable_future<int> f = callable_func_await_int_killed();
-    CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
-    // Start
-    f.start();
 
     // Mock to kill by caller
     f.kill(copp::promise_status::kKilled, true);
@@ -252,9 +246,6 @@ CASE_TEST(generator_promise, caller_killed) {
     size_t old_suspend_generator_count = g_suspend_generator_count;
 
     copp::callable_future<void> f = callable_func_await_void_killed();
-    CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f.get_status()));
-    // Start
-    f.start();
 
     // Mock to kill by caller
     f.kill(copp::promise_status::kKilled, true);
@@ -315,7 +306,6 @@ LIBCOPP_COPP_NAMESPACE_END
 
 CASE_TEST(generator_promise, transform_error_code) {
   auto f2 = test_context_transform_error_code_generator_l1();
-  f2.start();
   f2.kill(copp::promise_status::kTimeout, true);
 
   g_test_context_transform_error_code_generator_executor.clear();
@@ -343,11 +333,6 @@ CASE_TEST(generator_promise, miltiple_wait_int_generator) {
 
   copp::callable_future<int> f1 = callable_func_multiple_await_int(int_generator);
   copp::callable_future<int> f2 = callable_func_multiple_await_int(int_generator);
-  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f1.get_status()));
-  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(f2.get_status()));
-  // Start
-  f1.start();
-  f2.start();
 
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f1.get_status()));
   CASE_EXPECT_FALSE(f1.is_ready());

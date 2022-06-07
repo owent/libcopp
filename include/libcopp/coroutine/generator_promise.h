@@ -380,6 +380,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
       : context_(std::make_shared<context_type>()),
         await_suspend_callback_(std::forward<TSUSPEND>(await_suspend_callback)) {}
 
+  generator_future(generator_future&&) = default;
+  generator_future(const generator_future&) = default;
+  generator_future& operator=(generator_future&&) = default;
+  generator_future& operator=(const generator_future&) = default;
+
   ~generator_future() {
     if (context_) {
       context_.reset();

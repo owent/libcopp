@@ -82,7 +82,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
     }
   }
 
-  UTIL_FORCEINLINE bool is_ready() const noexcept { return data_.is_ready(); }
+  UTIL_FORCEINLINE bool is_ready() const noexcept {
+    if (nullptr != current_handle_.promise && current_handle_.promise->check_flag(promise_flag::kFinalSuspend)) {
+      return true;
+    }
+
+    return data_.is_ready();
+  }
 
   UTIL_FORCEINLINE bool is_pending() const noexcept { return data_.is_pending(); }
 
@@ -131,7 +137,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   template <class TVALUE, class TPRIVATE_DATA, bool RETURN_VOID>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
 
+  template <class TVALUE, class TPRIVATE_DATA>
+  class LIBCOPP_COPP_API_HEAD_ONLY task_future;
+
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
+
+  UTIL_FORCEINLINE handle_delegate& get_handle_delegate() noexcept { return current_handle_; }
+  UTIL_FORCEINLINE const handle_delegate& get_handle_delegate() const noexcept { return current_handle_; }
 
  protected:
   LIBCOPP_COPP_NAMESPACE_ID::future::future<TVALUE> data_;
@@ -147,6 +159,7 @@ template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public task_context_base<TVALUE> {
  public:
   using base_type = task_context_base<TVALUE>;
+  using id_type = typename base_type::id_type;
   using value_type = typename base_type::value_type;
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
@@ -174,6 +187,7 @@ template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public task_context_base<TVALUE> {
  public:
   using base_type = task_context_base<TVALUE>;
+  using id_type = typename base_type::id_type;
   using value_type = typename base_type::value_type;
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
@@ -250,6 +264,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context<TVALUE, void>
  public:
   using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
+  using id_type = typename base_type::id_type;
   using private_data_type = void;
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
@@ -526,10 +541,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   using value_type = TVALUE;
   using self_type = task_future<value_type, TPRIVATE_DATA>;
   using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using id_type = typename context_type::id_type;
   using private_data_type = typename context_type::private_data_type;
   using context_pointer_type = std::shared_ptr<context_type>;
   using task_status_type = typename context_type::task_status_type;
   using promise_flag = typename context_type::promise_flag;
+  using context_type = task_context<value_type, TPRIVATE_DATA>;
 
   using promise_base_type =
       task_promise_base<value_type, private_data_type, std::is_void<typename std::decay<value_type>::type>::value>;
@@ -544,16 +561,19 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 
     struct initial_awaitable {
       inline bool await_ready() const noexcept { return false; }
+
       inline void await_resume() const noexcept {
         if (handle.promise().get_status() == task_status_type::kCreated) {
           task_status_type excepted = task_status_type::kCreated;
           handle.promise().set_status(task_status_type::kRunning, &excepted);
         }
       }
+
       inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> caller) noexcept {
         handle = caller;
         caller.promise().initialize_promise(caller);
       }
+
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
@@ -589,6 +609,39 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     return context_->get_status();
   }
 
+  UTIL_FORCEINLINE bool is_canceled() const noexcept { return task_status_type::kCancle == get_status(); }
+  inline bool is_completed() const noexcept {
+    if (false == is_exiting()) {
+      return false;
+    }
+
+    if (!context_) {
+      return true;
+    }
+
+    auto& handle = context_.get_handle_delegate().handle;
+    if (!handle) {
+      return true;
+    }
+
+    if (handle.done()) {
+      return true;
+    }
+
+    if (handle.promise().check_flag(promise_flag::kFinalSuspend)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  UTIL_FORCEINLINE bool is_faulted() const noexcept { return task_status_type::kKilled <= get_status(); }
+  UTIL_FORCEINLINE bool is_timeout() const noexcept { return task_status_type::kTimeout <= get_status(); }
+  UTIL_FORCEINLINE bool is_exiting() const noexcept {
+    task_status_type status = get_status();
+    return task_status_type::kDone <= status || task_status_type::kInvalid == status;
+  }
+
   UTIL_FORCEINLINE static auto yield_status() noexcept {
     return LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::pick_current_status();
   }
@@ -618,22 +671,28 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
    * @return true if start run success
    */
   bool start() noexcept {
-    if (!current_handle_) {
+    if (!context_) {
       return false;
     }
 
-    if (current_handle_.done()) {
+    auto& handle = context_.get_handle_delegate().handle;
+    if (!handle) {
+      return false;
+    }
+
+    if (handle.done()) {
       return false;
     }
 
     task_status_type expect_status = task_status_type::kCreated;
-    if (!current_handle_.promise().set_status(task_status_type::kRunning, &expect_status)) {
+    if (!handle.promise().set_status(task_status_type::kRunning, &expect_status)) {
       return false;
     }
 
-    if (!current_handle_.promise().check_flag(promise_flag::kDestroying)) {
-      current_handle_.resume();
+    if (!handle.promise().check_flag(promise_flag::kDestroying)) {
+      handle.resume();
     }
+
     return true;
   }
 
@@ -650,14 +709,23 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       return false;
     }
 
+    if (!context_) {
+      return false;
+    }
+
+    auto& handle = context_.get_handle_delegate().handle;
+    if (!handle) {
+      return false;
+    }
+
     bool ret = true;
     while (true) {
-      if (!current_handle_) {
+      if (!handle) {
         ret = false;
         break;
       }
 
-      if (current_handle_.done()) {
+      if (handle.done()) {
         ret = false;
         break;
       }
@@ -668,13 +736,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
         break;
       }
 
-      if (!current_handle_.promise().set_status(target_status, &current_status)) {
+      if (!handle.promise().set_status(target_status, &current_status)) {
         continue;
       }
 
-      if ((force_resume || current_handle_.promise().is_waiting()) &&
-          !current_handle_.promise().check_flag(promise_flag::kDestroying)) {
-        current_handle_.resume();
+      if ((force_resume || handle.promise().is_waiting()) && !handle.promise().check_flag(promise_flag::kDestroying)) {
+        handle.resume();
       }
       break;
     }
@@ -682,37 +749,24 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     return ret;
   }
 
-  /**
-   * @brief Get the internal handle object
-   * @note This function is only for internal use(testing), do not use it in your code.
-   *
-   * @return internal handle
-   */
-  UTIL_FORCEINLINE const handle_type& get_internal_handle() const noexcept { return current_handle_; }
+  UTIL_FORCEINLINE bool kill(bool force_resume = false) { return kill(promise_flag::kKilled, force_resume); }
 
-  /**
-   * @brief Get the internal handle object
-   * @note This function is only for internal use(testing), do not use it in your code.
-   *
-   * @return internal handle
-   */
-  UTIL_FORCEINLINE handle_type& get_internal_handle() noexcept { return current_handle_; }
+  UTIL_FORCEINLINE bool cancel(bool force_resume = false) { return kill(promise_flag::kCancle, force_resume); }
 
-  /**
-   * @brief Get the internal promise object
-   * @note This function is only for internal use(testing), do not use it in your code.
-   *
-   * @return internal promise object
-   */
-  UTIL_FORCEINLINE const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
+  UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
 
-  /**
-   * @brief Get the internal promise object
-   * @note This function is only for internal use(testing), do not use it in your code.
-   *
-   * @return internal promise object
-   */
-  UTIL_FORCEINLINE promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
+  UTIL_FORCEINLINE context_pointer_type& get_context() noexcept { return context_; }
+
+  inline id_type get_id() const noexcept {
+    if (!context_) {
+      return 0;
+    }
+
+    return context_->get_id();
+  }
+
+  // TODO then(RETURN (*CLAZZ::fn)(TARGS...), CLAZZ*, TARGS...)
+  // TODO then(functor, TARGS&&...)
 
  private:
   context_pointer_type context_;
