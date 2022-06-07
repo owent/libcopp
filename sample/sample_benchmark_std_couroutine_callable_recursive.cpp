@@ -87,7 +87,7 @@ static void benchmark_round(int index) {
   begin_clock = end_clock;
 
   // yield & resume from runner
-  long long real_switch_times = static_cast<long long>(0);
+  long long real_switch_times = static_cast<long long>(max_task_number) * recursive_count;
 
   for (int i = 0; i < max_task_number; ++i) {
     g_benchmark_generator_list[i].get_context()->set_value(i);
