@@ -41,7 +41,8 @@ benchmark_callable_future_type run_benchmark(size_t idx, int left_recursive_coun
                                              benchmark_generator_future_type* first_hang) {
   int64_t result = left_recursive_count;
   if (nullptr != first_hang) {
-    result += co_await *first_hang;
+    auto gen_res = co_await *first_hang;
+    result += gen_res;
   } else {
     result += idx;
   }
@@ -63,7 +64,7 @@ static void benchmark_round(int index) {
   // create generators
   for (int i = 0; i < max_task_number; ++i) {
     g_benchmark_generator_list.emplace_back(
-        benchmark_generator_future_type([i](benchmark_generator_future_type::context_pointer_type) {}));
+        benchmark_generator_future_type([](benchmark_generator_future_type::context_pointer_type) {}));
   }
 
   time_t begin_time = time(nullptr);
