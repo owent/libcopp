@@ -22,6 +22,11 @@ endif()
 
 foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
   get_filename_component(SAMPLE_SRC_BIN_NAME ${SAMPLE_SRC_FILE} NAME_WE)
+  if(SAMPLE_SRC_BIN_NAME MATCHES "sample_benchmark_std_couroutine_callable_recursive")
+    set(SAMPLE_BENCHMARK_LIMIT_STACK ON)
+  else()
+    set(SAMPLE_BENCHMARK_LIMIT_STACK OFF)
+  endif()
   if(WIN32)
     # Patch for windows path limit
     string(REGEX REPLACE "([^_])[A-Za-z]*_?" "\\1" SAMPLE_SRC_BIN_NAME "${SAMPLE_SRC_BIN_NAME}")
@@ -82,12 +87,21 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     set_tests_properties("libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1000-1000-2048"
                          PROPERTIES LABELS "libcopp;benchmark;libcopp.benchmark")
 
-    add_test(
-      NAME "libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1-3000000-16"
-      COMMAND "$<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}>" 1 3000000 16
-      WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-    set_tests_properties("libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1-3000000-16"
-                         PROPERTIES LABELS "libcopp;benchmark;libcopp.benchmark")
+    if(SAMPLE_BENCHMARK_LIMIT_STACK)
+      add_test(
+        NAME "libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1-10000-16"
+        COMMAND "$<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}>" 1 10000 16
+        WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+      set_tests_properties("libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1-10000-16"
+                           PROPERTIES LABELS "libcopp;benchmark;libcopp.benchmark")
+    else()
+      add_test(
+        NAME "libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1-1000000-16"
+        COMMAND "$<TARGET_FILE:${SAMPLE_SRC_BIN_NAME}>" 1 1000000 16
+        WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+      set_tests_properties("libcopp.benchmark-${SAMPLE_SRC_BIN_NAME}-1-1000000-16"
+                           PROPERTIES LABELS "libcopp;benchmark;libcopp.benchmark")
+    endif()
 
     # for valgrind callgrind
     if(_VALGRIND_EXECUTABLE)
