@@ -13,12 +13,12 @@
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
-using generator_promise_future_int_type = copp::generator_future<int>;
-using generator_promise_future_void_type = copp::generator_future<void>;
+using generator_future_int_type = copp::generator_future<int>;
+using generator_future_void_type = copp::generator_future<void>;
 
 namespace {
-std::list<generator_promise_future_int_type::context_pointer_type> g_pending_int_contexts;
-std::list<generator_promise_future_void_type::context_pointer_type> g_pending_void_contexts;
+std::list<generator_future_int_type::context_pointer_type> g_pending_int_contexts;
+std::list<generator_future_void_type::context_pointer_type> g_pending_void_contexts;
 size_t g_resume_generator_count = 0;
 size_t g_suspend_generator_count = 0;
 
@@ -55,12 +55,12 @@ size_t resume_pending_contexts(std::list<int> values) {
 }  // namespace
 
 static copp::callable_future<int> callable_func_await_int() {
-  generator_promise_future_int_type gen_left_value{
-      [](generator_promise_future_int_type::context_pointer_type ctx) {
+  generator_future_int_type gen_left_value{
+      [](generator_future_int_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
         g_pending_int_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_int_type::context_type &) { ++g_resume_generator_count; }};
+      [](const generator_future_int_type::context_type &) { ++g_resume_generator_count; }};
 
   // await left value
   CASE_EXPECT_FALSE(gen_left_value.is_ready());
@@ -75,19 +75,19 @@ static copp::callable_future<int> callable_func_await_int() {
   CASE_EXPECT_EQ(x1, co_await gen_left_value);
 
   // await right value
-  int x2 = co_await generator_promise_future_int_type{
-      [](generator_promise_future_int_type::context_pointer_type ctx) {
+  int x2 = co_await generator_future_int_type{
+      [](generator_future_int_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
         g_pending_int_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_int_type::context_type &) { ++g_resume_generator_count; }};
+      [](const generator_future_int_type::context_type &) { ++g_resume_generator_count; }};
 
-  generator_promise_future_void_type gen_left_void{
-      [](generator_promise_future_void_type::context_pointer_type ctx) {
+  generator_future_void_type gen_left_void{
+      [](generator_future_void_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
         g_pending_void_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_void_type::context_type &) { ++g_resume_generator_count; }};
+      [](const generator_future_void_type::context_type &) { ++g_resume_generator_count; }};
 
   // await left value
   CASE_EXPECT_FALSE(gen_left_void.is_ready());
@@ -102,12 +102,12 @@ static copp::callable_future<int> callable_func_await_int() {
   co_await gen_left_void;
 
   // await right value
-  co_await generator_promise_future_void_type{
-      [](generator_promise_future_void_type::context_pointer_type ctx) {
+  co_await generator_future_void_type{
+      [](generator_future_void_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
         g_pending_void_contexts.push_back(ctx);
       },
-      [](const generator_promise_future_void_type::context_type &) { ++g_resume_generator_count; }};
+      [](const generator_future_void_type::context_type &) { ++g_resume_generator_count; }};
 
   co_return x1 + x2;
 }
@@ -131,15 +131,15 @@ CASE_TEST(generator_promise, basic_int_generator) {
 }
 
 static copp::callable_future<int> callable_func_await_int_killed() {
-  generator_promise_future_int_type gen_left_value{[](generator_promise_future_int_type::context_pointer_type ctx) {
-                                                     ++g_suspend_generator_count;
-                                                     g_pending_int_contexts.push_back(ctx);
-                                                   },
-                                                   [](const generator_promise_future_int_type::context_type &ctx) {
-                                                     CASE_EXPECT_FALSE(ctx.is_ready());
-                                                     CASE_EXPECT_TRUE(ctx.is_pending());
-                                                     ++g_resume_generator_count;
-                                                   }};
+  generator_future_int_type gen_left_value{[](generator_future_int_type::context_pointer_type ctx) {
+                                             ++g_suspend_generator_count;
+                                             g_pending_int_contexts.push_back(ctx);
+                                           },
+                                           [](const generator_future_int_type::context_type &ctx) {
+                                             CASE_EXPECT_FALSE(ctx.is_ready());
+                                             CASE_EXPECT_TRUE(ctx.is_pending());
+                                             ++g_resume_generator_count;
+                                           }};
 
   // await left value
   CASE_EXPECT_FALSE(gen_left_value.is_ready());
@@ -156,15 +156,15 @@ static copp::callable_future<int> callable_func_await_int_killed() {
   // All co_await will be ignored after caller is killed
   co_await gen_left_value;
 
-  generator_promise_future_void_type gen_left_void{[](generator_promise_future_void_type::context_pointer_type ctx) {
-                                                     ++g_suspend_generator_count;
-                                                     g_pending_void_contexts.push_back(ctx);
-                                                   },
-                                                   [](const generator_promise_future_void_type::context_type &ctx) {
-                                                     CASE_EXPECT_FALSE(ctx.is_ready());
-                                                     CASE_EXPECT_TRUE(ctx.is_pending());
-                                                     ++g_resume_generator_count;
-                                                   }};
+  generator_future_void_type gen_left_void{[](generator_future_void_type::context_pointer_type ctx) {
+                                             ++g_suspend_generator_count;
+                                             g_pending_void_contexts.push_back(ctx);
+                                           },
+                                           [](const generator_future_void_type::context_type &ctx) {
+                                             CASE_EXPECT_FALSE(ctx.is_ready());
+                                             CASE_EXPECT_TRUE(ctx.is_pending());
+                                             ++g_resume_generator_count;
+                                           }};
 
   // All co_await will be ignored after caller is killed
   CASE_EXPECT_FALSE(gen_left_void.is_ready());
@@ -179,15 +179,15 @@ static copp::callable_future<int> callable_func_await_int_killed() {
 }
 
 static copp::callable_future<void> callable_func_await_void_killed() {
-  generator_promise_future_void_type gen_left_void{[](generator_promise_future_void_type::context_pointer_type ctx) {
-                                                     ++g_suspend_generator_count;
-                                                     g_pending_void_contexts.push_back(ctx);
-                                                   },
-                                                   [](const generator_promise_future_void_type::context_type &ctx) {
-                                                     CASE_EXPECT_FALSE(ctx.is_ready());
-                                                     CASE_EXPECT_TRUE(ctx.is_pending());
-                                                     ++g_resume_generator_count;
-                                                   }};
+  generator_future_void_type gen_left_void{[](generator_future_void_type::context_pointer_type ctx) {
+                                             ++g_suspend_generator_count;
+                                             g_pending_void_contexts.push_back(ctx);
+                                           },
+                                           [](const generator_future_void_type::context_type &ctx) {
+                                             CASE_EXPECT_FALSE(ctx.is_ready());
+                                             CASE_EXPECT_TRUE(ctx.is_pending());
+                                             ++g_resume_generator_count;
+                                           }};
 
   // await left value
   CASE_EXPECT_FALSE(gen_left_void.is_ready());
@@ -201,15 +201,15 @@ static copp::callable_future<void> callable_func_await_void_killed() {
   // All co_await will be ignored after caller is killed
   co_await gen_left_void;
 
-  generator_promise_future_int_type gen_left_value{[](generator_promise_future_int_type::context_pointer_type ctx) {
-                                                     ++g_suspend_generator_count;
-                                                     g_pending_int_contexts.push_back(ctx);
-                                                   },
-                                                   [](const generator_promise_future_int_type::context_type &ctx) {
-                                                     CASE_EXPECT_FALSE(ctx.is_ready());
-                                                     CASE_EXPECT_TRUE(ctx.is_pending());
-                                                     ++g_resume_generator_count;
-                                                   }};
+  generator_future_int_type gen_left_value{[](generator_future_int_type::context_pointer_type ctx) {
+                                             ++g_suspend_generator_count;
+                                             g_pending_int_contexts.push_back(ctx);
+                                           },
+                                           [](const generator_future_int_type::context_type &ctx) {
+                                             CASE_EXPECT_FALSE(ctx.is_ready());
+                                             CASE_EXPECT_TRUE(ctx.is_pending());
+                                             ++g_resume_generator_count;
+                                           }};
 
   // All co_await will be ignored after caller is killed
   CASE_EXPECT_FALSE(gen_left_value.is_ready());
@@ -311,8 +311,7 @@ CASE_TEST(generator_promise, transform_error_code) {
   g_test_context_transform_error_code_generator_executor.clear();
 }
 
-static copp::callable_future<int> callable_func_multiple_await_int(
-    generator_promise_future_int_type &shared_generator) {
+static copp::callable_future<int> callable_func_multiple_await_int(generator_future_int_type &shared_generator) {
   auto result = co_await shared_generator;
   co_return result;
 }
@@ -321,15 +320,15 @@ CASE_TEST(generator_promise, miltiple_wait_int_generator) {
   size_t old_resume_generator_count = g_resume_generator_count;
   size_t old_suspend_generator_count = g_suspend_generator_count;
 
-  generator_promise_future_int_type int_generator{
-      [](generator_promise_future_int_type::context_pointer_type ctx) {
+  generator_future_int_type int_generator{
+      [](generator_future_int_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
         if (g_pending_int_contexts.end() ==
             std::find(g_pending_int_contexts.begin(), g_pending_int_contexts.end(), ctx)) {
           g_pending_int_contexts.push_back(ctx);
         }
       },
-      [](const generator_promise_future_int_type::context_type &) { ++g_resume_generator_count; }};
+      [](const generator_future_int_type::context_type &) { ++g_resume_generator_count; }};
 
   copp::callable_future<int> f1 = callable_func_multiple_await_int(int_generator);
   copp::callable_future<int> f2 = callable_func_multiple_await_int(int_generator);
@@ -348,6 +347,30 @@ CASE_TEST(generator_promise, miltiple_wait_int_generator) {
 
   CASE_EXPECT_EQ(old_resume_generator_count + 2, g_resume_generator_count);
   CASE_EXPECT_EQ(old_suspend_generator_count + 2, g_suspend_generator_count);
+}
+
+static copp::callable_future<int> callable_func_resume_when_suspend() {
+  auto result = co_await generator_future_int_type{
+      [](generator_future_int_type::context_pointer_type ctx) {
+        ++g_suspend_generator_count;
+        ctx->set_value(369);
+      },
+      [](const generator_future_int_type::context_type &) { ++g_resume_generator_count; }};
+  co_return result;
+}
+
+CASE_TEST(generator_promise, resume_when_suspend) {
+  size_t old_resume_generator_count = g_resume_generator_count;
+  size_t old_suspend_generator_count = g_suspend_generator_count;
+
+  copp::callable_future<int> f1 = callable_func_resume_when_suspend();
+
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f1.get_status()));
+  CASE_EXPECT_TRUE(f1.is_ready());
+  CASE_EXPECT_EQ(369, f1.get_internal_promise().data());
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 1, g_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_suspend_generator_count);
 }
 
 #else

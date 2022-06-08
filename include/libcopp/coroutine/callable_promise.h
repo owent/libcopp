@@ -360,7 +360,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
       }
 
       if ((force_resume || current_handle_.promise().is_waiting()) &&
-          !current_handle_.promise().check_flag(promise_flag::kDestroying)) {
+          !current_handle_.promise().check_flag(promise_flag::kDestroying) &&
+          !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
         current_handle_.resume();
       }
       break;
