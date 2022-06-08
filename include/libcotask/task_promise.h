@@ -48,6 +48,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable;
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
  public:
+  using value_type = TVALUE;
   using id_type = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::value_type;
   using id_allocator_type = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator;
   using handle_delegate = LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager::handle_delegate;
@@ -138,7 +139,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
 
   template <class, class>
-  class LIBCOPP_COPP_API_HEAD_ONLY task_future;
+  friend class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
 
@@ -236,8 +237,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public t
 
 template <class TPRIVATE_DATA>
 class LIBCOPP_COPP_API_HEAD_ONLY task_private_data {
-  TPRIVATE_DATA* data;
-
+ public:
   inline task_private_data() noexcept : data_(nullptr) {}
   inline task_private_data(TPRIVATE_DATA* input) noexcept : data_(input) {}
   inline task_private_data(task_private_data&& other) noexcept = default;
@@ -253,6 +253,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_private_data {
  private:
   template <class, class>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_context;
+
+  template <class, class>
+  friend class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 
   TPRIVATE_DATA* data_;
 };
@@ -588,15 +591,19 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       } else {
         input.data_ = nullptr;
       }
-      return context_type::pick_private_data_awaitable(input.data_);
+      return task_private_data<TCONVERT_PRIVATE_DATA>(input.data_);
     }
+
+    using promise_base_type::yield_value;
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
-  using awaitable_type = task_awaitable<promise_type, std::is_void<typename std::decay<value_type>::type>::value>;
+  using awaitable_type = task_awaitable<context_type, std::is_void<typename std::decay<value_type>::type>::value>;
 
  public:
   task_future(context_pointer_type context) noexcept : context_{context} {}
-  ~task_future() {}
+  ~task_future() {
+    // TODO: Destroy context when ref_count == 1(only by promise)
+  }
 
   awaitable_type operator co_await() { return awaitable_type{context_.get()}; }
 
@@ -618,16 +625,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       return true;
     }
 
-    auto& handle = context_.get_handle_delegate().handle;
-    if (!handle) {
-      return true;
-    }
+    auto& handle = context_->get_handle_delegate().handle;
+    COPP_UNLIKELY_IF(!handle) { return true; }
 
     if (handle.done()) {
       return true;
     }
 
-    if (handle.promise().check_flag(promise_flag::kFinalSuspend)) {
+    auto promise = context_->get_handle_delegate().promise;
+    COPP_UNLIKELY_IF(nullptr == promise) { return true; }
+
+    if (promise->check_flag(promise_flag::kFinalSuspend)) {
       return true;
     }
 
@@ -674,21 +682,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       return false;
     }
 
-    auto& handle = context_.get_handle_delegate().handle;
-    if (!handle) {
-      return false;
-    }
+    auto& handle = context_->get_handle_delegate().handle;
+    COPP_UNLIKELY_IF(!handle) { return false; }
 
     if (handle.done()) {
       return false;
     }
 
+    auto promise = context_->get_handle_delegate().promise;
+    COPP_UNLIKELY_IF(nullptr == promise) { return false; }
+
     task_status_type expect_status = task_status_type::kCreated;
-    if (!handle.promise().set_status(task_status_type::kRunning, &expect_status)) {
+    if (!promise->set_status(task_status_type::kRunning, &expect_status)) {
       return false;
     }
 
-    if (!handle.promise().check_flag(promise_flag::kDestroying)) {
+    if (!promise->check_flag(promise_flag::kFinalSuspend) && !promise->check_flag(promise_flag::kDestroying)) {
       handle.resume();
     }
 
@@ -712,14 +721,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       return false;
     }
 
-    auto& handle = context_.get_handle_delegate().handle;
-    if (!handle) {
-      return false;
-    }
+    auto& handle = context_->get_handle_delegate().handle;
+    COPP_UNLIKELY_IF(!handle) { return false; }
 
     bool ret = true;
-    while (true) {
-      if (!handle) {
+    while (context_) {
+      COPP_UNLIKELY_IF(!handle) {
         ret = false;
         break;
       }
@@ -735,11 +742,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
         break;
       }
 
-      if (!handle.promise().set_status(target_status, &current_status)) {
+      auto promise = context_->get_handle_delegate().promise;
+      COPP_UNLIKELY_IF(nullptr == promise) { return false; }
+
+      if (!promise->set_status(target_status, &current_status)) {
         continue;
       }
 
-      if ((force_resume || handle.promise().is_waiting()) && !handle.promise().check_flag(promise_flag::kDestroying)) {
+      if ((force_resume || promise->is_waiting()) && !promise->check_flag(promise_flag::kFinalSuspend) &&
+          !promise->check_flag(promise_flag::kDestroying)) {
         handle.resume();
       }
       break;
