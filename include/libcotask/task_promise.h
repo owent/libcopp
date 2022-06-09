@@ -42,6 +42,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 template <class TVALUE, class TPRIVATE_DATA, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base;
 
+template <class TCONTEXT>
+class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
+
 template <class TCONTEXT, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable;
 
@@ -68,12 +71,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   }
 
   ~task_context_base() noexcept {
-    while (current_handle_.handle && !current_handle_.handle.done() && current_handle_.promise &&
-           !current_handle_.promise->check_flag(promise_flag::kFinalSuspend)) {
-      current_handle_.handle.resume();
-    }
-
-    wake();
+    force_finish();
 
     if (nullptr != current_handle_.promise) {
       current_handle_.promise->set_flag(promise_flag::kDestroying, true);
@@ -81,6 +79,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
     if (current_handle_.handle) {
       current_handle_.handle.destroy();
     }
+
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    if (last_exception_) {
+      std::rethrow_exception(last_exception_);
+    }
+#  endif
   }
 
   UTIL_FORCEINLINE bool is_ready() const noexcept {
@@ -141,6 +145,23 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   template <class, class>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_future;
 
+  template <class TCONTEXT>
+  friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
+
+  inline void force_finish() noexcept {
+    // Move unhandled_exception
+    while (current_handle_.handle && !current_handle_.handle.done() && current_handle_.promise &&
+           !current_handle_.promise->check_flag(promise_flag::kFinalSuspend)
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+           && !last_exception_
+#  endif
+    ) {
+      current_handle_.handle.resume();
+    }
+
+    wake();
+  }
+
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
 
   UTIL_FORCEINLINE handle_delegate& get_handle_delegate() noexcept { return current_handle_; }
@@ -154,6 +175,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
  private:
   id_type id_;
   handle_delegate current_handle_;
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+  std::exception_ptr last_exception_;
+#  endif
 };
 
 template <class TVALUE>
@@ -412,7 +436,19 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
       return true;
     }
 
-    return context_->is_ready();
+    if (context_->is_ready()) {
+      return true;
+    }
+
+    if (nullptr == context_->get_handle_delegate().promise) {
+      return true;
+    }
+
+    if (context_->get_handle_delegate().promise->get_status() >= task_status_type::kDone) {
+      return true;
+    }
+
+    return false;
   }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -579,8 +615,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
-#  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
-    void unhandled_exception() { throw; }
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    void unhandled_exception() { get_context()->last_exception_ = std::current_exception(); }
 #  endif
 
     template <class TCONVERT_PRIVATE_DATA>
@@ -602,7 +638,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
  public:
   task_future(context_pointer_type context) noexcept : context_{context} {}
   ~task_future() {
-    // TODO: Destroy context when ref_count == 1(only by promise)
+    // Destroy context when ref_count == 2(only by promise and this task_future)
+    if (context_ && 2 == context_.use_count()) {
+      context_->force_finish();
+    }
   }
 
   awaitable_type operator co_await() { return awaitable_type{context_.get()}; }
