@@ -151,6 +151,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
       caller.promise().set_flag(promise_flag::kInternalWaitting, true);
     } else {
       // Already done and can not suspend again
+      auto& callee_promise = get_callee().promise();
+      // If callee is killed when running, we need inherit status from caller
+      if (callee_promise.get_status() < promise_status::kDone &&
+          callee_promise.check_flag(promise_flag::kInternalWaitting)) {
+        callee_promise.set_status(caller.promise().get_status());
+        callee_.resume();
+      }
       caller.resume();
     }
   }
@@ -174,7 +181,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
     }
 
     if (callee_promise.get_status() < promise_status::kDone) {
-      if (await_ready() || !caller) {
+      if (!caller) {
         callee_promise.set_status(promise_status::kKilled);
       } else {
         callee_promise.set_status(caller.promise->get_status());
@@ -275,9 +282,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
-#  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
-    void unhandled_exception() { throw; }
-#  endif
+    // #  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
+    //     void unhandled_exception() { throw; }
+    // #  endif
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
   using awaitable_type = callable_awaitable<promise_type, std::is_void<typename std::decay<value_type>::type>::value>;
