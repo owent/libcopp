@@ -234,7 +234,7 @@ class coroutine_context_base {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   static inline void maybe_rethrow(std::exception_ptr &inout) {
-    COPP_UNLIKELY_IF(inout) {
+    COPP_UNLIKELY_IF (inout) {
       std::exception_ptr eptr;
       std::swap(eptr, inout);
       std::rethrow_exception(eptr);

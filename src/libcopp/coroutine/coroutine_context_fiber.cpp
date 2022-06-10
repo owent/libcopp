@@ -299,7 +299,9 @@ LIBCOPP_COPP_API int coroutine_context_fiber::start(void *priv_data) {
   }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  COPP_UNLIKELY_IF(unhandle_exception_) { std::swap(unhandled, unhandle_exception_); }
+  COPP_UNLIKELY_IF (unhandle_exception_) {
+    std::swap(unhandled, unhandle_exception_);
+  }
 #  endif
 
   return COPP_EC_SUCCESS;
