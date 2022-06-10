@@ -404,7 +404,9 @@ LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  COPP_UNLIKELY_IF(unhandle_exception_) { std::swap(unhandled, unhandle_exception_); }
+  COPP_UNLIKELY_IF (unhandle_exception_) {
+    std::swap(unhandled, unhandle_exception_);
+  }
 #endif
 
   return COPP_EC_SUCCESS;
@@ -478,7 +480,9 @@ LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
 #else
   coroutine_context *pco = static_cast<coroutine_context *>(detail::get_this_coroutine_context());
 #endif
-  COPP_LIKELY_IF(nullptr != pco) { return pco->yield(priv_data); }
+  COPP_LIKELY_IF (nullptr != pco) {
+    return pco->yield(priv_data);
+  }
 
   return COPP_EC_NOT_RUNNING;
 }

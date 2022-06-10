@@ -465,11 +465,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     EN_TASK_STATUS from_status = expected_status;
 
     do {
-      COPP_UNLIKELY_IF(from_status >= EN_TS_DONE) { return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_FINISHED; }
+      COPP_UNLIKELY_IF (from_status >= EN_TS_DONE) {
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_FINISHED;
+      }
 
-      COPP_UNLIKELY_IF(from_status == EN_TS_RUNNING) { return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING; }
+      COPP_UNLIKELY_IF (from_status == EN_TS_RUNNING) {
+        return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING;
+      }
 
-      COPP_LIKELY_IF(_cas_status(from_status, EN_TS_RUNNING)) {  // Atomic.CAS here
+      COPP_LIKELY_IF (_cas_status(from_status, EN_TS_RUNNING)) {  // Atomic.CAS here
         break;
       }
     } while (true);
@@ -490,7 +494,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     from_status = EN_TS_RUNNING;
     if (is_completed()) {  // Atomic.CAS here
       while (from_status < EN_TS_DONE) {
-        COPP_LIKELY_IF(_cas_status(from_status, EN_TS_DONE)) {  // Atomic.CAS here
+        COPP_LIKELY_IF (_cas_status(from_status, EN_TS_DONE)) {  // Atomic.CAS here
           break;
         }
       }
@@ -514,7 +518,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         break;
       }
 
-      COPP_LIKELY_IF(_cas_status(from_status, EN_TS_WAITING)) {  // Atomic.CAS here
+      COPP_LIKELY_IF (_cas_status(from_status, EN_TS_WAITING)) {  // Atomic.CAS here
         break;
         // waiting
       }
@@ -566,7 +570,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
         return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IS_RUNNING;
       }
 
-      COPP_LIKELY_IF(_cas_status(from_status, EN_TS_CANCELED)) { break; }
+      COPP_LIKELY_IF (_cas_status(from_status, EN_TS_CANCELED)) {
+        break;
+      }
     } while (true);
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -593,7 +599,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     EN_TASK_STATUS from_status = get_status();
 
     do {
-      COPP_LIKELY_IF(_cas_status(from_status, status)) { break; }
+      COPP_LIKELY_IF (_cas_status(from_status, status)) {
+        break;
+      }
     } while (true);
 
     if (EN_TS_RUNNING != from_status) {

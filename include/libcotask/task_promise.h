@@ -149,6 +149,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
 
   inline void force_finish() noexcept {
+    COPP_LIKELY_IF (nullptr != current_handle_.promise) {
+      if (current_handle_.promise->get_status() < task_status_type::kDone) {
+        current_handle_.promise->set_status(task_status_type::kKilled);
+      }
+    }
+
     // Move unhandled_exception
     while (current_handle_.handle && !current_handle_.handle.done() && current_handle_.promise &&
            !current_handle_.promise->check_flag(promise_flag::kFinalSuspend)
@@ -174,6 +180,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
  private:
   id_type id_;
+  std::atomic<size_t> future_counter_;
   handle_delegate current_handle_;
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   std::exception_ptr last_exception_;
@@ -355,7 +362,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
     if (get_status() < task_status_type::kDone) {
       set_status(task_status_type::kDone);
     }
-    COPP_LIKELY_IF(context_) { context_->set_value(); }
+    COPP_LIKELY_IF (context_) {
+      context_->set_value();
+    }
   }
 
   UTIL_FORCEINLINE bool has_return() const noexcept { return context_ && context_->is_ready(); }
@@ -367,7 +376,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
                                 std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, true>, TPROMISE>::value> >
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
-    COPP_LIKELY_IF(context_) { context_->initialize_handle(handle_delegate{origin_handle}); }
+    COPP_LIKELY_IF (context_) {
+      context_->initialize_handle(handle_delegate{origin_handle});
+    }
   }
 
  private:
@@ -391,15 +402,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
     if (get_status() < task_status_type::kDone) {
       set_status(task_status_type::kDone);
     }
-    COPP_LIKELY_IF(context_) { context_->set_value(std::move(value)); }
+    COPP_LIKELY_IF (context_) {
+      context_->set_value(std::move(value));
+    }
   }
 
   UTIL_FORCEINLINE value_type* data() noexcept {
-    COPP_LIKELY_IF(context_) { return context_->data(); }
+    COPP_LIKELY_IF (context_) {
+      return context_->data();
+    }
     return nullptr;
   }
   UTIL_FORCEINLINE const value_type* data() const noexcept {
-    COPP_LIKELY_IF(context_) { return context_->data(); }
+    COPP_LIKELY_IF (context_) {
+      return context_->data();
+    }
     return nullptr;
   }
 
@@ -412,7 +429,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
                                 std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, false>, TPROMISE>::value> >
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
-    COPP_LIKELY_IF(context_) { context_->initialize_handle(handle_delegate{origin_handle}); }
+    COPP_LIKELY_IF (context_) {
+      context_->initialize_handle(handle_delegate{origin_handle});
+    }
   }
 
  private:
@@ -432,7 +451,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
   task_awaitable_base(context_type* context) : context_{context} {}
 
   inline bool await_ready() noexcept {
-    if (nullptr == context_) {
+    COPP_UNLIKELY_IF (nullptr == context_) {
       return true;
     }
 
@@ -473,7 +492,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
  protected:
   inline task_status_type detach() noexcept {
     task_status_type result_status;
-    if (nullptr != context_ && context_->is_ready()) {
+    COPP_UNLIKELY_IF (nullptr == context_) {
+      result_status = task_status_type::kInvalid;
+    } else if (context_->is_ready()) {
       result_status = task_status_type::kDone;
     } else {
       result_status = task_status_type::kKilled;
@@ -486,7 +507,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
       if (nullptr != caller.promise) {
         caller.promise->set_flag(promise_flag::kInternalWaitting, false);
       }
-      if (nullptr != context_) {
+      COPP_LIKELY_IF (nullptr != context_) {
         if (!context_->is_ready() && nullptr != caller.promise) {
           result_status = caller.promise->get_status();
         }
@@ -555,17 +576,26 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task_a
   task_awaitable(context_type* context) : base_type(context) {}
 
   inline value_type await_resume() {
-    bool has_multiple_callers = get_context()->has_multiple_callers();
+    bool has_multiple_callers;
+    COPP_LIKELY_IF (nullptr != get_context()) {
+      has_multiple_callers = get_context()->has_multiple_callers();
+    } else {
+      has_multiple_callers = false;
+    }
     task_status_type result_status = detach();
 
     if (task_status_type::kDone != result_status) {
       return LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(result_status);
     }
 
-    if (has_multiple_callers) {
-      return *get_context()->data();
+    COPP_LIKELY_IF (nullptr != get_context()) {
+      if (has_multiple_callers) {
+        return *get_context()->data();
+      } else {
+        return std::move(*get_context()->data());
+      }
     } else {
-      return std::move(*get_context()->data());
+      return LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(task_status_type::kInvalid);
     }
   }
 
@@ -636,18 +666,73 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   using awaitable_type = task_awaitable<context_type, std::is_void<typename std::decay<value_type>::type>::value>;
 
  public:
-  task_future(context_pointer_type context) noexcept : context_{context} {}
-  ~task_future() {
-    // Destroy context when ref_count == 2(only by promise and this task_future)
-    if (context_ && 2 == context_.use_count()) {
-      context_->force_finish();
+  task_future() noexcept = default;
+
+  task_future(context_pointer_type context) noexcept : context_{context} {
+    COPP_LIKELY_IF (context_) {
+      ++context_->future_counter_;
     }
   }
 
-  awaitable_type operator co_await() { return awaitable_type{context_.get()}; }
+  task_future(const task_future& other) noexcept : context_{other.context_} {
+    COPP_LIKELY_IF (context_) {
+      ++context_->future_counter_;
+    }
+  }
+
+  task_future(task_future&& other) noexcept : context_{std::move(other.context_)} { other.context_.reset(); }
+
+  task_future& operator=(const task_future& other) noexcept {
+    if (this == &other || context_ == other.context_) {
+      return *this;
+    }
+
+    reset();
+
+    COPP_LIKELY_IF (other.context_) {
+      ++other.context_->future_counter_;
+    }
+    context_ = other.context_;
+
+    return *this;
+  }
+
+  task_future& operator=(task_future&& other) noexcept {
+    if (this == &other || context_ == other.context_) {
+      return *this;
+    }
+
+    reset();
+    context_.swap(other.context_);
+
+    return *this;
+  }
+
+  ~task_future() { reset(); }
+
+  void reset() {
+    if (context_) {
+      size_t future_counter = --context_->future_counter_;
+      // Destroy context when future_counter decrease to 0
+      if (0 == future_counter) {
+        context_->force_finish();
+      }
+      context_.reset();
+    }
+  }
+
+  size_t get_ref_future_count() const noexcept {
+    COPP_LIKELY_IF (context_) {
+      return context_->future_counter_.load();
+    }
+
+    return 0;
+  }
+
+  inline awaitable_type operator co_await() { return awaitable_type{context_.get()}; }
 
   inline task_status_type get_status() const noexcept {
-    if (!context_) {
+    COPP_UNLIKELY_IF (!context_) {
       return task_status_type::kInvalid;
     }
 
@@ -665,14 +750,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     }
 
     auto& handle = context_->get_handle_delegate().handle;
-    COPP_UNLIKELY_IF(!handle) { return true; }
+    COPP_UNLIKELY_IF (!handle) {
+      return true;
+    }
 
     if (handle.done()) {
       return true;
     }
 
     auto promise = context_->get_handle_delegate().promise;
-    COPP_UNLIKELY_IF(nullptr == promise) { return true; }
+    COPP_UNLIKELY_IF (nullptr == promise) {
+      return true;
+    }
 
     if (promise->check_flag(promise_flag::kFinalSuspend)) {
       return true;
@@ -694,7 +783,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 
   template <class = typename std::enable_if<!std::is_same<private_data_type, void>::value>::type>
   inline private_data_type* get_private_data() noexcept {
-    if (!context_) {
+    COPP_UNLIKELY_IF (!context_) {
       return nullptr;
     }
 
@@ -703,7 +792,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
 
   template <class = typename std::enable_if<!std::is_same<private_data_type, void>::value>::type>
   inline const private_data_type* get_private_data() const noexcept {
-    if (!context_) {
+    COPP_UNLIKELY_IF (!context_) {
       return nullptr;
     }
 
@@ -717,19 +806,23 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
    * @return true if start run success
    */
   bool start() noexcept {
-    if (!context_) {
+    COPP_UNLIKELY_IF (!context_) {
       return false;
     }
 
     auto& handle = context_->get_handle_delegate().handle;
-    COPP_UNLIKELY_IF(!handle) { return false; }
+    COPP_UNLIKELY_IF (!handle) {
+      return false;
+    }
 
     if (handle.done()) {
       return false;
     }
 
     auto promise = context_->get_handle_delegate().promise;
-    COPP_UNLIKELY_IF(nullptr == promise) { return false; }
+    COPP_UNLIKELY_IF (nullptr == promise) {
+      return false;
+    }
 
     task_status_type expect_status = task_status_type::kCreated;
     if (!promise->set_status(task_status_type::kRunning, &expect_status)) {
@@ -756,16 +849,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       return false;
     }
 
-    if (!context_) {
+    COPP_UNLIKELY_IF (!context_) {
       return false;
     }
 
     auto& handle = context_->get_handle_delegate().handle;
-    COPP_UNLIKELY_IF(!handle) { return false; }
+    COPP_UNLIKELY_IF (!handle) {
+      return false;
+    }
 
     bool ret = true;
     while (context_) {
-      COPP_UNLIKELY_IF(!handle) {
+      COPP_UNLIKELY_IF (!handle) {
         ret = false;
         break;
       }
@@ -782,7 +877,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
       }
 
       auto promise = context_->get_handle_delegate().promise;
-      COPP_UNLIKELY_IF(nullptr == promise) { return false; }
+      COPP_UNLIKELY_IF (nullptr == promise) {
+        return false;
+      }
 
       if (!promise->set_status(target_status, &current_status)) {
         continue;
@@ -807,7 +904,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
   UTIL_FORCEINLINE context_pointer_type& get_context() noexcept { return context_; }
 
   inline id_type get_id() const noexcept {
-    if (!context_) {
+    COPP_UNLIKELY_IF (!context_) {
       return 0;
     }
 

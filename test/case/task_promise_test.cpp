@@ -392,14 +392,14 @@ CASE_TEST(task_promise, task_future_await_task) {
 }
 
 namespace {
-static callable_future_int_type task_func_await_and_be_killed() {
+static callable_future_int_type task_func_await_callable_and_be_killed() {
   auto u = callable_func_int_l2(13);
   int x = co_await u;
   co_return x;
 }
 
 static task_future_int_type task_func_await_and_be_killed_by_caller() {
-  auto v = task_func_await_and_be_killed();
+  auto v = task_func_await_callable_and_be_killed();
   int x = co_await v;
   co_return x;
 }
@@ -407,7 +407,7 @@ static task_future_int_type task_func_await_and_be_killed_by_caller() {
 std::shared_ptr<task_future_int_type> g_task_promise_killed_by_callee;
 static task_future_int_type task_func_await_and_be_killed_by_callee(task_future_int_type::task_status_type status) {
   g_task_promise_killed_by_callee->kill(status);
-  auto v = task_func_await_and_be_killed();
+  auto v = task_func_await_callable_and_be_killed();
   int x = co_await v;
   co_return x;
 }
@@ -627,8 +627,154 @@ CASE_TEST(task_promise, timeout_by_callee) {
   CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_task_future_suspend_generator_count);
 }
 
-// TODO kill parent task and the child task will not be effected
-// TODO task destroy and auto resume
+namespace {
+static task_future_int_type task_func_await_child_task_child() {
+  auto u = callable_func_int_l2(53);
+  int x = co_await u;
+  co_return x;
+}
+
+static task_future_int_type task_func_await_child_task_parent(task_future_int_type &out) {
+  out = task_func_await_child_task_child();
+  int x = co_await out;
+  co_return x;
+}
+
+static task_future_int_type task_func_await_empty() {
+  task_future_int_type empty;
+  int x = co_await empty;
+  CASE_EXPECT_EQ(-1, x);
+  co_return x;
+}
+}  // namespace
+
+// kill parent task and the child task will not be effected
+CASE_TEST(task_promise, kill_parent_only) {
+  size_t old_resume_generator_count = g_task_future_resume_generator_count;
+  size_t old_suspend_generator_count = g_task_future_suspend_generator_count;
+
+  task_future_int_type child;
+  task_future_int_type parent = task_func_await_child_task_parent(child);
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(parent.get_status()));
+  CASE_EXPECT_FALSE(parent.is_canceled());
+  CASE_EXPECT_FALSE(parent.is_faulted());
+  CASE_EXPECT_FALSE(parent.is_timeout());
+  CASE_EXPECT_FALSE(parent.is_exiting());
+  CASE_EXPECT_FALSE(parent.is_completed());
+
+  CASE_EXPECT_TRUE(parent.start());
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kRunning), static_cast<int>(parent.get_status()));
+  CASE_EXPECT_FALSE(parent.is_canceled());
+  CASE_EXPECT_FALSE(parent.is_faulted());
+  CASE_EXPECT_FALSE(parent.is_timeout());
+  CASE_EXPECT_FALSE(parent.is_exiting());
+  CASE_EXPECT_FALSE(parent.is_completed());
+
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kCreated), static_cast<int>(child.get_status()));
+  CASE_EXPECT_EQ(old_resume_generator_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count, g_task_future_suspend_generator_count);
+  child.start();
+  CASE_EXPECT_EQ(old_resume_generator_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_task_future_suspend_generator_count);
+
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kRunning), static_cast<int>(child.get_status()));
+  CASE_EXPECT_FALSE(child.is_canceled());
+  CASE_EXPECT_FALSE(child.is_faulted());
+  CASE_EXPECT_FALSE(child.is_timeout());
+  CASE_EXPECT_FALSE(child.is_exiting());
+  CASE_EXPECT_FALSE(child.is_completed());
+
+  CASE_EXPECT_TRUE(parent.kill(task_future_int_type::task_status_type::kTimeout));
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kTimeout), static_cast<int>(parent.get_status()));
+  CASE_EXPECT_FALSE(parent.is_canceled());
+  CASE_EXPECT_TRUE(parent.is_faulted());
+  CASE_EXPECT_TRUE(parent.is_timeout());
+  CASE_EXPECT_TRUE(parent.is_exiting());
+  CASE_EXPECT_TRUE(parent.is_completed());
+  CASE_EXPECT_EQ(-static_cast<int>(copp::promise_status::kTimeout), *parent.get_context()->data());
+
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kRunning), static_cast<int>(child.get_status()));
+  CASE_EXPECT_FALSE(child.is_canceled());
+  CASE_EXPECT_FALSE(child.is_faulted());
+  CASE_EXPECT_FALSE(child.is_timeout());
+  CASE_EXPECT_FALSE(child.is_exiting());
+  CASE_EXPECT_FALSE(child.is_completed());
+
+  resume_pending_contexts({1000});
+  CASE_EXPECT_EQ(-static_cast<int>(copp::promise_status::kTimeout), *parent.get_context()->data());
+  CASE_EXPECT_FALSE(parent.is_canceled());
+  CASE_EXPECT_TRUE(parent.is_faulted());
+  CASE_EXPECT_TRUE(parent.is_timeout());
+  CASE_EXPECT_TRUE(parent.is_exiting());
+  CASE_EXPECT_TRUE(parent.is_completed());
+
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kDone), static_cast<int>(child.get_status()));
+  CASE_EXPECT_FALSE(child.is_canceled());
+  CASE_EXPECT_FALSE(child.is_faulted());
+  CASE_EXPECT_FALSE(child.is_timeout());
+  CASE_EXPECT_TRUE(child.is_exiting());
+  CASE_EXPECT_TRUE(child.is_completed());
+  CASE_EXPECT_EQ(1053, *child.get_context()->data());
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 1, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_task_future_suspend_generator_count);
+}
+
+CASE_TEST(task_promise, empty_task) {
+  task_future_int_type t = task_func_await_empty();
+  t.start();
+
+  task_future_int_type empty;
+  CASE_EXPECT_FALSE(empty.start());
+  CASE_EXPECT_FALSE(empty.kill(task_future_int_type::task_status_type::kKilled));
+
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kInvalid), static_cast<int>(empty.get_status()));
+  CASE_EXPECT_EQ(nullptr, empty.get_private_data());
+  CASE_EXPECT_EQ(0, empty.get_id());
+  CASE_EXPECT_EQ(0, empty.get_ref_future_count());
+  CASE_EXPECT_EQ(nullptr, empty.get_context().get());
+}
+
+// task destroy and auto resume
+CASE_TEST(task_promise, task_destroy_and_auto_resume) {
+  task_future_int_type parent;
+  {
+    task_future_int_type child;
+    parent = task_func_await_child_task_parent(child);
+    CASE_EXPECT_TRUE(parent.start());
+    child.start();
+
+    CASE_EXPECT_EQ(1, parent.get_ref_future_count());
+    CASE_EXPECT_EQ(1, child.get_ref_future_count());
+
+    task_future_int_type move_child_assign = std::move(child);
+    CASE_EXPECT_EQ(0, child.get_ref_future_count());
+    CASE_EXPECT_EQ(1, move_child_assign.get_ref_future_count());
+    task_future_int_type move_child_ctor{std::move(move_child_assign)};
+    CASE_EXPECT_EQ(0, move_child_assign.get_ref_future_count());
+    CASE_EXPECT_EQ(1, move_child_ctor.get_ref_future_count());
+
+    task_future_int_type copy_child_assign = move_child_ctor;
+    task_future_int_type copy_child_ctor{move_child_ctor};
+
+    CASE_EXPECT_EQ(3, copy_child_ctor.get_ref_future_count());
+    CASE_EXPECT_EQ(3, copy_child_assign.get_ref_future_count());
+    CASE_EXPECT_EQ(3, move_child_ctor.get_ref_future_count());
+
+    CASE_EXPECT_EQ(copy_child_assign.get_context(), copy_child_ctor.get_context());
+    CASE_EXPECT_EQ(copy_child_assign.get_context(), move_child_ctor.get_context());
+
+    CASE_EXPECT_EQ(copy_child_assign.get_id(), copy_child_ctor.get_id());
+    CASE_EXPECT_EQ(copy_child_assign.get_id(), move_child_ctor.get_id());
+
+    CASE_EXPECT_FALSE(parent.is_exiting());
+    CASE_EXPECT_FALSE(parent.is_completed());
+  }
+
+  CASE_EXPECT_TRUE(parent.is_exiting());
+  CASE_EXPECT_TRUE(parent.is_completed());
+  CASE_EXPECT_EQ(-static_cast<int>(copp::promise_status::kKilled), *parent.get_context()->data());
+}
 
 #else
 CASE_TEST(task_promise, disabled) {}

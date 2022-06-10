@@ -245,7 +245,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
  protected:
   inline promise_status detach() noexcept {
     promise_status result_status;
-    if (nullptr != context_ && context_->is_ready()) {
+    COPP_UNLIKELY_IF (nullptr == context_) {
+      result_status = promise_status::kInvalid;
+    } else if (context_->is_ready()) {
       result_status = promise_status::kDone;
     } else {
       result_status = promise_status::kKilled;
@@ -338,17 +340,26 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
       : base_type(context, await_suspend_callback, await_resume_callback) {}
 
   inline value_type await_resume() {
-    bool has_multiple_callers = get_context()->has_multiple_callers();
+    bool has_multiple_callers;
+    COPP_LIKELY_IF (nullptr != get_context()) {
+      has_multiple_callers = get_context()->has_multiple_callers();
+    } else {
+      has_multiple_callers = false;
+    }
     promise_status result_status = detach();
 
     if (promise_status::kDone != result_status) {
       return promise_error_transform<value_type>()(result_status);
     }
 
-    if (has_multiple_callers) {
-      return *get_context()->data();
+    COPP_LIKELY_IF (nullptr != get_context()) {
+      if (has_multiple_callers) {
+        return *get_context()->data();
+      } else {
+        return std::move(*get_context()->data());
+      }
     } else {
-      return std::move(*get_context()->data());
+      return promise_error_transform<value_type>()(promise_status::kInvalid);
     }
   }
 

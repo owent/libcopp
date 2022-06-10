@@ -156,7 +156,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
     clear_context_waker_type(TCONTEXT &ctx) : context(&ctx) {}
 
     void operator()() LIBCOPP_MACRO_NOEXCEPT {
-      COPP_LIKELY_IF(context) { context->set_wake_fn(nullptr); }
+      COPP_LIKELY_IF (context) {
+        context->set_wake_fn(nullptr);
+      }
     }
   };
 
@@ -168,7 +170,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
     future_waker_type(TSELF &s) : self(&s) {}
 
     void operator()(TCONTEXT &ctx) {
-      COPP_LIKELY_IF(self) { self->template poll_as<TSELF>(ctx); }
+      COPP_LIKELY_IF (self) {
+        self->template poll_as<TSELF>(ctx);
+      }
     }
 
     // convert type
@@ -186,7 +190,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY future_with_waker : public future<T, TPTR> {
     future_waker_type(TSELF &s) : self(&s) {}
 
     void operator()(context<TPD> &ctx) {
-      COPP_LIKELY_IF(self) { self->template poll_as<TSELF>(ctx); }
+      COPP_LIKELY_IF (self) {
+        self->template poll_as<TSELF>(ctx);
+      }
     }
   };
 
