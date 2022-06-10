@@ -759,11 +759,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY atomic_int_type<unsafe_int_type<Ty> > {
 
  private:
   inline bool cas(value_type &expected, value_type desired) LIBCOPP_MACRO_NOEXCEPT {
-    COPP_LIKELY_IF(data_ == expected) {
+    COPP_LIKELY_IF (data_ == expected) {
       data_ = desired;
       return true;
-    }
-    else {
+    } else {
       expected = data_;
       return false;
     }

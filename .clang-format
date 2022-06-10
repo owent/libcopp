@@ -15,3 +15,17 @@ IncludeBlocks: Preserve
 #   #  include <curl.h>
 #   #endif
 IndentPPDirectives: AfterHash
+
+IfMacros: ["COPP_LIKELY_IF", "COPP_UNLIKELY_IF"]
+StatementAttributeLikeMacros:
+  [
+    "UTIL_SYMBOL_EXPORT",
+    "UTIL_SYMBOL_IMPORT",
+    "UTIL_SYMBOL_VISIBLE",
+    "UTIL_SYMBOL_LOCAL",
+    "UTIL_FORCEINLINE",
+    "UTIL_NOINLINE_NOCLONE",
+    "COPP_NORETURN_ATTR",
+    "COPP_UNREACHABLE",
+  ]
+StatementMacros: []
