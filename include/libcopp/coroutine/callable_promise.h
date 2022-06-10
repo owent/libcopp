@@ -282,9 +282,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
-    // #  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
-    //     void unhandled_exception() { throw; }
-    // #  endif
+#  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
+    void unhandled_exception() { throw; }
+#  endif
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
   using awaitable_type = callable_awaitable<promise_type, std::is_void<typename std::decay<value_type>::type>::value>;
