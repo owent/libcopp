@@ -77,10 +77,8 @@ static callable_future_int_type callable_func_int_l1(int inout) {
 }
 
 static callable_future_int_type callable_func_int_l2(int inout) {
-  CASE_MSG_INFO() << "callable inner future async int: " << inout << std::endl;
   generator_future_int_type generator{generator_int_suspend_callback, generator_int_resume_callback};
   auto gen_res = co_await generator;
-  CASE_MSG_INFO() << "callable inner future return int: " << inout << std::endl;
   if (gen_res < 0) {
     co_return gen_res;
   }
@@ -90,9 +88,7 @@ static callable_future_int_type callable_func_int_l2(int inout) {
 static callable_future_int_type callable_func_await_int() {
   auto v = callable_func_int_l1(3);
   auto u = callable_func_int_l2(11);
-  CASE_MSG_INFO() << "callable await int" << std::endl;
   int x = (co_await v + co_await u);
-  CASE_MSG_INFO() << "callable return int" << std::endl;
   co_return x;
 }
 
@@ -112,9 +108,7 @@ static task_future_int_type task_func_await_int() {
 static callable_future_int_type callable_func_no_wait_int() {
   auto v = callable_func_int_l1(7);
   auto u = callable_func_int_l1(19);
-  CASE_MSG_INFO() << "callable await int" << std::endl;
   int x = (co_await v + co_await u);
-  CASE_MSG_INFO() << "callable return int" << std::endl;
   co_return x;
 }
 
@@ -145,20 +139,16 @@ static callable_future_void_type callable_func_void_l1() {
 }
 
 static callable_future_void_type callable_func_void_l2() {
-  CASE_MSG_INFO() << "callable inner future async void" << std::endl;
   generator_future_void_type generator{generator_void_suspend_callback, generator_void_resume_callback};
   co_await generator;
-  CASE_MSG_INFO() << "callable inner future return void" << std::endl;
   co_return;
 }
 
 static callable_future_void_type callable_func_await_void() {
   auto v = callable_func_void_l1();
   auto u = callable_func_void_l2();
-  CASE_MSG_INFO() << "callable await void" << std::endl;
   co_await v;
   co_await u;
-  CASE_MSG_INFO() << "callable return void" << std::endl;
   co_return;
 }
 
@@ -178,10 +168,8 @@ static task_future_void_type task_func_await_void() {
 static callable_future_void_type callable_func_no_wait_void() {
   auto v = callable_func_void_l1();
   auto u = callable_func_void_l1();
-  CASE_MSG_INFO() << "callable await void" << std::endl;
   co_await v;
   co_await u;
-  CASE_MSG_INFO() << "callable return void" << std::endl;
   co_return;
 }
 
@@ -774,7 +762,230 @@ CASE_TEST(task_promise, task_destroy_and_auto_resume) {
   CASE_EXPECT_TRUE(parent.is_exiting());
   CASE_EXPECT_TRUE(parent.is_completed());
   CASE_EXPECT_EQ(-static_cast<int>(copp::promise_status::kKilled), *parent.get_context()->data());
+
+  resume_pending_contexts({});
 }
+
+namespace {
+static task_future_int_type task_func_await_int_simple() {
+  auto u = callable_func_int_l2(91);
+  int x = co_await u;
+  co_return x;
+}
+
+static task_future_void_type task_func_await_void_simple() {
+  auto u = callable_func_void_l2();
+  co_await u;
+  co_return;
+}
+
+}  // namespace
+
+CASE_TEST(task_promise, then_12_1_task_return_int_and_thenable_return_normal_int) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](task_future_int_type::context_pointer_type, task_future_int_type::value_type value) {
+    CASE_EXPECT_EQ(2091, value);
+    CASE_MSG_INFO() << "thenable return int" << std::endl;
+    return value;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(2091, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, then_12_2_task_return_int_and_thenable_return_normal_void) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](const task_future_int_type::context_pointer_type &, task_future_int_type::value_type value) {
+    CASE_EXPECT_EQ(2091, value);
+    CASE_MSG_INFO() << "thenable return void" << std::endl;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_ready());
+}
+
+CASE_TEST(task_promise, then_12_3_task_return_int_and_thenable_return_callable_int) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](task_future_int_type::context_pointer_type &&,
+                     task_future_int_type::value_type value) -> copp::callable_future<int> {
+    CASE_EXPECT_EQ(2091, value);
+    CASE_MSG_INFO() << "thenable return callable_future<int>" << std::endl;
+    co_return value;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(2091, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, then_12_4_task_return_int_and_thenable_return_callable_void) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](const task_future_int_type::context_pointer_type &,
+                     task_future_int_type::value_type value) -> copp::callable_future<void> {
+    CASE_EXPECT_EQ(2091, value);
+    CASE_MSG_INFO() << "thenable return callable_future<void>" << std::endl;
+    co_return;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_ready());
+}
+
+CASE_TEST(task_promise, then_12_5_task_return_int_and_thenable_return_callable_int) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](task_future_int_type::context_pointer_type,
+                     task_future_int_type::value_type value) -> cotask::task_future<int, void> {
+    CASE_EXPECT_EQ(2091, value);
+    CASE_MSG_INFO() << "thenable return task_future<int>" << std::endl;
+    co_return value;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(2091, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, then_12_6_task_return_int_and_thenable_return_callable_void) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](task_future_int_type::context_pointer_type &&,
+                     task_future_int_type::value_type value) -> cotask::task_future<void, void> {
+    CASE_EXPECT_EQ(2091, value);
+    CASE_MSG_INFO() << "thenable return task_future<void>" << std::endl;
+    co_return;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_ready());
+}
+
+CASE_TEST(task_promise, then_12_7_task_return_void_and_thenable_return_normal_int) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then([](task_future_void_type::context_pointer_type) {
+    CASE_MSG_INFO() << "thenable return int" << std::endl;
+    return 2111;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(2111, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, then_12_8_task_return_void_and_thenable_return_normal_void) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then([](const task_future_void_type::context_pointer_type &) {
+    CASE_MSG_INFO() << "thenable return void" << std::endl;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_ready());
+}
+
+CASE_TEST(task_promise, then_12_9_task_return_void_and_thenable_return_callable_int) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then([](task_future_void_type::context_pointer_type) -> copp::callable_future<int> {
+    CASE_MSG_INFO() << "thenable return callable_future<int>" << std::endl;
+    co_return 2111;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(2111, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, then_12_10_task_return_void_and_thenable_return_callable_void) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then([](const task_future_void_type::context_pointer_type &) -> copp::callable_future<void> {
+    CASE_MSG_INFO() << "thenable return callable_future<void>" << std::endl;
+    co_return;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_ready());
+}
+
+CASE_TEST(task_promise, then_12_11_task_return_void_and_thenable_return_callable_int) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then([](task_future_void_type::context_pointer_type) -> cotask::task_future<int, void> {
+    CASE_MSG_INFO() << "thenable return task_future<int>" << std::endl;
+    co_return 2111;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(2111, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, then_12_12_task_return_void_and_thenable_return_callable_void) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then([](const task_future_void_type::context_pointer_type &) -> cotask::task_future<void, void> {
+    CASE_MSG_INFO() << "thenable return task_future<void>" << std::endl;
+    co_return;
+  });
+
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_ready());
+}
+
+CASE_TEST(task_promise, then_todo_kill_task) {}
+
+CASE_TEST(task_promise, then_todo_empty_task) {}
+
+CASE_TEST(task_promise, then_todo_exiting_task) {}
 
 #else
 CASE_TEST(task_promise, disabled) {}
