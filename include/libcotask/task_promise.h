@@ -112,8 +112,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TPROMISE>
 #  else
-  template <class TPROMISE, typename = std::enable_if_t<
-                                std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TPROMISE>::value> >
+  template <class TPROMISE,
+            typename = std::enable_if_t<std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TPROMISE>::value>>
 #  endif
   UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& handle) noexcept {
@@ -125,8 +125,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TPROMISE>
 #  else
-  template <class TPROMISE, typename = std::enable_if_t<
-                                std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TPROMISE>::value> >
+  template <class TPROMISE,
+            typename = std::enable_if_t<std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TPROMISE>::value>>
 #  endif
   UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& handle, bool inherit_status) noexcept {
@@ -294,7 +294,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_private_data {
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context<TVALUE, void>
     : public task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE, void> > {
+      public std::enable_shared_from_this<task_context<TVALUE, void>> {
  public:
   using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
@@ -316,7 +316,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context<TVALUE, void>
 template <class TVALUE, class TPRIVATE_DATA>
 class LIBCOPP_COPP_API_HEAD_ONLY task_context
     : public task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE, TPRIVATE_DATA> > {
+      public std::enable_shared_from_this<task_context<TVALUE, TPRIVATE_DATA>> {
  public:
   using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
@@ -373,7 +373,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
 
  protected:
   template <class TPROMISE, typename = std::enable_if_t<
-                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, true>, TPROMISE>::value> >
+                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, true>, TPROMISE>::value>>
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
     COPP_LIKELY_IF (context_) {
@@ -426,7 +426,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
 
  protected:
   template <class TPROMISE, typename = std::enable_if_t<
-                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, false>, TPROMISE>::value> >
+                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, false>, TPROMISE>::value>>
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
     COPP_LIKELY_IF (context_) {
@@ -474,7 +474,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
   template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TCPROMISE>
 #  else
   template <class TCPROMISE, typename = std::enable_if_t<
-                                 std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value> >
+                                 std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value>>
 #  endif
   inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (nullptr != context_ && caller.promise().get_status() < task_status_type::kDone) {
@@ -911,8 +911,157 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future {
     return context_->get_id();
   }
 
-  // TODO then(RETURN (*CLAZZ::fn)(TARGS...), CLAZZ*, TARGS...)
-  // TODO then(functor, TARGS&&...)
+ private:
+  template <class TTHENABLE_VALUE>
+  struct _thenable_return_traits_value_type;
+
+  template <class TCALLABLE_VALUE>
+  struct _thenable_return_traits_value_type<LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE>>
+      : public std::true_type {
+    using type = typename LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE>::value_type;
+
+    template <class TINPUT>
+    inline static LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE> start_thenable(TINPUT&& c) {
+      return c;
+    }
+  };
+
+  template <class TTASK_VALUE, class TTASK_PRIVATE_DATA>
+  struct _thenable_return_traits_value_type<task_future<TTASK_VALUE, TTASK_PRIVATE_DATA>> : public std::true_type {
+    using type = typename task_future<TTASK_VALUE, TTASK_PRIVATE_DATA>::value_type;
+
+    template <class TINPUT>
+    inline static task_future<TTASK_VALUE, TTASK_PRIVATE_DATA> start_thenable(TINPUT&& task) {
+      task.start();
+      return {std::move(std::forward<TINPUT>(task))};
+    }
+  };
+
+  template <class TTHENABLE_VALUE>
+  struct _thenable_return_traits_value_type : public std::false_type {
+    using type = TTHENABLE_VALUE;
+  };
+
+  template <class TTHENABLE, bool TASK_RETURN_VOID>
+  struct _thenable_return_traits_return_type;
+
+  template <class TTHENABLE>
+  struct _thenable_return_traits_return_type<TTHENABLE, true>
+      : public _thenable_return_traits_value_type<typename std::invoke_result<TTHENABLE, context_pointer_type>::type> {
+  };
+
+  template <class TTHENABLE>
+  struct _thenable_return_traits_return_type<TTHENABLE, false>
+      : public _thenable_return_traits_value_type<
+            typename std::invoke_result<TTHENABLE, context_pointer_type, value_type>::type> {};
+
+  template <class TTHENABLE>
+  struct thenable_return_traits
+      : public _thenable_return_traits_return_type<TTHENABLE, std::is_void<value_type>::value> {};
+
+  template <class TTHENABLE, bool THENABLE_RETURN_COROUTINE, bool THENABLE_RETURN_VOID, bool TASK_RETURN_VOID>
+  struct thenable_traits;
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, true, false, false> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, true, false, true> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_await self;
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, true, true, false> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self));
+      co_return;
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, true, true, true> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_await self;
+      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx)));
+      co_return;
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, false, true, false> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      thenable(std::move(ctx), co_await self);
+      co_return;
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, false, true, true> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_await self;
+      thenable(std::move(ctx));
+      co_return;
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, false, false, false> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_return thenable(std::move(ctx), co_await self);
+    }
+  };
+
+  template <class TTHENABLE>
+  struct thenable_traits<TTHENABLE, false, false, true> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+
+    inline static type invoke(self_type self, TTHENABLE thenable) {
+      context_pointer_type ctx = self.get_context();
+      co_await self;
+      co_return thenable(std::move(ctx));
+    }
+  };
+
+ public:
+  template <class TTHENABLE>
+  typename thenable_traits<
+      typename std::decay<TTHENABLE>::type, thenable_return_traits<typename std::decay<TTHENABLE>::type>::value,
+      std::is_same<typename thenable_return_traits<typename std::decay<TTHENABLE>::type>::type, void>::value,
+      std::is_void<value_type>::value>::type
+  then(TTHENABLE&& thenable) {
+    return thenable_traits<
+        typename std::decay<TTHENABLE>::type, thenable_return_traits<typename std::decay<TTHENABLE>::type>::value,
+        std::is_same<typename thenable_return_traits<typename std::decay<TTHENABLE>::type>::type, void>::value,
+        std::is_void<value_type>::value>::invoke(*this, std::forward<TTHENABLE>(thenable));
+  }
 
  private:
   context_pointer_type context_;
