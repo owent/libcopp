@@ -356,7 +356,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
       if (has_multiple_callers) {
         return *get_context()->data();
       } else {
-        return std::move(*get_context()->data());
+        return multiple_callers_constructor<value_type>::return_value(*get_context()->data());
       }
     } else {
       return promise_error_transform<value_type>()(promise_status::kInvalid);

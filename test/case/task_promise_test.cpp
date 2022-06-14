@@ -781,7 +781,7 @@ static task_future_void_type task_func_await_void_simple() {
 
 }  // namespace
 
-CASE_TEST(task_promise, then_12_1_task_return_int_and_thenable_return_normal_int) {
+CASE_TEST(task_promise, callable_then_12_1_task_return_int_and_thenable_return_normal_int) {
   auto t = task_func_await_int_simple();
   auto f = t.then([](task_future_int_type::context_pointer_type, task_future_int_type::value_type value) {
     CASE_EXPECT_EQ(2091, value);
@@ -799,7 +799,7 @@ CASE_TEST(task_promise, then_12_1_task_return_int_and_thenable_return_normal_int
   CASE_EXPECT_EQ(2091, f.get_internal_promise().data());
 }
 
-CASE_TEST(task_promise, then_12_2_task_return_int_and_thenable_return_normal_void) {
+CASE_TEST(task_promise, callable_then_12_2_task_return_int_and_thenable_return_normal_void) {
   auto t = task_func_await_int_simple();
   auto f = t.then([](const task_future_int_type::context_pointer_type &, task_future_int_type::value_type value) {
     CASE_EXPECT_EQ(2091, value);
@@ -814,7 +814,7 @@ CASE_TEST(task_promise, then_12_2_task_return_int_and_thenable_return_normal_voi
   CASE_EXPECT_TRUE(f.is_ready());
 }
 
-CASE_TEST(task_promise, then_12_3_task_return_int_and_thenable_return_callable_int) {
+CASE_TEST(task_promise, callable_then_12_3_task_return_int_and_thenable_return_callable_int) {
   auto t = task_func_await_int_simple();
   auto f = t.then([](task_future_int_type::context_pointer_type &&,
                      task_future_int_type::value_type value) -> copp::callable_future<int> {
@@ -833,7 +833,7 @@ CASE_TEST(task_promise, then_12_3_task_return_int_and_thenable_return_callable_i
   CASE_EXPECT_EQ(2091, f.get_internal_promise().data());
 }
 
-CASE_TEST(task_promise, then_12_4_task_return_int_and_thenable_return_callable_void) {
+CASE_TEST(task_promise, callable_then_12_4_task_return_int_and_thenable_return_callable_void) {
   auto t = task_func_await_int_simple();
   auto f = t.then([](const task_future_int_type::context_pointer_type &,
                      task_future_int_type::value_type value) -> copp::callable_future<void> {
@@ -850,7 +850,7 @@ CASE_TEST(task_promise, then_12_4_task_return_int_and_thenable_return_callable_v
   CASE_EXPECT_TRUE(f.is_ready());
 }
 
-CASE_TEST(task_promise, then_12_5_task_return_int_and_thenable_return_callable_int) {
+CASE_TEST(task_promise, callable_then_12_5_task_return_int_and_thenable_return_callable_int) {
   auto t = task_func_await_int_simple();
   auto f = t.then([](task_future_int_type::context_pointer_type,
                      task_future_int_type::value_type value) -> cotask::task_future<int, void> {
@@ -869,7 +869,7 @@ CASE_TEST(task_promise, then_12_5_task_return_int_and_thenable_return_callable_i
   CASE_EXPECT_EQ(2091, f.get_internal_promise().data());
 }
 
-CASE_TEST(task_promise, then_12_6_task_return_int_and_thenable_return_callable_void) {
+CASE_TEST(task_promise, callable_then_12_6_task_return_int_and_thenable_return_callable_void) {
   auto t = task_func_await_int_simple();
   auto f = t.then([](task_future_int_type::context_pointer_type &&,
                      task_future_int_type::value_type value) -> cotask::task_future<void, void> {
@@ -886,7 +886,7 @@ CASE_TEST(task_promise, then_12_6_task_return_int_and_thenable_return_callable_v
   CASE_EXPECT_TRUE(f.is_ready());
 }
 
-CASE_TEST(task_promise, then_12_7_task_return_void_and_thenable_return_normal_int) {
+CASE_TEST(task_promise, callable_then_12_7_task_return_void_and_thenable_return_normal_int) {
   auto t = task_func_await_void_simple();
   auto f = t.then([](task_future_void_type::context_pointer_type) {
     CASE_MSG_INFO() << "thenable return int" << std::endl;
@@ -903,7 +903,7 @@ CASE_TEST(task_promise, then_12_7_task_return_void_and_thenable_return_normal_in
   CASE_EXPECT_EQ(2111, f.get_internal_promise().data());
 }
 
-CASE_TEST(task_promise, then_12_8_task_return_void_and_thenable_return_normal_void) {
+CASE_TEST(task_promise, callable_then_12_8_task_return_void_and_thenable_return_normal_void) {
   auto t = task_func_await_void_simple();
   auto f = t.then([](const task_future_void_type::context_pointer_type &) {
     CASE_MSG_INFO() << "thenable return void" << std::endl;
@@ -917,7 +917,7 @@ CASE_TEST(task_promise, then_12_8_task_return_void_and_thenable_return_normal_vo
   CASE_EXPECT_TRUE(f.is_ready());
 }
 
-CASE_TEST(task_promise, then_12_9_task_return_void_and_thenable_return_callable_int) {
+CASE_TEST(task_promise, callable_then_12_9_task_return_void_and_thenable_return_callable_int) {
   auto t = task_func_await_void_simple();
   auto f = t.then([](task_future_void_type::context_pointer_type) -> copp::callable_future<int> {
     CASE_MSG_INFO() << "thenable return callable_future<int>" << std::endl;
@@ -934,7 +934,7 @@ CASE_TEST(task_promise, then_12_9_task_return_void_and_thenable_return_callable_
   CASE_EXPECT_EQ(2111, f.get_internal_promise().data());
 }
 
-CASE_TEST(task_promise, then_12_10_task_return_void_and_thenable_return_callable_void) {
+CASE_TEST(task_promise, callable_then_12_10_task_return_void_and_thenable_return_callable_void) {
   auto t = task_func_await_void_simple();
   auto f = t.then([](const task_future_void_type::context_pointer_type &) -> copp::callable_future<void> {
     CASE_MSG_INFO() << "thenable return callable_future<void>" << std::endl;
@@ -949,7 +949,7 @@ CASE_TEST(task_promise, then_12_10_task_return_void_and_thenable_return_callable
   CASE_EXPECT_TRUE(f.is_ready());
 }
 
-CASE_TEST(task_promise, then_12_11_task_return_void_and_thenable_return_callable_int) {
+CASE_TEST(task_promise, callable_then_12_11_task_return_void_and_thenable_return_callable_int) {
   auto t = task_func_await_void_simple();
   auto f = t.then([](task_future_void_type::context_pointer_type) -> cotask::task_future<int, void> {
     CASE_MSG_INFO() << "thenable return task_future<int>" << std::endl;
@@ -966,7 +966,7 @@ CASE_TEST(task_promise, then_12_11_task_return_void_and_thenable_return_callable
   CASE_EXPECT_EQ(2111, f.get_internal_promise().data());
 }
 
-CASE_TEST(task_promise, then_12_12_task_return_void_and_thenable_return_callable_void) {
+CASE_TEST(task_promise, callable_then_12_12_task_return_void_and_thenable_return_callable_void) {
   auto t = task_func_await_void_simple();
   auto f = t.then([](const task_future_void_type::context_pointer_type &) -> cotask::task_future<void, void> {
     CASE_MSG_INFO() << "thenable return task_future<void>" << std::endl;
@@ -981,11 +981,364 @@ CASE_TEST(task_promise, then_12_12_task_return_void_and_thenable_return_callable
   CASE_EXPECT_TRUE(f.is_ready());
 }
 
-CASE_TEST(task_promise, then_todo_kill_task) {}
+CASE_TEST(task_promise, then_kill_task) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then([](task_future_int_type::context_pointer_type ctx, task_future_int_type::value_type value) {
+    CASE_EXPECT_EQ(static_cast<int>(ctx->get_status()),
+                   static_cast<int>(task_future_int_type::task_status_type::kTimeout));
+    CASE_EXPECT_EQ(-static_cast<int>(task_future_int_type::task_status_type::kTimeout), value);
+    CASE_MSG_INFO() << "thenable of timeout task return int" << std::endl;
+    return value;
+  });
 
-CASE_TEST(task_promise, then_todo_empty_task) {}
+  CASE_EXPECT_FALSE(f.is_ready());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_ready());
 
-CASE_TEST(task_promise, then_todo_exiting_task) {}
+  t.kill(task_future_int_type::task_status_type::kTimeout);
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(-static_cast<int>(task_future_int_type::task_status_type::kTimeout), f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+CASE_TEST(task_promise, then_empty_task) {
+  task_future_int_type t;
+  auto f = t.then([](task_future_int_type::context_pointer_type ctx, task_future_int_type::value_type value) {
+    CASE_EXPECT_TRUE(!ctx);
+    CASE_EXPECT_EQ(-1, value);
+    CASE_MSG_INFO() << "thenable of empty task return int" << std::endl;
+    return value;
+  });
+
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(-1, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+CASE_TEST(task_promise, then_exiting_task) {
+  auto t = task_func_await_int_simple();
+  t.start();
+
+  resume_pending_contexts({3000});
+
+  auto f = t.then([](task_future_int_type::context_pointer_type ctx, task_future_int_type::value_type value) {
+    CASE_EXPECT_EQ(static_cast<int>(ctx->get_status()),
+                   static_cast<int>(task_future_int_type::task_status_type::kDone));
+    CASE_EXPECT_EQ(3091, value);
+    CASE_MSG_INFO() << "thenable of exiting task return int" << std::endl;
+    return value;
+  });
+
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(3091, f.get_internal_promise().data());
+}
+
+CASE_TEST(task_promise, task_then_12_1_task_return_int_and_thenable_return_normal_int) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then(
+                [](task_future_int_type::context_pointer_type, task_future_int_type::value_type value) {
+                  CASE_EXPECT_EQ(2091, value);
+                  CASE_MSG_INFO() << "first thenable return int" << std::endl;
+                  return value;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<int, int>::context_pointer_type ctx, task_future_int_type::value_type value) {
+                     CASE_EXPECT_EQ(2091, value);
+                     CASE_MSG_INFO() << "second thenable return int" << std::endl;
+                     return value + ctx->get_private_data();
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_exiting());
+
+  CASE_EXPECT_EQ(5091, *f.get_context()->data());
+}
+
+CASE_TEST(task_promise, task_then_12_2_task_return_int_and_thenable_return_normal_void) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then(
+                [](const task_future_int_type::context_pointer_type &, task_future_int_type::value_type value) {
+                  CASE_EXPECT_EQ(2091, value);
+                  CASE_MSG_INFO() << "first thenable return void" << std::endl;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<void, int>::context_pointer_type ctx) {
+                     CASE_EXPECT_EQ(3000, ctx->get_private_data());
+                     CASE_MSG_INFO() << "second thenable return void" << std::endl;
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_exiting());
+}
+
+CASE_TEST(task_promise, task_then_12_3_task_return_int_and_thenable_return_callable_int) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then(
+                [](task_future_int_type::context_pointer_type &&,
+                   task_future_int_type::value_type value) -> copp::callable_future<int> {
+                  CASE_EXPECT_EQ(2091, value);
+                  CASE_MSG_INFO() << "first thenable return callable_future<int>" << std::endl;
+                  co_return value;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<int, int>::context_pointer_type ctx, task_future_int_type::value_type value) {
+                     CASE_EXPECT_EQ(2091, value);
+                     CASE_MSG_INFO() << "second thenable return int" << std::endl;
+                     return value + ctx->get_private_data();
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_exiting());
+
+  CASE_EXPECT_EQ(5091, *f.get_context()->data());
+}
+
+CASE_TEST(task_promise, task_then_12_4_task_return_int_and_thenable_return_callable_void) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then(
+                [](const task_future_int_type::context_pointer_type &,
+                   task_future_int_type::value_type value) -> copp::callable_future<void> {
+                  CASE_EXPECT_EQ(2091, value);
+                  CASE_MSG_INFO() << "first thenable return callable_future<void>" << std::endl;
+                  co_return;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<void, int>::context_pointer_type ctx) {
+                     CASE_EXPECT_EQ(3000, ctx->get_private_data());
+                     CASE_MSG_INFO() << "second thenable return void" << std::endl;
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_exiting());
+}
+
+CASE_TEST(task_promise, task_then_12_5_task_return_int_and_thenable_return_callable_int) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then(
+                [](task_future_int_type::context_pointer_type,
+                   task_future_int_type::value_type value) -> cotask::task_future<int, void> {
+                  CASE_EXPECT_EQ(2091, value);
+                  CASE_MSG_INFO() << "first thenable return task_future<int>" << std::endl;
+                  co_return value;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<int, int>::context_pointer_type ctx, task_future_int_type::value_type value) {
+                     CASE_EXPECT_EQ(2091, value);
+                     CASE_MSG_INFO() << "second thenable return int" << std::endl;
+                     return value + ctx->get_private_data();
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_exiting());
+
+  CASE_EXPECT_EQ(5091, *f.get_context()->data());
+}
+
+CASE_TEST(task_promise, task_then_12_6_task_return_int_and_thenable_return_callable_void) {
+  auto t = task_func_await_int_simple();
+  auto f = t.then(
+                [](task_future_int_type::context_pointer_type &&,
+                   task_future_int_type::value_type value) -> cotask::task_future<void, void> {
+                  CASE_EXPECT_EQ(2091, value);
+                  CASE_MSG_INFO() << "first thenable return task_future<void>" << std::endl;
+                  co_return;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<void, int>::context_pointer_type ctx) {
+                     CASE_EXPECT_EQ(3000, ctx->get_private_data());
+                     CASE_MSG_INFO() << "second thenable return void" << std::endl;
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({2000});
+  CASE_EXPECT_TRUE(f.is_exiting());
+}
+
+CASE_TEST(task_promise, task_then_12_7_task_return_void_and_thenable_return_normal_int) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then(
+                [](task_future_void_type::context_pointer_type) {
+                  CASE_MSG_INFO() << "first thenable return int" << std::endl;
+                  return 2111;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<int, int>::context_pointer_type ctx, task_future_int_type::value_type value) {
+                     CASE_EXPECT_EQ(2111, value);
+                     CASE_MSG_INFO() << "second thenable return int" << std::endl;
+                     return value + ctx->get_private_data();
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_exiting());
+
+  CASE_EXPECT_EQ(5111, *f.get_context()->data());
+}
+
+CASE_TEST(task_promise, task_then_12_8_task_return_void_and_thenable_return_normal_void) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then(
+                [](const task_future_void_type::context_pointer_type &) {
+                  CASE_MSG_INFO() << "first thenable return void" << std::endl;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<void, int>::context_pointer_type ctx) {
+                     CASE_EXPECT_EQ(3000, ctx->get_private_data());
+                     CASE_MSG_INFO() << "second thenable return void" << std::endl;
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_exiting());
+}
+
+CASE_TEST(task_promise, task_then_12_9_task_return_void_and_thenable_return_callable_int) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then(
+                [](task_future_void_type::context_pointer_type) -> copp::callable_future<int> {
+                  CASE_MSG_INFO() << "first thenable return callable_future<int>" << std::endl;
+                  co_return 2111;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<int, int>::context_pointer_type ctx, task_future_int_type::value_type value) {
+                     CASE_EXPECT_EQ(2111, value);
+                     CASE_MSG_INFO() << "second thenable return int" << std::endl;
+                     return value + ctx->get_private_data();
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_exiting());
+
+  CASE_EXPECT_EQ(5111, *f.get_context()->data());
+}
+
+CASE_TEST(task_promise, task_then_12_10_task_return_void_and_thenable_return_callable_void) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then(
+                [](const task_future_void_type::context_pointer_type &) -> copp::callable_future<void> {
+                  CASE_MSG_INFO() << "first thenable return callable_future<void>" << std::endl;
+                  co_return;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<void, int>::context_pointer_type ctx) {
+                     CASE_EXPECT_EQ(3000, ctx->get_private_data());
+                     CASE_MSG_INFO() << "second thenable return void" << std::endl;
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_exiting());
+}
+
+CASE_TEST(task_promise, task_then_12_11_task_return_void_and_thenable_return_callable_int) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then(
+                [](task_future_void_type::context_pointer_type) -> cotask::task_future<int, void> {
+                  CASE_MSG_INFO() << "first thenable return task_future<int>" << std::endl;
+                  co_return 2111;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<int, int>::context_pointer_type ctx, task_future_int_type::value_type value) {
+                     CASE_EXPECT_EQ(2111, value);
+                     CASE_MSG_INFO() << "second thenable return int" << std::endl;
+                     return value + ctx->get_private_data();
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_exiting());
+
+  CASE_EXPECT_EQ(5111, *f.get_context()->data());
+}
+
+CASE_TEST(task_promise, task_then_12_12_task_return_void_and_thenable_return_callable_void) {
+  auto t = task_func_await_void_simple();
+  auto f = t.then(
+                [](const task_future_void_type::context_pointer_type &) -> cotask::task_future<void, void> {
+                  CASE_MSG_INFO() << "first thenable return task_future<void>" << std::endl;
+                  co_return;
+                },
+                3000)
+               .then(
+                   [](cotask::task_future<void, int>::context_pointer_type ctx) {
+                     CASE_EXPECT_EQ(3000, ctx->get_private_data());
+                     CASE_MSG_INFO() << "second thenable return void" << std::endl;
+                   },
+                   nullptr);
+
+  CASE_EXPECT_FALSE(f.is_exiting());
+  t.start();
+  CASE_EXPECT_FALSE(f.is_exiting());
+
+  resume_pending_contexts({});
+  CASE_EXPECT_TRUE(f.is_exiting());
+}
 
 #else
 CASE_TEST(task_promise, disabled) {}

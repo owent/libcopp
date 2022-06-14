@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <libcopp/utils/config/compile_optimize.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/std/coroutine.h>
 
@@ -10,6 +11,7 @@
 // clang-format on
 #include <assert.h>
 #include <bitset>
+#include <cstddef>
 #include <memory>
 #include <type_traits>
 #include <unordered_set>
@@ -52,6 +54,26 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY promise_flag : uint8_t {
   kInternalWaitting = 2,
   kMax,
 };
+
+template <class TVALUE, bool ALLOW_MOVE>
+struct LIBCOPP_COPP_API_HEAD_ONLY _multiple_callers_constructor;
+
+template <class TVALUE>
+struct LIBCOPP_COPP_API_HEAD_ONLY _multiple_callers_constructor<TVALUE, true> {
+  UTIL_FORCEINLINE static TVALUE &&return_value(TVALUE &input) noexcept { return std::move(input); }
+};
+
+template <class TVALUE>
+struct LIBCOPP_COPP_API_HEAD_ONLY _multiple_callers_constructor<TVALUE, false> {
+  UTIL_FORCEINLINE static const TVALUE &return_value(TVALUE &input) noexcept { return input; }
+};
+
+template <class TVALUE>
+struct LIBCOPP_COPP_API_HEAD_ONLY multiple_callers_constructor
+    : public _multiple_callers_constructor<
+          TVALUE, !(std::is_pointer<TVALUE>::value || std::is_reference<TVALUE>::value ||
+                    !std::is_move_constructible<TVALUE>::value ||
+                    (std::is_trivially_copyable<TVALUE>::value && sizeof(TVALUE) <= sizeof(std::max_align_t)))> {};
 
 class promise_base_type;
 
