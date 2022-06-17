@@ -969,7 +969,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
    public:
 #  if defined(__GNUC__) && !defined(__clang__)
     template <class... TARGS>
-    promise_type(TARGS&&... args) : promise_base_type(std::move(args)...) {}
+    promise_type(TARGS&&... args) : promise_base_type(args...) {}
 #  else
     template <class... TARGS>
     promise_type(TARGS&&... args) : promise_base_type(std::forward<TARGS>(args)...) {}
@@ -1100,14 +1100,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
       context_pointer_type ctx = self.get_context();
-      co_return(co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
       context_pointer_type ctx = self.get_context();
-      co_return(co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
     }
   };
 
@@ -1124,7 +1124,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
       context_pointer_type ctx = self.get_context();
       co_await self;
-      co_return(co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
@@ -1132,7 +1132,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
                                                                                              TTHENABLE thenable) {
       context_pointer_type ctx = self.get_context();
       co_await self;
-      co_return(co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
     }
   };
 
