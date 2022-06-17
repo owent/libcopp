@@ -257,10 +257,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   class promise_type
       : public callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value> {
    public:
+#  if defined(__GNUC__) && !defined(__clang__)
+    template <class... TARGS>
+    promise_type(TARGS&&... args)
+        : callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value>(
+              std::move(args)...) {}
+#  else
     template <class... TARGS>
     promise_type(TARGS&&... args)
         : callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value>(
               std::forward<TARGS>(args)...) {}
+#  endif
 
     auto get_return_object() noexcept {
       return self_type{LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>::from_promise(*this)};
