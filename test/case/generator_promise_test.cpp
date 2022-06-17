@@ -22,9 +22,10 @@ std::list<generator_future_void_type::context_pointer_type> g_pending_void_conte
 size_t g_resume_generator_count = 0;
 size_t g_suspend_generator_count = 0;
 
-size_t resume_pending_contexts(std::list<int> values) {
+size_t resume_pending_contexts(std::list<int> values, int max_count = 32767) {
   size_t ret = 0;
-  while (!g_pending_int_contexts.empty() || !g_pending_void_contexts.empty()) {
+  while (max_count > 0 && (!g_pending_int_contexts.empty() || !g_pending_void_contexts.empty())) {
+    --max_count;
     if (!g_pending_int_contexts.empty()) {
       auto ctx = *g_pending_int_contexts.begin();
       g_pending_int_contexts.pop_front();
@@ -38,9 +39,7 @@ size_t resume_pending_contexts(std::list<int> values) {
       }
 
       ++ret;
-    }
-
-    if (!g_pending_void_contexts.empty()) {
+    } else if (!g_pending_void_contexts.empty()) {
       auto ctx = *g_pending_void_contexts.begin();
       g_pending_void_contexts.pop_front();
       ctx->set_value();
@@ -371,6 +370,41 @@ CASE_TEST(generator_promise, resume_when_suspend) {
 
   CASE_EXPECT_EQ(old_resume_generator_count + 1, g_resume_generator_count);
   CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_suspend_generator_count);
+}
+
+static copp::callable_future<int> callable_func_some_generator_initializer_list() {
+  auto suspend_callback = [](generator_future_int_type::context_pointer_type ctx) {
+    ++g_suspend_generator_count;
+    g_pending_int_contexts.push_back(ctx);
+  };
+  auto resume_callback = [](const generator_future_int_type::context_type &) { ++g_resume_generator_count; };
+
+  // generator_future_int_type gen1{suspend_callback, resume_callback};
+  // generator_future_int_type gen2{suspend_callback, resume_callback};
+  // generator_future_int_type gen3{suspend_callback, resume_callback};
+  std::vector<generator_future_int_type> generators;
+  generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
+  generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
+  generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
+
+  copp::some_ready<generator_future_int_type>::type readys;
+  // auto result = co_await copp::some(readys, 2, {gen1, gen2, gen3});
+  auto some_result = co_await copp::some(readys, 2, generators);
+  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kDone), static_cast<int>(some_result));
+
+  int result = 0;
+  for (auto &ready_generator : readys) {
+    result += *ready_generator.get().get_context()->data();
+  }
+
+  co_return result;
+}
+
+CASE_TEST(generator_promise, some_initializer_list) {
+  auto f = callable_func_some_generator_initializer_list();
+
+  // partly resume
+  resume_pending_contexts({471, 473}, 2);
 }
 
 #else
