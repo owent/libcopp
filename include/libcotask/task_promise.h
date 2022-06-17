@@ -967,8 +967,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
       task_promise_base<value_type, private_data_type, std::is_void<typename std::decay<value_type>::type>::value>;
   class promise_type : public promise_base_type {
    public:
+#  if defined(__GNUC__) && !defined(__clang__)
+    template <class... TARGS>
+    promise_type(TARGS&&... args) : promise_base_type(std::move(args)...) {}
+#  else
     template <class... TARGS>
     promise_type(TARGS&&... args) : promise_base_type(std::forward<TARGS>(args)...) {}
+#  endif
 
     using promise_base_type::get_context;
 
@@ -1043,7 +1048,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
 
     template <class TINPUT>
     UTIL_FORCEINLINE static LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE> start_thenable(TINPUT&& c) {
-      return c;
+      return {std::forward<TINPUT>(c)};
     }
   };
 
@@ -1054,7 +1059,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     template <class TINPUT>
     UTIL_FORCEINLINE static task_future<TTASK_VALUE, TTASK_PRIVATE_DATA> start_thenable(TINPUT&& task) {
       task.start();
-      return {std::move(std::forward<TINPUT>(task))};
+      return {std::forward<TINPUT>(task)};
     }
   };
 
