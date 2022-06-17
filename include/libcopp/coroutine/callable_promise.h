@@ -39,6 +39,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
  public:
   using value_type = TVALUE;
 
+  template <class... TARGS>
+  callable_promise_base(TARGS&&...) {}
+
   callable_promise_base() = default;
 
   void return_void() noexcept {
