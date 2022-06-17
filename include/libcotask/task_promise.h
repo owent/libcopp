@@ -502,7 +502,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
   }
 
  protected:
-  inline task_status_type detach() noexcept {
+  task_status_type detach() noexcept {
     task_status_type result_status;
     COPP_UNLIKELY_IF (nullptr == context_) {
       result_status = task_status_type::kInvalid;

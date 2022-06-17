@@ -9,6 +9,7 @@
 // clang-format on
 #include <assert.h>
 #include <type_traits>
+#include <vector>
 // clang-format off
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
 // clang-format on
@@ -24,6 +25,9 @@
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
+
+template <class TFUTURE>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate;
 
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_future;
@@ -104,7 +108,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
 template <DerivedPromiseBaseType TPROMISE>
 #  else
-template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value> >
+template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
 class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base_type {
  public:
@@ -143,7 +147,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <DerivedPromiseBaseType TCPROMISE>
 #  else
-  template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value> >
+  template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
 #  endif
   inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (caller.promise().get_status() < promise_status::kDone) {
@@ -169,7 +173,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
   UTIL_FORCEINLINE const handle_type& get_callee() const noexcept { return callee_; }
 
  protected:
-  inline void detach() noexcept {
+  void detach() noexcept {
     // caller maybe null if the callable is already ready when co_await
     auto caller = get_caller();
     auto& callee_promise = get_callee().promise();
@@ -422,6 +426,35 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
  private:
   handle_type current_handle_;
 };
+
+template <class TFUTURE>
+struct some_ready {
+  using type = std::vector<std::reference_wrapper<TFUTURE>>;
+};
+
+template <class TCONTAINER>
+struct some_ready_container {
+  using container_type = typename std::decay<TCONTAINER>::type;
+  using value_type = typename std::decay<typename container_type::value_type>::type;
+};
+
+#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
+template <class TREADY_CONTAINER, class TCONTAINER>
+    LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> some(
+        TREADY_CONTAINER&&ready_futures, size_t ready_count, TCONTAINER&&pending_futures) requires std::convertible_to <
+    typename std::decay<TREADY_CONTAINER>::type,
+typename some_ready<typename some_ready_container<TCONTAINER>::value_type>::type > {
+#  else
+template <class TREADY_CONTAINER, class TCONTAINER,
+          class = typename std::enable_if<std::is_same<
+              typename std::decay<TREADY_CONTAINER>::type,
+              typename some_ready<typename some_ready_container<TCONTAINER>::value_type>::type>::value>::type>
+LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> some(TREADY_CONTAINER&& ready_futures, size_t ready_count,
+                                                                TCONTAINER&& pending_futures) {
+#  endif
+  return some_delegate<typename some_ready_container<TCONTAINER>::value_type>::run(
+      std::forward<TREADY_CONTAINER>(ready_futures), ready_count, std::forward<TCONTAINER>(pending_futures));
+}
 
 LIBCOPP_COPP_NAMESPACE_END
 
