@@ -489,7 +489,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
       resume_future(context.caller_handle, *pending_future);
     }
 
+    if (context.status < promise_status::kDone && nullptr != context.caller_handle.promise) {
+      context.status = context.caller_handle.promise->get_status();
+    }
+
     context.caller_handle = nullptr;
+    if (context.status < promise_status::kDone) {
+      context.status = promise_status::kKilled;
+    }
   }
 
   static void scan_ready(context_type& context) {
@@ -518,7 +525,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
         return true;
       }
 
-      if (context_->ready.size() >= context_->ready_bound) {
+      if (context_->status >= promise_status::kDone) {
         return true;
       }
 
@@ -571,6 +578,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
       if (context_->scan_bound >= context_->ready_bound) {
         scan_ready(*context_);
         context_->scan_bound = context_->ready.size();
+
+        if (context_->scan_bound >= context_->ready_bound && context_->status < promise_status::kDone) {
+          context_->status = promise_status::kDone;
+        }
       }
     }
 
@@ -587,22 +598,25 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
     promise_type& operator=(const promise_type&) = delete;
     promise_type& operator=(promise_type&&) = delete;
     ~promise_type() {
-      COPP_LIKELY_IF (nullptr != context_ && !context_->caller_handle) {
+      COPP_LIKELY_IF (nullptr != context_ && !!context_->caller_handle) {
         force_resume_all(*context_);
       }
     }
 
-    inline awaitable_type operator co_await() { return awaitable_type{context_}; }
+    inline awaitable_type operator co_await() & { return awaitable_type{context_}; }
   };
 
   template <class TCONTAINER>
   static callable_future<promise_status> run(ready_output_type& ready_futures, size_t ready_count,
                                              TCONTAINER&& futures) {
+    using container_type = typename std::decay<TCONTAINER>::type;
     context_type context;
+    context.ready.reserve(futures.size());
 
     for (auto& future_object : futures) {
-      if (future_object.is_pending()) {
-        context.pending.push_back(&future_object);
+      auto& future_ref = pick_some_reference<typename container_type::value_type>::unwrap(future_object);
+      if (future_ref.is_pending()) {
+        context.pending.push_back(&future_ref);
       } else {
         context.ready.push_back(future_object);
       }
@@ -636,6 +650,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
       // destroy promise object and detach handles
     }
 
+    context.ready.swap(ready_futures);
     co_return context.status;
   }
 

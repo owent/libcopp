@@ -372,12 +372,22 @@ CASE_TEST(generator_promise, resume_when_suspend) {
   CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_suspend_generator_count);
 }
 
-static copp::callable_future<int> callable_func_some_generator_initializer_list() {
+static copp::callable_future<int> callable_func_some_generator_in_container(size_t expect_ready_count,
+                                                                            copp::promise_status expect_status) {
+  size_t old_resume_generator_count = g_resume_generator_count;
+  size_t old_suspend_generator_count = g_suspend_generator_count;
+
+  size_t resume_ready_count = 0;
   auto suspend_callback = [](generator_future_int_type::context_pointer_type ctx) {
     ++g_suspend_generator_count;
     g_pending_int_contexts.push_back(ctx);
   };
-  auto resume_callback = [](const generator_future_int_type::context_type &) { ++g_resume_generator_count; };
+  auto resume_callback = [&resume_ready_count](const generator_future_int_type::context_type &ctx) {
+    ++g_resume_generator_count;
+    if (ctx.is_ready()) {
+      ++resume_ready_count;
+    }
+  };
 
   // generator_future_int_type gen1{suspend_callback, resume_callback};
   // generator_future_int_type gen2{suspend_callback, resume_callback};
@@ -390,22 +400,102 @@ static copp::callable_future<int> callable_func_some_generator_initializer_list(
   copp::some_ready<generator_future_int_type>::type readys;
   // auto result = co_await copp::some(readys, 2, {gen1, gen2, gen3});
   auto some_result = co_await copp::some(readys, 2, generators);
-  CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kDone), static_cast<int>(some_result));
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
-  int result = 0;
+  int result = 1;
   for (auto &ready_generator : readys) {
     result += *ready_generator.get().get_context()->data();
   }
 
+  CASE_EXPECT_EQ(old_resume_generator_count + 3, g_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
   co_return result;
 }
 
-CASE_TEST(generator_promise, some_initializer_list) {
-  auto f = callable_func_some_generator_initializer_list();
+CASE_TEST(generator_promise, finish_some_in_container) {
+  auto f = callable_func_some_generator_in_container(2, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
 
   // partly resume
   resume_pending_contexts({471, 473}, 2);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(945, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
 }
+
+CASE_TEST(generator_promise, kill_some_in_container) {
+  auto f = callable_func_some_generator_in_container(0, copp::promise_status::kKilled);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  f.kill();
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(1, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+static copp::callable_future<int> callable_func_some_generator_in_initialize_list(size_t expect_ready_count,
+                                                                                  copp::promise_status expect_status) {
+  size_t old_resume_generator_count = g_resume_generator_count;
+  size_t old_suspend_generator_count = g_suspend_generator_count;
+
+  size_t resume_ready_count = 0;
+  auto suspend_callback = [](generator_future_int_type::context_pointer_type ctx) {
+    ++g_suspend_generator_count;
+    g_pending_int_contexts.push_back(ctx);
+  };
+  auto resume_callback = [&resume_ready_count](const generator_future_int_type::context_type &ctx) {
+    ++g_resume_generator_count;
+    if (ctx.is_ready()) {
+      ++resume_ready_count;
+    }
+  };
+
+  generator_future_int_type gen1{suspend_callback, resume_callback};
+  generator_future_int_type gen2{suspend_callback, resume_callback};
+  generator_future_int_type gen3{suspend_callback, resume_callback};
+
+  copp::some_ready<generator_future_int_type>::type readys;
+  auto some_result = co_await copp::some(readys, 2, {gen1, gen2, gen3});
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  int result = 1;
+  for (auto &ready_generator : readys) {
+    result += *ready_generator.get().get_context()->data();
+  }
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 3, g_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+
+CASE_TEST(generator_promise, finish_some_in_initialize_list) {
+  auto f = callable_func_some_generator_in_initialize_list(2, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  resume_pending_contexts({471, 473}, 2);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(945, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+CASE_TEST(generator_promise, todo_finish_any_in_container) {}
+
+CASE_TEST(generator_promise, todo_finish_some_in_container) {}
 
 #else
 CASE_TEST(generator_promise, disabled) {}
