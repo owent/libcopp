@@ -21,11 +21,18 @@ using std::span;
 }
 LIBCOPP_COPP_NAMESPACE_END
 #else
+// clang-format off
+#include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
+// clang-format on
 #  include <assert.h>
 #  include <array>
 #  include <cstddef>
+#  include <initializer_list>
 #  include <iterator>
 #  include <type_traits>
+// clang-format off
+#include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
+// clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace nostd {
@@ -57,7 +64,7 @@ constexpr inline T *data(T (&_Array)[SIZE]) noexcept {
 }
 
 template <class _Elem>
-constexpr inline const _Elem *data(initializer_list<_Elem> _Ilist) noexcept {
+constexpr inline const _Elem *data(std::initializer_list<_Elem> _Ilist) noexcept {
   return _Ilist.begin();
 }
 
