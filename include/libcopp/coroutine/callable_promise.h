@@ -18,6 +18,7 @@
 #  include <exception>
 #endif
 
+#include "libcopp/coroutine/algorithm_common.h"
 #include "libcopp/coroutine/std_coroutine_common.h"
 #include "libcopp/future/future.h"
 #include "libcopp/utils/uint64_id_allocator.h"
@@ -426,127 +427,208 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   handle_type current_handle_;
 };
 
-template <class TFUTURE>
-struct some_ready {
-  using type = std::vector<std::reference_wrapper<TFUTURE>>;
-};
+// some
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
+ public:
+  using future_type = callable_future<TVALUE>;
+  using value_type = future_type::value_type;
+  using ready_output_type = typename some_ready<future_type>::type;
 
-template <class TFUTURE>
-struct any_ready {
-  using type = typename some_ready<TFUTURE>::type;
-};
+ private:
+  struct context_type {
+    std::list<future_type*> pending;
+    ready_output_type ready;
+    size_t ready_bound = 0;
+    size_t scan_bound = 0;
+    promise_status status = promise_status::kCreated;
+    promise_caller_manager::handle_delegate caller_handle = promise_caller_manager::handle_delegate(nullptr);
+  };
 
-template <class TFUTURE>
-struct all_ready {
-  using type = typename some_ready<TFUTURE>::type;
-};
+  static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
+    callee.get_internal_promise().add_caller(caller);
+  }
 
-template <class TCONTAINER>
-struct some_ready_container {
-  using container_type = typename std::decay<TCONTAINER>::type;
-  using value_type = typename std::decay<typename container_type::value_type>::type;
-};
+  static void resume_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
+    callee.get_internal_promise().remove_caller(caller, false);
+    // Do not force resume callee here, we allow to await the unready callable later.
+  }
 
-template <class TCONTAINER>
-struct some_ready_reference_container {
-  using reference_wrapper_type = typename some_ready_container<TCONTAINER>::value_type;
-  using value_type = typename reference_wrapper_type::type;
-};
+  static void force_resume_all(context_type& context) {
+    for (auto& pending_future : context.pending) {
+      resume_future(context.caller_handle, *pending_future);
+    }
 
-#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-template <class TREADY_CONTAINER, class TCONTAINER>
-    LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> some(
-        TREADY_CONTAINER&&ready_futures, size_t ready_count, TCONTAINER&&pending_futures) requires std::convertible_to <
-    typename std::decay<TREADY_CONTAINER>::type,
-typename some_ready<typename some_ready_container<TCONTAINER>::value_type>::type > {
-#  else
-template <class TREADY_CONTAINER, class TCONTAINER,
-          class = typename std::enable_if<std::is_same<
-              typename std::decay<TREADY_CONTAINER>::type,
-              typename some_ready<typename some_ready_container<TCONTAINER>::value_type>::type>::value>::type>
-LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> some(TREADY_CONTAINER&& ready_futures, size_t ready_count,
-                                                                TCONTAINER&& pending_futures) {
-#  endif
-  return some_delegate<typename some_ready_container<TCONTAINER>::value_type>::run(
-      std::forward<TREADY_CONTAINER>(ready_futures), ready_count, std::forward<TCONTAINER>(pending_futures));
-}
+    if (context.status < promise_status::kDone && nullptr != context.caller_handle.promise) {
+      context.status = context.caller_handle.promise->get_status();
+    }
 
-template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference;
+    context.caller_handle = nullptr;
+    if (context.status < promise_status::kDone) {
+      context.status = promise_status::kKilled;
+    }
+  }
 
-template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference<std::reference_wrapper<TELEMENT>> {
-  inline static TELEMENT& unwrap(std::reference_wrapper<TELEMENT>& input) noexcept { return input.get(); }
-  inline static TELEMENT& unwrap(const std::reference_wrapper<TELEMENT>& input) noexcept { return input.get(); }
-};
+  static void scan_ready(context_type& context) {
+    auto iter = context.pending.begin();
 
-template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference {
-  inline static TELEMENT& unwrap(TELEMENT& input) noexcept { return input; }
-};
+    while (iter != context.pending.end()) {
+      auto future_status = (*iter)->get_status();
+      if (future_status >= promise_status::kCreated && future_status < promise_status::kDone) {
+        ++iter;
+        continue;
+      }
+      future_type& future = **iter;
+      context.ready.push_back(std::ref(future));
+      iter = context.pending.erase(iter);
 
-template <class TREADY_CONTAINER>
-LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> some(
-    TREADY_CONTAINER&& ready_futures, size_t ready_count,
-    std::initializer_list<typename some_ready_reference_container<TREADY_CONTAINER>::reference_wrapper_type>
-        pending_futures) {
-  return some_delegate<typename some_ready_reference_container<TREADY_CONTAINER>::value_type>::run(
-      std::forward<TREADY_CONTAINER>(ready_futures), ready_count, std::move(pending_futures));
-}
+      resume_future(context.caller_handle, future);
+    }
+  }
 
-#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-template <class TREADY_CONTAINER, class TCONTAINER>
-    LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> any(
-        TREADY_CONTAINER&&ready_futures, TCONTAINER&&pending_futures) requires std::convertible_to <
-    typename std::decay<TREADY_CONTAINER>::type,
-typename any_ready<typename some_ready_container<TCONTAINER>::value_type>::type > {
-#  else
-template <class TREADY_CONTAINER, class TCONTAINER,
-          class = typename std::enable_if<std::is_same<
-              typename std::decay<TREADY_CONTAINER>::type,
-              typename any_ready<typename some_ready_container<TCONTAINER>::value_type>::type>::value>::type>
-LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> any(TREADY_CONTAINER&& ready_futures,
-                                                               TCONTAINER&& pending_futures) {
-#  endif
-  return some_delegate<typename some_ready_container<TCONTAINER>::value_type>::run(
-      std::forward<TREADY_CONTAINER>(ready_futures), 1, std::forward<TCONTAINER>(pending_futures));
-}
+ public:
+  class awaitable_type : public awaitable_base_type {
+   public:
+    awaitable_type(context_type* context) : context_(context) {}
 
-template <class TREADY_CONTAINER>
-LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> any(
-    TREADY_CONTAINER&& ready_futures,
-    std::initializer_list<typename some_ready_reference_container<TREADY_CONTAINER>::reference_wrapper_type>
-        pending_futures) {
-  return some_delegate<typename some_ready_reference_container<TREADY_CONTAINER>::value_type>::run(
-      std::forward<TREADY_CONTAINER>(ready_futures), 1, std::move(pending_futures));
-}
+    inline bool await_ready() noexcept {
+      if (nullptr == context_) {
+        return true;
+      }
+
+      if (context_->status >= promise_status::kDone) {
+        return true;
+      }
+
+      return context_->pending.empty();
+    }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-template <class TREADY_CONTAINER, class TCONTAINER>
-    LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> all(
-        TREADY_CONTAINER&&ready_futures, TCONTAINER&&pending_futures) requires std::convertible_to <
-    typename std::decay<TREADY_CONTAINER>::type,
-typename all_ready<typename some_ready_container<TCONTAINER>::value_type>::type > {
+    template <DerivedPromiseBaseType TCPROMISE>
 #  else
-template <class TREADY_CONTAINER, class TCONTAINER,
-          class = typename std::enable_if<std::is_same<
-              typename std::decay<TREADY_CONTAINER>::type,
-              typename all_ready<typename some_ready_container<TCONTAINER>::value_type>::type>::value>::type>
-LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> all(TREADY_CONTAINER&& ready_futures,
-                                                               TCONTAINER&& pending_futures) {
+    template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
 #  endif
-  return some_delegate<typename some_ready_container<TCONTAINER>::value_type>::run(
-      std::forward<TREADY_CONTAINER>(ready_futures), pending_futures.size(), std::forward<TCONTAINER>(pending_futures));
-}
+    inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+      if (nullptr == context_ || caller.promise().get_status() >= promise_status::kDone) {
+        // Already done and can not suspend again
+        caller.resume();
+        return;
+      }
 
-template <class TREADY_CONTAINER>
-LIBCOPP_COPP_API_HEAD_ONLY callable_future<promise_status> all(
-    TREADY_CONTAINER&& ready_futures,
-    std::initializer_list<typename some_ready_reference_container<TREADY_CONTAINER>::reference_wrapper_type>
-        pending_futures) {
-  return some_delegate<typename some_ready_reference_container<TREADY_CONTAINER>::value_type>::run(
-      std::forward<TREADY_CONTAINER>(ready_futures), pending_futures.size(), std::move(pending_futures));
-}
+      set_caller(caller);
+
+      // Allow kill resume to forward error information
+      caller.promise().set_flag(promise_flag::kInternalWaitting, true);
+
+      // set caller for all futures
+      if (!context_->caller_handle) {
+        context_->caller_handle = caller;
+        // Copy pending here, the callback may call resume and will change the pending list
+        std::list<future_type*> copy_pending = context_->pending;
+        for (auto& pending_future : copy_pending) {
+          suspend_future(context_->caller_handle, *pending_future);
+        }
+      }
+    }
+
+    void await_resume() {
+      // caller maybe null if the callable is already ready when co_await
+      auto caller = get_caller();
+      if (caller) {
+        if (nullptr != caller.promise) {
+          caller.promise->set_flag(promise_flag::kInternalWaitting, false);
+        }
+        set_caller(nullptr);
+      }
+
+      if (nullptr == context_) {
+        return;
+      }
+
+      ++context_->scan_bound;
+      if (context_->scan_bound >= context_->ready_bound) {
+        scan_ready(*context_);
+        context_->scan_bound = context_->ready.size();
+
+        if (context_->scan_bound >= context_->ready_bound && context_->status < promise_status::kDone) {
+          context_->status = promise_status::kDone;
+        }
+      }
+    }
+
+   private:
+    context_type* context_;
+  };
+
+  struct promise_type {
+    context_type* context_;
+
+    promise_type(context_type* context) : context_(context) {}
+    promise_type(const promise_type&) = delete;
+    promise_type(promise_type&&) = delete;
+    promise_type& operator=(const promise_type&) = delete;
+    promise_type& operator=(promise_type&&) = delete;
+    ~promise_type() {
+      COPP_LIKELY_IF (nullptr != context_ && !!context_->caller_handle) {
+        force_resume_all(*context_);
+      }
+    }
+
+    inline awaitable_type operator co_await() & { return awaitable_type{context_}; }
+  };
+
+  template <class TCONTAINER>
+  static callable_future<promise_status> run(ready_output_type& ready_futures, size_t ready_count,
+                                             TCONTAINER&& futures) {
+    using container_type = typename std::decay<TCONTAINER>::type;
+    context_type context;
+    context.ready.reserve(futures.size());
+
+    for (auto& future_object : futures) {
+      auto& future_ref = pick_some_reference<typename container_type::value_type>::unwrap(future_object);
+      auto future_status = future_ref.get_status();
+      if (future_status >= promise_status::kCreated && future_status < promise_status::kDone) {
+        context.pending.push_back(&future_ref);
+      } else {
+        context.ready.push_back(future_object);
+      }
+    }
+
+    if (context.ready.size() >= ready_count) {
+      context.ready.swap(ready_futures);
+      co_return promise_status::kDone;
+    }
+
+    if (ready_count >= context.pending.size() + ready_futures.size()) {
+      ready_count = context.pending.size() + ready_futures.size();
+    }
+    context.ready_bound = ready_count;
+    context.scan_bound = context.ready.size();
+    context.status = promise_status::kRunning;
+
+    {
+      promise_type some_promise{&context};
+      while (context.status < promise_status::kDone) {
+        // Killed by caller
+        auto current_status = co_yield callable_future<promise_status>::yield_status();
+        if (current_status >= promise_status::kDone) {
+          context.status = current_status;
+          break;
+        }
+
+        co_await some_promise;
+      }
+
+      // destroy promise object and detach handles
+    }
+
+    context.ready.swap(ready_futures);
+    co_return context.status;
+  }
+
+ private:
+  std::shared_ptr<context_type> context_;
+};
 
 LIBCOPP_COPP_NAMESPACE_END
 

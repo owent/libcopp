@@ -4,6 +4,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcopp/coroutine/algorithm_common.h>
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/std_coroutine_common.h>
 #include <libcopp/future/future.h>
