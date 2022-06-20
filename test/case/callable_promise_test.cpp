@@ -1,5 +1,6 @@
 // Copyright 2022 owent
 
+#include <libcopp/coroutine/algorithm.h>
 #include <libcopp/coroutine/callable_promise.h>
 
 #include <cstdio>
@@ -20,7 +21,7 @@ struct callable_promise_test_pending_awaitable {
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
   template <copp::DerivedPromiseBaseType TPROMISE>
 #  else
-  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<copp::promise_base_type, TPROMISE>::value> >
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<copp::promise_base_type, TPROMISE>::value>>
 #  endif
   void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> caller) noexcept {
     pending.push_back(caller);
@@ -49,14 +50,20 @@ struct callable_promise_test_pending_awaitable {
 
   LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<> current = nullptr;
 
-  static std::list<LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<> > pending;
+  static std::list<LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<>> pending;
   static void resume_all() {
     while (!pending.empty()) {
       pending.front().resume();
     }
   }
+
+  static void resume_some(int max_count) {
+    while (!pending.empty() && max_count-- > 0) {
+      pending.front().resume();
+    }
+  }
 };
-std::list<LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<> > callable_promise_test_pending_awaitable::pending;
+std::list<LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<>> callable_promise_test_pending_awaitable::pending;
 
 static copp::callable_future<int> callable_func_int_l1(int inout) {
   CASE_MSG_INFO() << "callable inner future ready int: " << inout << std::endl;
@@ -226,6 +233,212 @@ CASE_TEST(callable_promise, killed_by_caller_drop_generator) {
   // cleanup
   callable_promise_test_pending_awaitable::resume_all();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kKilled), static_cast<int>(f.get_status()));
+}
+
+static copp::callable_future<int> callable_func_some_any_all_callable_suspend(int value) {
+  co_await callable_promise_test_pending_awaitable();
+  co_return value;
+}
+
+static copp::callable_future<int> callable_func_some_callable_in_container(size_t expect_ready_count,
+                                                                           copp::promise_status expect_status) {
+  size_t resume_ready_count = 0;
+
+  std::vector<copp::callable_future<int>> callables;
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(471));
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(473));
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(477));
+
+  copp::some_ready<copp::callable_future<int>>::type readys;
+  auto some_result = co_await copp::some(readys, 2, callables);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  int result = 1;
+  for (auto &ready_callable : readys) {
+    if (ready_callable.get().is_ready()) {
+      result += ready_callable.get().get_internal_promise().data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  // Nothing happend here if we await the callables again.
+  some_result = co_await copp::some(readys, 2, callables);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  // If it's killed, await will trigger suspend and resume again, or it will return directly.
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+
+CASE_TEST(callable_promise, finish_some_in_container) {
+  auto f = callable_func_some_callable_in_container(2, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  callable_promise_test_pending_awaitable::resume_some(1);
+  CASE_EXPECT_FALSE(f.is_ready());
+  callable_promise_test_pending_awaitable::resume_some(1);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(945, f.get_internal_promise().data());
+
+  callable_promise_test_pending_awaitable::resume_all();
+}
+
+CASE_TEST(callable_promise, kill_some_in_container) {
+  auto f = callable_func_some_callable_in_container(0, copp::promise_status::kKilled);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  f.kill();
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(1, f.get_internal_promise().data());
+
+  callable_promise_test_pending_awaitable::resume_all();
+}
+
+static copp::callable_future<int> callable_func_some_callable_in_initialize_list(size_t expect_ready_count,
+                                                                                 copp::promise_status expect_status) {
+  size_t resume_ready_count = 0;
+
+  copp::callable_future<int> callable1 = callable_func_some_any_all_callable_suspend(471);
+  copp::callable_future<int> callable2 = callable_func_some_any_all_callable_suspend(473);
+  copp::callable_future<int> callable3 = callable_func_some_any_all_callable_suspend(477);
+
+  copp::some_ready<copp::callable_future<int>>::type readys;
+  auto some_result = co_await copp::some(readys, 2, {callable1, callable2, callable3});
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  int result = 1;
+  for (auto &ready_callable : readys) {
+    if (ready_callable.get().is_ready()) {
+      result += ready_callable.get().get_internal_promise().data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+
+CASE_TEST(callable_promise, finish_some_in_initialize_list) {
+  auto f = callable_func_some_callable_in_initialize_list(2, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  callable_promise_test_pending_awaitable::resume_some(1);
+  CASE_EXPECT_FALSE(f.is_ready());
+  callable_promise_test_pending_awaitable::resume_some(1);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(945, f.get_internal_promise().data());
+
+  callable_promise_test_pending_awaitable::resume_all();
+}
+
+static copp::callable_future<int> callable_func_any_callable_in_container(size_t expect_ready_count,
+                                                                          copp::promise_status expect_status) {
+  size_t resume_ready_count = 0;
+
+  std::vector<copp::callable_future<int>> callables;
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(671));
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(673));
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(677));
+
+  copp::some_ready<copp::callable_future<int>>::type readys;
+  auto any_result = co_await copp::any(readys, callables);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
+
+  int result = 1;
+  for (auto &ready_callable : readys) {
+    if (ready_callable.get().is_ready()) {
+      result += ready_callable.get().get_internal_promise().data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  // Nothing happend here if we await the callables again.
+  any_result = co_await copp::any(readys, callables);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
+
+  // If it's killed, await will trigger suspend and resume again, or it will return directly.
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+
+CASE_TEST(callable_promise, finish_any_in_container) {
+  auto f = callable_func_any_callable_in_container(1, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  callable_promise_test_pending_awaitable::resume_some(1);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(672, f.get_internal_promise().data());
+
+  callable_promise_test_pending_awaitable::resume_all();
+}
+
+static copp::callable_future<int> callable_func_all_callable_in_container(size_t expect_ready_count,
+                                                                          copp::promise_status expect_status) {
+  size_t resume_ready_count = 0;
+
+  std::vector<copp::callable_future<int>> callables;
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(671));
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(791));
+  callables.emplace_back(callable_func_some_any_all_callable_suspend(793));
+
+  copp::some_ready<copp::callable_future<int>>::type readys;
+  auto all_result = co_await copp::all(readys, callables);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
+
+  int result = 1;
+  for (auto &ready_callable : readys) {
+    if (ready_callable.get().is_ready()) {
+      result += ready_callable.get().get_internal_promise().data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  // Nothing happend here if we await the callables again.
+  all_result = co_await copp::all(readys, callables);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
+
+  // If it's killed, await will trigger suspend and resume again, or it will return directly.
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+
+CASE_TEST(callable_promise, finish_all_in_container) {
+  auto f = callable_func_all_callable_in_container(3, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  callable_promise_test_pending_awaitable::resume_some(1);
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  callable_promise_test_pending_awaitable::resume_all();
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(2256, f.get_internal_promise().data());
+
+  callable_promise_test_pending_awaitable::resume_all();
 }
 
 #else

@@ -19,6 +19,7 @@
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
 // clang-format on
 
+#include "libcopp/coroutine/algorithm_common.h"
 #include "libcopp/coroutine/std_coroutine_common.h"
 #include "libcopp/future/future.h"
 
