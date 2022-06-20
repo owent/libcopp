@@ -31,6 +31,36 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace nostd {
 constexpr size_t dynamic_extent = static_cast<size_t>(-1);
 
+template <class TCONTAINER>
+constexpr inline auto size(const TCONTAINER &_Cont) -> decltype(_Cont.size()) {
+  return _Cont.size();
+}
+
+template <class T, size_t SIZE>
+constexpr inline size_t size(const T (&)[SIZE]) noexcept {
+  return SIZE;
+}
+
+template <class TCONTAINER>
+constexpr inline auto data(TCONTAINER &_Cont) -> decltype(_Cont.data()) {
+  return _Cont.data();
+}
+
+template <class TCONTAINER>
+constexpr inline auto data(const TCONTAINER &_Cont) -> decltype(_Cont.data()) {
+  return _Cont.data();
+}
+
+template <class T, size_t SIZE>
+constexpr inline T *data(T (&_Array)[SIZE]) noexcept {
+  return _Array;
+}
+
+template <class _Elem>
+constexpr inline const _Elem *data(initializer_list<_Elem> _Ilist) noexcept {
+  return _Ilist.begin();
+}
+
 template <class T, size_t Extent = dynamic_extent>
 class span;
 
@@ -107,24 +137,23 @@ class span {
   template <class C,
             typename std::enable_if<
                 !detail::is_specialized_span_convertible<C>::value &&
-                std::is_convertible<typename std::remove_pointer<decltype(std::data(std::declval<C &>()))>::type (*)[],
+                std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<C &>()))>::type (*)[],
                                     T (*)[]>::value &&
-                std::is_convertible<decltype(std::size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
-  span(C &c) noexcept(noexcept(std::data(c), std::size(c))) : data_{std::data(c)} {
-    if (std::size(c) != Extent) {
+                std::is_convertible<decltype(size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
+  span(C &c) noexcept(noexcept(data(c), size(c))) : data_{data(c)} {
+    if (size(c) != Extent) {
       std::terminate();
     }
   }
 
-  template <
-      class C,
-      typename std::enable_if<
-          !detail::is_specialized_span_convertible<C>::value &&
-          std::is_convertible<typename std::remove_pointer<decltype(std::data(std::declval<const C &>()))>::type (*)[],
-                              T (*)[]>::value &&
-          std::is_convertible<decltype(std::size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
-  span(const C &c) noexcept(noexcept(std::data(c), std::size(c))) : data_{std::data(c)} {
-    if (std::size(c) != Extent) {
+  template <class C,
+            typename std::enable_if<
+                !detail::is_specialized_span_convertible<C>::value &&
+                std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<const C &>()))>::type (*)[],
+                                    T (*)[]>::value &&
+                std::is_convertible<decltype(size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
+  span(const C &c) noexcept(noexcept(data(c), size(c))) : data_{data(c)} {
+    if (size(c) != Extent) {
       std::terminate();
     }
   }
@@ -189,19 +218,18 @@ class span<T, dynamic_extent> {
   template <class C,
             typename std::enable_if<
                 !detail::is_specialized_span_convertible<C>::value &&
-                std::is_convertible<typename std::remove_pointer<decltype(std::data(std::declval<C &>()))>::type (*)[],
+                std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<C &>()))>::type (*)[],
                                     T (*)[]>::value &&
-                std::is_convertible<decltype(std::size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
-  span(C &c) noexcept(noexcept(std::data(c), std::size(c))) : extent_{std::size(c)}, data_{std::data(c)} {}
+                std::is_convertible<decltype(size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
+  span(C &c) noexcept(noexcept(data(c), size(c))) : extent_{size(c)}, data_{data(c)} {}
 
-  template <
-      class C,
-      typename std::enable_if<
-          !detail::is_specialized_span_convertible<C>::value &&
-          std::is_convertible<typename std::remove_pointer<decltype(std::data(std::declval<const C &>()))>::type (*)[],
-                              T (*)[]>::value &&
-          std::is_convertible<decltype(std::size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
-  span(const C &c) noexcept(noexcept(std::data(c), std::size(c))) : extent_{std::size(c)}, data_{std::data(c)} {}
+  template <class C,
+            typename std::enable_if<
+                !detail::is_specialized_span_convertible<C>::value &&
+                std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<const C &>()))>::type (*)[],
+                                    T (*)[]>::value &&
+                std::is_convertible<decltype(size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
+  span(const C &c) noexcept(noexcept(data(c), size(c))) : extent_{size(c)}, data_{data(c)} {}
 
   template <class U, size_t N, typename std::enable_if<std::is_convertible<U (*)[], T (*)[]>::value>::type * = nullptr>
   span(const span<U, N> &other) noexcept : extent_{other.size()}, data_{other.data()} {}
