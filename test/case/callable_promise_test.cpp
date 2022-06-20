@@ -312,7 +312,8 @@ static copp::callable_future<int> callable_func_some_callable_in_initialize_list
   copp::callable_future<int> callable3 = callable_func_some_any_all_callable_suspend(477);
 
   copp::some_ready<copp::callable_future<int>>::type readys;
-  auto some_result = co_await copp::some(readys, 2, {callable1, callable2, callable3});
+  copp::some_ready<copp::callable_future<int>>::reference_type pending[] = {callable1, callable2, callable3};
+  auto some_result = co_await copp::some(readys, 2, pending);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
   int result = 1;
@@ -353,7 +354,7 @@ static copp::callable_future<int> callable_func_any_callable_in_container(size_t
   callables.emplace_back(callable_func_some_any_all_callable_suspend(673));
   callables.emplace_back(callable_func_some_any_all_callable_suspend(677));
 
-  copp::some_ready<copp::callable_future<int>>::type readys;
+  copp::any_ready<copp::callable_future<int>>::type readys;
   auto any_result = co_await copp::any(readys, callables);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
 
@@ -400,7 +401,7 @@ static copp::callable_future<int> callable_func_all_callable_in_container(size_t
   callables.emplace_back(callable_func_some_any_all_callable_suspend(791));
   callables.emplace_back(callable_func_some_any_all_callable_suspend(793));
 
-  copp::some_ready<copp::callable_future<int>>::type readys;
+  copp::all_ready<copp::callable_future<int>>::type readys;
   auto all_result = co_await copp::all(readys, callables);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
 

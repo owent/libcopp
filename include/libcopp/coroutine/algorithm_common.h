@@ -21,30 +21,46 @@
 LIBCOPP_COPP_NAMESPACE_BEGIN
 
 template <class TFUTURE>
-struct some_ready {
-  using type = std::vector<std::reference_wrapper<TFUTURE>>;
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready {
+  using reference_type = std::reference_wrapper<TFUTURE>;
+  using type = std::vector<reference_type>;
 };
 
 template <class TFUTURE>
-struct any_ready {
+struct LIBCOPP_COPP_API_HEAD_ONLY any_ready {
+  using reference_type = typename some_ready<TFUTURE>::reference_type;
   using type = typename some_ready<TFUTURE>::type;
 };
 
 template <class TFUTURE>
-struct all_ready {
+struct LIBCOPP_COPP_API_HEAD_ONLY all_ready {
+  using reference_type = typename some_ready<TFUTURE>::reference_type;
   using type = typename some_ready<TFUTURE>::type;
+};
+
+template <class TELEMENT>
+struct LIBCOPP_COPP_API_HEAD_ONLY remove_reference_wrapper;
+
+template <class TELEMENT>
+struct LIBCOPP_COPP_API_HEAD_ONLY remove_reference_wrapper<std::reference_wrapper<TELEMENT>> {
+  using type = TELEMENT;
+};
+
+template <class TELEMENT>
+struct LIBCOPP_COPP_API_HEAD_ONLY remove_reference_wrapper {
+  using type = TELEMENT;
 };
 
 template <class TCONTAINER>
-struct some_ready_container {
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_container {
   using container_type = typename std::decay<TCONTAINER>::type;
   using value_type = typename std::decay<typename container_type::value_type>::type;
 };
 
 template <class TCONTAINER>
-struct some_ready_reference_container {
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_reference_container {
   using reference_wrapper_type = typename some_ready_container<TCONTAINER>::value_type;
-  using value_type = typename reference_wrapper_type::type;
+  using value_type = typename remove_reference_wrapper<typename reference_wrapper_type::type>::type;
 };
 
 template <class TELEMENT>

@@ -71,6 +71,23 @@ cmake_dependent_option(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR "Enable C++11 std:
 cmake_dependent_option(LIBCOPP_MACRO_ENABLE_RTTI "Enable C++11 std::exception_ptr support for libcopp" ON
                        "COMPILER_OPTIONS_TEST_RTTI" OFF)
 
+check_cxx_source_compiles(
+  "
+  #include <span>
+  #include <vector>
+  #include <iostream>
+  int main() {
+    int abc[128] = {1, 2, 3};
+    std::vector<int> def = {1, 2, 3};
+    std::span<int> span1(abc);
+    std::span<int> span2(def);
+    std::cout<< span1.size()<< std::endl;
+    std::cout<< span2.size()<< std::endl;
+    return 0;
+  }
+  "
+  LIBCOPP_MACRO_ENABLE_STD_SPAN)
+
 unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 # 导入所有 macro 定义
 include("${CMAKE_CURRENT_LIST_DIR}/include/include.macro.cmake")
