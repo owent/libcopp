@@ -88,6 +88,7 @@
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_EXCEPTION
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_RTTI
+#cmakedefine01 LIBCOPP_MACRO_ENABLE_STD_SPAN
 
 #if defined(__cpp_concepts) && __cpp_concepts >= 201907L
 #  define LIBCOPP_MACRO_ENABLE_CONCEPTS 1

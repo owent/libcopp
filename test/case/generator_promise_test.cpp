@@ -478,7 +478,8 @@ static copp::callable_future<int> callable_func_some_generator_in_initialize_lis
   generator_future_int_type gen3{suspend_callback, resume_callback};
 
   copp::some_ready<generator_future_int_type>::type readys;
-  auto some_result = co_await copp::some(readys, 2, {gen1, gen2, gen3});
+  copp::some_ready<generator_future_int_type>::reference_type pending[] = {gen1, gen2, gen3};
+  auto some_result = co_await copp::some(readys, 2, pending);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
   int result = 1;
@@ -531,7 +532,7 @@ static copp::callable_future<int> callable_func_any_generator_in_container(size_
   generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
   generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
 
-  copp::some_ready<generator_future_int_type>::type readys;
+  copp::any_ready<generator_future_int_type>::type readys;
   auto any_result = co_await copp::any(readys, generators);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
 
@@ -598,7 +599,7 @@ static copp::callable_future<int> callable_func_all_generator_in_container(size_
   generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
   generators.push_back(generator_future_int_type(suspend_callback, resume_callback));
 
-  copp::some_ready<generator_future_int_type>::type readys;
+  copp::all_ready<generator_future_int_type>::type readys;
   auto all_result = co_await copp::all(readys, generators);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
 
