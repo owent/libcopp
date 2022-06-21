@@ -219,6 +219,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public ta
   template <class TCONTEXT>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
 
+  template <class TVALUE, class TPRIVATE_DATA>
+  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action;
+
   using base_type::add_caller;
   using base_type::data_;
   using base_type::remove_caller;
@@ -272,6 +275,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public t
  private:
   template <class TCONTEXT>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
+
+  template <class TVALUE, class TPRIVATE_DATA>
+  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action;
 
   using base_type::add_caller;
   using base_type::data_;
@@ -1411,6 +1417,48 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
   }
 };
 
+// some
+template <class TVALUE, class TPRIVATE_DATA>
+struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action {
+  using future_type = task_future<TVALUE, TPRIVATE_DATA>;
+  using context_type = LIBCOPP_COPP_NAMESPACE_ID::some_delegate_context<future_type>;
+
+  inline static void suspend_future(const LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager::handle_delegate& caller,
+                                    future_type& task_object) {
+    if (task_object.get_context()) {
+      task_object.get_context()->add_caller(caller);
+    }
+  }
+
+  inline static void resume_future(const LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager::handle_delegate& caller,
+                                   future_type& task_object) {
+    if (task_object.get_context()) {
+      task_object.get_context()->remove_caller(caller);
+    }
+  }
+
+  inline static bool is_pending(future_type& future_object) noexcept { return !future_object.is_exiting(); }
+};
+
 LIBCOPP_COTASK_NAMESPACE_END
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
+// some
+template <class TVALUE, class TPRIVATE_DATA>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<cotask::task_future<TVALUE, TPRIVATE_DATA>>
+    : public some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA>,
+                                cotask::some_delegate_callable_action<TVALUE, TPRIVATE_DATA>> {
+ public:
+  using base_type = some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA>,
+                                       cotask::some_delegate_callable_action<TVALUE, TPRIVATE_DATA>>;
+  using future_type = typename base_type::future_type;
+  using value_type = typename base_type::value_type;
+  using ready_output_type = typename base_type::ready_output_type;
+  using context_type = typename base_type::context_type;
+
+  using base_type::run;
+};
+
+LIBCOPP_COPP_NAMESPACE_END
 
 #endif

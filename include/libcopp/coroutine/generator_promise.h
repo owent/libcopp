@@ -7,9 +7,7 @@
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
-#include <assert.h>
 #include <functional>
-#include <list>
 #include <type_traits>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -444,6 +442,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   template <class TFUTURE>
   friend class LIBCOPP_COPP_API_HEAD_ONLY some_delegate;
 
+  template <class TFUTURE>
+  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action;
+
   std::shared_ptr<context_type> context_;
   await_suspend_callback_type await_suspend_callback_;
   await_resume_callback_type await_resume_callback_;
@@ -451,23 +452,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
 
 // some
 template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
- public:
+struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action {
   using future_type = generator_future<TVALUE>;
-  using value_type = future_type::value_type;
-  using ready_output_type = typename some_ready<future_type>::type;
+  using context_type = some_delegate_context<future_type>;
 
- private:
-  struct context_type {
-    std::list<future_type*> pending;
-    ready_output_type ready;
-    size_t ready_bound = 0;
-    size_t scan_bound = 0;
-    promise_status status = promise_status::kCreated;
-    promise_caller_manager::handle_delegate caller_handle = promise_caller_manager::handle_delegate(nullptr);
-  };
-
-  static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& generator) {
+  inline static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& generator) {
     generator.get_context()->add_caller(caller);
 
     // Custom event. awaitable object may be deleted after this call
@@ -476,7 +465,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
     }
   }
 
-  static void resume_future(const promise_caller_manager::handle_delegate& caller, future_type& generator) {
+  inline static void resume_future(const promise_caller_manager::handle_delegate& caller, future_type& generator) {
     generator.get_context()->remove_caller(caller);
 
     // Custom event
@@ -485,178 +474,20 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>> {
     }
   }
 
-  static void force_resume_all(context_type& context) {
-    for (auto& pending_future : context.pending) {
-      resume_future(context.caller_handle, *pending_future);
-    }
+  inline static bool is_pending(future_type& future_object) noexcept { return future_object.is_pending(); }
+};
 
-    if (context.status < promise_status::kDone && nullptr != context.caller_handle.promise) {
-      context.status = context.caller_handle.promise->get_status();
-    }
-
-    context.caller_handle = nullptr;
-    if (context.status < promise_status::kDone) {
-      context.status = promise_status::kKilled;
-    }
-  }
-
-  static void scan_ready(context_type& context) {
-    auto iter = context.pending.begin();
-
-    while (iter != context.pending.end()) {
-      if ((*iter)->is_pending()) {
-        ++iter;
-        continue;
-      }
-      future_type& future = **iter;
-      context.ready.push_back(std::ref(future));
-      iter = context.pending.erase(iter);
-
-      resume_future(context.caller_handle, future);
-    }
-  }
-
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>>
+    : public some_delegate_base<generator_future<TVALUE>, some_delegate_generator_action<TVALUE>> {
  public:
-  class awaitable_type : public awaitable_base_type {
-   public:
-    awaitable_type(context_type* context) : context_(context) {}
+  using base_type = some_delegate_base<generator_future<TVALUE>, some_delegate_generator_action<TVALUE>>;
+  using future_type = typename base_type::future_type;
+  using value_type = typename base_type::value_type;
+  using ready_output_type = typename base_type::ready_output_type;
+  using context_type = typename base_type::context_type;
 
-    inline bool await_ready() noexcept {
-      if (nullptr == context_) {
-        return true;
-      }
-
-      if (context_->status >= promise_status::kDone) {
-        return true;
-      }
-
-      return context_->pending.empty();
-    }
-
-#  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-    template <DerivedPromiseBaseType TCPROMISE>
-#  else
-    template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
-#  endif
-    inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
-      if (nullptr == context_ || caller.promise().get_status() >= promise_status::kDone) {
-        // Already done and can not suspend again
-        caller.resume();
-        return;
-      }
-
-      set_caller(caller);
-
-      // Allow kill resume to forward error information
-      caller.promise().set_flag(promise_flag::kInternalWaitting, true);
-
-      // set caller for all futures
-      if (!context_->caller_handle) {
-        context_->caller_handle = caller;
-        // Copy pending here, the callback may call resume and will change the pending list
-        std::list<future_type*> copy_pending = context_->pending;
-        for (auto& pending_future : copy_pending) {
-          suspend_future(context_->caller_handle, *pending_future);
-        }
-      }
-    }
-
-    void await_resume() {
-      // caller maybe null if the callable is already ready when co_await
-      auto caller = get_caller();
-      if (caller) {
-        if (nullptr != caller.promise) {
-          caller.promise->set_flag(promise_flag::kInternalWaitting, false);
-        }
-        set_caller(nullptr);
-      }
-
-      if (nullptr == context_) {
-        return;
-      }
-
-      ++context_->scan_bound;
-      if (context_->scan_bound >= context_->ready_bound) {
-        scan_ready(*context_);
-        context_->scan_bound = context_->ready.size();
-
-        if (context_->scan_bound >= context_->ready_bound && context_->status < promise_status::kDone) {
-          context_->status = promise_status::kDone;
-        }
-      }
-    }
-
-   private:
-    context_type* context_;
-  };
-
-  struct promise_type {
-    context_type* context_;
-
-    promise_type(context_type* context) : context_(context) {}
-    promise_type(const promise_type&) = delete;
-    promise_type(promise_type&&) = delete;
-    promise_type& operator=(const promise_type&) = delete;
-    promise_type& operator=(promise_type&&) = delete;
-    ~promise_type() {
-      COPP_LIKELY_IF (nullptr != context_ && !!context_->caller_handle) {
-        force_resume_all(*context_);
-      }
-    }
-
-    inline awaitable_type operator co_await() & { return awaitable_type{context_}; }
-  };
-
-  template <class TCONTAINER>
-  static callable_future<promise_status> run(ready_output_type& ready_futures, size_t ready_count,
-                                             TCONTAINER&& futures) {
-    using container_type = typename std::decay<TCONTAINER>::type;
-    context_type context;
-    context.ready.reserve(futures.size());
-
-    for (auto& future_object : futures) {
-      auto& future_ref = pick_some_reference<typename container_type::value_type>::unwrap(future_object);
-      if (future_ref.is_pending()) {
-        context.pending.push_back(&future_ref);
-      } else {
-        context.ready.push_back(future_object);
-      }
-    }
-
-    if (context.ready.size() >= ready_count) {
-      context.ready.swap(ready_futures);
-      co_return promise_status::kDone;
-    }
-
-    if (ready_count >= context.pending.size() + ready_futures.size()) {
-      ready_count = context.pending.size() + ready_futures.size();
-    }
-    context.ready_bound = ready_count;
-    context.scan_bound = context.ready.size();
-    context.status = promise_status::kRunning;
-
-    {
-      promise_type some_promise{&context};
-      while (context.status < promise_status::kDone) {
-        // Killed by caller
-        auto current_status = co_yield callable_future<promise_status>::yield_status();
-        if (current_status >= promise_status::kDone) {
-          context.status = current_status;
-          break;
-        }
-
-        co_await some_promise;
-      }
-
-      // destroy promise object and detach handles
-    }
-
-    context.ready.swap(ready_futures);
-    co_return context.status;
-  }
-
- private:
-  std::shared_ptr<context_type> context_;
+  using base_type::run;
 };
 
 LIBCOPP_COPP_NAMESPACE_END

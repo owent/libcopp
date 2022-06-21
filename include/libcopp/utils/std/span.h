@@ -39,8 +39,8 @@ namespace nostd {
 constexpr size_t dynamic_extent = static_cast<size_t>(-1);
 
 template <class TCONTAINER>
-constexpr inline auto size(const TCONTAINER &_Cont) -> decltype(_Cont.size()) {
-  return _Cont.size();
+constexpr inline auto size(const TCONTAINER &container) -> decltype(container.size()) {
+  return container.size();
 }
 
 template <class T, size_t SIZE>
@@ -49,26 +49,26 @@ constexpr inline size_t size(const T (&)[SIZE]) noexcept {
 }
 
 template <class TCONTAINER>
-constexpr inline auto data(TCONTAINER &_Cont) -> decltype(_Cont.data()) {
-  return _Cont.data();
+constexpr inline auto data(TCONTAINER &container) -> decltype(container.data()) {
+  return container.data();
 }
 
 template <class TCONTAINER>
-constexpr inline auto data(const TCONTAINER &_Cont) -> decltype(_Cont.data()) {
-  return _Cont.data();
+constexpr inline auto data(const TCONTAINER &container) -> decltype(container.data()) {
+  return container.data();
 }
 
 template <class T, size_t SIZE>
-constexpr inline T *data(T (&_Array)[SIZE]) noexcept {
-  return _Array;
+constexpr inline T *data(T (&array_value)[SIZE]) noexcept {
+  return array_value;
 }
 
-template <class _Elem>
-constexpr inline const _Elem *data(std::initializer_list<_Elem> _Ilist) noexcept {
-  return _Ilist.begin();
+template <class TELEMENT>
+constexpr inline const TELEMENT *data(std::initializer_list<TELEMENT> l) noexcept {
+  return l.begin();
 }
 
-template <class T, size_t Extent = dynamic_extent>
+template <class T, size_t EXTENT = dynamic_extent>
 class span;
 
 namespace detail {
@@ -84,8 +84,8 @@ struct is_specialized_span_convertible<std::array<T, N> > : std::true_type {};
 template <class T, size_t N>
 struct is_specialized_span_convertible<T[N]> : std::true_type {};
 
-template <class T, size_t Extent>
-struct is_specialized_span_convertible<span<T, Extent> > : std::true_type {};
+template <class T, size_t EXTENT>
+struct is_specialized_span_convertible<span<T, EXTENT> > : std::true_type {};
 }  // namespace detail
 
 /**
@@ -98,10 +98,10 @@ struct is_specialized_span_convertible<span<T, Extent> > : std::true_type {};
  * Note: The std::span API specifies error cases to have undefined behavior, so this implementation
  * chooses to terminate or assert rather than throw exceptions.
  */
-template <class T, size_t Extent>
+template <class T, size_t EXTENT>
 class span {
  public:
-  static constexpr size_t extent = Extent;
+  static constexpr size_t extent = EXTENT;
   using element_type = T;
   using value_type = typename std::remove_cv<T>::type;
   using size_type = std::size_t;
@@ -114,31 +114,31 @@ class span {
   using reverse_iterator = std::reverse_iterator<iterator>;
 
   // This arcane code is how we make default-construction result in an SFINAE error
-  // with C++11 when Extent != 0 as specified by the std::span API.
+  // with C++11 when EXTENT != 0 as specified by the std::span API.
   //
   // See https://stackoverflow.com/a/10309720/4447365
-  template <bool B = Extent == 0, typename std::enable_if<B>::type * = nullptr>
+  template <bool B = EXTENT == 0, typename std::enable_if<B>::type * = nullptr>
   span() noexcept : data_{nullptr} {}
 
   span(T *data, size_t count) noexcept : data_{data} {
-    if (count != Extent) {
+    if (count != EXTENT) {
       std::terminate();
     }
   }
 
   span(T *first, T *last) noexcept : data_{first} {
-    if (std::distance(first, last) != Extent) {
+    if (std::distance(first, last) != EXTENT) {
       std::terminate();
     }
   }
 
-  template <size_t N, typename std::enable_if<Extent == N>::type * = nullptr>
+  template <size_t N, typename std::enable_if<EXTENT == N>::type * = nullptr>
   span(T (&array)[N]) noexcept : data_{array} {}
 
-  template <size_t N, typename std::enable_if<Extent == N>::type * = nullptr>
+  template <size_t N, typename std::enable_if<EXTENT == N>::type * = nullptr>
   span(std::array<T, N> &array) noexcept : data_{array.data()} {}
 
-  template <size_t N, typename std::enable_if<Extent == N>::type * = nullptr>
+  template <size_t N, typename std::enable_if<EXTENT == N>::type * = nullptr>
   span(const std::array<T, N> &array) noexcept : data_{array.data()} {}
 
   template <class C,
@@ -148,7 +148,7 @@ class span {
                                     T (*)[]>::value &&
                 std::is_convertible<decltype(size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
   span(C &c) noexcept(noexcept(data(c), size(c))) : data_{data(c)} {
-    if (size(c) != Extent) {
+    if (size(c) != EXTENT) {
       std::terminate();
     }
   }
@@ -160,31 +160,31 @@ class span {
                                     T (*)[]>::value &&
                 std::is_convertible<decltype(size(std::declval<const C &>())), size_t>::value>::type * = nullptr>
   span(const C &c) noexcept(noexcept(data(c), size(c))) : data_{data(c)} {
-    if (size(c) != Extent) {
+    if (size(c) != EXTENT) {
       std::terminate();
     }
   }
 
   template <class U, size_t N,
-            typename std::enable_if<N == Extent && std::is_convertible<U (*)[], T (*)[]>::value>::type * = nullptr>
+            typename std::enable_if<N == EXTENT && std::is_convertible<U (*)[], T (*)[]>::value>::type * = nullptr>
   span(const span<U, N> &other) noexcept : data_{other.data()} {}
 
   span(const span &) noexcept = default;
 
-  bool empty() const noexcept { return Extent == 0; }
+  bool empty() const noexcept { return EXTENT == 0; }
 
   T *data() const noexcept { return data_; }
 
-  size_t size() const noexcept { return Extent; }
+  size_t size() const noexcept { return EXTENT; }
 
   T &operator[](size_t index) const noexcept {
-    assert(index < Extent);
+    assert(index < EXTENT);
     return data_[index];
   }
 
   T *begin() const noexcept { return data_; }
 
-  T *end() const noexcept { return data_ + Extent; }
+  T *end() const noexcept { return data_ + EXTENT; }
 
  private:
   T *data_;

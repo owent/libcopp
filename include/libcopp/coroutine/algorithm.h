@@ -9,9 +9,7 @@
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
-#include <assert.h>
 #include <type_traits>
-#include <vector>
 // clang-format off
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
 // clang-format on
