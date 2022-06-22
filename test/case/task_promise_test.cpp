@@ -1,5 +1,6 @@
 // Copyright 2022 owent
 
+#include <libcopp/coroutine/algorithm.h>
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/generator_promise.h>
 #include <libcotask/task_promise.h>
@@ -33,9 +34,11 @@ std::list<generator_future_void_type::context_pointer_type> g_task_future_pendin
 size_t g_task_future_resume_generator_count = 0;
 size_t g_task_future_suspend_generator_count = 0;
 
-static size_t resume_pending_contexts(std::list<int> values) {
+static size_t resume_pending_contexts(std::list<int> values, int max_count = 32767) {
   size_t ret = 0;
-  while (!g_task_future_pending_int_contexts.empty() || !g_task_future_pending_void_contexts.empty()) {
+  while (max_count > 0 &&
+         (!g_task_future_pending_int_contexts.empty() || !g_task_future_pending_void_contexts.empty())) {
+    --max_count;
     if (!g_task_future_pending_int_contexts.empty()) {
       auto ctx = *g_task_future_pending_int_contexts.begin();
       g_task_future_pending_int_contexts.pop_front();
@@ -71,12 +74,12 @@ static void generator_int_resume_callback(const generator_future_int_type::conte
   ++g_task_future_resume_generator_count;
 }
 
-static callable_future_int_type callable_func_int_l1(int inout) {
+static callable_future_int_type task_future_func_int_l1(int inout) {
   CASE_MSG_INFO() << "callable inner future ready int: " << inout << std::endl;
   co_return inout;
 }
 
-static callable_future_int_type callable_func_int_l2(int inout) {
+static callable_future_int_type task_future_func_int_l2(int inout) {
   generator_future_int_type generator{generator_int_suspend_callback, generator_int_resume_callback};
   auto gen_res = co_await generator;
   if (gen_res < 0) {
@@ -85,9 +88,9 @@ static callable_future_int_type callable_func_int_l2(int inout) {
   co_return inout + gen_res;
 }
 
-static callable_future_int_type callable_func_await_int() {
-  auto v = callable_func_int_l1(3);
-  auto u = callable_func_int_l2(11);
+static callable_future_int_type task_future_func_await_int() {
+  auto v = task_future_func_int_l1(3);
+  auto u = task_future_func_int_l2(11);
   int x = (co_await v + co_await u);
   co_return x;
 }
@@ -99,15 +102,15 @@ static task_future_int_type task_func_await_int() {
   private_data->data = 121000;
 
   CASE_MSG_INFO() << "task await int" << std::endl;
-  auto v = callable_func_await_int();
+  auto v = task_future_func_await_int();
   int x = co_await v;
   CASE_MSG_INFO() << "task return int" << std::endl;
   co_return x;
 }
 
-static callable_future_int_type callable_func_no_wait_int() {
-  auto v = callable_func_int_l1(7);
-  auto u = callable_func_int_l1(19);
+static callable_future_int_type task_future_func_no_wait_int() {
+  auto v = task_future_func_int_l1(7);
+  auto u = task_future_func_int_l1(19);
   int x = (co_await v + co_await u);
   co_return x;
 }
@@ -119,7 +122,7 @@ static task_future_int_type task_func_no_wait_int() {
   private_data->data = 121000;
 
   CASE_MSG_INFO() << "task await int" << std::endl;
-  auto v = callable_func_no_wait_int();
+  auto v = task_future_func_no_wait_int();
   int x = co_await v;
   CASE_MSG_INFO() << "task return int" << std::endl;
   co_return x;
@@ -133,20 +136,20 @@ static void generator_void_resume_callback(const generator_future_void_type::con
   ++g_task_future_resume_generator_count;
 }
 
-static callable_future_void_type callable_func_void_l1() {
+static callable_future_void_type task_future_func_void_l1() {
   CASE_MSG_INFO() << "callable inner future ready void" << std::endl;
   co_return;
 }
 
-static callable_future_void_type callable_func_void_l2() {
+static callable_future_void_type task_future_func_void_l2() {
   generator_future_void_type generator{generator_void_suspend_callback, generator_void_resume_callback};
   co_await generator;
   co_return;
 }
 
-static callable_future_void_type callable_func_await_void() {
-  auto v = callable_func_void_l1();
-  auto u = callable_func_void_l2();
+static callable_future_void_type task_future_func_await_void() {
+  auto v = task_future_func_void_l1();
+  auto u = task_future_func_void_l2();
   co_await v;
   co_await u;
   co_return;
@@ -159,15 +162,15 @@ static task_future_void_type task_func_await_void() {
   private_data->data = 123000;
 
   CASE_MSG_INFO() << "task await void" << std::endl;
-  auto v = callable_func_await_void();
+  auto v = task_future_func_await_void();
   co_await v;
   CASE_MSG_INFO() << "task return void" << std::endl;
   co_return;
 }
 
-static callable_future_void_type callable_func_no_wait_void() {
-  auto v = callable_func_void_l1();
-  auto u = callable_func_void_l1();
+static callable_future_void_type task_future_func_no_wait_void() {
+  auto v = task_future_func_void_l1();
+  auto u = task_future_func_void_l1();
   co_await v;
   co_await u;
   co_return;
@@ -180,7 +183,7 @@ static task_future_void_type task_func_no_wait_void() {
   private_data->data = 123000;
 
   CASE_MSG_INFO() << "task await void" << std::endl;
-  auto v = callable_func_no_wait_void();
+  auto v = task_future_func_no_wait_void();
   co_await v;
   CASE_MSG_INFO() << "task return void" << std::endl;
   co_return;
@@ -313,7 +316,7 @@ static task_future_int_type task_func_await_int_generator() {
   co_return 235 + res;
 }
 
-static callable_future_int_type callable_func_await_int_task() {
+static callable_future_int_type task_future_func_await_int_task() {
   task_future_int_type t = task_func_await_int_generator();
   t.start();
   auto res = co_await t;
@@ -332,7 +335,7 @@ CASE_TEST(task_promise, callable_future_await_task) {
   size_t old_resume_generator_count = g_task_future_resume_generator_count;
   size_t old_suspend_generator_count = g_task_future_suspend_generator_count;
 
-  callable_future_int_type f = callable_func_await_int_task();
+  callable_future_int_type f = task_future_func_await_int_task();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kRunning), static_cast<int>(f.get_status()));
 
   CASE_EXPECT_FALSE(f.is_ready());
@@ -381,7 +384,7 @@ CASE_TEST(task_promise, task_future_await_task) {
 
 namespace {
 static callable_future_int_type task_func_await_callable_and_be_killed() {
-  auto u = callable_func_int_l2(13);
+  auto u = task_future_func_int_l2(13);
   int x = co_await u;
   co_return x;
 }
@@ -617,7 +620,7 @@ CASE_TEST(task_promise, timeout_by_callee) {
 
 namespace {
 static task_future_int_type task_func_await_child_task_child() {
-  auto u = callable_func_int_l2(53);
+  auto u = task_future_func_int_l2(53);
   int x = co_await u;
   co_return x;
 }
@@ -768,18 +771,32 @@ CASE_TEST(task_promise, task_destroy_and_auto_resume) {
 
 namespace {
 static task_future_int_type task_func_await_int_simple() {
-  auto u = callable_func_int_l2(91);
+  auto u = task_future_func_int_l2(91);
   int x = co_await u;
   co_return x;
 }
 
 static task_future_void_type task_func_await_void_simple() {
-  auto u = callable_func_void_l2();
+  auto u = task_future_func_void_l2();
   co_await u;
   co_return;
 }
 
+static callable_future_int_type task_func_callable_await_task_int_simple() {
+  auto u = task_func_await_int_simple();
+  // forget to start here
+  int x = co_await u;
+  co_return x;
+}
+
 }  // namespace
+
+CASE_TEST(task_promise, forget_to_start) {
+  // This should be safe here
+  { auto f = task_func_callable_await_task_int_simple(); }
+
+  resume_pending_contexts({});
+}
 
 CASE_TEST(task_promise, callable_then_12_1_task_return_int_and_thenable_return_normal_int) {
   auto t = task_func_await_int_simple();
@@ -1338,6 +1355,269 @@ CASE_TEST(task_promise, task_then_12_12_task_return_void_and_thenable_return_cal
 
   resume_pending_contexts({});
   CASE_EXPECT_TRUE(f.is_exiting());
+}
+
+namespace {
+static cotask::task_future<int, void> task_func_some_any_all_callable_suspend() {
+  auto suspend_callback = [](generator_future_int_type::context_pointer_type ctx) {
+    ++g_task_future_suspend_generator_count;
+    g_task_future_pending_int_contexts.push_back(ctx);
+  };
+  auto resume_callback = [](const generator_future_int_type::context_type &) {
+    ++g_task_future_resume_generator_count;
+  };
+
+  auto value = co_await generator_future_int_type(suspend_callback, resume_callback);
+  co_return value;
+}
+
+static copp::callable_future<int> task_future_func_some_callable_in_container(size_t expect_ready_count,
+                                                                              copp::promise_status expect_status) {
+  size_t old_resume_generator_count = g_task_future_resume_generator_count;
+  size_t old_suspend_generator_count = g_task_future_suspend_generator_count;
+
+  size_t resume_ready_count = 0;
+
+  std::vector<cotask::task_future<int, void>> tasks;
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  for (auto &task_object : tasks) {
+    task_object.start();
+  }
+
+  copp::some_ready<cotask::task_future<int, void>>::type readys;
+  auto some_result = co_await copp::some(readys, 2, tasks);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  int result = 1;
+  for (auto &ready_task : readys) {
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  // Nothing happend here if we await the tasks again.
+  some_result = co_await copp::some(readys, 2, tasks);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  // If it's killed, await will trigger suspend and resume again, or it will return directly.
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  CASE_EXPECT_EQ(old_resume_generator_count + expect_ready_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_task_future_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+}  // namespace
+
+CASE_TEST(task_promise, finish_some_in_container) {
+  auto f = task_future_func_some_callable_in_container(2, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  resume_pending_contexts({471}, 1);
+  CASE_EXPECT_FALSE(f.is_ready());
+  resume_pending_contexts({473}, 1);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(945, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+CASE_TEST(task_promise, kill_some_in_container) {
+  auto f = task_future_func_some_callable_in_container(0, copp::promise_status::kKilled);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  f.kill();
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(1, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+static copp::callable_future<int> task_future_func_some_callable_in_initialize_list(
+    size_t expect_ready_count, copp::promise_status expect_status) {
+  size_t old_resume_generator_count = g_task_future_resume_generator_count;
+  size_t old_suspend_generator_count = g_task_future_suspend_generator_count;
+
+  size_t resume_ready_count = 0;
+
+  cotask::task_future<int, void> task1 = task_func_some_any_all_callable_suspend();
+  cotask::task_future<int, void> task2 = task_func_some_any_all_callable_suspend();
+  cotask::task_future<int, void> task3 = task_func_some_any_all_callable_suspend();
+  task1.start();
+  task2.start();
+  task3.start();
+
+  copp::some_ready<cotask::task_future<int, void>>::type readys;
+  std::reference_wrapper<cotask::task_future<int, void>> pending[] = {task1, task2, task3};
+  auto some_result = co_await copp::some(readys, 2, pending);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
+
+  int result = 1;
+  for (auto &ready_task : readys) {
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(old_resume_generator_count + expect_ready_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_task_future_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+
+CASE_TEST(task_promise, finish_some_in_initialize_list) {
+  auto f = task_future_func_some_callable_in_initialize_list(2, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  resume_pending_contexts({471}, 1);
+  CASE_EXPECT_FALSE(f.is_ready());
+  resume_pending_contexts({473}, 1);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(945, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+namespace {
+static copp::callable_future<int> task_future_func_any_callable_in_container(size_t expect_ready_count,
+                                                                             copp::promise_status expect_status) {
+  size_t old_resume_generator_count = g_task_future_resume_generator_count;
+  size_t old_suspend_generator_count = g_task_future_suspend_generator_count;
+
+  size_t resume_ready_count = 0;
+
+  std::vector<cotask::task_future<int, void>> tasks;
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  for (auto &task_object : tasks) {
+    task_object.start();
+  }
+
+  copp::any_ready<cotask::task_future<int, void>>::type readys;
+  auto any_result = co_await copp::any(readys, tasks);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
+
+  int result = 1;
+  for (auto &ready_task : readys) {
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(old_resume_generator_count + expect_ready_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_task_future_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  // Nothing happend here if we await the tasks again.
+  any_result = co_await copp::any(readys, tasks);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
+
+  // If it's killed, await will trigger suspend and resume again, or it will return directly.
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  CASE_EXPECT_EQ(old_resume_generator_count + expect_ready_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_task_future_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+}  // namespace
+
+CASE_TEST(task_promise, finish_any_in_container) {
+  auto f = task_future_func_any_callable_in_container(1, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  resume_pending_contexts({671}, 1);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(672, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
+}
+
+namespace {
+static copp::callable_future<int> task_future_func_all_callable_in_container(size_t expect_ready_count,
+                                                                             copp::promise_status expect_status) {
+  size_t old_resume_generator_count = g_task_future_resume_generator_count;
+  size_t old_suspend_generator_count = g_task_future_suspend_generator_count;
+
+  size_t resume_ready_count = 0;
+
+  std::vector<cotask::task_future<int, void>> tasks;
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  tasks.emplace_back(task_func_some_any_all_callable_suspend());
+  for (auto &task_object : tasks) {
+    task_object.start();
+  }
+
+  copp::all_ready<cotask::task_future<int, void>>::type readys;
+  auto all_result = co_await copp::all(readys, tasks);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
+
+  int result = 1;
+  for (auto &ready_task : readys) {
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
+      ++resume_ready_count;
+    }
+  }
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 3, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_task_future_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  // Nothing happend here if we await the tasks again.
+  all_result = co_await copp::all(readys, tasks);
+  CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
+
+  // If it's killed, await will trigger suspend and resume again, or it will return directly.
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  CASE_EXPECT_EQ(old_resume_generator_count + expect_ready_count, g_task_future_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 3, g_task_future_suspend_generator_count);
+  CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
+
+  co_return result;
+}
+}  // namespace
+
+CASE_TEST(task_promise, finish_all_in_container) {
+  auto f = task_future_func_all_callable_in_container(3, copp::promise_status::kDone);
+
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  // partly resume
+  resume_pending_contexts({671}, 1);
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({791, 793}, 2);
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(2256, f.get_internal_promise().data());
+
+  resume_pending_contexts({});
 }
 
 #else

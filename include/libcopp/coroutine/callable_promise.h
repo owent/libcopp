@@ -7,9 +7,7 @@
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
-#include <assert.h>
 #include <type_traits>
-#include <vector>
 // clang-format off
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
 // clang-format on
@@ -322,6 +320,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   ~callable_future() {
     while (current_handle_ && !current_handle_.done() &&
            !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
+      if (current_handle_.promise().get_status() < promise_status::kDone) {
+        current_handle_.promise().set_status(promise_status::kKilled);
+      }
       current_handle_.resume();
     }
 
@@ -427,36 +428,33 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   handle_type current_handle_;
 };
 
-// some
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
- public:
-  using future_type = callable_future<TVALUE>;
-  using value_type = future_type::value_type;
+// some delegate
+template <class TFUTURE>
+struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_context {
+  using future_type = TFUTURE;
   using ready_output_type = typename some_ready<future_type>::type;
 
+  std::list<future_type*> pending;
+  ready_output_type ready;
+  size_t ready_bound = 0;
+  size_t scan_bound = 0;
+  promise_status status = promise_status::kCreated;
+  promise_caller_manager::handle_delegate caller_handle = promise_caller_manager::handle_delegate(nullptr);
+};
+
+template <class TFUTURE, class TDELEGATE_ACTION>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
+ public:
+  using future_type = TFUTURE;
+  using value_type = typename future_type::value_type;
+  using context_type = some_delegate_context<future_type>;
+  using ready_output_type = typename context_type::ready_output_type;
+  using delegate_action_type = TDELEGATE_ACTION;
+
  private:
-  struct context_type {
-    std::list<future_type*> pending;
-    ready_output_type ready;
-    size_t ready_bound = 0;
-    size_t scan_bound = 0;
-    promise_status status = promise_status::kCreated;
-    promise_caller_manager::handle_delegate caller_handle = promise_caller_manager::handle_delegate(nullptr);
-  };
-
-  static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
-    callee.get_internal_promise().add_caller(caller);
-  }
-
-  static void resume_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
-    callee.get_internal_promise().remove_caller(caller, false);
-    // Do not force resume callee here, we allow to await the unready callable later.
-  }
-
   static void force_resume_all(context_type& context) {
     for (auto& pending_future : context.pending) {
-      resume_future(context.caller_handle, *pending_future);
+      delegate_action_type::resume_future(context.caller_handle, *pending_future);
     }
 
     if (context.status < promise_status::kDone && nullptr != context.caller_handle.promise) {
@@ -473,16 +471,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
     auto iter = context.pending.begin();
 
     while (iter != context.pending.end()) {
-      auto future_status = (*iter)->get_status();
-      if (future_status >= promise_status::kCreated && future_status < promise_status::kDone) {
+      if (delegate_action_type::is_pending(**iter)) {
         ++iter;
         continue;
       }
       future_type& future = **iter;
-      context.ready.push_back(std::ref(future));
+      context.ready.push_back(gsl::make_not_null(&future));
       iter = context.pending.erase(iter);
 
-      resume_future(context.caller_handle, future);
+      delegate_action_type::resume_future(context.caller_handle, future);
     }
   }
 
@@ -526,7 +523,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
         // Copy pending here, the callback may call resume and will change the pending list
         std::list<future_type*> copy_pending = context_->pending;
         for (auto& pending_future : copy_pending) {
-          suspend_future(context_->caller_handle, *pending_future);
+          delegate_action_type::suspend_future(context_->caller_handle, *pending_future);
         }
       }
     }
@@ -560,6 +557,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
     context_type* context_;
   };
 
+ public:
   struct promise_type {
     context_type* context_;
 
@@ -579,18 +577,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
 
   template <class TCONTAINER>
   static callable_future<promise_status> run(ready_output_type& ready_futures, size_t ready_count,
-                                             TCONTAINER&& futures) {
-    using container_type = typename std::decay<TCONTAINER>::type;
+                                             TCONTAINER* futures) {
+    using container_type = typename std::decay<typename std::remove_pointer<TCONTAINER>::type>::type;
     context_type context;
-    context.ready.reserve(futures.size());
+    context.ready.reserve(gsl::size(*futures));
 
-    for (auto& future_object : futures) {
-      auto& future_ref = pick_some_reference<typename container_type::value_type>::unwrap(future_object);
-      auto future_status = future_ref.get_status();
-      if (future_status >= promise_status::kCreated && future_status < promise_status::kDone) {
+    for (auto& future_object : *futures) {
+      auto& future_ref =
+          pick_some_reference<typename std::remove_reference<decltype(future_object)>::type>::unwrap(future_object);
+      if (delegate_action_type::is_pending(future_ref)) {
         context.pending.push_back(&future_ref);
       } else {
-        context.ready.push_back(future_object);
+        context.ready.push_back(gsl::make_not_null(&future_ref));
       }
     }
 
@@ -628,6 +626,40 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>> {
 
  private:
   std::shared_ptr<context_type> context_;
+};
+
+// some
+template <class TVALUE>
+struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action {
+  using future_type = callable_future<TVALUE>;
+  using context_type = some_delegate_context<future_type>;
+
+  inline static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
+    callee.get_internal_promise().add_caller(caller);
+  }
+
+  inline static void resume_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
+    callee.get_internal_promise().remove_caller(caller, false);
+    // Do not force resume callee here, we allow to await the unready callable later.
+  }
+
+  inline static bool is_pending(future_type& future_object) noexcept {
+    auto future_status = future_object.get_status();
+    return future_status >= promise_status::kCreated && future_status < promise_status::kDone;
+  }
+};
+
+template <class TVALUE>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>>
+    : public some_delegate_base<callable_future<TVALUE>, some_delegate_callable_action<TVALUE>> {
+ public:
+  using base_type = some_delegate_base<callable_future<TVALUE>, some_delegate_callable_action<TVALUE>>;
+  using future_type = typename base_type::future_type;
+  using value_type = typename base_type::value_type;
+  using ready_output_type = typename base_type::ready_output_type;
+  using context_type = typename base_type::context_type;
+
+  using base_type::run;
 };
 
 LIBCOPP_COPP_NAMESPACE_END

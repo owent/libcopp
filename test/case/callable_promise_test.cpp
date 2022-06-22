@@ -250,13 +250,13 @@ static copp::callable_future<int> callable_func_some_callable_in_container(size_
   callables.emplace_back(callable_func_some_any_all_callable_suspend(477));
 
   copp::some_ready<copp::callable_future<int>>::type readys;
-  auto some_result = co_await copp::some(readys, 2, callables);
+  auto some_result = co_await copp::some(readys, 2, copp::gsl::make_span(callables));
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
   int result = 1;
   for (auto &ready_callable : readys) {
-    if (ready_callable.get().is_ready()) {
-      result += ready_callable.get().get_internal_promise().data();
+    if (ready_callable->is_ready()) {
+      result += ready_callable->get_internal_promise().data();
       ++resume_ready_count;
     }
   }
@@ -312,14 +312,14 @@ static copp::callable_future<int> callable_func_some_callable_in_initialize_list
   copp::callable_future<int> callable3 = callable_func_some_any_all_callable_suspend(477);
 
   copp::some_ready<copp::callable_future<int>>::type readys;
-  copp::some_ready<copp::callable_future<int>>::reference_type pending[] = {callable1, callable2, callable3};
-  auto some_result = co_await copp::some(readys, 2, pending);
+  std::reference_wrapper<copp::callable_future<int>> pending[] = {callable1, callable2, callable3};
+  auto some_result = co_await copp::some(readys, 2, copp::gsl::make_span(pending));
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
   int result = 1;
   for (auto &ready_callable : readys) {
-    if (ready_callable.get().is_ready()) {
-      result += ready_callable.get().get_internal_promise().data();
+    if (ready_callable->is_ready()) {
+      result += ready_callable->get_internal_promise().data();
       ++resume_ready_count;
     }
   }
@@ -355,13 +355,13 @@ static copp::callable_future<int> callable_func_any_callable_in_container(size_t
   callables.emplace_back(callable_func_some_any_all_callable_suspend(677));
 
   copp::any_ready<copp::callable_future<int>>::type readys;
-  auto any_result = co_await copp::any(readys, callables);
+  auto any_result = co_await copp::any(readys, copp::gsl::make_span(&callables[0], &callables[0] + callables.size()));
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
 
   int result = 1;
   for (auto &ready_callable : readys) {
-    if (ready_callable.get().is_ready()) {
-      result += ready_callable.get().get_internal_promise().data();
+    if (ready_callable->is_ready()) {
+      result += ready_callable->get_internal_promise().data();
       ++resume_ready_count;
     }
   }
@@ -402,13 +402,13 @@ static copp::callable_future<int> callable_func_all_callable_in_container(size_t
   callables.emplace_back(callable_func_some_any_all_callable_suspend(793));
 
   copp::all_ready<copp::callable_future<int>>::type readys;
-  auto all_result = co_await copp::all(readys, callables);
+  auto all_result = co_await copp::all(readys, copp::gsl::make_span(callables.data(), callables.size()));
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(all_result));
 
   int result = 1;
   for (auto &ready_callable : readys) {
-    if (ready_callable.get().is_ready()) {
-      result += ready_callable.get().get_internal_promise().data();
+    if (ready_callable->is_ready()) {
+      result += ready_callable->get_internal_promise().data();
       ++resume_ready_count;
     }
   }
