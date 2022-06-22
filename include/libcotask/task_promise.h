@@ -219,7 +219,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public ta
   template <class TCONTEXT>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
 
-  template <class TVALUE, class TPRIVATE_DATA>
+  template <class TSOME_DELEGATE_TASK_VALUE, class TSOME_DELEGATE_TASK_PRIVATE_DATA>
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_task_action;
 
   using base_type::add_caller;
@@ -276,7 +276,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public t
   template <class TCONTEXT>
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
 
-  template <class TVALUE, class TPRIVATE_DATA>
+  template <class TSOME_DELEGATE_TASK_VALUE, class TSOME_DELEGATE_TASK_PRIVATE_DATA>
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_task_action;
 
   using base_type::add_caller;

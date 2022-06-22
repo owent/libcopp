@@ -1363,7 +1363,7 @@ static cotask::task_future<int, void> task_func_some_any_all_callable_suspend() 
     ++g_task_future_suspend_generator_count;
     g_task_future_pending_int_contexts.push_back(ctx);
   };
-  auto resume_callback = [](const generator_future_int_type::context_type &ctx) {
+  auto resume_callback = [](const generator_future_int_type::context_type &) {
     ++g_task_future_resume_generator_count;
   };
 
