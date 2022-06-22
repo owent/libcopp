@@ -4,6 +4,7 @@
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/generator_promise.h>
 
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -401,7 +402,7 @@ static copp::callable_future<int> callable_func_some_generator_in_container(size
 
   int result = 1;
   for (auto &ready_generator : readys) {
-    result += *ready_generator.get().get_context()->data();
+    result += *ready_generator->get_context()->data();
   }
 
   CASE_EXPECT_EQ(old_resume_generator_count + 3, g_resume_generator_count);
@@ -478,13 +479,13 @@ static copp::callable_future<int> callable_func_some_generator_in_initialize_lis
   generator_future_int_type gen3{suspend_callback, resume_callback};
 
   copp::some_ready<generator_future_int_type>::type readys;
-  copp::some_ready<generator_future_int_type>::reference_type pending[] = {gen1, gen2, gen3};
-  auto some_result = co_await copp::some(readys, 2, pending);
+  std::array<std::reference_wrapper<generator_future_int_type>, 3> pending = {gen1, gen2, gen3};
+  auto some_result = co_await copp::some(readys, 2, copp::gsl::make_span(pending));
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
   int result = 1;
   for (auto &ready_generator : readys) {
-    result += *ready_generator.get().get_context()->data();
+    result += *ready_generator->get_context()->data();
   }
 
   CASE_EXPECT_EQ(old_resume_generator_count + 3, g_resume_generator_count);
@@ -538,7 +539,7 @@ static copp::callable_future<int> callable_func_any_generator_in_container(size_
 
   int result = 1;
   for (auto &ready_generator : readys) {
-    result += *ready_generator.get().get_context()->data();
+    result += *ready_generator->get_context()->data();
   }
 
   CASE_EXPECT_EQ(old_resume_generator_count + 3, g_resume_generator_count);
@@ -546,7 +547,11 @@ static copp::callable_future<int> callable_func_any_generator_in_container(size_
   CASE_EXPECT_EQ(expect_ready_count, resume_ready_count);
 
   // Nothing happend here if we await the generators again.
-  any_result = co_await copp::any(readys, generators);
+  std::vector<copp::gsl::not_null<generator_future_int_type *>> generators_not_null_type;
+  for (auto &generator : generators) {
+    generators_not_null_type.push_back(copp::gsl::make_not_null(&generator));
+  }
+  any_result = co_await copp::any(readys, generators_not_null_type);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(any_result));
 
   // If it's killed, await will trigger suspend and resume again, or it will return directly.
@@ -605,7 +610,7 @@ static copp::callable_future<int> callable_func_all_generator_in_container(size_
 
   int result = 1;
   for (auto &ready_generator : readys) {
-    result += *ready_generator.get().get_context()->data();
+    result += *ready_generator->get_context()->data();
   }
 
   CASE_EXPECT_EQ(old_resume_generator_count + 3, g_resume_generator_count);

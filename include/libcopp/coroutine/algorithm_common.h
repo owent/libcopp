@@ -16,6 +16,8 @@
 // clang-format on
 
 #include "libcopp/coroutine/std_coroutine_common.h"
+#include "libcopp/utils/gsl/not_null.h"
+#include "libcopp/utils/gsl/span.h"
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
@@ -26,45 +28,49 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future;
 
 template <class TFUTURE>
 struct LIBCOPP_COPP_API_HEAD_ONLY some_ready {
-  using reference_type = std::reference_wrapper<TFUTURE>;
-  using type = std::vector<reference_type>;
+  using element_type = gsl::not_null<TFUTURE*>;
+  using type = std::vector<element_type>;
 };
 
 template <class TFUTURE>
 struct LIBCOPP_COPP_API_HEAD_ONLY any_ready {
-  using reference_type = typename some_ready<TFUTURE>::reference_type;
+  using element_type = typename some_ready<TFUTURE>::element_type;
   using type = typename some_ready<TFUTURE>::type;
 };
 
 template <class TFUTURE>
 struct LIBCOPP_COPP_API_HEAD_ONLY all_ready {
-  using reference_type = typename some_ready<TFUTURE>::reference_type;
+  using element_type = typename some_ready<TFUTURE>::element_type;
   using type = typename some_ready<TFUTURE>::type;
 };
 
 template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY remove_reference_wrapper;
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_remove_wrapper;
 
 template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY remove_reference_wrapper<std::reference_wrapper<TELEMENT>> {
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_remove_wrapper<std::reference_wrapper<TELEMENT>> {
   using type = TELEMENT;
 };
 
 template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY remove_reference_wrapper {
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_remove_wrapper<gsl::not_null<TELEMENT*>> {
+  using type = TELEMENT;
+};
+
+template <class TELEMENT>
+struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_remove_wrapper {
   using type = TELEMENT;
 };
 
 template <class TCONTAINER>
 struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_container {
   using container_type = typename std::decay<TCONTAINER>::type;
-  using value_type = typename std::decay<typename container_type::value_type>::type;
-};
-
-template <class TCONTAINER>
-struct LIBCOPP_COPP_API_HEAD_ONLY some_ready_reference_container {
-  using reference_wrapper_type = typename some_ready_container<TCONTAINER>::value_type;
-  using value_type = typename remove_reference_wrapper<typename reference_wrapper_type::type>::type;
+  using value_type =
+      typename std::decay<typename some_ready_remove_wrapper<typename container_type::value_type>::type>::type;
+  using reference_type = value_type&;
+  using const_reference_type = const value_type&;
+  using pointer_type = value_type*;
+  using const_pointer_type = const value_type*;
 };
 
 template <class TELEMENT>
@@ -73,12 +79,19 @@ struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference;
 template <class TELEMENT>
 struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference<std::reference_wrapper<TELEMENT>> {
   inline static TELEMENT& unwrap(std::reference_wrapper<TELEMENT>& input) noexcept { return input.get(); }
-  inline static TELEMENT& unwrap(const std::reference_wrapper<TELEMENT>& input) noexcept { return input.get(); }
+  inline static const TELEMENT& unwrap(std::reference_wrapper<const TELEMENT>& input) noexcept { return input.get(); }
+};
+
+template <class TELEMENT>
+struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference<gsl::not_null<TELEMENT*>> {
+  inline static TELEMENT& unwrap(gsl::not_null<TELEMENT*>& input) noexcept { return *input.get(); }
+  inline static const TELEMENT& unwrap(gsl::not_null<const TELEMENT*>& input) noexcept { return *input.get(); }
 };
 
 template <class TELEMENT>
 struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference {
   inline static TELEMENT& unwrap(TELEMENT& input) noexcept { return input; }
+  inline static const TELEMENT& unwrap(const TELEMENT& input) noexcept { return input; }
 };
 
 // some delegate
@@ -129,7 +142,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
         continue;
       }
       future_type& future = **iter;
-      context.ready.push_back(std::ref(future));
+      context.ready.push_back(gsl::make_not_null(&future));
       iter = context.pending.erase(iter);
 
       delegate_action_type::resume_future(context.caller_handle, future);
@@ -230,17 +243,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
 
   template <class TCONTAINER>
   static callable_future<promise_status> run(ready_output_type& ready_futures, size_t ready_count,
-                                             TCONTAINER&& futures) {
-    using container_type = typename std::decay<TCONTAINER>::type;
+                                             TCONTAINER* futures) {
+    using container_type = typename std::decay<typename std::remove_pointer<TCONTAINER>::type>::type;
     context_type context;
-    context.ready.reserve(futures.size());
+    context.ready.reserve(gsl::size(*futures));
 
-    for (auto& future_object : futures) {
-      auto& future_ref = pick_some_reference<typename container_type::value_type>::unwrap(future_object);
+    for (auto& future_object : *futures) {
+      auto& future_ref =
+          pick_some_reference<typename std::remove_reference<decltype(future_object)>::type>::unwrap(future_object);
       if (delegate_action_type::is_pending(future_ref)) {
         context.pending.push_back(&future_ref);
       } else {
-        context.ready.push_back(std::ref(future_ref));
+        context.ready.push_back(gsl::make_not_null(&future_ref));
       }
     }
 

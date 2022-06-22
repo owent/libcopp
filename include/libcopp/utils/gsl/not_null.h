@@ -83,7 +83,7 @@ class not_null {
   not_null(const not_null& other) = default;
   not_null& operator=(const not_null& other) = default;
   constexpr typename std::conditional<std::is_copy_constructible<T>::value, T, const T&>::type get() const {
-    Ensures(ptr_ != nullptr);
+    assert(ptr_ != nullptr);
     return ptr_;
   }
 
@@ -161,14 +161,6 @@ not_null<T> operator+(std::ptrdiff_t, const not_null<T>&) = delete;
 
 }  // namespace gsl
 
-namespace std {
-template <class T>
-struct hash<gsl::not_null<T>> {
-  std::size_t operator()(const gsl::not_null<T>& value) const { return hash<T>{}(value.get()); }
-};
-
-}  // namespace std
-
 namespace gsl {
 
 //
@@ -237,7 +229,7 @@ strict_not_null<T> operator+(std::ptrdiff_t, const strict_not_null<T>&) = delete
 
 template <class T>
 auto make_strict_not_null(T&& t) noexcept {
-  return strict_not_null<std::remove_cv_t<std::remove_reference_t<T>>>{std::forward<T>(t)};
+  return strict_not_null<typename std::remove_cv<typename std::remove_reference<T>::type>::type>{std::forward<T>(t)};
 }
 
 #if (defined(__cpp_deduction_guides) && (__cpp_deduction_guides >= 201611L))
@@ -255,6 +247,14 @@ strict_not_null(T) -> strict_not_null<T>;
 LIBCOPP_COPP_NAMESPACE_END
 
 namespace std {
+
+template <class T>
+struct hash<LIBCOPP_COPP_NAMESPACE_ID::gsl::not_null<T>> {
+  std::size_t operator()(const LIBCOPP_COPP_NAMESPACE_ID::gsl::not_null<T>& value) const {
+    return hash<T>{}(value.get());
+  }
+};
+
 template <class T>
 ostream& operator<<(ostream& os, const LIBCOPP_COPP_NAMESPACE_ID::gsl::not_null<T>& val) {
   os << val.get();

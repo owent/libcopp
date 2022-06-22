@@ -1392,8 +1392,8 @@ static copp::callable_future<int> task_future_func_some_callable_in_container(si
 
   int result = 1;
   for (auto &ready_task : readys) {
-    if (ready_task.get().is_exiting()) {
-      result += *ready_task.get().get_context()->data();
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
       ++resume_ready_count;
     }
   }
@@ -1460,14 +1460,14 @@ static copp::callable_future<int> task_future_func_some_callable_in_initialize_l
   task3.start();
 
   copp::some_ready<cotask::task_future<int, void>>::type readys;
-  copp::some_ready<cotask::task_future<int, void>>::reference_type pending[] = {task1, task2, task3};
+  std::reference_wrapper<cotask::task_future<int, void>> pending[] = {task1, task2, task3};
   auto some_result = co_await copp::some(readys, 2, pending);
   CASE_EXPECT_EQ(static_cast<int>(expect_status), static_cast<int>(some_result));
 
   int result = 1;
   for (auto &ready_task : readys) {
-    if (ready_task.get().is_exiting()) {
-      result += *ready_task.get().get_context()->data();
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
       ++resume_ready_count;
     }
   }
@@ -1517,8 +1517,8 @@ static copp::callable_future<int> task_future_func_any_callable_in_container(siz
 
   int result = 1;
   for (auto &ready_task : readys) {
-    if (ready_task.get().is_exiting()) {
-      result += *ready_task.get().get_context()->data();
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
       ++resume_ready_count;
     }
   }
@@ -1578,8 +1578,8 @@ static copp::callable_future<int> task_future_func_all_callable_in_container(siz
 
   int result = 1;
   for (auto &ready_task : readys) {
-    if (ready_task.get().is_exiting()) {
-      result += *ready_task.get().get_context()->data();
+    if (ready_task->is_exiting()) {
+      result += *ready_task->get_context()->data();
       ++resume_ready_count;
     }
   }

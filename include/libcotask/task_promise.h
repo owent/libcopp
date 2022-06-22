@@ -220,7 +220,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public ta
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
 
   template <class TVALUE, class TPRIVATE_DATA>
-  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action;
+  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_task_action;
 
   using base_type::add_caller;
   using base_type::data_;
@@ -277,7 +277,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public t
   friend class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base;
 
   template <class TVALUE, class TPRIVATE_DATA>
-  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action;
+  friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_task_action;
 
   using base_type::add_caller;
   using base_type::data_;
@@ -1419,7 +1419,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
 
 // some
 template <class TVALUE, class TPRIVATE_DATA>
-struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action {
+struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_task_action {
   using future_type = task_future<TVALUE, TPRIVATE_DATA>;
   using context_type = LIBCOPP_COPP_NAMESPACE_ID::some_delegate_context<future_type>;
 
@@ -1447,10 +1447,10 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 template <class TVALUE, class TPRIVATE_DATA>
 class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<cotask::task_future<TVALUE, TPRIVATE_DATA>>
     : public some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA>,
-                                cotask::some_delegate_callable_action<TVALUE, TPRIVATE_DATA>> {
+                                cotask::some_delegate_task_action<TVALUE, TPRIVATE_DATA>> {
  public:
   using base_type = some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA>,
-                                       cotask::some_delegate_callable_action<TVALUE, TPRIVATE_DATA>>;
+                                       cotask::some_delegate_task_action<TVALUE, TPRIVATE_DATA>>;
   using future_type = typename base_type::future_type;
   using value_type = typename base_type::value_type;
   using ready_output_type = typename base_type::ready_output_type;

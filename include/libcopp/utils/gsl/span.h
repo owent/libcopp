@@ -16,9 +16,11 @@
 // clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
-namespace nostd {
+namespace gsl {
+using std::data;
+using std::size;
 using std::span;
-}
+}  // namespace gsl
 LIBCOPP_COPP_NAMESPACE_END
 #else
 // clang-format off
@@ -35,7 +37,7 @@ LIBCOPP_COPP_NAMESPACE_END
 // clang-format on
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
-namespace nostd {
+namespace gsl {
 constexpr size_t dynamic_extent = static_cast<size_t>(-1);
 
 template <class TCONTAINER>
@@ -265,6 +267,39 @@ class span<T, dynamic_extent> {
   size_t extent_;
   T *data_;
 };
-}  // namespace nostd
+}  // namespace gsl
 LIBCOPP_COPP_NAMESPACE_END
 #endif
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
+namespace gsl {
+//
+// make_span() - Utility functions for creating spans
+//
+template <class TELEMENT>
+constexpr span<TELEMENT> make_span(TELEMENT* ptr, typename span<TELEMENT>::size_type count) {
+  return span<TELEMENT>(ptr, count);
+}
+
+template <class TELEMENT>
+constexpr span<TELEMENT> make_span(TELEMENT* first, TELEMENT* last) {
+  return span<TELEMENT>(first, last);
+}
+
+template <class TELEMENT, std::size_t N>
+constexpr span<TELEMENT, N> make_span(TELEMENT (&arr)[N]) noexcept {
+  return span<TELEMENT, N>(arr);
+}
+
+template <class TCONTAINER>
+constexpr span<typename TCONTAINER::value_type> make_span(TCONTAINER& cont) {
+  return span<typename TCONTAINER::value_type>(cont);
+}
+
+template <class TCONTAINER>
+constexpr span<const typename TCONTAINER::value_type> make_span(const TCONTAINER& cont) {
+  return span<const typename TCONTAINER::value_type>(cont);
+}
+
+}  // namespace gsl
+LIBCOPP_COPP_NAMESPACE_END
