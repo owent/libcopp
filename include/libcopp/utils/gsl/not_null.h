@@ -65,31 +65,30 @@ using owner = T;
 template <class T>
 class not_null {
  public:
+  using value_type = typename std::conditional<std::is_copy_constructible<T>::value, T, const T&>::type;
+
+ public:
   static_assert(details::is_comparable_to_nullptr<T>::value, "T cannot be compared to nullptr.");
 
   template <class U, class = typename std::enable_if<std::is_convertible<U, T>::value>::type>
-  constexpr not_null(U&& u) : ptr_(std::forward<U>(u)) {
-    assert(ptr_ != nullptr);
-  }
+  constexpr not_null(U&& u) : ptr_(std::forward<U>(u)) {}
 
   template <class = typename std::enable_if<!std::is_same<std::nullptr_t, T>::value>::type>
-  constexpr not_null(T u) : ptr_(std::move(u)) {
-    assert(ptr_ != nullptr);
-  }
+  constexpr not_null(T u) : ptr_(std::move(u)) {}
 
   template <class U, class = typename std::enable_if<std::is_convertible<U, T>::value>::type>
   constexpr not_null(const not_null<U>& other) : not_null(other.get()) {}
 
   not_null(const not_null& other) = default;
   not_null& operator=(const not_null& other) = default;
-  constexpr typename std::conditional<std::is_copy_constructible<T>::value, T, const T&>::type get() const {
+  constexpr value_type get() const {
     assert(ptr_ != nullptr);
     return ptr_;
   }
 
   constexpr operator T() const { return get(); }
-  constexpr decltype(auto) operator->() const { return get(); }
-  constexpr decltype(auto) operator*() const { return *get(); }
+  constexpr value_type operator->() const { return get(); }
+  constexpr typename std::remove_pointer<value_type>::type operator*() const { return *get(); }
 
   // prevents compilation when someone attempts to assign a null pointer constant
   not_null(std::nullptr_t) = delete;
