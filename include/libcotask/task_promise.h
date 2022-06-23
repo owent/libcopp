@@ -69,7 +69,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   task_context_base& operator=(task_context_base&&) = delete;
 
  public:
-  task_context_base() noexcept : current_handle_(nullptr) {
+  task_context_base() noexcept
+      : current_handle_(nullptr)
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        ,
+        binding_manager_ptr_(nullptr),
+        binding_manager_fn_(nullptr)
+#  endif
+  {
     id_allocator_type id_allocator;
     id_ = id_allocator.allocate();
   }
@@ -172,7 +179,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
       current_handle_.handle.resume();
     }
 
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+    void* manager_ptr = binding_manager_ptr_;
+    void (*manager_fn)(void*, task_context_base<value_type>&) = binding_manager_fn_;
+    binding_manager_ptr_ = nullptr;
+    binding_manager_fn_ = nullptr;
+#  endif
+
+    // wake up all waiting coroutines
     wake();
+
+    // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+    if (nullptr != manager_ptr && nullptr != manager_fn) {
+      (*manager_fn)(manager_ptr, *this);
+    }
+#  endif
   }
 
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
@@ -185,12 +207,45 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   // caller manager
   LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager caller_manager_;
 
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+ public:
+  class LIBCOPP_COTASK_API_HEAD_ONLY task_manager_helper {
+   private:
+    template <typename, typename>
+    friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
+    static bool setup_task_manager(task_context_base<value_type>& context, void* manager_ptr,
+                                   void (*fn)(void*, task_context_base<value_type>&)) {
+      if (context.binding_manager_ptr_ != nullptr) {
+        return false;
+      }
+
+      context.binding_manager_ptr_ = manager_ptr;
+      context.binding_manager_fn_ = fn;
+      return true;
+    }
+
+    static bool cleanup_task_manager(task_context_base<value_type>& context, void* manager_ptr) {
+      if (context.binding_manager_ptr_ != manager_ptr) {
+        return false;
+      }
+
+      context.binding_manager_ptr_ = nullptr;
+      context.binding_manager_fn_ = nullptr;
+      return true;
+    }
+  };
+#  endif
+
  private:
   id_type id_;
   std::atomic<size_t> future_counter_;
   handle_delegate current_handle_;
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   std::exception_ptr last_exception_;
+#  endif
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+  void* binding_manager_ptr_;
+  void (*binding_manager_fn_)(void*, task_context_base<value_type>&);
 #  endif
 };
 

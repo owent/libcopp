@@ -15,17 +15,11 @@
 #include <ctime>
 #include <list>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #ifdef __cpp_impl_three_way_comparison
 #  include <compare>
-#endif
-
-#if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
-#  include <unordered_map>
-#  define COTASK_MACRO_MANAGER_USING_UNORDERED_MAP 1
-#else
-#  include <map>
 #endif
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -142,17 +136,11 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
 /**
  * @brief task manager
  */
-template <typename TTask,
-#if defined(COTASK_MACRO_MANAGER_USING_UNORDERED_MAP)
-          typename TTaskContainer = std::unordered_map<typename TTask::id_type, detail::task_manager_node<TTask> >
-#else
-          typename TTaskContainer = std::map<typename TTask::id_type, detail::task_manager_node<TTask> >
-#endif
-          >
+template <typename TTask>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
  public:
   using task_type = TTask;
-  using container_type = TTaskContainer;
+  using container_type = std::unordered_map<typename task_type::id_type, detail::task_manager_node<task_type> >;
   using id_type = typename task_type::id_type;
   using task_ptr_type = typename task_type::ptr_type;
   using self_type = task_manager<task_type, container_type>;
