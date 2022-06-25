@@ -211,7 +211,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
  public:
   class LIBCOPP_COTASK_API_HEAD_ONLY task_manager_helper {
    private:
-    template <typename, typename>
+    template <class>
     friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
     static bool setup_task_manager(task_context_base<value_type>& context, void* manager_ptr,
                                    void (*fn)(void*, task_context_base<value_type>&)) {

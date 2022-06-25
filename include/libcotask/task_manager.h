@@ -36,48 +36,48 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY tickspec_t {
   time_t tv_sec; /* Seconds.  */
   int tv_nsec;   /* Nanoseconds.  */
 
-  friend bool operator==(const tickspec_t &l, const tickspec_t &r) {
+  inline friend bool operator==(const tickspec_t &l, const tickspec_t &r) {
     return l.tv_sec == r.tv_sec && l.tv_nsec == r.tv_nsec;
   }
 
 #ifdef __cpp_impl_three_way_comparison
-  friend std::strong_ordering operator<=>(const tickspec_t &l, const tickspec_t &r) {
+  inline friend std::strong_ordering operator<=>(const tickspec_t &l, const tickspec_t &r) {
     return (l.tv_sec != r.tv_sec) ? l.tv_sec <=> r.tv_sec : l.tv_nsec <=> r.tv_nsec;
   }
 #else
-  friend bool operator!=(const tickspec_t &l, const tickspec_t &r) {
+  inline friend bool operator!=(const tickspec_t &l, const tickspec_t &r) {
     return l.tv_sec != r.tv_sec || l.tv_nsec != r.tv_nsec;
   }
 
-  friend bool operator<(const tickspec_t &l, const tickspec_t &r) {
+  inline friend bool operator<(const tickspec_t &l, const tickspec_t &r) {
     return (l.tv_sec != r.tv_sec) ? l.tv_sec < r.tv_sec : l.tv_nsec < r.tv_nsec;
   }
 
-  friend bool operator<=(const tickspec_t &l, const tickspec_t &r) {
+  inline friend bool operator<=(const tickspec_t &l, const tickspec_t &r) {
     return (l.tv_sec != r.tv_sec) ? l.tv_sec <= r.tv_sec : l.tv_nsec <= r.tv_nsec;
   }
 
-  friend bool operator>(const tickspec_t &l, const tickspec_t &r) {
+  inline friend bool operator>(const tickspec_t &l, const tickspec_t &r) {
     return (l.tv_sec != r.tv_sec) ? l.tv_sec > r.tv_sec : l.tv_nsec > r.tv_nsec;
   }
 
-  friend bool operator>=(const tickspec_t &l, const tickspec_t &r) {
+  inline friend bool operator>=(const tickspec_t &l, const tickspec_t &r) {
     return (l.tv_sec != r.tv_sec) ? l.tv_sec >= r.tv_sec : l.tv_nsec >= r.tv_nsec;
   }
 #endif
 };
 
-template <typename TTask>
+template <class TTASK_ID_TYPE>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
   tickspec_t expired_time;
-  typename TTask::id_type task_id;
+  TTASK_ID_TYPE task_id;
 
-  friend bool operator==(const task_timer_node &l, const task_timer_node &r) {
+  inline friend bool operator==(const task_timer_node &l, const task_timer_node &r) {
     return l.expired_time == r.expired_time && l.task_id == r.task_id;
   }
 
 #ifdef __cpp_impl_three_way_comparison
-  friend std::strong_ordering operator<=>(const task_timer_node &l, const task_timer_node &r) {
+  inline friend std::strong_ordering operator<=>(const task_timer_node &l, const task_timer_node &r) {
     if (l.expired_time != r.expired_time) {
       return l.expired_time <=> r.expired_time;
     }
@@ -85,11 +85,11 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
     return l.task_id <=> r.task_id;
   }
 #else
-  friend bool operator!=(const task_timer_node &l, const task_timer_node &r) {
+  inline friend bool operator!=(const task_timer_node &l, const task_timer_node &r) {
     return l.expired_time != r.expired_time || l.task_id != r.task_id;
   }
 
-  friend bool operator<(const task_timer_node &l, const task_timer_node &r) {
+  inline friend bool operator<(const task_timer_node &l, const task_timer_node &r) {
     if (l.expired_time != r.expired_time) {
       return l.expired_time < r.expired_time;
     }
@@ -97,7 +97,7 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
     return l.task_id < r.task_id;
   }
 
-  friend bool operator<=(const task_timer_node &l, const task_timer_node &r) {
+  inline friend bool operator<=(const task_timer_node &l, const task_timer_node &r) {
     if (l.expired_time != r.expired_time) {
       return l.expired_time <= r.expired_time;
     }
@@ -105,7 +105,7 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
     return l.task_id <= r.task_id;
   }
 
-  friend bool operator>(const task_timer_node &l, const task_timer_node &r) {
+  inline friend bool operator>(const task_timer_node &l, const task_timer_node &r) {
     if (l.expired_time != r.expired_time) {
       return l.expired_time > r.expired_time;
     }
@@ -113,7 +113,7 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
     return l.task_id > r.task_id;
   }
 
-  friend bool operator>=(const task_timer_node &l, const task_timer_node &r) {
+  inline friend bool operator>=(const task_timer_node &l, const task_timer_node &r) {
     if (l.expired_time != r.expired_time) {
       return l.expired_time >= r.expired_time;
     }
@@ -123,27 +123,33 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_timer_node {
 #endif
 };
 
-template <typename TTask>
-struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node {
-  using task_ptr_type = typename TTask::ptr_type;
+template <class TTask>
+struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node;
+
+template <class TCO_MACRO>
+struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task<TCO_MACRO>> {
+  using task_ptr_type = typename task<TCO_MACRO>::ptr_type;
 
   task_ptr_type task_;
-  typename std::set<task_timer_node<TTask> >::iterator timer_node;
+  typename std::set<task_timer_node<typename task<TCO_MACRO>::id_type>>::iterator timer_node;
 };
 
 }  // namespace detail
 
-/**
- * @brief task manager
- */
 template <typename TTask>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
+class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
+
+/**
+ * @brief task manager for stackful coroutine task
+ */
+template <typename TCO_MACRO>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
  public:
-  using task_type = TTask;
-  using container_type = std::unordered_map<typename task_type::id_type, detail::task_manager_node<task_type> >;
+  using task_type = task<TCO_MACRO>;
+  using container_type = std::unordered_map<typename task_type::id_type, detail::task_manager_node<task_type>>;
   using id_type = typename task_type::id_type;
   using task_ptr_type = typename task_type::ptr_type;
-  using self_type = task_manager<task_type, container_type>;
+  using self_type = task_manager<task_type>;
   using ptr_type = std::shared_ptr<self_type>;
 
   struct flag_type {
@@ -678,10 +684,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
           action_lock_);
 #endif
 
-      std::set<detail::task_timer_node<task_type> > real_checkpoints;
-      for (typename std::set<detail::task_timer_node<task_type> >::iterator iter = task_timeout_timer_.begin();
+      std::set<detail::task_timer_node<id_type>> real_checkpoints;
+      for (typename std::set<detail::task_timer_node<id_type>>::iterator iter = task_timeout_timer_.begin();
            task_timeout_timer_.end() != iter; ++iter) {
-        detail::task_timer_node<task_type> new_checkpoint = (*iter);
+        detail::task_timer_node<id_type> new_checkpoint = (*iter);
         new_checkpoint.expired_time.tv_sec += sec;
         new_checkpoint.expired_time.tv_nsec += nsec;
         real_checkpoints.insert(new_checkpoint);
@@ -706,7 +712,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
             action_lock_);
 #endif
 
-        const typename std::set<detail::task_timer_node<task_type> >::value_type &timer_node =
+        const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node =
             *task_timeout_timer_.begin();
         // all tasks those expired time less than now are timeout
         if (now_tick_time <= timer_node.expired_time) {
@@ -777,7 +783,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
    * @brief get all task checkpoints, this api is just used for provide information to users
    * @return task checkpoints
    */
-  inline const std::set<detail::task_timer_node<task_type> > &get_checkpoints() const LIBCOPP_MACRO_NOEXCEPT {
+  inline const std::set<detail::task_timer_node<id_type>> &get_checkpoints() const LIBCOPP_MACRO_NOEXCEPT {
     return task_timeout_timer_;
   }
 
@@ -793,12 +799,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
       return;
     }
 
-    detail::task_timer_node<task_type> timer_node;
+    detail::task_timer_node<id_type> timer_node;
     timer_node.task_id = node.task_->get_id();
     timer_node.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
     timer_node.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
 
-    std::pair<typename std::set<detail::task_timer_node<task_type> >::iterator, bool> res =
+    std::pair<typename std::set<detail::task_timer_node<id_type>>::iterator, bool> res =
         task_timeout_timer_.insert(timer_node);
     if (res.second) {
       node.timer_node = res.first;
@@ -825,7 +831,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager {
  private:
   container_type tasks_;
   detail::tickspec_t last_tick_time_;
-  std::set<detail::task_timer_node<task_type> > task_timeout_timer_;
+  std::set<detail::task_timer_node<id_type>> task_timeout_timer_;
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;

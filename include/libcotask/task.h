@@ -804,7 +804,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   class LIBCOPP_COTASK_API_HEAD_ONLY task_manager_helper {
    private:
-    template <typename, typename>
+    template <class>
     friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
     static bool setup_task_manager(self_type &task_inst, void *manager_ptr, void (*fn)(void *, self_type &)) {
 #  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)

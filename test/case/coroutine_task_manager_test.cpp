@@ -61,8 +61,8 @@ CASE_TEST(coroutine_task_manager, tickspec_t) {
 }
 
 CASE_TEST(coroutine_task_manager, task_timer_node) {
-  cotask::detail::task_timer_node<cotask::task<> > l;
-  cotask::detail::task_timer_node<cotask::task<> > r;
+  cotask::detail::task_timer_node<cotask::task<>::id_type> l;
+  cotask::detail::task_timer_node<cotask::task<>::id_type> r;
 
   l.expired_time.tv_sec = 123;
   l.expired_time.tv_nsec = 456;
