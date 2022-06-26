@@ -29,6 +29,9 @@
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
 // clang-format on
 
+#include "libcotask/task.h"
+#include "libcotask/task_promise.h"
+
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 
 namespace detail {
@@ -132,6 +135,14 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task<TCO_MACRO>> {
 
   task_ptr_type task_;
   typename std::set<task_timer_node<typename task<TCO_MACRO>::id_type>>::iterator timer_node;
+};
+
+template <class TVALUE, class TPRIVATE_DATA>
+struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task_future<TVALUE, TPRIVATE_DATA>> {
+  using task_type = task_future<TVALUE, TPRIVATE_DATA>;
+
+  task_type task_;
+  typename std::set<task_timer_node<typename task_type::id_type>>::iterator timer_node;
 };
 
 }  // namespace detail

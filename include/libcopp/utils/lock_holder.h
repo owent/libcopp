@@ -30,7 +30,7 @@ namespace lock {
 namespace detail {
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_lock_action {
-  bool operator()(TLock &lock) const {
+  inline bool operator()(TLock &lock) const noexcept {
     lock.lock();
     return true;
   }
@@ -38,22 +38,22 @@ struct LIBCOPP_COPP_API_HEAD_ONLY default_lock_action {
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_try_lock_action {
-  bool operator()(TLock &lock) const { return lock.try_lock(); }
+  inline bool operator()(TLock &lock) const noexcept { return lock.try_lock(); }
 };
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_unlock_action {
-  void operator()(TLock &lock) const { lock.unlock(); }
+  inline void operator()(TLock &lock) const noexcept { lock.unlock(); }
 };
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_try_unlock_action {
-  bool operator()(TLock &lock) const { return lock.try_unlock(); }
+  inline bool operator()(TLock &lock) const noexcept { return lock.try_unlock(); }
 };
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_read_lock_action {
-  bool operator()(TLock &lock) const {
+  inline bool operator()(TLock &lock) const noexcept {
     lock.read_lock();
     return true;
   }
@@ -61,12 +61,12 @@ struct LIBCOPP_COPP_API_HEAD_ONLY default_read_lock_action {
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_read_unlock_action {
-  void operator()(TLock &lock) const { lock.read_unlock(); }
+  inline void operator()(TLock &lock) const noexcept { lock.read_unlock(); }
 };
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_write_lock_action {
-  bool operator()(TLock &lock) const {
+  inline bool operator()(TLock &lock) const noexcept {
     lock.write_lock();
     return true;
   }
@@ -74,7 +74,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY default_write_lock_action {
 
 template <typename TLock>
 struct LIBCOPP_COPP_API_HEAD_ONLY default_write_unlock_action {
-  void operator()(TLock &lock) const { lock.write_unlock(); }
+  inline void operator()(TLock &lock) const noexcept { lock.write_unlock(); }
 };
 }  // namespace detail
 
@@ -84,7 +84,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY lock_holder {
  public:
   using value_type = TLock;
 
-  lock_holder(TLock &lock) : lock_flag_(&lock) {
+  lock_holder(lock_holder &&other) : lock_flag_(other.lock_flag_) { other.lock_flag_ = nullptr; }
+
+  inline lock_holder &operator=(lock_holder &&other) noexcept {
+    if (&other == this) {
+      return *this;
+    }
+
+    if (lock_flag_ != other.lock_flag_) {
+      reset();
+    }
+
+    lock_flag_ = other.lock_flag_;
+    return *this;
+  }
+
+  inline lock_holder(TLock &lock) : lock_flag_(&lock) {
     if (false == TLockAct()(lock)) {
       lock_flag_ = nullptr;
     }
@@ -96,7 +111,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY lock_holder {
     }
   }
 
-  bool is_available() const { return nullptr != lock_flag_; }
+  inline bool is_available() const noexcept { return nullptr != lock_flag_; }
+
+  inline void reset() noexcept {
+    if (nullptr != lock_flag_) {
+      value_type *value = lock_flag_;
+      lock_flag_ = nullptr;
+      TUnlockAct()(*value);
+    }
+  }
 
  private:
   lock_holder(const lock_holder &) = delete;
@@ -110,7 +133,7 @@ template <typename TLock>
 class LIBCOPP_COPP_API_HEAD_ONLY read_lock_holder
     : public lock_holder<TLock, detail::default_read_lock_action<TLock>, detail::default_read_unlock_action<TLock> > {
  public:
-  read_lock_holder(TLock &lock)
+  inline read_lock_holder(TLock &lock)
       : lock_holder<TLock, detail::default_read_lock_action<TLock>, detail::default_read_unlock_action<TLock> >(lock) {}
 };
 
@@ -118,7 +141,7 @@ template <typename TLock>
 class LIBCOPP_COPP_API_HEAD_ONLY write_lock_holder
     : public lock_holder<TLock, detail::default_write_lock_action<TLock>, detail::default_write_unlock_action<TLock> > {
  public:
-  write_lock_holder(TLock &lock)
+  inline write_lock_holder(TLock &lock)
       : lock_holder<TLock, detail::default_write_lock_action<TLock>, detail::default_write_unlock_action<TLock> >(
             lock) {}
 };

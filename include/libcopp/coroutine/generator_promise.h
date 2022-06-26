@@ -224,7 +224,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 #  else
   template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
 #  endif
-  inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+  inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (nullptr != context_ && caller.promise().get_status() < promise_status::kDone) {
       set_caller(caller);
       context_->add_caller(caller);
@@ -236,9 +236,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
       if (await_suspend_callback_) {
         await_suspend_callback_(context_->shared_from_this());
       }
+
+      return true;
     } else {
       // Already done and can not suspend again
-      caller.resume();
+      // caller.resume();
+      return false;
     }
   }
 

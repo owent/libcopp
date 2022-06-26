@@ -148,13 +148,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
 #  else
   template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
 #  endif
-  inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+  inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (caller.promise().get_status() < promise_status::kDone) {
       set_caller(caller);
       caller.promise().set_waiting_handle(callee_);
       callee_.promise().add_caller(caller);
 
       caller.promise().set_flag(promise_flag::kInternalWaitting, true);
+      return true;
     } else {
       // Already done and can not suspend again
       auto& callee_promise = get_callee().promise();
@@ -164,7 +165,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
         callee_promise.set_status(caller.promise().get_status());
         callee_.resume();
       }
-      caller.resume();
+      // caller.resume();
+      return false;
     }
   }
 
@@ -505,11 +507,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
 #  else
     template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
 #  endif
-    inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+    inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
       if (nullptr == context_ || caller.promise().get_status() >= promise_status::kDone) {
         // Already done and can not suspend again
-        caller.resume();
-        return;
+        // caller.resume();
+        return false;
       }
 
       set_caller(caller);
@@ -526,6 +528,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
           delegate_action_type::suspend_future(context_->caller_handle, *pending_future);
         }
       }
+
+      return true;
     }
 
     void await_resume() {

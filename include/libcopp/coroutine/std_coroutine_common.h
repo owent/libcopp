@@ -216,10 +216,36 @@ class promise_base_type {
   LIBCOPP_COPP_API promise_base_type();
   LIBCOPP_COPP_API ~promise_base_type();
 
-  LIBCOPP_COPP_API bool set_status(promise_status value, promise_status *expect = nullptr) noexcept;
-  LIBCOPP_COPP_API promise_status get_status() const noexcept;
-  LIBCOPP_COPP_API bool check_flag(promise_flag flag) const noexcept;
-  LIBCOPP_COPP_API void set_flag(promise_flag flag, bool value) noexcept;
+  LIBCOPP_COPP_API_HEAD_ONLY inline bool set_status(promise_status value, promise_status *expect = nullptr) noexcept {
+    if (nullptr == expect) {
+      status_ = value;
+      return true;
+    }
+    if (status_ == *expect) {
+      status_ = value;
+      return true;
+    } else {
+      *expect = status_;
+      return false;
+    }
+  }
+
+  LIBCOPP_COPP_API_HEAD_ONLY UTIL_FORCEINLINE promise_status get_status() const noexcept { return status_; }
+
+  LIBCOPP_COPP_API_HEAD_ONLY inline bool check_flag(promise_flag flag) const noexcept {
+    if (flag >= promise_flag::kMax) {
+      return false;
+    }
+
+    return flags_.test(static_cast<size_t>(flag));
+  }
+
+  LIBCOPP_COPP_API_HEAD_ONLY inline void set_flag(promise_flag flag, bool value) noexcept {
+    if (flag >= promise_flag::kMax) {
+      return;
+    }
+    flags_.set(static_cast<size_t>(flag), value);
+  }
 
   LIBCOPP_COPP_API bool is_waiting() const noexcept;
   LIBCOPP_COPP_API void set_waiting_handle(std::nullptr_t) noexcept;
@@ -304,7 +330,8 @@ class promise_base_type {
   std::bitset<static_cast<size_t>(promise_flag::kMax)> flags_;
 
   // promise_status
-  util::lock::atomic_int_type<uint8_t> status_;
+  promise_status status_;
+
   // We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
   handle_delegate current_waiting_;
 

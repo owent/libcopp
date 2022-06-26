@@ -8,6 +8,8 @@
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/std_coroutine_common.h>
 #include <libcopp/future/future.h>
+#include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/spin_lock.h>
 #include <libcopp/utils/uint64_id_allocator.h>
 
 // clang-format off
@@ -238,7 +240,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
  private:
   id_type id_;
-  std::atomic<size_t> future_counter_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
+#  if defined(LIBCOPP_LOCK_DISABLE_MT) && LIBCOPP_LOCK_DISABLE_MT
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t>
+#  else
+      size_t
+#  endif
+      >
+      future_counter_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock internal_operation_lock_;
   handle_delegate current_handle_;
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   std::exception_ptr last_exception_;
@@ -550,16 +560,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
   template <class TCPROMISE, typename = std::enable_if_t<
                                  std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value>>
 #  endif
-  inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+  inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (nullptr != context_ && caller.promise().get_status() < task_status_type::kDone) {
       set_caller(caller);
       context_->add_caller(caller);
 
       // Allow kill resume to forward error information
       caller.promise().set_flag(promise_flag::kInternalWaitting, true);
+      return true;
     } else {
       // Already done and can not suspend again
-      caller.resume();
+      // caller.resume();
+      return false;
     }
   }
 
@@ -823,6 +835,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
       return false;
     }
 
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_lock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_unlock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>>
+        lock_holder{context_->internal_operation_lock_};
+
+    if (!lock_holder.is_available()) {
+      return false;
+    }
+
     auto& handle = context_->get_handle_delegate().handle;
     COPP_UNLIKELY_IF (!handle) {
       return false;
@@ -841,6 +865,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
     if (!promise->set_status(task_status_type::kRunning, &expect_status)) {
       return false;
     }
+
+    lock_holder.reset();
 
     if (!promise->check_flag(promise_flag::kFinalSuspend) && !promise->check_flag(promise_flag::kDestroying)) {
       handle.resume();
@@ -863,6 +889,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
     }
 
     COPP_UNLIKELY_IF (!context_) {
+      return false;
+    }
+
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_lock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_unlock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>>
+        lock_holder{context_->internal_operation_lock_};
+
+    if (!lock_holder.is_available()) {
       return false;
     }
 

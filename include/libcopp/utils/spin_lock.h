@@ -187,7 +187,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
  private:
   typedef enum { UNLOCKED = 0, LOCKED = 1 } lock_state_t;
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
-#if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
+#if defined(LIBCOPP_LOCK_DISABLE_MT) && LIBCOPP_LOCK_DISABLE_MT
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<unsigned int>
 #else
       unsigned int
@@ -196,28 +196,30 @@ class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
       lock_status_;
 
  public:
-  spin_lock() { lock_status_.store(UNLOCKED); }
+  inline spin_lock() noexcept { lock_status_.store(UNLOCKED); }
 
-  void lock() {
+  inline void lock() noexcept {
     unsigned char try_times = 0;
     while (lock_status_.exchange(static_cast<unsigned int>(LOCKED),
                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel) == LOCKED)
       __LIBCOPP_UTIL_LOCK_SPIN_LOCK_WAIT(try_times++); /* busy-wait */
   }
 
-  void unlock() {
+  inline void unlock() noexcept {
     lock_status_.store(static_cast<unsigned int>(UNLOCKED),
                        LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_release);
   }
 
-  bool is_locked() { return lock_status_.load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire) == LOCKED; }
+  inline bool is_locked() noexcept {
+    return lock_status_.load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire) == LOCKED;
+  }
 
-  bool try_lock() {
+  inline bool try_lock() noexcept {
     return lock_status_.exchange(static_cast<unsigned int>(LOCKED),
                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel) == UNLOCKED;
   }
 
-  bool try_unlock() {
+  inline bool try_unlock() noexcept {
     return lock_status_.exchange(static_cast<unsigned int>(UNLOCKED),
                                  LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acq_rel) == LOCKED;
   }

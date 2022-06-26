@@ -184,42 +184,9 @@ promise_base_type::pick_promise_status_awaitable::operator=(pick_promise_status_
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::~pick_promise_status_awaitable() {}
 
 LIBCOPP_COPP_API promise_base_type::promise_base_type()
-    : status_{static_cast<uint8_t>(promise_status::kCreated)}, current_waiting_{nullptr} {}
+    : status_{promise_status::kCreated}, current_waiting_{nullptr} {}
 
 LIBCOPP_COPP_API promise_base_type::~promise_base_type() {}
-
-LIBCOPP_COPP_API bool promise_base_type::set_status(promise_status value, promise_status *expect) noexcept {
-  if (nullptr == expect) {
-    status_.store(static_cast<uint8_t>(value));
-    return true;
-  }
-
-  uint8_t convert_value = static_cast<uint8_t>(value);
-  uint8_t convert_except = static_cast<uint8_t>(*expect);
-
-  bool result = status_.compare_exchange_strong(convert_except, convert_value);
-  *expect = static_cast<promise_status>(convert_except);
-  return result;
-}
-
-LIBCOPP_COPP_API promise_status promise_base_type::get_status() const noexcept {
-  return static_cast<promise_status>(status_.load());
-}
-
-LIBCOPP_COPP_API bool promise_base_type::check_flag(promise_flag flag) const noexcept {
-  if (flag >= promise_flag::kMax) {
-    return false;
-  }
-
-  return flags_.test(static_cast<size_t>(flag));
-}
-
-LIBCOPP_COPP_API void promise_base_type::set_flag(promise_flag flag, bool value) noexcept {
-  if (flag >= promise_flag::kMax) {
-    return;
-  }
-  flags_.set(static_cast<size_t>(flag), value);
-}
 
 LIBCOPP_COPP_API bool promise_base_type::is_waiting() const noexcept {
   return current_waiting_ || check_flag(promise_flag::kInternalWaitting);
@@ -250,7 +217,7 @@ LIBCOPP_COPP_API void promise_base_type::resume_waiting(handle_delegate current_
 
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable promise_base_type::yield_value(
     pick_promise_status_awaitable &&args) const noexcept {
-  args.data = static_cast<promise_status>(status_.load());
+  args.data = get_status();
   return pick_promise_status_awaitable{args.data};
 }
 
