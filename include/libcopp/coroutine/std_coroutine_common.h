@@ -18,6 +18,7 @@
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
+#  include <list>
 #endif
 
 #ifdef __cpp_impl_three_way_comparison

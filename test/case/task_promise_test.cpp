@@ -15,6 +15,7 @@
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
+namespace {
 struct task_future_private_data {
   int data;
 };
@@ -28,7 +29,6 @@ using callable_future_void_type = copp::callable_future<void>;
 using generator_future_int_type = copp::generator_future<int>;
 using generator_future_void_type = copp::generator_future<void>;
 
-namespace {
 std::list<generator_future_int_type::context_pointer_type> g_task_future_pending_int_contexts;
 std::list<generator_future_void_type::context_pointer_type> g_task_future_pending_void_contexts;
 size_t g_task_future_resume_generator_count = 0;

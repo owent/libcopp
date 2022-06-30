@@ -128,10 +128,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
       return true;
     }
 
-    if (callee_.promise().get_status() == promise_status::kCreated) {
-      callee_.resume();
-    }
-
     if (callee_.promise().get_status() >= promise_status::kDone) {
       return true;
     }
@@ -287,10 +283,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
         }
       }
 
-      inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> caller) noexcept {
+      inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> caller) noexcept {
         handle = caller;
 
-        caller.resume();
+        // Return false to resume the caller
+        return false;
       }
 
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
@@ -386,7 +383,24 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
       if ((force_resume || current_handle_.promise().is_waiting()) &&
           !current_handle_.promise().check_flag(promise_flag::kDestroying) &&
           !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
+        // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+        // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        std::exception_ptr unhandled_exception;
+        try {
+#  endif
         current_handle_.resume();
+
+        // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+        // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        } catch (...) {
+          unhandled_exception = std::current_exception();
+        }
+        if (unhandled_exception) {
+          std::rethrow_exception(unhandled_exception);
+        }
+#  endif
       }
       break;
     }

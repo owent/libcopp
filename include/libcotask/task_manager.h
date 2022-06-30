@@ -222,8 +222,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     // first, lock and reset all data
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       for (typename container_type::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
@@ -292,8 +292,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     // lock before we will operator tasks_
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-        action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+        action_lock_};
 #endif
 
     id_type task_id = task->get_id();
@@ -302,8 +302,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     }
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-    if (!task_type::task_manager_helper::setup_task_manager(*task, reinterpret_cast<void *>(this),
-                                                            &task_cleanup_callback)) {
+    using task_manager_helper = typename task_type::task_manager_helper;
+    if (!task_manager_helper::setup_task_manager(*task, reinterpret_cast<void *>(this), &task_cleanup_callback)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER;
     }
 #endif
@@ -312,7 +312,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     std::pair<typename container_type::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
     if (false == res.second) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-      task_type::task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task, reinterpret_cast<void *>(this));
 #endif
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_EXTERNAL_INSERT_FAILED;
     }
@@ -353,8 +353,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -396,8 +396,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -418,8 +418,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     if (task_inst) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+      using task_manager_helper = typename task_type::task_manager_helper;
       // already cleanup, there is no need to cleanup again
-      task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 
       EN_TASK_STATUS task_status = task_inst->get_status();
@@ -442,8 +443,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-        action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+        action_lock_};
 #endif
 
     using iter_type = typename container_type::iterator;
@@ -475,8 +476,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -524,8 +525,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -573,8 +574,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -592,8 +593,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     // unlock and then run cancel
     if (task_inst) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+      using task_manager_helper = typename task_type::task_manager_helper;
       // already cleanup, there is no need to cleanup again
-      task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
       return task_inst->cancel(unhandled, priv_data);
@@ -625,8 +627,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     task_ptr_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -644,8 +646,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     // unlock and then run kill
     if (task_inst) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+      using task_manager_helper = typename task_type::task_manager_helper;
       // already cleanup, there is no need to cleanup again
-      task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
       return task_inst->kill(unhandled, status, priv_data);
@@ -691,8 +694,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
       // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       std::set<detail::task_timer_node<id_type>> real_checkpoints;
@@ -719,8 +722,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
       {
         // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-        LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-            action_lock_);
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+            action_lock_};
 #endif
 
         const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node =
@@ -747,8 +750,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
       // task call can not be used when lock is on
       if (task_inst && !task_inst->is_exiting()) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        using task_manager_helper = typename task_type::task_manager_helper;
         // already cleanup, there is no need to cleanup again
-        task_type::task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
+        task_manager_helper::cleanup_task_manager(*task_inst, reinterpret_cast<void *>(this));
 #endif
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
         task_inst->kill(eptrs, EN_TS_TIMEOUT, nullptr);
@@ -874,16 +878,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     uint32_t *data_;
     flag_type flag_;
     inline flag_guard_type(uint32_t *flags, flag_type v) : data_(flags), flag_(v) {
-      if (nullptr == data_ || (*data_ & flag_)) {
+      if (nullptr == data_ || (*data_ & static_cast<uint32_t>(flag_))) {
         flag_ = flag_type::kNone;
         data_ = nullptr;
       } else {
-        (*data_) |= flag_;
+        (*data_) |= static_cast<uint32_t>(flag_);
       }
     }
     inline ~flag_guard_type() {
       if (*this) {
-        (*data_) &= ~flag_;
+        (*data_) &= ~static_cast<uint32_t>(flag_);
       }
     }
 
@@ -911,8 +915,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     // first, lock and reset all data
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       for (typename container_type::iterator iter = tasks_.begin(); iter != tasks_.end(); ++iter) {
@@ -929,8 +933,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
     // then, kill all tasks
     for (typename std::vector<task_type>::iterator iter = all_tasks.begin(); iter != all_tasks.end(); ++iter) {
-      if (!(*iter)->is_exiting()) {
-        (*iter)->kill(task_status_type::kKilled);
+      if (!(*iter).is_exiting()) {
+#if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        using task_manager_helper = typename task_type::task_manager_helper;
+        // already cleanup, there is no need to cleanup again
+        task_manager_helper::cleanup_task_manager(*(*iter).get_context(), reinterpret_cast<void *>(this));
+#endif
+
+        (*iter).kill(task_status_type::kKilled);
       }
     }
   }
@@ -955,7 +965,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
    * @see tick
    */
   int add_task(const task_type &task, time_t timeout_sec, int timeout_nsec) noexcept {
-    if (flags_ & flag_type::kTimerReset) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -971,8 +981,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
     // lock before we will operator tasks_
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-        action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+        action_lock_};
 #endif
 
     id_type task_id = task.get_id();
@@ -981,8 +991,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     }
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-    if (!task_type::task_manager_helper::setup_task_manager(*task.get_context(), reinterpret_cast<void *>(this),
-                                                            &task_cleanup_callback)) {
+    using task_manager_helper = typename task_type::task_manager_helper;
+    if (!task_manager_helper::setup_task_manager(*task.get_context(), reinterpret_cast<void *>(this),
+                                                 &task_cleanup_callback)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_TASK_ALREADY_IN_ANOTHER_MANAGER;
     }
 #endif
@@ -991,7 +1002,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     std::pair<typename container_type::iterator, bool> res = tasks_.insert(pair_type(task_id, task_node));
     if (false == res.second) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-      task_type::task_manager_helper::cleanup_task_manager(*task.get_context(), reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task.get_context(), reinterpret_cast<void *>(this));
 #endif
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_EXTERNAL_INSERT_FAILED;
     }
@@ -1026,14 +1037,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
    * @see tick
    */
   int set_timeout(id_type id, time_t timeout_sec, int timeout_nsec) noexcept {
-    if (flags_ & flag_type::kTimerReset) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -1049,11 +1060,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
   /**
    * @brief remove task in this manager
    * @param id task id
-   * @param confirm_context check task context before just remove by id
+   * @param confirm_task check task context before just remove by id
    * @return 0 or error code
    */
-  inline int remove_task(id_type id, const task_type &confirm_context) {
-    return remove_task(id, confirm_context.get_context().get());
+  inline int remove_task(id_type id, const task_type &confirm_task) {
+    return remove_task(id, confirm_task.get_context().get());
   }
 
   /**
@@ -1069,16 +1080,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
    * @param confirm_context check task context before just remove by id
    * @return 0 or error code
    */
-  int remove_task(id_type id, const typename task_type::context_type *confirm_context) {
-    if (flags_ & flag_type::kTimerReset) {
+  int remove_task(id_type id, const task_context_base<TVALUE> *confirm_context) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
     task_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -1097,15 +1108,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       tasks_.erase(iter);
     }
 
-    if (task_inst) {
+    if (task_inst.get_context()) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+      using task_manager_helper = typename task_type::task_manager_helper;
       // already cleanup, there is no need to cleanup again
-      task_type::task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
 #endif
 
       task_status_type task_status = task_inst.get_status();
       if (task_status > task_status_type::kCreated && task_status < task_status_type::kDone) {
-        return task_inst.kill(task_status_type::kKilled, nullptr);
+        return task_inst.kill(task_status_type::kKilled);
       }
     }
 
@@ -1117,14 +1129,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
    * @param id task id
    * @return pointer of task
    */
-  const task_type *find_task(id_type id) const noexcept {
-    if (flags_ & flag_type::kTimerReset) {
+  const task_type *find_task(id_type id) noexcept {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return nullptr;
     }
 
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-        action_lock_);
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+        action_lock_};
 #endif
 
     auto iter = tasks_.find(id);
@@ -1135,30 +1147,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     return &iter->second.task_;
   }
 
-  // int add_scheduler();
-  // int scheduling_once();
-  // int scheduling_loop();
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int start(id_type id, void *priv_data = nullptr) {
-    std::list<std::exception_ptr> eptrs;
-    int ret = start(id, eptrs, priv_data);
-    task_type::maybe_rethrow(eptrs);
-    return ret;
-  }
-
-  int start(id_type id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
-#else
-  int start(id_type id, void *priv_data = nullptr) {
-#endif
-    if (flags_ & flag_type::kTimerReset) {
+  int start(id_type id) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_type task_inst;
+    task_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -1169,45 +1167,30 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     }
 
     // unlock and then run start
-    if (task_inst) {
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      int ret = task_inst->start(unhandled, priv_data);
-#else
-      int ret = task_inst->start(priv_data);
-#endif
+    if (task_inst.get_context()) {
+      task_inst.start();
 
       // if task is finished, remove it
-      if (task_inst->get_status() >= EN_TS_DONE) {
-        remove_task(id);
+      if (task_inst.is_exiting()) {
+        remove_task(id, task_inst);
       }
 
-      return ret;
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     } else {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int cancel(id_type id, void *priv_data = nullptr) {
-    std::list<std::exception_ptr> eptrs;
-    int ret = cancel(id, eptrs, priv_data);
-    task_type::maybe_rethrow(eptrs);
-    return ret;
-  }
-
-  int cancel(id_type id, std::list<std::exception_ptr> &unhandled, void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
-#else
-  int cancel(id_type id, void *priv_data = nullptr) {
-#endif
-    if (flags_ & flag_type::kTimerReset) {
+  int cancel(id_type id) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_type task_inst;
+    task_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -1223,43 +1206,29 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     }
 
     // unlock and then run cancel
-    if (task_inst) {
+    if (task_inst.get_context()) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+      using task_manager_helper = typename task_type::task_manager_helper;
       // already cleanup, there is no need to cleanup again
-      task_type::task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
 #endif
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      return task_inst->cancel(unhandled, priv_data);
-#else
-      return task_inst->cancel(priv_data);
-#endif
+      task_inst.cancel();
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     } else {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  int kill(id_type id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
-    std::list<std::exception_ptr> eptrs;
-    int ret = kill(id, eptrs, status, priv_data);
-    task_type::maybe_rethrow(eptrs);
-    return ret;
-  }
-
-  int kill(id_type id, std::list<std::exception_ptr> &unhandled, enum EN_TASK_STATUS status,
-           void *priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT {
-#else
-  int kill(id_type id, enum EN_TASK_STATUS status, void *priv_data = nullptr) {
-#endif
-    if (flags_ & flag_type::kTimerReset) {
+  int kill(id_type id, task_status_type target_status) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
-    task_ptr_type task_inst;
+    task_type task_inst;
     {
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       using iter_type = typename container_type::iterator;
@@ -1275,22 +1244,20 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     }
 
     // unlock and then run kill
-    if (task_inst) {
+    if (task_inst.get_context()) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+      using task_manager_helper = typename task_type::task_manager_helper;
       // already cleanup, there is no need to cleanup again
-      task_type::task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
+      task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
 #endif
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-      return task_inst->kill(unhandled, status, priv_data);
-#else
-      return task_inst->kill(status, priv_data);
-#endif
+      task_inst.kill(target_status);
+      return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     } else {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_FOUND;
     }
   }
 
-  int kill(id_type id, void *priv_data = nullptr) { return kill(id, EN_TS_KILLED, priv_data); }
+  int kill(id_type id) { return kill(id, task_status_type::kKilled); }
 
   /**
    * @brief active tick event and deal with clock
@@ -1316,7 +1283,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     }
 
-    if (flags_ & flag_type::kTimerReset) {
+    if (flags_ & static_cast<uint32_t>(flag_type::kTimerReset)) {
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_IN_RESET;
     }
 
@@ -1324,8 +1291,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
       // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-          action_lock_);
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+          action_lock_};
 #endif
 
       std::set<detail::task_timer_node<id_type>> real_checkpoints;
@@ -1342,18 +1309,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     }
 
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    std::list<std::exception_ptr> eptrs;
-#endif
     // remove timeout tasks
     while (false == task_timeout_timer_.empty()) {
-      task_ptr_type task_inst;
+      task_type task_inst;
 
       {
         // hold lock
 #if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
-        LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
-            action_lock_);
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
+            action_lock_};
 #endif
 
         const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node =
@@ -1378,24 +1342,17 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       }
 
       // task call can not be used when lock is on
-      if (task_inst && !task_inst->is_exiting()) {
+      if (!task_inst.is_exiting()) {
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        using task_manager_helper = typename task_type::task_manager_helper;
         // already cleanup, there is no need to cleanup again
-        task_type::task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
+        task_manager_helper::cleanup_task_manager(*task_inst.get_context(), reinterpret_cast<void *>(this));
 #endif
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-        task_inst->kill(eptrs, EN_TS_TIMEOUT, nullptr);
-#else
-        task_inst->kill(EN_TS_TIMEOUT);
-#endif
+        task_inst.kill(task_status_type::kTimeout);
       }
     }
 
     last_tick_time_ = now_tick_time;
-
-#if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    task_type::maybe_rethrow(eptrs);
-#endif
     return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
   }
 
@@ -1439,12 +1396,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       return;
     }
 
-    if (!node.task_) {
+    if (!node.task_.get_context()) {
       return;
     }
 
     detail::task_timer_node<id_type> timer_node;
-    timer_node.task_id = node.task_->get_id();
+    timer_node.task_id = node.task_.get_id();
     timer_node.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
     timer_node.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
 
@@ -1463,7 +1420,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
   }
 
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
-  static void task_cleanup_callback(void *self_ptr, task_type &task_inst) {
+  static void task_cleanup_callback(void *self_ptr, task_context_base<TVALUE> &task_inst) {
     if (nullptr == self_ptr) {
       return;
     }

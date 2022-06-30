@@ -202,7 +202,7 @@ CASE_TEST(coroutine_task_manager, kill) {
   CASE_EXPECT_EQ(cotask::EN_TS_CANCELED, co_another_task->get_status());
 }
 
-CASE_TEST(coroutine_task_manager, multi_checkpoints) {
+CASE_TEST(coroutine_task_manager, duplicated_checkpoints) {
   typedef cotask::task<>::ptr_t task_ptr_type;
   task_ptr_type co_task = cotask::task<>::create(test_context_task_manager_action());
 
@@ -453,5 +453,6 @@ CASE_TEST(coroutine_task_manager, exception_safe) {
   CASE_EXPECT_TRUE(co_task->is_completed());
 }
 #  endif
-
+#else
+CASE_TEST(coroutine_task_manager, disabled) {}
 #endif
