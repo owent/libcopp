@@ -4,14 +4,14 @@
 
 1. Add ABI tag for all c++ codes
   > We will keep ABI compatitablity for all assemblly APIs and will change the suffix when ABI changed.
-2. \[TODO\] Change the return type to `cotask::impl::task_action_future<T, TPTR>` (aka `cotask::task<T>::future_type`)
-  + Add `value_type` to task_macro ( `macro_coroutine` )
-  + Add API `task_action_impl::get_task_id`
-  + Add internal API`task_action_impl::get_task`
-  + Store result data into `cotask::task<...>`
+2. `cotask::task` changes
+  + [x] Add `value_type` to task_macro ( `macro_coroutine` )
+  + [ ] Add API `task_action_impl::get_task_id`
+  + [ ] Add internal API `task_action_impl::get_task`
 3. \[Previous\] Redesign C++ 20 coroutine support.
 4. Using ctest to maintain test and samples
 5. Fix compatibility for C++20 attributes and macros
+6. \[BREAK CHANGES\] Rename `LIBCOPP_DISABLE_THIS_MT` to `LIBCOPP_LOCK_DISABLE_THIS_MT`
 
 ## 1.5.0
 
@@ -59,9 +59,9 @@
 
 ## 1.3.2
 
-1. [FIX] [#16](https://github.com/owent/libcopp/issues/16) : document of  ```LIBCOPP_DISABLE_ATOMIC_LOCK``` and ```LIBCOPP_DISABLE_THIS_MT``` .
-2. [FIX] [#18](https://github.com/owent/libcopp/issues/18) : ```'xx' is not a member of 'xxx {aka xxx}'``` .
-3. [OPTIMIZE] ```cotask::task``` can capture all integer type of return value now.
+1. [FIX] [#16](https://github.com/owent/libcopp/issues/16) : document of  `LIBCOPP_DISABLE_ATOMIC_LOCK` and `LIBCOPP_DISABLE_THIS_MT` .
+2. [FIX] [#18](https://github.com/owent/libcopp/issues/18) : `'xx' is not a member of 'xxx {aka xxx}'` .
+3. [OPTIMIZE] `cotask::task` can capture all integer type of return value now.
 4. [FIX] Remove warning of c++20 coroutine options when project use both languages of cxx and not cxx
 
 ## 1.3.1 (2020-07-06)
@@ -74,19 +74,19 @@
 
 1. [OPTIMIZE] Using cmake export to generate module files
 2. [OPTIMIZE] Change default visibility of symbols to hidden, we support dll on windows now.
-3. [FIX] Rename ```task::await``` into ```task::await_task```, Some compile don't allow ```await_task``` as function name.
+3. [FIX] Rename `task::await`` into `task::await_task`, Some compile don't allow `await_task` as function name.
 4. [BOOST] Merge boost.context 1.73.0
-5. [FEATURE] Implement context of windows fiber and ```SetUnhandledExceptionFilter``` is available to catchunhandled exception in coroutine action
+5. [FEATURE] Implement context of windows fiber and `SetUnhandledExceptionFilter` is available to catchunhandled exception in coroutine action
 6. [OPTIMIZE] Catch and rethrow unhandle exception after coroutine resumed when using C++11 or upper, most APIs are exception safe now.
-7. [OPTIMIZE] Remove TTASK_MACRO in cotask::task, task id now is always set ```uint64_t``` and use the id allocator with thread cache.
-8. [OPTIMIZE] Fix ```Warning: client switching stacks?``` in unit test when enable valgrind support.
-9. [FEATURE] Enable ```-DLIBCOPP_FCONTEXT_USE_TSX=ON``` for default.
+7. [OPTIMIZE] Remove TTASK_MACRO in cotask::task, task id now is always set `uint64_t` and use the id allocator with thread cache.
+8. [OPTIMIZE] Fix `Warning: client switching stacks?` in unit test when enable valgrind support.
+9. [FEATURE] Enable `-DLIBCOPP_FCONTEXT_USE_TSX=ON` for default.
 
 ### BREAK CHANGES & UPGRADE GUIDE FROM 1.2.X
 
-+ Rename ```cotask::task::await``` into ```cotask::task::await_task```
-+ Replace ```cotask::task<TCO_MACRO, TTASK_MACRO>``` with ```cotask::task<TCO_MACRO>``` , we don't allow to custom id allocator now.
-+ Replace ```cotask::core::standard_int_id_allocator<uint64_t>``` with ```copp::util::uint64_id_allocator``` , we don't allow to custom id allocator now.
++ Rename `cotask::task::await` into `cotask::task::await_task`
++ Replace `cotask::task<TCO_MACRO, TTASK_MACRO>` with `cotask::task<TCO_MACRO>` , we don't allow to custom id allocator now.
++ Replace `cotask::core::standard_int_id_allocator<uint64_t>` with `copp::util::uint64_id_allocator` , we don't allow to custom id allocator now.
 + Require gcc 4.7+, MSVC 14+(Visual Studio 2015)>)
 + Require cmake 3.12.0 or upper
 

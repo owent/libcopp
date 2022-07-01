@@ -18,6 +18,7 @@
 // clang-format on
 
 #include "libcopp/coroutine/algorithm_common.h"
+#include "libcopp/coroutine/callable_promise.h"
 #include "libcopp/coroutine/std_coroutine_common.h"
 #include "libcopp/future/future.h"
 
@@ -117,8 +118,24 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, true> : publ
   using base_type::reset_value;
 
   UTIL_FORCEINLINE void set_value() {
+    // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+    // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    std::exception_ptr unhandled_exception;
+    try {
+#  endif
     data_.reset_data(true);
     wake();
+    // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+    // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    } catch (...) {
+      unhandled_exception = std::current_exception();
+    }
+    if (unhandled_exception) {
+      std::rethrow_exception(unhandled_exception);
+    }
+#  endif
   }
 
  private:
@@ -168,8 +185,24 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, false> : pub
 
   template <class U>
   UTIL_FORCEINLINE void set_value(U&& in) {
+    // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+    // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    std::exception_ptr unhandled_exception;
+    try {
+#  endif
     data_.reset_data(std::forward<U>(in));
     wake();
+    // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+    // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+    } catch (...) {
+      unhandled_exception = std::current_exception();
+    }
+    if (unhandled_exception) {
+      std::rethrow_exception(unhandled_exception);
+    }
+#  endif
   }
 
  private:
@@ -224,7 +257,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 #  else
   template <class TCPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TCPROMISE>::value>>
 #  endif
-  inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+  inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (nullptr != context_ && caller.promise().get_status() < promise_status::kDone) {
       set_caller(caller);
       context_->add_caller(caller);
@@ -236,9 +269,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
       if (await_suspend_callback_) {
         await_suspend_callback_(context_->shared_from_this());
       }
+
+      return true;
     } else {
       // Already done and can not suspend again
-      caller.resume();
+      // caller.resume();
+      return false;
     }
   }
 

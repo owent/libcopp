@@ -8,6 +8,8 @@
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/std_coroutine_common.h>
 #include <libcopp/future/future.h>
+#include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/spin_lock.h>
 #include <libcopp/utils/uint64_id_allocator.h>
 
 // clang-format off
@@ -69,7 +71,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   task_context_base& operator=(task_context_base&&) = delete;
 
  public:
-  task_context_base() noexcept : current_handle_(nullptr) {
+  task_context_base() noexcept
+      : current_handle_(nullptr)
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+        ,
+        binding_manager_ptr_(nullptr),
+        binding_manager_fn_(nullptr)
+#  endif
+  {
     id_allocator_type id_allocator;
     id_ = id_allocator.allocate();
   }
@@ -83,12 +92,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
     if (current_handle_.handle) {
       current_handle_.handle.destroy();
     }
-
-#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    if (last_exception_) {
-      std::rethrow_exception(last_exception_);
-    }
-#  endif
   }
 
   UTIL_FORCEINLINE bool is_ready() const noexcept {
@@ -140,7 +143,24 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
 
-  UTIL_FORCEINLINE void wake() { caller_manager_.resume_callers(); }
+  UTIL_FORCEINLINE void wake() {
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+    void* manager_ptr = binding_manager_ptr_;
+    void (*manager_fn)(void*, task_context_base<value_type>&) = binding_manager_fn_;
+    binding_manager_ptr_ = nullptr;
+    binding_manager_fn_ = nullptr;
+#  endif
+
+    // resume callers
+    caller_manager_.resume_callers();
+
+    // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+    if (nullptr != manager_ptr && nullptr != manager_fn) {
+      (*manager_fn)(manager_ptr, *this);
+    }
+#  endif
+  }
 
  private:
   template <class, class, bool>
@@ -164,15 +184,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
     // Move unhandled_exception
     while (current_handle_.handle && !current_handle_.handle.done() && current_handle_.promise &&
-           !current_handle_.promise->check_flag(promise_flag::kFinalSuspend)
-#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-           && !last_exception_
-#  endif
-    ) {
+           !current_handle_.promise->check_flag(promise_flag::kFinalSuspend)) {
       current_handle_.handle.resume();
     }
 
-    wake();
+    // wake is already be called in ~task_context_delegate
+    // wake();
   }
 
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
@@ -185,12 +202,50 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
   // caller manager
   LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager caller_manager_;
 
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+ public:
+  class LIBCOPP_COTASK_API_HEAD_ONLY task_manager_helper {
+   private:
+    template <class>
+    friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
+    static bool setup_task_manager(task_context_base<value_type>& context, void* manager_ptr,
+                                   void (*fn)(void*, task_context_base<value_type>&)) {
+      if (context.binding_manager_ptr_ != nullptr) {
+        return false;
+      }
+
+      context.binding_manager_ptr_ = manager_ptr;
+      context.binding_manager_fn_ = fn;
+      return true;
+    }
+
+    static bool cleanup_task_manager(task_context_base<value_type>& context, void* manager_ptr) {
+      if (context.binding_manager_ptr_ != manager_ptr) {
+        return false;
+      }
+
+      context.binding_manager_ptr_ = nullptr;
+      context.binding_manager_fn_ = nullptr;
+      return true;
+    }
+  };
+#  endif
+
  private:
   id_type id_;
-  std::atomic<size_t> future_counter_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
+#  if defined(LIBCOPP_LOCK_DISABLE_MT) && LIBCOPP_LOCK_DISABLE_MT
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t>
+#  else
+      size_t
+#  endif
+      >
+      future_counter_;
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock internal_operation_lock_;
   handle_delegate current_handle_;
-#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  std::exception_ptr last_exception_;
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+  void* binding_manager_ptr_;
+  void (*binding_manager_fn_)(void*, task_context_base<value_type>&);
 #  endif
 };
 
@@ -495,16 +550,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMES
   template <class TCPROMISE, typename = std::enable_if_t<
                                  std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value>>
 #  endif
-  inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
+  inline bool await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
     if (nullptr != context_ && caller.promise().get_status() < task_status_type::kDone) {
       set_caller(caller);
       context_->add_caller(caller);
 
       // Allow kill resume to forward error information
       caller.promise().set_flag(promise_flag::kInternalWaitting, true);
+      return true;
     } else {
       // Already done and can not suspend again
-      caller.resume();
+      // caller.resume();
+      return false;
     }
   }
 
@@ -664,6 +721,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
 
   ~task_future_base() { reset(); }
 
+  inline friend bool operator==(const task_future_base& l, const task_future_base& r) noexcept {
+    return l.context_ == r.context_;
+  }
+
+  inline friend bool operator!=(const task_future_base& l, const task_future_base& r) noexcept {
+    return l.context_ != r.context_;
+  }
+
   void assign(const task_future_base& other) noexcept {
     if (this == &other || context_ == other.context_) {
       return;
@@ -768,6 +833,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
       return false;
     }
 
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_lock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_unlock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>>
+        lock_holder{context_->internal_operation_lock_};
+
+    if (!lock_holder.is_available()) {
+      return false;
+    }
+
     auto& handle = context_->get_handle_delegate().handle;
     COPP_UNLIKELY_IF (!handle) {
       return false;
@@ -787,8 +864,23 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
       return false;
     }
 
+    lock_holder.reset();
+
     if (!promise->check_flag(promise_flag::kFinalSuspend) && !promise->check_flag(promise_flag::kDestroying)) {
+      // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+      // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+      std::exception_ptr unhandled_exception;
+      try {
+#  endif
       handle.resume();
+      // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+      // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+      } catch (...) {
+        unhandled_exception = std::current_exception();
+      }
+#  endif
     }
 
     return true;
@@ -808,6 +900,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
     }
 
     COPP_UNLIKELY_IF (!context_) {
+      return false;
+    }
+
+    LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_lock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>,
+        LIBCOPP_COPP_NAMESPACE_ID::util::lock::detail::default_try_unlock_action<
+            LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock>>
+        lock_holder{context_->internal_operation_lock_};
+
+    if (!lock_holder.is_available()) {
       return false;
     }
 
@@ -845,7 +949,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
 
       if ((force_resume || promise->is_waiting()) && !promise->check_flag(promise_flag::kFinalSuspend) &&
           !promise->check_flag(promise_flag::kDestroying)) {
+        // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+        // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+        std::exception_ptr unhandled_exception;
+        try {
+#  endif
         handle.resume();
+        // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
+        // We may enable exception in the future
+#  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
+      }
+      catch (...) {
+        unhandled_exception = std::current_exception();
+      }
+#  endif
       }
       break;
     }
@@ -853,9 +971,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
     return ret;
   }
 
-  UTIL_FORCEINLINE bool kill(bool force_resume) { return kill(promise_flag::kKilled, force_resume); }
+  UTIL_FORCEINLINE bool kill(bool force_resume) { return kill(task_status_type::kKilled, force_resume); }
 
-  UTIL_FORCEINLINE bool cancel(bool force_resume = false) { return kill(promise_flag::kCancle, force_resume); }
+  UTIL_FORCEINLINE bool cancel(bool force_resume = false) { return kill(task_status_type::kCancle, force_resume); }
 
   UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
 
@@ -1004,8 +1122,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
       LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type> handle;
     };
     initial_awaitable initial_suspend() noexcept { return {}; }
-#  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-    void unhandled_exception() { get_context()->last_exception_ = std::current_exception(); }
+#  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
+    void unhandled_exception() {
+      throw;
+      // get_context()->last_exception_ = std::current_exception();
+    }
 #  endif
 
     template <class TCONVERT_PRIVATE_DATA>
@@ -1023,6 +1144,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
   using awaitable_type = task_awaitable<context_type, std::is_void<typename std::decay<value_type>::type>::value>;
+
+#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
+  using task_manager_helper = typename context_type::task_manager_helper;
+#  endif
 
  public:
   task_future() noexcept = default;

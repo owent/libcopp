@@ -373,7 +373,7 @@ std::basic_ostream<E, T> &operator<<(std::basic_ostream<E, T> &os, intrusive_ptr
 }  // namespace util
 LIBCOPP_COPP_NAMESPACE_END
 
-#if defined(LOCK_DISABLE_MT) && LOCK_DISABLE_MT
+#if defined(LIBCOPP_LOCK_DISABLE_MT) && LIBCOPP_LOCK_DISABLE_MT
 #  define LIBCOPP_UTIL_INTRUSIVE_PTR_ATOMIC_TYPE            \
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type< \
         LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t> >

@@ -209,7 +209,7 @@ Options can be cmake options. such as set compile toolchains, source directory o
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | PROJECT_ENABLE_SAMPLE=YES|NO             | [default=NO] Build samples.                                                                                                  |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
-| LIBCOPP_DISABLE_THIS_MT=YES|NO           | [default=NO] Disable multi-thread support for ``copp::this_coroutine`` and ``cotask::this_task``.                            |
+| LIBCOPP_LOCK_DISABLE_THIS_MT=YES|NO      | [default=NO] Disable multi-thread support for ``copp::this_coroutine`` and ``cotask::this_task``.                            |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | LIBCOPP_DISABLE_ATOMIC_LOCK=YES|NO       | [default=NO] Disable multi-thread support.                                                                                   |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
