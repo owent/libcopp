@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.1
+
+1. Change `task_manager<task_type, container_type>` to `task_manager<task_type>`
+
 ## 2.0.0
 
 1. Add ABI tag for all c++ codes
