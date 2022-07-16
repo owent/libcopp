@@ -4,6 +4,8 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcopp/utils/intrusive_ptr.h>
+
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
@@ -229,7 +231,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context
 };
 
 template <class TCONTEXT>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_base_type {
+class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable {
  public:
   using context_type = TCONTEXT;
   using context_pointer_type = std::shared_ptr<context_type>;
@@ -238,11 +240,68 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
   using await_resume_callback_type = std::function<void(const context_type&)>;
 
  public:
-  generator_awaitable_base(context_type* context, const await_suspend_callback_type& await_suspend_callback,
-                           const await_resume_callback_type& await_resume_callback)
-      : context_{context},
-        await_suspend_callback_(await_suspend_callback),
-        await_resume_callback_(await_resume_callback) {}
+  template <class TSUSPEND, class TRESUME>
+  generator_vtable(TSUSPEND&& await_suspend_callback, TRESUME&& await_resume_callback)
+      : intrusive_ref_counter_(0),
+        await_suspend_callback_(std::forward<TSUSPEND>(await_suspend_callback)),
+        await_resume_callback_(std::forward<TRESUME>(await_resume_callback)) {}
+
+  template <class TSUSPEND>
+  generator_vtable(TSUSPEND&& await_suspend_callback)
+      : intrusive_ref_counter_(0), await_suspend_callback_(std::forward<TSUSPEND>(await_suspend_callback)) {}
+
+  generator_vtable(const generator_vtable&) = delete;
+  generator_vtable(generator_vtable&&) = delete;
+  generator_vtable& operator=(const generator_vtable&) = delete;
+  generator_vtable& operator=(generator_vtable&&) = delete;
+
+  UTIL_FORCEINLINE const await_suspend_callback_type& get_await_suspend_callback() const noexcept {
+    return await_suspend_callback_;
+  }
+  UTIL_FORCEINLINE await_suspend_callback_type& get_await_suspend_callback() noexcept {
+    return await_suspend_callback_;
+  }
+  UTIL_FORCEINLINE const await_resume_callback_type& get_await_resume_callback() const noexcept {
+    return await_resume_callback_;
+  }
+  UTIL_FORCEINLINE await_resume_callback_type& get_await_resume_callback() noexcept { return await_resume_callback_; }
+
+ private:
+  friend void intrusive_ptr_add_ref(generator_vtable* p) {
+    if (nullptr != p) {
+      ++p->intrusive_ref_counter_;
+    }
+  }
+
+  friend void intrusive_ptr_release(generator_vtable* p) {
+    if (nullptr == p) {
+      return;
+    }
+    assert(p->intrusive_ref_counter_ > 0);
+    size_t ref = --p->intrusive_ref_counter_;
+    if (0 == ref) {
+      delete p;
+    }
+  }
+
+  size_t intrusive_ref_counter_;
+  await_suspend_callback_type await_suspend_callback_;
+  await_resume_callback_type await_resume_callback_;
+};
+
+template <class TCONTEXT>
+class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_base_type {
+ public:
+  using context_type = TCONTEXT;
+  using context_pointer_type = std::shared_ptr<context_type>;
+  using value_type = typename context_type::value_type;
+  using vtable_type = generator_vtable<context_type>;
+  using await_suspend_callback_type = typename vtable_type::await_suspend_callback_type;
+  using await_resume_callback_type = typename vtable_type::await_resume_callback_type;
+
+ public:
+  generator_awaitable_base(context_type* context, const copp::util::intrusive_ptr<vtable_type>& vtable)
+      : context_{context}, vtable_(vtable) {}
 
   inline bool await_ready() noexcept {
     if (nullptr == context_) {
@@ -266,8 +325,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
       caller.promise().set_flag(promise_flag::kInternalWaitting, true);
 
       // Custom event. awaitable object may be deleted after this call
-      if (await_suspend_callback_) {
-        await_suspend_callback_(context_->shared_from_this());
+      if (vtable_ && vtable_->get_await_suspend_callback()) {
+        vtable_->get_await_suspend_callback()(context_->shared_from_this());
       }
 
       return true;
@@ -305,8 +364,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
         set_caller(nullptr);
 
         // Custom event
-        if (await_resume_callback_) {
-          await_resume_callback_(*context_);
+        if (vtable_ && vtable_->get_await_resume_callback()) {
+          vtable_->get_await_resume_callback()(*context_);
         }
       } else {
         set_caller(nullptr);
@@ -326,8 +385,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 
  private:
   context_type* context_;
-  await_suspend_callback_type await_suspend_callback_;
-  await_resume_callback_type await_resume_callback_;
+  copp::util::intrusive_ptr<vtable_type> vtable_;
 };
 
 template <class TCONTEXT>
@@ -337,6 +395,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, true> : public ge
   using value_type = typename base_type::value_type;
   using context_type = typename base_type::context_type;
   using context_pointer_type = typename base_type::context_pointer_type;
+  using vtable_type = typename base_type::vtable_type;
   using await_suspend_callback_type = typename base_type::await_suspend_callback_type;
   using await_resume_callback_type = typename base_type::await_resume_callback_type;
 
@@ -345,9 +404,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, true> : public ge
   using base_type::await_suspend;
   using base_type::get_caller;
   using base_type::set_caller;
-  generator_awaitable(context_type* context, const await_suspend_callback_type& await_suspend_callback,
-                      const await_resume_callback_type& await_resume_callback)
-      : base_type(context, await_suspend_callback, await_resume_callback) {}
+  generator_awaitable(context_type* context, const copp::util::intrusive_ptr<vtable_type>& vtable)
+      : base_type(context, vtable) {}
 
   inline void await_resume() { detach(); }
 
@@ -363,6 +421,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
   using value_type = typename base_type::value_type;
   using context_type = typename base_type::context_type;
   using context_pointer_type = typename base_type::context_pointer_type;
+  using vtable_type = typename base_type::vtable_type;
   using await_suspend_callback_type = typename base_type::await_suspend_callback_type;
   using await_resume_callback_type = typename base_type::await_resume_callback_type;
 
@@ -371,9 +430,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
   using base_type::await_suspend;
   using base_type::get_caller;
   using base_type::set_caller;
-  generator_awaitable(context_type* context, const await_suspend_callback_type& await_suspend_callback,
-                      const await_resume_callback_type& await_resume_callback)
-      : base_type(context, await_suspend_callback, await_resume_callback) {}
+  generator_awaitable(context_type* context, const copp::util::intrusive_ptr<vtable_type>& vtable)
+      : base_type(context, vtable) {}
 
   inline value_type await_resume() {
     bool has_multiple_callers;
@@ -412,6 +470,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   using context_type = generator_context<value_type>;
   using context_pointer_type = std::shared_ptr<context_type>;
   using awaitable_type = generator_awaitable<context_type, std::is_void<typename std::decay<value_type>::type>::value>;
+  using vtable_type = typename awaitable_type::vtable_type;
   using await_suspend_callback_type = typename awaitable_type::await_suspend_callback_type;
   using await_resume_callback_type = typename awaitable_type::await_resume_callback_type;
 
@@ -419,13 +478,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   template <class TSUSPEND, class TRESUME>
   generator_future(TSUSPEND&& await_suspend_callback, TRESUME&& await_resume_callback)
       : context_(std::make_shared<context_type>()),
-        await_suspend_callback_(std::forward<TSUSPEND>(await_suspend_callback)),
-        await_resume_callback_(std::forward<TRESUME>(await_resume_callback)) {}
+        vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback),
+                                std::forward<TRESUME>(await_resume_callback))) {}
 
   template <class TSUSPEND>
   generator_future(TSUSPEND&& await_suspend_callback)
       : context_(std::make_shared<context_type>()),
-        await_suspend_callback_(std::forward<TSUSPEND>(await_suspend_callback)) {}
+        vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback))) {}
 
   generator_future(generator_future&&) = default;
   generator_future(const generator_future&) = default;
@@ -439,7 +498,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   }
 
   awaitable_type operator co_await() {
-    return awaitable_type{context_.get(), await_suspend_callback_, await_resume_callback_};
+    // generator may be destroyed before awaitable_type, but context will not
+    return awaitable_type{context_.get(), vtable_};
   }
 
   inline bool is_ready() const noexcept {
@@ -482,8 +542,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action;
 
   std::shared_ptr<context_type> context_;
-  await_suspend_callback_type await_suspend_callback_;
-  await_resume_callback_type await_resume_callback_;
+  copp::util::intrusive_ptr<vtable_type> vtable_;
 };
 
 // some
@@ -496,8 +555,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action {
     generator.get_context()->add_caller(caller);
 
     // Custom event. awaitable object may be deleted after this call
-    if (generator.await_suspend_callback_) {
-      generator.await_suspend_callback_(generator.get_context());
+    if (generator.vtable_ && generator.vtable_->get_await_suspend_callback()) {
+      generator.vtable_->get_await_suspend_callback()(generator.get_context());
     }
   }
 
@@ -505,8 +564,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action {
     generator.get_context()->remove_caller(caller);
 
     // Custom event
-    if (generator.await_resume_callback_) {
-      generator.await_resume_callback_(*generator.get_context());
+    if (generator.vtable_ && generator.vtable_->get_await_resume_callback()) {
+      generator.vtable_->get_await_resume_callback()(*generator.get_context());
     }
   }
 

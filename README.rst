@@ -302,12 +302,11 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 3. Using coroutine task manager
 4. Using stack pool
 5. Using ``task::then`` or ``task::await_task``
-6. Using ``copp::future::future_with_waker`` and prepare for c++20 coroutine
-7. Using c++20 coroutine
-8. Using c++20 coroutine with custom generator
-9. Custom error (timeout for example) when polling c++20 coroutine task or generator
-10. Let c++20 coroutine work with ``cotask::task``
-11. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
+6. Using ``copp::callable_promise`` of c++20 coroutine
+7. Using ``copp::generator_future`` for c++20 coroutine
+8. Custom error (timeout for example) when using c++20 coroutine
+9. Let c++20 coroutine work with ``cotask::task``
+10. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
 
 All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owent/libcopp/tree/v2/sample>`_ .
 
