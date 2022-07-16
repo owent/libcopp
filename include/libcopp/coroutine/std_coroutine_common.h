@@ -231,7 +231,7 @@ class promise_base_type {
     }
   }
 
-  LIBCOPP_COPP_API_HEAD_ONLY UTIL_FORCEINLINE promise_status get_status() const noexcept { return status_; }
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY promise_status get_status() const noexcept { return status_; }
 
   LIBCOPP_COPP_API_HEAD_ONLY inline bool check_flag(promise_flag flag) const noexcept {
     if (flag >= promise_flag::kMax) {
