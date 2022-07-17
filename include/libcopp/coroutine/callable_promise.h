@@ -48,6 +48,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
   callable_promise_base() = default;
 
   void return_void() noexcept {
+    set_flag(promise_flag::kHasReturned, true);
     if (get_status() < promise_status::kDone) {
       set_status(promise_status::kDone);
     }
@@ -83,25 +84,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
   template <class... TARGS>
   callable_promise_base(TARGS&&... args)
       : data_(callable_promise_value_constructor<value_type, !std::is_constructible<value_type, TARGS...>::value>::
-                  construct(std::forward<TARGS>(args)...)),
-        has_return_(false) {}
+                  construct(std::forward<TARGS>(args)...)) {}
 
   void return_value(value_type value) {
+    set_flag(promise_flag::kHasReturned, true);
     if (get_status() < promise_status::kDone) {
       set_status(promise_status::kDone);
     }
     data_ = std::move(value);
-    has_return_ = true;
   }
 
   UTIL_FORCEINLINE value_type& data() noexcept { return data_; }
   UTIL_FORCEINLINE const value_type& data() const noexcept { return data_; }
 
-  UTIL_FORCEINLINE bool has_return() const noexcept { return has_return_; }
-
  protected:
   value_type data_;
-  bool has_return_;
 };
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -242,7 +239,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, false> : public ca
     auto& callee_promise = get_callee().promise();
     callee_promise.resume_waiting(get_callee(), true);
 
-    if (!callee_promise.has_return()) {
+    if (!callee_promise.check_flag(promise_flag::kHasReturned)) {
       return promise_error_transform<value_type>()(callee_promise.get_status());
     }
 

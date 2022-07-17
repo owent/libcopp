@@ -433,6 +433,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
   task_promise_base(TARGS&&... args) : context_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_void() noexcept {
+    set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kHasReturned, true);
+
     if (get_status() < task_status_type::kDone) {
       set_status(task_status_type::kDone);
     }
@@ -473,6 +475,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
   task_promise_base(TARGS&&... args) : context_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_value(value_type value) {
+    set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kHasReturned, true);
+
     if (get_status() < task_status_type::kDone) {
       set_status(task_status_type::kDone);
     }
