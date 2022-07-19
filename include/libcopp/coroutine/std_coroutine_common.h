@@ -10,7 +10,6 @@
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
 #include <assert.h>
-#include <bitset>
 #include <cstddef>
 #include <memory>
 #include <type_traits>
@@ -53,6 +52,7 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY promise_flag : uint8_t {
   kDestroying = 0,
   kFinalSuspend = 1,
   kInternalWaitting = 2,
+  kHasReturned = 3,
   kMax,
 };
 
@@ -231,21 +231,19 @@ class promise_base_type {
     }
   }
 
-  LIBCOPP_COPP_API_HEAD_ONLY UTIL_FORCEINLINE promise_status get_status() const noexcept { return status_; }
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY promise_status get_status() const noexcept { return status_; }
 
   LIBCOPP_COPP_API_HEAD_ONLY inline bool check_flag(promise_flag flag) const noexcept {
-    if (flag >= promise_flag::kMax) {
-      return false;
-    }
-
-    return flags_.test(static_cast<size_t>(flag));
+    return 0 != (flags_ & (static_cast<uint32_t>(1) << static_cast<uint8_t>(flag)));
   }
 
   LIBCOPP_COPP_API_HEAD_ONLY inline void set_flag(promise_flag flag, bool value) noexcept {
-    if (flag >= promise_flag::kMax) {
-      return;
+    uint32_t flag_value = static_cast<uint32_t>(1) << static_cast<uint8_t>(flag);
+    if (value) {
+      flags_ |= flag_value;
+    } else {
+      flags_ &= ~flag_value;
     }
-    flags_.set(static_cast<size_t>(flag), value);
   }
 
   LIBCOPP_COPP_API bool is_waiting() const noexcept;
@@ -328,7 +326,7 @@ class promise_base_type {
 
  private:
   // promise_flags
-  std::bitset<static_cast<size_t>(promise_flag::kMax)> flags_;
+  uint32_t flags_;
 
   // promise_status
   promise_status status_;

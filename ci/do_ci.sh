@@ -94,8 +94,7 @@ elif [[ "$1" == "msys2.mingw.test" ]]; then
   git config --global http.sslBackend openssl
   mkdir -p build_jobs_ci
   cd build_jobs_ci
-  cmake .. -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=$CONFIGURATION ${PROJECT_ADDON_OPTIONS[@]} \
-    -DLIBCOPP_MACRO_ENABLE_STD_COROUTINE=OFF -DLIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE=OFF
+  cmake .. -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=$CONFIGURATION ${PROJECT_ADDON_OPTIONS[@]}
   cmake --build . -j2 --config $CONFIGURATION || cmake --build . --config $CONFIGURATION
 elif [[ "$1" == "document" ]]; then
   mkdir -p build_for_doxygen

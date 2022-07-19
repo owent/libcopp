@@ -48,6 +48,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, true> : public pr
   callable_promise_base() = default;
 
   void return_void() noexcept {
+    set_flag(promise_flag::kHasReturned, true);
     if (get_status() < promise_status::kDone) {
       set_status(promise_status::kDone);
     }
@@ -83,25 +84,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
   template <class... TARGS>
   callable_promise_base(TARGS&&... args)
       : data_(callable_promise_value_constructor<value_type, !std::is_constructible<value_type, TARGS...>::value>::
-                  construct(std::forward<TARGS>(args)...)),
-        has_return_(false) {}
+                  construct(std::forward<TARGS>(args)...)) {}
 
   void return_value(value_type value) {
+    set_flag(promise_flag::kHasReturned, true);
     if (get_status() < promise_status::kDone) {
       set_status(promise_status::kDone);
     }
     data_ = std::move(value);
-    has_return_ = true;
   }
 
   UTIL_FORCEINLINE value_type& data() noexcept { return data_; }
   UTIL_FORCEINLINE const value_type& data() const noexcept { return data_; }
 
-  UTIL_FORCEINLINE bool has_return() const noexcept { return has_return_; }
-
  protected:
   value_type data_;
-  bool has_return_;
 };
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -132,7 +129,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
       return true;
     }
 
-    if (callee_.promise().check_flag(promise_flag::kFinalSuspend)) {
+    if (callee_.promise().check_flag(promise_flag::kHasReturned)) {
       return true;
     }
 
@@ -242,7 +239,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, false> : public ca
     auto& callee_promise = get_callee().promise();
     callee_promise.resume_waiting(get_callee(), true);
 
-    if (!callee_promise.has_return()) {
+    if (!callee_promise.check_flag(promise_flag::kHasReturned)) {
       return promise_error_transform<value_type>()(callee_promise.get_status());
     }
 
@@ -317,17 +314,21 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
   }
 
   ~callable_future() {
-    while (current_handle_ && !current_handle_.done() &&
-           !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
-      if (current_handle_.promise().get_status() < promise_status::kDone) {
-        current_handle_.promise().set_status(promise_status::kKilled);
+    // Move current_handle_ to stack here to allow recursive call of force_destroy
+    handle_type current_handle = current_handle_;
+    current_handle_ = nullptr;
+
+    while (current_handle && !current_handle.done() &&
+           !current_handle.promise().check_flag(promise_flag::kHasReturned)) {
+      if (current_handle.promise().get_status() < promise_status::kDone) {
+        current_handle.promise().set_status(promise_status::kKilled);
       }
-      current_handle_.resume();
+      current_handle.resume();
     }
 
-    if (current_handle_) {
-      current_handle_.promise().set_flag(promise_flag::kDestroying, true);
-      current_handle_.destroy();
+    if (current_handle) {
+      current_handle.promise().set_flag(promise_flag::kDestroying, true);
+      current_handle.destroy();
     }
   }
 
@@ -338,7 +339,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
       return true;
     }
 
-    return current_handle_.done() || current_handle_.promise().check_flag(promise_flag::kFinalSuspend);
+    return current_handle_.done() || current_handle_.promise().check_flag(promise_flag::kHasReturned);
   }
 
   UTIL_FORCEINLINE promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
@@ -382,7 +383,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
 
       if ((force_resume || current_handle_.promise().is_waiting()) &&
           !current_handle_.promise().check_flag(promise_flag::kDestroying) &&
-          !current_handle_.promise().check_flag(promise_flag::kFinalSuspend)) {
+          !current_handle_.promise().check_flag(promise_flag::kHasReturned)) {
         // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
         // We may enable exception in the future
 #  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR

@@ -72,7 +72,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
  public:
   task_context_base() noexcept
-      : current_handle_(nullptr)
+      : current_handle_(nullptr),
+        cache_status_(task_status_type::kInvalid)
 #  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
         ,
         binding_manager_ptr_(nullptr),
@@ -85,17 +86,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
   ~task_context_base() noexcept {
     force_finish();
-
-    if (nullptr != current_handle_.promise) {
-      current_handle_.promise->set_flag(promise_flag::kDestroying, true);
-    }
-    if (current_handle_.handle) {
-      current_handle_.handle.destroy();
-    }
+    force_destroy();
   }
 
   UTIL_FORCEINLINE bool is_ready() const noexcept {
-    if (nullptr != current_handle_.promise && current_handle_.promise->check_flag(promise_flag::kFinalSuspend)) {
+    if (nullptr != current_handle_.promise && current_handle_.promise->check_flag(promise_flag::kHasReturned)) {
       return true;
     }
 
@@ -109,7 +104,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
       return current_handle_.promise->get_status();
     }
 
-    return task_status_type::kInvalid;
+    return cache_status_;
   }
 
   UTIL_FORCEINLINE id_type get_id() const noexcept { return id_; }
@@ -149,13 +144,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
     void (*manager_fn)(void*, task_context_base<value_type>&) = binding_manager_fn_;
     binding_manager_ptr_ = nullptr;
     binding_manager_fn_ = nullptr;
-#  endif
-
-    // resume callers
-    caller_manager_.resume_callers();
 
     // finally, notify manager to cleanup(maybe start or resume with task's API but not task_manager's)
-#  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
     if (nullptr != manager_ptr && nullptr != manager_fn) {
       (*manager_fn)(manager_ptr, *this);
     }
@@ -184,12 +174,27 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
 
     // Move unhandled_exception
     while (current_handle_.handle && !current_handle_.handle.done() && current_handle_.promise &&
-           !current_handle_.promise->check_flag(promise_flag::kFinalSuspend)) {
+           !current_handle_.promise->check_flag(promise_flag::kHasReturned)) {
       current_handle_.handle.resume();
     }
 
     // wake is already be called in ~task_context_delegate
     // wake();
+  }
+
+  inline void force_destroy() noexcept {
+    // Move current_handle_ to stack here to allow recursive call of force_destroy
+    handle_delegate current_handle = current_handle_;
+    current_handle_ = nullptr;
+
+    if (nullptr != current_handle.promise) {
+      current_handle.promise->set_flag(promise_flag::kDestroying, true);
+
+      cache_status_ = current_handle.promise->get_status();
+    }
+    if (current_handle.handle) {
+      current_handle.handle.destroy();
+    }
   }
 
   UTIL_FORCEINLINE void initialize_handle(handle_delegate handle) noexcept { current_handle_ = handle; }
@@ -243,6 +248,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_context_base {
       future_counter_;
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock internal_operation_lock_;
   handle_delegate current_handle_;
+  task_status_type cache_status_;
 #  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
   void* binding_manager_ptr_;
   void (*binding_manager_fn_)(void*, task_context_base<value_type>&);
@@ -430,33 +436,47 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
 
   template <class... TARGS>
-  task_promise_base(TARGS&&... args) : context_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
+  task_promise_base(TARGS&&... args)
+      : context_strong_ref_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_void() noexcept {
+    set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kHasReturned, true);
+
     if (get_status() < task_status_type::kDone) {
       set_status(task_status_type::kDone);
     }
-    COPP_LIKELY_IF (context_) {
-      context_->set_value();
+    context_pointer_type context = move_context();
+    COPP_LIKELY_IF (context) {
+      context->set_value();
     }
   }
 
-  UTIL_FORCEINLINE bool has_return() const noexcept { return context_ && context_->is_ready(); }
+  UTIL_FORCEINLINE context_pointer_type move_context() noexcept {
+    if (context_strong_ref_) {
+      context_weak_ref_ = context_strong_ref_;
 
-  UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
+      context_pointer_type ret = std::move(context_strong_ref_);
+      context_strong_ref_.reset();
+      return ret;
+    }
+
+    return context_weak_ref_.lock();
+  }
 
  protected:
   template <class TPROMISE, typename = std::enable_if_t<
                                 std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, true>, TPROMISE>::value>>
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
-    COPP_LIKELY_IF (context_) {
-      context_->initialize_handle(handle_delegate{origin_handle});
+    context_pointer_type context = move_context();
+    COPP_LIKELY_IF (context) {
+      context->initialize_handle(handle_delegate{origin_handle});
     }
   }
 
  private:
-  context_pointer_type context_;
+  std::weak_ptr<context_type> context_weak_ref_;
+  context_pointer_type context_strong_ref_;
 };
 
 template <class TVALUE, class TPRIVATE_DATA>
@@ -470,46 +490,63 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
 
   template <class... TARGS>
-  task_promise_base(TARGS&&... args) : context_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
+  task_promise_base(TARGS&&... args)
+      : context_strong_ref_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_value(value_type value) {
+    set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kHasReturned, true);
+
     if (get_status() < task_status_type::kDone) {
       set_status(task_status_type::kDone);
     }
-    COPP_LIKELY_IF (context_) {
-      context_->set_value(std::move(value));
+    context_pointer_type context = move_context();
+    COPP_LIKELY_IF (context) {
+      context->set_value(std::move(value));
     }
   }
 
   UTIL_FORCEINLINE value_type* data() noexcept {
-    COPP_LIKELY_IF (context_) {
-      return context_->data();
+    context_pointer_type context = move_context();
+    COPP_LIKELY_IF (context) {
+      return context->data();
     }
     return nullptr;
   }
+
   UTIL_FORCEINLINE const value_type* data() const noexcept {
-    COPP_LIKELY_IF (context_) {
-      return context_->data();
+    context_pointer_type context = move_context();
+    COPP_LIKELY_IF (context) {
+      return context->data();
     }
     return nullptr;
   }
 
-  UTIL_FORCEINLINE bool has_return() const noexcept { return context_ && context_->is_ready(); }
+  UTIL_FORCEINLINE context_pointer_type move_context() noexcept {
+    if (context_strong_ref_) {
+      context_weak_ref_ = context_strong_ref_;
 
-  UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
+      context_pointer_type ret = std::move(context_strong_ref_);
+      context_strong_ref_.reset();
+      return ret;
+    }
+
+    return context_weak_ref_.lock();
+  }
 
  protected:
   template <class TPROMISE, typename = std::enable_if_t<
                                 std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, false>, TPROMISE>::value>>
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
-    COPP_LIKELY_IF (context_) {
-      context_->initialize_handle(handle_delegate{origin_handle});
+    context_pointer_type context = move_context();
+    COPP_LIKELY_IF (context) {
+      context->initialize_handle(handle_delegate{origin_handle});
     }
   }
 
  private:
-  context_pointer_type context_;
+  std::weak_ptr<context_type> context_weak_ref_;
+  context_pointer_type context_strong_ref_;
 };
 
 template <class TCONTEXT>
@@ -719,7 +756,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
     return *this;
   }
 
-  ~task_future_base() { reset(); }
+  ~task_future_base() {
+    // resume callers
+    reset();
+  }
 
   inline friend bool operator==(const task_future_base& l, const task_future_base& r) noexcept {
     return l.context_ == r.context_;
@@ -755,12 +795,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
 
   void reset() {
     if (context_) {
-      size_t future_counter = --context_->future_counter_;
+      context_pointer_type context;
+      context.swap(context_);
+      size_t future_counter = --context->future_counter_;
       // Destroy context when future_counter decrease to 0
       if (0 == future_counter) {
-        context_->force_finish();
+        context->force_finish();
       }
-      context_.reset();
     }
   }
 
@@ -804,7 +845,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
       return true;
     }
 
-    if (promise->check_flag(promise_flag::kFinalSuspend)) {
+    if (promise->check_flag(promise_flag::kHasReturned)) {
       return true;
     }
 
@@ -866,7 +907,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
 
     lock_holder.reset();
 
-    if (!promise->check_flag(promise_flag::kFinalSuspend) && !promise->check_flag(promise_flag::kDestroying)) {
+    if (!promise->check_flag(promise_flag::kHasReturned) && !promise->check_flag(promise_flag::kDestroying)) {
       // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
       // We may enable exception in the future
 #  if 0 && defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
@@ -947,7 +988,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future_base {
         continue;
       }
 
-      if ((force_resume || promise->is_waiting()) && !promise->check_flag(promise_flag::kFinalSuspend) &&
+      if ((force_resume || promise->is_waiting()) && !promise->check_flag(promise_flag::kHasReturned) &&
           !promise->check_flag(promise_flag::kDestroying)) {
         // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
         // We may enable exception in the future
@@ -1100,9 +1141,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     promise_type(TARGS&&... args) : promise_base_type(std::forward<TARGS>(args)...) {}
 #  endif
 
-    using promise_base_type::get_context;
+    using promise_base_type::move_context;
 
-    auto get_return_object() noexcept { return self_type{get_context()}; }
+    auto get_return_object() noexcept { return self_type{move_context()}; }
 
     struct initial_awaitable {
       inline bool await_ready() const noexcept { return false; }
@@ -1132,8 +1173,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     template <class TCONVERT_PRIVATE_DATA>
     inline task_private_data<TCONVERT_PRIVATE_DATA> yield_value(
         task_private_data<TCONVERT_PRIVATE_DATA>&& input) noexcept {
-      if (get_context()) {
-        input.data_ = &get_context()->get_private_data();
+      context_pointer_type context = move_context();
+      if (context) {
+        input.data_ = &context->get_private_data();
       } else {
         input.data_ = nullptr;
       }
@@ -1231,15 +1273,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(
+          thenable(context_pointer_type(self.get_context()), co_await self)));
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self)));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(
+          thenable(context_pointer_type(self.get_context()), co_await self)));
     }
   };
 
@@ -1254,17 +1296,17 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(
+          thenable(context_pointer_type(self.get_context()))));
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx))));
+      co_return (co_await thenable_return_traits<TTHENABLE>::start_thenable(
+          thenable(context_pointer_type(self.get_context()))));
     }
   };
 
@@ -1279,16 +1321,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self));
+      co_await thenable_return_traits<TTHENABLE>::start_thenable(
+          thenable(context_pointer_type(self.get_context()), co_await self));
       co_return;
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx), co_await self));
+      co_await thenable_return_traits<TTHENABLE>::start_thenable(
+          thenable(context_pointer_type(self.get_context()), co_await self));
       co_return;
     }
   };
@@ -1304,18 +1346,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx)));
+      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(context_pointer_type(self.get_context())));
       co_return;
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(std::move(ctx)));
+      co_await thenable_return_traits<TTHENABLE>::start_thenable(thenable(context_pointer_type(self.get_context())));
       co_return;
     }
   };
@@ -1331,16 +1371,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      thenable(std::move(ctx), co_await self);
+      thenable(context_pointer_type(self.get_context()), co_await self);
       co_return;
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      thenable(std::move(ctx), co_await self);
+      thenable(context_pointer_type(self.get_context()), co_await self);
       co_return;
     }
   };
@@ -1356,18 +1394,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      thenable(std::move(ctx));
+      thenable(context_pointer_type(self.get_context()));
       co_return;
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      thenable(std::move(ctx));
+      thenable(context_pointer_type(self.get_context()));
       co_return;
     }
   };
@@ -1383,15 +1419,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      co_return thenable(std::move(ctx), co_await self);
+      co_return thenable(context_pointer_type(self.get_context()), co_await self);
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
-      co_return thenable(std::move(ctx), co_await self);
+      co_return thenable(context_pointer_type(self.get_context()), co_await self);
     }
   };
 
@@ -1406,17 +1440,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY task_future
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      co_return thenable(std::move(ctx));
+      co_return thenable(context_pointer_type(self.get_context()));
     }
 
     template <class TTHENABLE_PRIVATE_DATA>
     inline static typename task_thenable_type<TTHENABLE_PRIVATE_DATA>::task_type invoke_task(self_type self,
                                                                                              TTHENABLE thenable) {
-      context_pointer_type ctx = self.get_context();
       co_await self;
-      co_return thenable(std::move(ctx));
+      co_return thenable(context_pointer_type(self.get_context()));
     }
   };
 
