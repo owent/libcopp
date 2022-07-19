@@ -259,6 +259,91 @@ CASE_TEST(generator_promise, caller_killed) {
   resume_pending_contexts({});
 }
 
+static copp::callable_future<int> callable_func_await_int_killed_by_destroy_generator(
+    std::unique_ptr<generator_future_int_type> &gen_left_value) {
+  gen_left_value.reset(new generator_future_int_type(
+      [](generator_future_int_type::context_pointer_type) {
+        ++g_suspend_generator_count;
+        // No reference to ctx, so it will be destroyed when last generator is
+        // destroyed
+      },
+      [](const generator_future_int_type::context_type &ctx) {
+        CASE_EXPECT_TRUE(ctx.is_ready());
+        CASE_EXPECT_EQ(*ctx.data(), -static_cast<int>(copp::promise_status::kKilled));
+        ++g_resume_generator_count;
+      }));
+
+  // await left value
+  CASE_EXPECT_FALSE(gen_left_value->is_ready());
+  CASE_EXPECT_TRUE(gen_left_value->is_pending());
+  CASE_EXPECT_TRUE(gen_left_value->get_status() == copp::promise_status::kRunning);
+  int x1 = co_await *gen_left_value;
+  CASE_EXPECT_TRUE(nullptr == gen_left_value);
+
+  CASE_EXPECT_EQ(x1, -static_cast<int>(copp::promise_status::kKilled));
+
+  co_return x1;
+}
+
+CASE_TEST(generator_promise, caller_killed_by_destroy_generator) {
+  std::unique_ptr<generator_future_int_type> gen_left_value;
+
+  size_t old_resume_generator_count = g_resume_generator_count;
+  size_t old_suspend_generator_count = g_suspend_generator_count;
+
+  copp::callable_future<int> f = callable_func_await_int_killed_by_destroy_generator(gen_left_value);
+
+  // Mock to kill by caller
+  gen_left_value.reset();
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 1, g_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_suspend_generator_count);
+}
+
+static copp::callable_future<int> callable_func_await_int_killed_by_destroy_generator_in_callback(
+    std::unique_ptr<generator_future_int_type> &gen_left_value) {
+  gen_left_value.reset(new generator_future_int_type(
+      [&gen_left_value](generator_future_int_type::context_pointer_type) {
+        ++g_suspend_generator_count;
+        // No reference to ctx, so it will be destroyed when last generator is
+        // destroyed
+
+        gen_left_value.reset();
+      },
+      [](const generator_future_int_type::context_type &ctx) {
+        CASE_EXPECT_TRUE(ctx.is_ready());
+        CASE_EXPECT_EQ(*ctx.data(), -static_cast<int>(copp::promise_status::kKilled));
+        ++g_resume_generator_count;
+      }));
+
+  // await left value
+  CASE_EXPECT_FALSE(gen_left_value->is_ready());
+  CASE_EXPECT_TRUE(gen_left_value->is_pending());
+  CASE_EXPECT_TRUE(gen_left_value->get_status() == copp::promise_status::kRunning);
+  int x1 = co_await *gen_left_value;
+  CASE_EXPECT_TRUE(nullptr == gen_left_value);
+
+  CASE_EXPECT_EQ(x1, -static_cast<int>(copp::promise_status::kKilled));
+
+  co_return x1;
+}
+
+CASE_TEST(generator_promise, caller_killed_by_destroy_generator_in_callback) {
+  std::unique_ptr<generator_future_int_type> gen_left_value;
+
+  size_t old_resume_generator_count = g_resume_generator_count;
+  size_t old_suspend_generator_count = g_suspend_generator_count;
+
+  copp::callable_future<int> f = callable_func_await_int_killed_by_destroy_generator_in_callback(gen_left_value);
+
+  // Mock to kill by caller
+  CASE_EXPECT_TRUE(f.is_ready());
+
+  CASE_EXPECT_EQ(old_resume_generator_count + 1, g_resume_generator_count);
+  CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_suspend_generator_count);
+}
+
 class test_context_transform_error_code_type {
  public:
   int code;

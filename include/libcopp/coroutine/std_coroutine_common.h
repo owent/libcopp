@@ -290,8 +290,9 @@ class promise_base_type {
     template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
     inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> self) noexcept {
-      self.promise().set_flag(promise_flag::kFinalSuspend, true);
-      self.promise().resume_callers();
+      auto &promise = self.promise();
+      promise.set_flag(promise_flag::kFinalSuspend, true);
+      promise.resume_callers();
     }
   };
   final_awaitable final_suspend() noexcept { return {}; }
@@ -317,6 +318,8 @@ class promise_base_type {
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle, bool inherit_status) noexcept {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
+
+  UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
 
   LIBCOPP_COPP_API pick_promise_status_awaitable yield_value(pick_promise_status_awaitable &&args) const noexcept;
   static LIBCOPP_COPP_API_HEAD_ONLY inline pick_promise_status_awaitable pick_current_status() noexcept { return {}; }
