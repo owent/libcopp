@@ -184,7 +184,7 @@ promise_base_type::pick_promise_status_awaitable::operator=(pick_promise_status_
 LIBCOPP_COPP_API promise_base_type::pick_promise_status_awaitable::~pick_promise_status_awaitable() {}
 
 LIBCOPP_COPP_API promise_base_type::promise_base_type()
-    : status_{promise_status::kCreated}, current_waiting_{nullptr} {}
+    : flags_(0), status_{promise_status::kCreated}, current_waiting_{nullptr} {}
 
 LIBCOPP_COPP_API promise_base_type::~promise_base_type() {}
 

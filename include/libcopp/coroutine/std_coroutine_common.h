@@ -10,7 +10,6 @@
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
 #include <assert.h>
-#include <bitset>
 #include <cstddef>
 #include <memory>
 #include <type_traits>
@@ -53,6 +52,7 @@ enum class LIBCOPP_COPP_API_HEAD_ONLY promise_flag : uint8_t {
   kDestroying = 0,
   kFinalSuspend = 1,
   kInternalWaitting = 2,
+  kHasReturned = 3,
   kMax,
 };
 
@@ -203,9 +203,9 @@ class promise_base_type {
     LIBCOPP_COPP_API pick_promise_status_awaitable() noexcept;
     LIBCOPP_COPP_API pick_promise_status_awaitable(promise_status status) noexcept;
     LIBCOPP_COPP_API pick_promise_status_awaitable(pick_promise_status_awaitable &&other) noexcept;
-    LIBCOPP_COPP_API pick_promise_status_awaitable(const pick_promise_status_awaitable &) = delete;
+    pick_promise_status_awaitable(const pick_promise_status_awaitable &) = delete;
     LIBCOPP_COPP_API pick_promise_status_awaitable &operator=(pick_promise_status_awaitable &&) noexcept;
-    LIBCOPP_COPP_API pick_promise_status_awaitable &operator=(const pick_promise_status_awaitable &) = delete;
+    pick_promise_status_awaitable &operator=(const pick_promise_status_awaitable &) = delete;
     LIBCOPP_COPP_API ~pick_promise_status_awaitable();
 
     LIBCOPP_COPP_API_HEAD_ONLY inline bool await_ready() const noexcept { return true; }
@@ -231,21 +231,19 @@ class promise_base_type {
     }
   }
 
-  LIBCOPP_COPP_API_HEAD_ONLY UTIL_FORCEINLINE promise_status get_status() const noexcept { return status_; }
+  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY promise_status get_status() const noexcept { return status_; }
 
   LIBCOPP_COPP_API_HEAD_ONLY inline bool check_flag(promise_flag flag) const noexcept {
-    if (flag >= promise_flag::kMax) {
-      return false;
-    }
-
-    return flags_.test(static_cast<size_t>(flag));
+    return 0 != (flags_ & (static_cast<uint32_t>(1) << static_cast<uint8_t>(flag)));
   }
 
   LIBCOPP_COPP_API_HEAD_ONLY inline void set_flag(promise_flag flag, bool value) noexcept {
-    if (flag >= promise_flag::kMax) {
-      return;
+    uint32_t flag_value = static_cast<uint32_t>(1) << static_cast<uint8_t>(flag);
+    if (value) {
+      flags_ |= flag_value;
+    } else {
+      flags_ &= ~flag_value;
     }
-    flags_.set(static_cast<size_t>(flag), value);
   }
 
   LIBCOPP_COPP_API bool is_waiting() const noexcept;
@@ -292,8 +290,9 @@ class promise_base_type {
     template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
     inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> self) noexcept {
-      self.promise().set_flag(promise_flag::kFinalSuspend, true);
-      self.promise().resume_callers();
+      auto &promise = self.promise();
+      promise.set_flag(promise_flag::kFinalSuspend, true);
+      promise.resume_callers();
     }
   };
   final_awaitable final_suspend() noexcept { return {}; }
@@ -320,6 +319,8 @@ class promise_base_type {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
 
+  UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
+
   LIBCOPP_COPP_API pick_promise_status_awaitable yield_value(pick_promise_status_awaitable &&args) const noexcept;
   static LIBCOPP_COPP_API_HEAD_ONLY inline pick_promise_status_awaitable pick_current_status() noexcept { return {}; }
 
@@ -328,7 +329,7 @@ class promise_base_type {
 
  private:
   // promise_flags
-  std::bitset<static_cast<size_t>(promise_flag::kMax)> flags_;
+  uint32_t flags_;
 
   // promise_status
   promise_status status_;

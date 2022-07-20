@@ -487,6 +487,39 @@ CASE_TEST(task_promise_task_manager, auto_cleanup_for_manager) {
   }
   task_manager_resume_pending_contexts({});
 }
+
+CASE_TEST(task_promise_task_manager, remove_last_task_in_manager) {
+  {
+    size_t old_resume_generator_count = g_task_manager_future_resume_generator_count;
+    size_t old_suspend_generator_count = g_task_manager_future_suspend_generator_count;
+    using mgr_t = cotask::task_manager<task_future_int_type>;
+
+    mgr_t::ptr_type task_mgr1 = mgr_t::create();
+
+    {
+      task_future_int_type co_task = task_func_await_int();
+
+      CASE_EXPECT_EQ(0, task_mgr1->add_task(co_task, 5, 0));
+
+      CASE_EXPECT_EQ(1, task_mgr1->get_task_size());
+      CASE_EXPECT_EQ(1, task_mgr1->get_tick_checkpoint_size());
+
+      co_task.start();
+    }
+
+    CASE_EXPECT_EQ(1, task_mgr1->get_task_size());
+    CASE_EXPECT_EQ(1, task_mgr1->get_tick_checkpoint_size());
+
+    task_manager_resume_pending_contexts({903});
+
+    CASE_EXPECT_EQ(0, task_mgr1->get_task_size());
+    CASE_EXPECT_EQ(0, task_mgr1->get_tick_checkpoint_size());
+
+    CASE_EXPECT_EQ(old_resume_generator_count + 1, g_task_manager_future_resume_generator_count);
+    CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_task_manager_future_suspend_generator_count);
+  }
+  task_manager_resume_pending_contexts({});
+}
 #    endif
 
 // rethrow a exception in c++20 coroutine will crash when using MSVC now(VS2022)
