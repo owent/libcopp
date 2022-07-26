@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.0.2
+
+1. Add benchmark for `task_future`
+2. Fix lifetime of `task_future`
+
 ## 2.0.1
 
 1. Change `task_manager<task_type, container_type>` to `task_manager<task_type>`
@@ -10,8 +15,6 @@
   > We will keep ABI compatitablity for all assemblly APIs and will change the suffix when ABI changed.
 2. `cotask::task` changes
   + [x] Add `value_type` to task_macro ( `macro_coroutine` )
-  + [ ] Add API `task_action_impl::get_task_id`
-  + [ ] Add internal API `task_action_impl::get_task`
 3. \[Previous\] Redesign C++ 20 coroutine support.
 4. Using ctest to maintain test and samples
 5. Fix compatibility for C++20 attributes and macros
