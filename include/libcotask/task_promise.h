@@ -33,19 +33,19 @@ LIBCOPP_COTASK_NAMESPACE_BEGIN
 template <class TVALUE>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context_base;
 
-template <class TVALUE, bool RETURN_VOID>
+template <class TVALUE, class TERROR_TRANSFORM, bool RETURN_VOID>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate;
 
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context;
 
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base;
 
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_future;
 
-template <class TVALUE, class TPRIVATE_DATA, bool RETURN_VOID>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM, bool RETURN_VOID>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base;
 
 template <class TCONTEXT>
@@ -166,13 +166,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_base {
 #  endif
 
  private:
-  template <class, class, bool>
+  template <class, class, class, bool>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base;
 
-  template <class, class>
+  template <class, class, class>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base;
 
-  template <class, class>
+  template <class, class, class>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_future;
 
   template <class TCONTEXT>
@@ -260,8 +260,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_base {
 #  endif
 };
 
-template <class TVALUE>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public task_context_base<TVALUE> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, TERROR_TRANSFORM, true>
+    : public task_context_base<TVALUE> {
  public:
   using base_type = task_context_base<TVALUE>;
   using id_type = typename base_type::id_type;
@@ -269,6 +270,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public 
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
+  using error_transform = TERROR_TRANSFORM;
 
  public:
   ~task_context_delegate() {}
@@ -282,10 +284,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public 
   template <class TCONTEXT>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable_base;
 
-  template <class, class>
+  template <class, class, class>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_future;
 
-  template <class TSOME_DELEGATE_TASK_VALUE, class TSOME_DELEGATE_TASK_PRIVATE_DATA>
+  template <class, class, class>
   friend struct LIBCOPP_COTASK_API_HEAD_ONLY some_delegate_task_action;
 
   using base_type::add_caller;
@@ -296,8 +298,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, true> : public 
 #  endif
 };
 
-template <class TVALUE>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public task_context_base<TVALUE> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, TERROR_TRANSFORM, false>
+    : public task_context_base<TVALUE> {
  public:
   using base_type = task_context_base<TVALUE>;
   using id_type = typename base_type::id_type;
@@ -305,6 +308,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
+  using error_transform = TERROR_TRANSFORM;
 
  public:
   using base_type::is_pending;
@@ -312,7 +316,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public
 
   ~task_context_delegate() {
     if (is_pending()) {
-      set_value(LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(task_status_type::kKilled));
+      set_value(error_transform()(task_status_type::kKilled));
     }
   }
 
@@ -341,10 +345,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, false> : public
   template <class TCONTEXT>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable_base;
 
-  template <class, class>
+  template <class, class, class>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_future;
 
-  template <class TSOME_DELEGATE_TASK_VALUE, class TSOME_DELEGATE_TASK_PRIVATE_DATA>
+  template <class, class, class>
   friend struct LIBCOPP_COTASK_API_HEAD_ONLY some_delegate_task_action;
 
   using base_type::add_caller;
@@ -371,27 +375,29 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_private_data {
   inline void await_suspend(LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::type_erased_handle_type) noexcept {}
 
  private:
-  template <class, class>
+  template <class, class, class>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_context;
 
-  template <class, class>
+  template <class, class, class>
   friend class LIBCOPP_COTASK_API_HEAD_ONLY task_future;
 
   TPRIVATE_DATA* data_;
 };
 
-template <class TVALUE>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_context<TVALUE, void>
-    : public task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE, void>> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_context<TVALUE, void, TERROR_TRANSFORM>
+    : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>,
+      public std::enable_shared_from_this<task_context<TVALUE, void, TERROR_TRANSFORM>> {
  public:
-  using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
+  using base_type =
+      task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
   using id_type = typename base_type::id_type;
   using private_data_type = void;
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
+  using error_transform = typename base_type::error_transform;
 
  public:
   using base_type::is_pending;
@@ -402,17 +408,19 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context<TVALUE, void>
   task_context(TARGS&&...) {}
 };
 
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context
-    : public task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE, TPRIVATE_DATA>> {
+    : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>,
+      public std::enable_shared_from_this<task_context<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>> {
  public:
-  using base_type = task_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
+  using base_type =
+      task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
   using private_data_type = TPRIVATE_DATA;
   using handle_delegate = typename base_type::handle_delegate;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
+  using error_transform = typename base_type::error_transform;
 
  public:
   using base_type::is_pending;
@@ -433,12 +441,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context
   private_data_type private_data_;
 };
 
-template <class TVALUE, class TPRIVATE_DATA>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, true>
     : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
  public:
   using value_type = TVALUE;
-  using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using private_data_type = typename context_type::private_data_type;
   using context_pointer_type = std::shared_ptr<context_type>;
   using handle_delegate = typename context_type::handle_delegate;
@@ -469,8 +477,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true
 
   UTIL_FORCEINLINE const context_pointer_type& get_context() noexcept { return context_strong_ref_; }
 
-  template <class TPROMISE, typename = std::enable_if_t<
-                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, true>, TPROMISE>::value>>
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<
+                                task_promise_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, true>, TPROMISE>::value>>
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
     COPP_LIKELY_IF (get_context()) {
@@ -482,12 +490,12 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, true
   context_pointer_type context_strong_ref_;
 };
 
-template <class TVALUE, class TPRIVATE_DATA>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, false>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, false>
     : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
  public:
   using value_type = TVALUE;
-  using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using private_data_type = typename context_type::private_data_type;
   using context_pointer_type = std::shared_ptr<context_type>;
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
@@ -530,8 +538,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, fals
 
   UTIL_FORCEINLINE const context_pointer_type& get_context() noexcept { return context_strong_ref_; }
 
-  template <class TPROMISE, typename = std::enable_if_t<
-                                std::is_base_of<task_promise_base<TVALUE, TPRIVATE_DATA, false>, TPROMISE>::value>>
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<
+                                task_promise_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, false>, TPROMISE>::value>>
   UTIL_FORCEINLINE void initialize_promise(
       const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE>& origin_handle) noexcept {
     COPP_LIKELY_IF (get_context()) {
@@ -650,6 +658,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable<TCONTEXT, true> : public task_
   using context_pointer_type = typename base_type::context_pointer_type;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
+  using error_transform = typename context_type::error_transform;
 
  public:
   using base_type::await_ready;
@@ -674,6 +683,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task
   using context_pointer_type = typename base_type::context_pointer_type;
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
+  using error_transform = typename context_type::error_transform;
 
  public:
   using base_type::await_ready;
@@ -692,7 +702,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task
     task_status_type result_status = detach();
 
     if (task_status_type::kDone != result_status) {
-      return LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(result_status);
+      return error_transform()(result_status);
     }
 
     COPP_LIKELY_IF (nullptr != get_context()) {
@@ -703,7 +713,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task
             *get_context()->data());
       }
     } else {
-      return LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<value_type>()(task_status_type::kInvalid);
+      return error_transform()(task_status_type::kInvalid);
     }
   }
 
@@ -712,11 +722,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable<TCONTEXT, false> : public task
   using base_type::get_context;
 };
 
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
  public:
   using value_type = TVALUE;
-  using context_type = task_context<value_type, TPRIVATE_DATA>;
+  using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using id_type = typename context_type::id_type;
   using private_data_type = typename context_type::private_data_type;
   using context_pointer_type = std::shared_ptr<context_type>;
@@ -1026,14 +1036,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
   context_pointer_type context_;
 };
 
-template <class TVALUE, class TPRIVATE_DATA, bool NO_PRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM, bool NO_PRIVATE_DATA>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate;
 
-template <class TVALUE, class TPRIVATE_DATA>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate<TVALUE, TPRIVATE_DATA, false>
-    : public task_future_base<TVALUE, TPRIVATE_DATA> {
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, false>
+    : public task_future_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM> {
  public:
-  using base_type = task_future_base<TVALUE, TPRIVATE_DATA>;
+  using base_type = task_future_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using value_type = typename base_type::value_type;
   using context_type = typename base_type::context_type;
   using id_type = typename base_type::id_type;
@@ -1077,11 +1087,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate<TVALUE, TPRIVATE_DATA, f
   }
 };
 
-template <class TVALUE, class TPRIVATE_DATA>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate<TVALUE, TPRIVATE_DATA, true>
-    : public task_future_base<TVALUE, TPRIVATE_DATA> {
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, true>
+    : public task_future_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM> {
  public:
-  using base_type = task_future_base<TVALUE, TPRIVATE_DATA>;
+  using base_type = task_future_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using value_type = typename base_type::value_type;
   using context_type = typename base_type::context_type;
   using id_type = typename base_type::id_type;
@@ -1109,12 +1119,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_delegate<TVALUE, TPRIVATE_DATA, t
   using base_type::get_context;
 };
 
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA,
+          class TERROR_TRANSFORM = LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<TVALUE>>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_future
-    : public task_future_delegate<TVALUE, TPRIVATE_DATA, std::is_same<TPRIVATE_DATA, void>::value> {
+    : public task_future_delegate<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, std::is_same<TPRIVATE_DATA, void>::value> {
  public:
-  using self_type = task_future<TVALUE, TPRIVATE_DATA>;
-  using base_type = task_future_delegate<TVALUE, TPRIVATE_DATA, std::is_same<TPRIVATE_DATA, void>::value>;
+  using error_transform = TERROR_TRANSFORM;
+  using self_type = task_future<TVALUE, TPRIVATE_DATA, error_transform>;
+  using base_type =
+      task_future_delegate<TVALUE, TPRIVATE_DATA, error_transform, std::is_same<TPRIVATE_DATA, void>::value>;
   using value_type = typename base_type::value_type;
   using context_type = typename base_type::context_type;
   using id_type = typename base_type::id_type;
@@ -1123,8 +1136,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
   using task_status_type = typename base_type::task_status_type;
   using promise_flag = typename base_type::promise_flag;
 
-  using promise_base_type =
-      task_promise_base<value_type, private_data_type, std::is_void<typename std::decay<value_type>::type>::value>;
+  using promise_base_type = task_promise_base<value_type, private_data_type, error_transform,
+                                              std::is_void<typename std::decay<value_type>::type>::value>;
   class promise_type : public promise_base_type {
    public:
 #  if defined(__GNUC__) && !defined(__clang__)
@@ -1235,23 +1248,29 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
   template <class TTHENABLE_VALUE>
   struct _thenable_return_traits_value_type;
 
-  template <class TCALLABLE_VALUE>
-  struct _thenable_return_traits_value_type<LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE>>
-      : public std::true_type {
-    using type = typename LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE>::value_type;
+  template <class TCALLABLE_VALUE, class TTASK_ERROR_TRANSFORM>
+  struct _thenable_return_traits_value_type<
+      LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE, TTASK_ERROR_TRANSFORM>> : public std::true_type {
+    using type =
+        typename LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE, TTASK_ERROR_TRANSFORM>::value_type;
+    using error_transform = TTASK_ERROR_TRANSFORM;
 
     template <class TINPUT>
-    UTIL_FORCEINLINE static LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE> start_thenable(TINPUT&& c) {
+    UTIL_FORCEINLINE static LIBCOPP_COPP_NAMESPACE_ID::callable_future<TCALLABLE_VALUE, TTASK_ERROR_TRANSFORM>
+    start_thenable(TINPUT&& c) {
       return {std::forward<TINPUT>(c)};
     }
   };
 
-  template <class TTASK_VALUE, class TTASK_PRIVATE_DATA>
-  struct _thenable_return_traits_value_type<task_future<TTASK_VALUE, TTASK_PRIVATE_DATA>> : public std::true_type {
-    using type = typename task_future<TTASK_VALUE, TTASK_PRIVATE_DATA>::value_type;
+  template <class TTASK_VALUE, class TTASK_PRIVATE_DATA, class TTASK_ERROR_TRANSFORM>
+  struct _thenable_return_traits_value_type<task_future<TTASK_VALUE, TTASK_PRIVATE_DATA, TTASK_ERROR_TRANSFORM>>
+      : public std::true_type {
+    using type = typename task_future<TTASK_VALUE, TTASK_PRIVATE_DATA, TTASK_ERROR_TRANSFORM>::value_type;
+    using error_transform = TTASK_ERROR_TRANSFORM;
 
     template <class TINPUT>
-    UTIL_FORCEINLINE static task_future<TTASK_VALUE, TTASK_PRIVATE_DATA> start_thenable(TINPUT&& task) {
+    UTIL_FORCEINLINE static task_future<TTASK_VALUE, TTASK_PRIVATE_DATA, TTASK_ERROR_TRANSFORM> start_thenable(
+        TINPUT&& task) {
       task.start();
       return {std::forward<TINPUT>(task)};
     }
@@ -1279,17 +1298,37 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
   struct thenable_return_traits
       : public _thenable_return_traits_return_type<TTHENABLE, std::is_void<value_type>::value> {};
 
-  template <class TTHENABLE, bool THENABLE_RETURN_COROUTINE, bool THENABLE_RETURN_VOID, bool TASK_RETURN_VOID>
+  template <class TTHENABLE, bool THENABLE_RETURN_COROUTINE>
+  struct _thenable_default_error_transform;
+
+  template <class TTHENABLE>
+  struct _thenable_default_error_transform<TTHENABLE, true> {
+    using type = typename thenable_return_traits<TTHENABLE>::error_transform;
+  };
+
+  template <class TTHENABLE>
+  struct _thenable_default_error_transform<TTHENABLE, false> {
+    using type = LIBCOPP_COPP_NAMESPACE_ID::promise_error_transform<typename thenable_return_traits<TTHENABLE>::type>;
+  };
+
+  template <class TTHENABLE>
+  struct thenable_error_transform_traits
+      : public _thenable_default_error_transform<TTHENABLE, thenable_return_traits<TTHENABLE>::value> {};
+
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM, bool THENABLE_RETURN_COROUTINE, bool THENABLE_RETURN_VOID,
+            bool TASK_RETURN_VOID>
   struct thenable_traits;
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, true, false, false> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, true, false, false> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1305,14 +1344,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, true, false, true> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, true, false, true> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1330,14 +1371,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, true, true, false> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, true, true, false> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1355,14 +1398,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, true, true, true> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, true, true, true> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1380,14 +1425,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, false, true, false> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, false, true, false> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1403,14 +1450,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, false, true, true> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, false, true, true> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1428,14 +1477,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, false, false, false> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, false, false, false> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1449,14 +1500,16 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
     }
   };
 
-  template <class TTHENABLE>
-  struct thenable_traits<TTHENABLE, false, false, true> {
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
+  struct thenable_traits<TTHENABLE, TTHENABLE_ERROR_TRANSFORM, false, false, true> {
     using callable_thenable_type =
-        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type>;
+        LIBCOPP_COPP_NAMESPACE_ID::callable_future<typename thenable_return_traits<TTHENABLE>::type,
+                                                   TTHENABLE_ERROR_TRANSFORM>;
 
     template <class TTHENABLE_PRIVATE_DATA>
     struct task_thenable_type {
-      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA>;
+      using task_type = task_future<typename thenable_return_traits<TTHENABLE>::type, TTHENABLE_PRIVATE_DATA,
+                                    TTHENABLE_ERROR_TRANSFORM>;
     };
 
     inline static callable_thenable_type invoke_callable(self_type self, TTHENABLE thenable) {
@@ -1473,20 +1526,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
   };
 
  public:
-  template <class TTHENABLE>
+  template <class TTHENABLE, class TTHENABLE_ERROR_TRANSFORM>
   struct callable_thenable_trait {
     using trait_type = thenable_traits<
-        typename std::decay<TTHENABLE>::type, thenable_return_traits<typename std::decay<TTHENABLE>::type>::value,
+        typename std::decay<TTHENABLE>::type, TTHENABLE_ERROR_TRANSFORM,
+        thenable_return_traits<typename std::decay<TTHENABLE>::type>::value,
         std::is_same<typename thenable_return_traits<typename std::decay<TTHENABLE>::type>::type, void>::value,
         std::is_void<value_type>::value>;
 
     using callable_thenable_type = typename trait_type::callable_thenable_type;
   };
 
-  template <class TTHENABLE, class TTHENABLE_PRIVATE_DATA>
+  template <class TTHENABLE, class TTHENABLE_PRIVATE_DATA, class TTHENABLE_ERROR_TRANSFORM>
   struct task_thenable_trait {
     using trait_type = thenable_traits<
-        typename std::decay<TTHENABLE>::type, thenable_return_traits<typename std::decay<TTHENABLE>::type>::value,
+        typename std::decay<TTHENABLE>::type, TTHENABLE_ERROR_TRANSFORM,
+        thenable_return_traits<typename std::decay<TTHENABLE>::type>::value,
         std::is_same<typename thenable_return_traits<typename std::decay<TTHENABLE>::type>::type, void>::value,
         std::is_void<value_type>::value>;
 
@@ -1515,9 +1570,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
    *
    * @return callable_future<T>
    */
-  template <class TTHENABLE>
-  typename callable_thenable_trait<TTHENABLE>::callable_thenable_type then(TTHENABLE&& thenable) {
-    using trait_type = typename callable_thenable_trait<TTHENABLE>::trait_type;
+  template <class TTHENABLE,
+            class TTHENABLE_ERROR_TRANSFORM = typename thenable_error_transform_traits<TTHENABLE>::type>
+  typename callable_thenable_trait<TTHENABLE, TTHENABLE_ERROR_TRANSFORM>::callable_thenable_type then(
+      TTHENABLE&& thenable) {
+    using trait_type = typename callable_thenable_trait<TTHENABLE, TTHENABLE_ERROR_TRANSFORM>::trait_type;
     return trait_type::invoke_callable(*this, std::forward<TTHENABLE>(thenable));
   }
 
@@ -1547,11 +1604,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
    *
    * @return task_future<T>
    */
-  template <class TTHENABLE, class TTHENABLE_PRIVATE_DATA>
-  typename task_thenable_trait<TTHENABLE, typename std::decay<TTHENABLE_PRIVATE_DATA>::type>::task_thenable_type then(
-      TTHENABLE&& thenable, TTHENABLE_PRIVATE_DATA&& private_data) {
-    using trait_type =
-        typename task_thenable_trait<TTHENABLE, typename std::decay<TTHENABLE_PRIVATE_DATA>::type>::trait_type;
+  template <class TTHENABLE, class TTHENABLE_PRIVATE_DATA,
+            class TTHENABLE_ERROR_TRANSFORM = typename thenable_error_transform_traits<TTHENABLE>::type>
+  typename task_thenable_trait<TTHENABLE, typename std::decay<TTHENABLE_PRIVATE_DATA>::type,
+                               TTHENABLE_ERROR_TRANSFORM>::task_thenable_type
+  then(TTHENABLE&& thenable, TTHENABLE_PRIVATE_DATA&& private_data) {
+    using trait_type = typename task_thenable_trait<TTHENABLE, typename std::decay<TTHENABLE_PRIVATE_DATA>::type,
+                                                    TTHENABLE_ERROR_TRANSFORM>::trait_type;
     auto result = trait_type::template invoke_task<typename std::decay<TTHENABLE_PRIVATE_DATA>::type>(
         *this, std::forward<TTHENABLE>(thenable));
     *result.get_private_data() = std::forward<TTHENABLE_PRIVATE_DATA>(private_data);
@@ -1585,9 +1644,11 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
    *
    * @return task_future<T>
    */
-  template <class TTHENABLE>
-  typename task_thenable_trait<TTHENABLE, void>::task_thenable_type then(TTHENABLE&& thenable, std::nullptr_t) {
-    using trait_type = typename task_thenable_trait<TTHENABLE, void>::trait_type;
+  template <class TTHENABLE,
+            class TTHENABLE_ERROR_TRANSFORM = typename thenable_error_transform_traits<TTHENABLE>::type>
+  typename task_thenable_trait<TTHENABLE, void, TTHENABLE_ERROR_TRANSFORM>::task_thenable_type then(
+      TTHENABLE&& thenable, std::nullptr_t) {
+    using trait_type = typename task_thenable_trait<TTHENABLE, void, TTHENABLE_ERROR_TRANSFORM>::trait_type;
     auto result = trait_type::template invoke_task<void>(*this, std::forward<TTHENABLE>(thenable));
     result.start();
     return result;
@@ -1595,9 +1656,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
 };
 
 // some
-template <class TVALUE, class TPRIVATE_DATA>
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 struct LIBCOPP_COTASK_API_HEAD_ONLY some_delegate_task_action {
-  using future_type = task_future<TVALUE, TPRIVATE_DATA>;
+  using future_type = task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using context_type = LIBCOPP_COPP_NAMESPACE_ID::some_delegate_context<future_type>;
 
   inline static void suspend_future(const LIBCOPP_COPP_NAMESPACE_ID::promise_caller_manager::handle_delegate& caller,
@@ -1621,13 +1682,13 @@ LIBCOPP_COTASK_NAMESPACE_END
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 // some
-template <class TVALUE, class TPRIVATE_DATA>
-class LIBCOPP_COTASK_API_HEAD_ONLY some_delegate<cotask::task_future<TVALUE, TPRIVATE_DATA>>
-    : public some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA>,
-                                cotask::some_delegate_task_action<TVALUE, TPRIVATE_DATA>> {
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY some_delegate<cotask::task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>>
+    : public some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>,
+                                cotask::some_delegate_task_action<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>> {
  public:
-  using base_type = some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA>,
-                                       cotask::some_delegate_task_action<TVALUE, TPRIVATE_DATA>>;
+  using base_type = some_delegate_base<cotask::task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>,
+                                       cotask::some_delegate_task_action<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>>;
   using future_type = typename base_type::future_type;
   using value_type = typename base_type::value_type;
   using ready_output_type = typename base_type::ready_output_type;

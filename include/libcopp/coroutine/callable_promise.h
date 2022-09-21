@@ -28,13 +28,13 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 template <class TFUTURE>
 class LIBCOPP_COPP_API_HEAD_ONLY some_delegate;
 
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_future;
 
 template <class TVALUE, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base;
 
-template <class TPROMISE, bool RETURN_VOID>
+template <class TPROMISE, class TERROR_TRANSFORM, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable;
 
 template <class TVALUE>
@@ -194,8 +194,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
   handle_type callee_;
 };
 
-template <class TPROMISE>
-class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, true> : public callable_awaitable_base<TPROMISE> {
+template <class TPROMISE, class TERROR_TRANSFORM>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, TERROR_TRANSFORM, true>
+    : public callable_awaitable_base<TPROMISE> {
  public:
   using base_type = callable_awaitable_base<TPROMISE>;
   using promise_type = typename base_type::promise_type;
@@ -217,8 +218,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, true> : public cal
   }
 };
 
-template <class TPROMISE>
-class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, false> : public callable_awaitable_base<TPROMISE> {
+template <class TPROMISE, class TERROR_TRANSFORM>
+class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, TERROR_TRANSFORM, false>
+    : public callable_awaitable_base<TPROMISE> {
  public:
   using base_type = callable_awaitable_base<TPROMISE>;
   using promise_type = typename base_type::promise_type;
@@ -240,18 +242,19 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, false> : public ca
     callee_promise.resume_waiting(get_callee(), true);
 
     if (!callee_promise.check_flag(promise_flag::kHasReturned)) {
-      return promise_error_transform<value_type>()(callee_promise.get_status());
+      return TERROR_TRANSFORM()(callee_promise.get_status());
     }
 
     return std::move(callee_promise.data());
   }
 };
 
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM = promise_error_transform<TVALUE>>
 class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
  public:
   using value_type = TVALUE;
-  using self_type = callable_future<value_type>;
+  using error_transform = TERROR_TRANSFORM;
+  using self_type = callable_future<value_type, error_transform>;
   class promise_type
       : public callable_promise_base<value_type, std::is_void<typename std::decay<value_type>::type>::value> {
    public:
@@ -295,7 +298,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
 #  endif
   };
   using handle_type = LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<promise_type>;
-  using awaitable_type = callable_awaitable<promise_type, std::is_void<typename std::decay<value_type>::type>::value>;
+  using awaitable_type =
+      callable_awaitable<promise_type, error_transform, std::is_void<typename std::decay<value_type>::type>::value>;
 
  public:
   callable_future(handle_type handle) noexcept : current_handle_{handle} {}
@@ -648,9 +652,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
 };
 
 // some
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM>
 struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action {
-  using future_type = callable_future<TVALUE>;
+  using future_type = callable_future<TVALUE, TERROR_TRANSFORM>;
   using context_type = some_delegate_context<future_type>;
 
   inline static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& callee) {
@@ -668,11 +672,13 @@ struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_callable_action {
   }
 };
 
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE>>
-    : public some_delegate_base<callable_future<TVALUE>, some_delegate_callable_action<TVALUE>> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<callable_future<TVALUE, TERROR_TRANSFORM>>
+    : public some_delegate_base<callable_future<TVALUE, TERROR_TRANSFORM>,
+                                some_delegate_callable_action<TVALUE, TERROR_TRANSFORM>> {
  public:
-  using base_type = some_delegate_base<callable_future<TVALUE>, some_delegate_callable_action<TVALUE>>;
+  using base_type = some_delegate_base<callable_future<TVALUE, TERROR_TRANSFORM>,
+                                       some_delegate_callable_action<TVALUE, TERROR_TRANSFORM>>;
   using future_type = typename base_type::future_type;
   using value_type = typename base_type::value_type;
   using ready_output_type = typename base_type::ready_output_type;

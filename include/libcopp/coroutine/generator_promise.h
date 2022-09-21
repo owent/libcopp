@@ -31,13 +31,13 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base;
 
-template <class TVALUE, bool RETURN_VOID>
+template <class TVALUE, class TERROR_TRANSFORM, bool RETURN_VOID>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate;
 
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_context;
 
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_future;
 
 template <class TPROMISE, bool RETURN_VOID>
@@ -101,8 +101,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
   promise_caller_manager caller_manager_;
 };
 
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, true> : public generator_context_base<TVALUE> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, TERROR_TRANSFORM, true>
+    : public generator_context_base<TVALUE> {
  public:
   using base_type = generator_context_base<TVALUE>;
   using value_type = typename base_type::value_type;
@@ -145,8 +146,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, true> : publ
   using base_type::wake;
 };
 
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, false> : public generator_context_base<TVALUE> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, TERROR_TRANSFORM, false>
+    : public generator_context_base<TVALUE> {
  public:
   using base_type = generator_context_base<TVALUE>;
   using value_type = typename base_type::value_type;
@@ -163,7 +165,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, false> : pub
 
   ~generator_context_delegate() {
     if (is_pending()) {
-      set_value(promise_error_transform<value_type>()(promise_status::kKilled));
+      set_value(TERROR_TRANSFORM()(promise_status::kKilled));
     } else {
       wake();
     }
@@ -212,13 +214,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, false> : pub
   using base_type::wake;
 };
 
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_context
-    : public generator_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<generator_context<TVALUE>> {
+    : public generator_context_delegate<TVALUE, TERROR_TRANSFORM,
+                                        std::is_void<typename std::decay<TVALUE>::type>::value>,
+      public std::enable_shared_from_this<generator_context<TVALUE, TERROR_TRANSFORM>> {
  public:
-  using base_type = generator_context_delegate<TVALUE, std::is_void<typename std::decay<TVALUE>::type>::value>;
+  using base_type =
+      generator_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>;
   using value_type = typename base_type::value_type;
+  using error_transform = TERROR_TRANSFORM;
 
  public:
   template <class... TARGS>
@@ -398,6 +403,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, true> : public ge
   using vtable_type = typename base_type::vtable_type;
   using await_suspend_callback_type = typename base_type::await_suspend_callback_type;
   using await_resume_callback_type = typename base_type::await_resume_callback_type;
+  using error_transform = typename context_type::error_transform;
 
  public:
   using base_type::await_ready;
@@ -424,6 +430,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
   using vtable_type = typename base_type::vtable_type;
   using await_suspend_callback_type = typename base_type::await_suspend_callback_type;
   using await_resume_callback_type = typename base_type::await_resume_callback_type;
+  using error_transform = typename context_type::error_transform;
 
  public:
   using base_type::await_ready;
@@ -443,7 +450,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
     promise_status result_status = detach();
 
     if (promise_status::kDone != result_status) {
-      return promise_error_transform<value_type>()(result_status);
+      return error_transform()(result_status);
     }
 
     COPP_LIKELY_IF (nullptr != get_context()) {
@@ -453,7 +460,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
         return multiple_callers_constructor<value_type>::return_value(*get_context()->data());
       }
     } else {
-      return promise_error_transform<value_type>()(promise_status::kInvalid);
+      return error_transform()(promise_status::kInvalid);
     }
   }
 
@@ -462,12 +469,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false> : public g
   using base_type::get_context;
 };
 
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM = promise_error_transform<TVALUE>>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
  public:
   using value_type = TVALUE;
-  using self_type = generator_future<value_type>;
-  using context_type = generator_context<value_type>;
+  using error_transform = TERROR_TRANSFORM;
+  using self_type = generator_future<value_type, error_transform>;
+  using context_type = generator_context<value_type, error_transform>;
   using context_pointer_type = std::shared_ptr<context_type>;
   using awaitable_type = generator_awaitable<context_type, std::is_void<typename std::decay<value_type>::type>::value>;
   using vtable_type = typename awaitable_type::vtable_type;
@@ -538,7 +546,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   template <class TFUTURE>
   friend class LIBCOPP_COPP_API_HEAD_ONLY some_delegate;
 
-  template <class TFUTURE>
+  template <class TFUTURE, class TERROR_TRANSFORM>
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action;
 
   std::shared_ptr<context_type> context_;
@@ -546,9 +554,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
 };
 
 // some
-template <class TVALUE>
+template <class TVALUE, class TERROR_TRANSFORM>
 struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action {
-  using future_type = generator_future<TVALUE>;
+  using future_type = generator_future<TVALUE, TERROR_TRANSFORM>;
   using context_type = some_delegate_context<future_type>;
 
   inline static void suspend_future(const promise_caller_manager::handle_delegate& caller, future_type& generator) {
@@ -572,11 +580,13 @@ struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action {
   inline static bool is_pending(future_type& future_object) noexcept { return future_object.is_pending(); }
 };
 
-template <class TVALUE>
-class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE>>
-    : public some_delegate_base<generator_future<TVALUE>, some_delegate_generator_action<TVALUE>> {
+template <class TVALUE, class TERROR_TRANSFORM>
+class LIBCOPP_COPP_API_HEAD_ONLY some_delegate<generator_future<TVALUE, TERROR_TRANSFORM>>
+    : public some_delegate_base<generator_future<TVALUE, TERROR_TRANSFORM>,
+                                some_delegate_generator_action<TVALUE, TERROR_TRANSFORM>> {
  public:
-  using base_type = some_delegate_base<generator_future<TVALUE>, some_delegate_generator_action<TVALUE>>;
+  using base_type = some_delegate_base<generator_future<TVALUE, TERROR_TRANSFORM>,
+                                       some_delegate_generator_action<TVALUE, TERROR_TRANSFORM>>;
   using future_type = typename base_type::future_type;
   using value_type = typename base_type::value_type;
   using ready_output_type = typename base_type::ready_output_type;

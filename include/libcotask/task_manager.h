@@ -138,9 +138,9 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task<TCO_MACRO>> {
 };
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
-template <class TVALUE, class TPRIVATE_DATA>
-struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task_future<TVALUE, TPRIVATE_DATA>> {
-  using task_type = task_future<TVALUE, TPRIVATE_DATA>;
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>> {
+  using task_type = task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>;
 
   task_type task_;
   typename std::set<task_timer_node<typename task_type::id_type>>::iterator timer_node;
@@ -860,10 +860,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 /**
  * @brief task manager for C++20 coroutine task
  */
-template <class TVALUE, class TPRIVATE_DATA>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DATA>> {
+template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>> {
  public:
-  using task_type = task_future<TVALUE, TPRIVATE_DATA>;
+  using task_type = task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using container_type = std::unordered_map<typename task_type::id_type, detail::task_manager_node<task_type>>;
   using id_type = typename task_type::id_type;
   using task_status_type = typename task_type::task_status_type;
