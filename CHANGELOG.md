@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.0
+
+1. Allow custom `promise_error_transform` for C++20 coroutine.
+
 ## 2.0.2
 
 1. Add benchmark for `task_future`

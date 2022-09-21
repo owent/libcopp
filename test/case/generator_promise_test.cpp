@@ -357,6 +357,19 @@ class test_context_transform_error_code_type {
   ~test_context_transform_error_code_type() {}
 };
 
+LIBCOPP_COPP_NAMESPACE_BEGIN
+template <>
+struct promise_error_transform<test_context_transform_error_code_type> {
+  using type = test_context_transform_error_code_type;
+  type operator()(promise_status in) const {
+    if (in == promise_status::kTimeout) {
+      return test_context_transform_error_code_type{-500};
+    }
+    return test_context_transform_error_code_type{static_cast<int>(in)};
+  }
+};
+LIBCOPP_COPP_NAMESPACE_END
+
 namespace {
 using test_context_transform_error_code_generator = copp::generator_future<test_context_transform_error_code_type>;
 std::list<test_context_transform_error_code_generator::context_pointer_type>
@@ -376,19 +389,6 @@ static copp::callable_future<void> test_context_transform_error_code_generator_l
   co_return;
 }
 }  // namespace
-
-LIBCOPP_COPP_NAMESPACE_BEGIN
-template <>
-struct std_coroutine_default_error_transform<test_context_transform_error_code_type> {
-  using type = test_context_transform_error_code_type;
-  type operator()(promise_status in) const {
-    if (in == promise_status::kTimeout) {
-      return test_context_transform_error_code_type{-500};
-    }
-    return test_context_transform_error_code_type{static_cast<int>(in)};
-  }
-};
-LIBCOPP_COPP_NAMESPACE_END
 
 CASE_TEST(generator_promise, transform_error_code) {
   auto f2 = test_context_transform_error_code_generator_l1();
