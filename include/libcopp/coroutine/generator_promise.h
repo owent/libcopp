@@ -546,7 +546,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   template <class TFUTURE>
   friend class LIBCOPP_COPP_API_HEAD_ONLY some_delegate;
 
-  template <class TFUTURE, class TERROR_TRANSFORM>
+  template <class TFUTURE, class>
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action;
 
   std::shared_ptr<context_type> context_;
