@@ -269,7 +269,7 @@ constexpr span<TELEMENT, N> make_span(TELEMENT (&arr)[N]) noexcept {
 template <class TCONTAINER>
 struct _make_span_value_type {
   using container_type = typename std::decay<TCONTAINER>::type;
-  using value_type = typename container_type::type;
+  using value_type = typename container_type::value_type;
 };
 
 template <class TCONTAINER>
