@@ -61,33 +61,33 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc
             build_shared_libs: "ON"
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc
             build_shared_libs: "OFF"
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc-latest
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc-latest
             mode: memcheck
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc-latest
             no_exception: 1
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc-latest
             thread_unsafe: 1
           - os: ubuntu-18.04
             triplet: x64-linux
             cc: gcc-4.8
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: clang-latest
           - os: macos-latest
@@ -186,7 +186,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc
             gcov_flags: "--coverage -fprofile-arcs -ftest-coverage"
