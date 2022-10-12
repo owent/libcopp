@@ -274,7 +274,7 @@ struct _make_span_value_type {
 
 template <class TCONTAINER>
 constexpr span<typename _make_span_value_type<TCONTAINER>::value_type> make_span(TCONTAINER&& cont) {
-  return span<typename _make_span_value_type<TCONTAINER>::value_type>(cont);
+  return span<typename _make_span_value_type<TCONTAINER>::value_type>(std::forward<TCONTAINER>(cont));
 }
 
 }  // namespace gsl
