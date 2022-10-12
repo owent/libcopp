@@ -267,13 +267,14 @@ constexpr span<TELEMENT, N> make_span(TELEMENT (&arr)[N]) noexcept {
 }
 
 template <class TCONTAINER>
-constexpr span<typename TCONTAINER::value_type> make_span(TCONTAINER& cont) {
-  return span<typename TCONTAINER::value_type>(cont);
-}
+struct _make_span_value_type {
+  using container_type = typename std::decay<TCONTAINER>::type;
+  using value_type = typename container_type::type;
+};
 
 template <class TCONTAINER>
-constexpr span<const typename TCONTAINER::value_type> make_span(const TCONTAINER& cont) {
-  return span<const typename TCONTAINER::value_type>(cont);
+constexpr span<typename _make_span_value_type<TCONTAINER>::value_type> make_span(TCONTAINER&& cont) {
+  return span<typename _make_span_value_type<TCONTAINER>::value_type>(cont);
 }
 
 }  // namespace gsl
