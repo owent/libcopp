@@ -274,8 +274,8 @@ struct _make_span_value_type {
 
 template <class TCONTAINER,
           typename std::enable_if<
-              std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<TCONTAINER>()))>::type (*)[],
-                                  typename _make_span_value_type<TCONTAINER>::type (*)[]>::value &&
+              !std::is_array<typename std::remove_reference<TCONTAINER>::type>::value &&
+              std::is_pointer<decltype(data(std::declval<TCONTAINER>()))>::value &&
               std::is_convertible<decltype(size(std::declval<TCONTAINER>())), size_t>::value>::type* = nullptr>
 constexpr span<typename _make_span_value_type<TCONTAINER>::type> make_span(TCONTAINER&& cont) {
   return span<typename _make_span_value_type<TCONTAINER>::type>(std::forward<TCONTAINER>(cont));
