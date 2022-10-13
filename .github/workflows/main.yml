@@ -72,9 +72,6 @@ jobs:
           - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc-latest
-          - os: ubuntu-22.04
-            triplet: x64-linux
-            cc: gcc-latest
             mode: memcheck
           - os: ubuntu-22.04
             triplet: x64-linux
