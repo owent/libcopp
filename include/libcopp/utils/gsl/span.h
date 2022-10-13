@@ -41,7 +41,7 @@ namespace gsl {
 constexpr size_t dynamic_extent = static_cast<size_t>(-1);
 
 template <class TCONTAINER>
-constexpr inline auto size(const TCONTAINER &container) -> decltype(container.size()) {
+constexpr inline auto size(TCONTAINER &&container) -> decltype(container.size()) {
   return container.size();
 }
 
@@ -141,11 +141,11 @@ class span {
   template <class C,
             typename std::enable_if<
                 !detail::is_specialized_span_convertible<typename std::decay<C>::type>::value &&
-                std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<C>()))>::type (*)[],
+                std::is_convertible<typename std::remove_pointer<decltype(std::declval<C>().size())>::type (*)[],
                                     T (*)[]>::value &&
-                std::is_convertible<decltype(size(std::declval<C>())), size_t>::value>::type * = nullptr>
-  span(C &&c) noexcept(noexcept(data(c), size(c))) : data_{data(c)} {
-    if (size(c) != EXTENT) {
+                std::is_convertible<decltype(std::declval<C>().size()), size_t>::value>::type * = nullptr>
+  span(C &&c) noexcept(noexcept(c.data(), c.size())) : data_{c.data()} {
+    if (c.size() != EXTENT) {
       std::terminate();
     }
   }
@@ -210,10 +210,10 @@ class span<T, dynamic_extent> {
   template <class C,
             typename std::enable_if<
                 !detail::is_specialized_span_convertible<typename std::decay<C>::type>::value &&
-                std::is_convertible<typename std::remove_pointer<decltype(data(std::declval<C>()))>::type (*)[],
+                std::is_convertible<typename std::remove_pointer<decltype(std::declval<C>().data())>::type (*)[],
                                     T (*)[]>::value &&
-                std::is_convertible<decltype(size(std::declval<C>())), size_t>::value>::type * = nullptr>
-  span(C &&c) noexcept(noexcept(data(c), size(c))) : extent_{size(c)}, data_{data(c)} {}
+                std::is_convertible<decltype(std::declval<C>().size()), size_t>::value>::type * = nullptr>
+  span(C &&c) noexcept(noexcept(c.data(), c.size())) : extent_{c.size()}, data_{c.data()} {}
 
   template <class U, size_t N, typename std::enable_if<std::is_convertible<U (*)[], T (*)[]>::value>::type * = nullptr>
   span(const span<U, N> &other) noexcept : extent_{other.size()}, data_{other.data()} {}
