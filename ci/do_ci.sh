@@ -136,3 +136,7 @@ else
   ctest -VV . -C $CONFIGURATION -L libcopp.unit_test
   ctest -VV . -C $CONFIGURATION -L libcopp.benchmark
 fi
+
+if [[ "$1" == "coverage" ]]; then
+  lcov --directory "$PWD" --capture --output-file coverage.info
+fi
