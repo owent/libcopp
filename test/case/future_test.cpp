@@ -26,6 +26,14 @@ struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
   virtual int get_type() { return 2; }
 };
 
+struct test_trivial_clazz {
+  test_trivial_clazz() : data(0) {}
+  test_trivial_clazz(int a) : data(a) {}
+  test_trivial_clazz(int a, int) : data(a) {}
+
+  int data;
+};
+
 CASE_TEST(future, poll_void) {
   copp::future::poller<void> p1;
   CASE_EXPECT_FALSE(p1.is_ready());
@@ -47,6 +55,28 @@ CASE_TEST(future, poll_void) {
 }
 
 CASE_TEST(future, poll_trival) {
+  copp::future::poller<test_trivial_clazz> p1;
+  CASE_EXPECT_FALSE(p1.is_ready());
+
+  copp::future::poller<test_trivial_clazz> p2(123);
+  CASE_EXPECT_TRUE(p2.is_ready() && p2.data());
+  CASE_EXPECT_EQ(p2.data() ? p2.data()->data : 0, 123);
+
+  std::unique_ptr<test_trivial_clazz> param3 = std::unique_ptr<test_trivial_clazz>(new test_trivial_clazz(234));
+  copp::future::poller<test_trivial_clazz> p3(std::move(param3));
+  CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
+  CASE_EXPECT_EQ(p3.data() ? p3.data()->data : 0, 234);
+
+  copp::future::poller<test_trivial_clazz> p4(test_trivial_clazz(345));
+  CASE_EXPECT_TRUE(p4.is_ready() && p4.data());
+  CASE_EXPECT_EQ(p4.data() ? p4.data()->data : 0, 345);
+
+  copp::future::poller<test_trivial_clazz> p5(456, 456);
+  CASE_EXPECT_TRUE(p5.is_ready() && p5.data());
+  CASE_EXPECT_EQ(p5.data() ? p5.data()->data : 0, 456);
+}
+
+CASE_TEST(future, poll_trival_object) {
   copp::future::poller<int> p1;
   CASE_EXPECT_FALSE(p1.is_ready());
 
