@@ -1,0 +1,62 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "v2" ]
+  pull_request:
+    branches: [ "v2" ]
+  schedule:
+    - cron: "19 1 * * 0"
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ cpp ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++
+
+      - name: Configure
+        run: |
+          curl --insecure -L https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3-linux-x86_64.sh -o cmake.sh
+          mkdir -p $HOME/.local ; bash cmake.sh --prefix=$HOME/.local --skip-license
+          mkdir build_jobs_dir; cd build_jobs_dir; export PATH="$HOME/.local/bin:$PATH"; cmake ..
+
+      - name: Before Index
+        run: |
+          export LANG=zh_CN.utf-8 && echo "LANG=$LANG" >> $GITHUB_ENV
+          export LC_ALL=zh_CN.utf-8 && echo "LC_ALL=$LC_ALL" >> $GITHUB_ENV
+          export LC_CTYPE=zh_CN.utf-8 && echo "LC_CTYPE=$LC_CTYPE" >> $GITHUB_ENV
+          export CXXFLAGS="-D__STDC_WANT_LIB_EXT1__=1" && echo "CXXFLAGS=$CXXFLAGS" >> $GITHUB_ENV
+          export CFLAGS="-D__STDC_WANT_LIB_EXT1__=1" && echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Build cpp
+        run: if [[ -e build_jobs_dir ]]; then cd build_jobs_dir; fi ; export PATH="$HOME/.local/bin:$PATH"; cmake --build . -j
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{ matrix.language }}"
