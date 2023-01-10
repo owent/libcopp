@@ -27,12 +27,20 @@ struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
 };
 
 struct test_trivial_clazz {
-  test_trivial_clazz() : data(0) {}
+  test_trivial_clazz() = default;
   test_trivial_clazz(int a) : data(a) {}
   test_trivial_clazz(int a, int) : data(a) {}
 
   int data;
 };
+
+#if (defined(__cplusplus) && __cplusplus >= 201402L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201402L))
+static_assert(std::is_trivially_constructible<test_trivial_clazz>::value &&
+                  std::is_trivially_copyable<test_trivial_clazz>::value,
+              "trivial check");
+#elif (defined(__cplusplus) && __cplusplus >= 201103L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
+static_assert(std::is_trivial<test_trivial_clazz>::value, "trivial check");
+#endif
 
 CASE_TEST(future, poll_void) {
   copp::future::poller<void> p1;
