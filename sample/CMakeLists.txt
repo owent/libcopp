@@ -50,6 +50,13 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     target_compile_options(${SAMPLE_SRC_BIN_NAME} PRIVATE /wd4503)
   endif()
 
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # GCC 12&13 BUG: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106297
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.0.0")
+      target_compile_options(libcopp_unit_test PRIVATE -Wno-error=stringop-overflow)
+    endif()
+  endif()
+
   # add benchmark script
   string(FIND ${SAMPLE_SRC_BIN_NAME} "_benchmark_" SAMPLE_SRC_IS_BENCHMARK)
 
