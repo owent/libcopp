@@ -1,0 +1,12 @@
+languages:
+  - cpp
+queries:
+  - name: Security And Quality
+    uses: security-and-quality
+# "paths"/"paths-ignore" fields of the config only have effect for JavaScript, Python, and Ruby
+# paths:
+#   - include
+#   - src
+# paths-ignore:
+#   - third_party
+#   - test

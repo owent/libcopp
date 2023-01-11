@@ -98,7 +98,7 @@ static callable_future_int_type task_future_func_await_int() {
 static task_future_int_type task_func_await_int() {
   auto current_status = co_yield task_future_void_type::yield_status();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kRunning), static_cast<int>(current_status));
-  auto private_data = co_yield cotask::task_private_data<task_future_private_data>();
+  auto private_data = co_yield task_future_int_type::yield_private_data();
   private_data->data = 121000;
 
   CASE_MSG_INFO() << "task await int" << std::endl;
@@ -158,7 +158,7 @@ static callable_future_void_type task_future_func_await_void() {
 static task_future_void_type task_func_await_void() {
   auto current_status = co_yield task_future_void_type::yield_status();
   CASE_EXPECT_EQ(static_cast<int>(copp::promise_status::kRunning), static_cast<int>(current_status));
-  auto private_data = co_yield cotask::task_private_data<task_future_private_data>();
+  auto private_data = co_yield task_future_void_type::yield_private_data();
   private_data->data = 123000;
 
   CASE_MSG_INFO() << "task await void" << std::endl;
@@ -189,7 +189,25 @@ static task_future_void_type task_func_no_wait_void() {
   co_return;
 }
 
+static task_future_void_type_no_private_data task_func_await_pick_task_id(
+    task_future_void_type_no_private_data::id_type &output) {
+  output = co_yield task_future_void_type_no_private_data::yield_task_id();
+
+  co_return;
+}
+
 }  // namespace
+
+CASE_TEST(task_promise, task_future_void_yield_task_id) {
+  task_future_void_type_no_private_data::id_type task_id = 0;
+  task_future_void_type_no_private_data t = task_func_await_pick_task_id(task_id);
+
+  CASE_EXPECT_NE(0, t.get_id());
+  CASE_EXPECT_EQ(0, task_id);
+  CASE_EXPECT_TRUE(t.start());
+
+  CASE_EXPECT_EQ(t.get_id(), task_id);
+}
 
 CASE_TEST(task_promise, task_future_integer_need_resume) {
   size_t old_resume_generator_count = g_task_future_resume_generator_count;

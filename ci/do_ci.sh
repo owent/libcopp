@@ -83,6 +83,11 @@ elif [[ "$1" == "coverage" ]]; then
     "-DCMAKE_CXX_FLAGS=$GCOV_FLAGS" "-DCMAKE_EXE_LINKER_FLAGS=$GCOV_FLAGS" ${PROJECT_ADDON_OPTIONS[@]}
   cd build_jobs_coverage
   cmake --build . -j2 --config $CONFIGURATION || cmake --build . --config $CONFIGURATION
+elif [[ "$1" == "codeql.configure" ]]; then
+  bash cmake_dev.sh -l -b $CONFIGURATION -r build_jobs_ci -c $USE_CC -- "-DATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE=ON"
+elif [[ "$1" == "codeql.build" ]]; then
+  cd build_jobs_ci
+  cmake --build . -j --config $CONFIGURATION || cmake --build . --config $CONFIGURATION
 elif [[ "$1" == "gcc.test" ]] || [[ "$1" == "gcc.legacy.test" ]] || [[ "$1" == "clang.test" ]] || [[ "$1" == "memcheck" ]]; then
   bash cmake_dev.sh -lus -b $CONFIGURATION -r build_jobs_ci -c $USE_CC -- ${PROJECT_ADDON_OPTIONS[@]}
   cd build_jobs_ci

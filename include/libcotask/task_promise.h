@@ -384,6 +384,31 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_private_data {
   TPRIVATE_DATA* data_;
 };
 
+template <class TID>
+class LIBCOPP_COTASK_API_HEAD_ONLY task_pick_id {
+ public:
+  inline task_pick_id() noexcept : data_(0) {}
+  inline task_pick_id(TID input) noexcept : data_(input) {}
+  inline task_pick_id(task_pick_id&& other) noexcept = default;
+  inline task_pick_id& operator=(task_pick_id&&) noexcept = default;
+  inline task_pick_id(const task_pick_id&) = delete;
+  inline task_pick_id& operator=(const task_pick_id&) = delete;
+  inline ~task_pick_id() {}
+
+  inline bool await_ready() const noexcept { return true; }
+  inline TID await_resume() const noexcept { return data_; }
+  inline void await_suspend(LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::type_erased_handle_type) noexcept {}
+
+ private:
+  template <class, class, class>
+  friend class LIBCOPP_COTASK_API_HEAD_ONLY task_context;
+
+  template <class, class, class>
+  friend class LIBCOPP_COTASK_API_HEAD_ONLY task_future;
+
+  TID data_;
+};
+
 template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context<TVALUE, void, TERROR_TRANSFORM>
     : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>,
@@ -867,6 +892,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
     return LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::pick_current_status();
   }
 
+  UTIL_FORCEINLINE static auto yield_private_data() noexcept { return task_private_data<TPRIVATE_DATA>{}; }
+
+  UTIL_FORCEINLINE static auto yield_task_id() noexcept { return task_pick_id<id_type>{}; }
+
   /**
    * @brief Custom start run callable
    * @note This function should not be called when it's co_await by another callable or task
@@ -1213,6 +1242,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
         input.data_ = nullptr;
       }
       return task_private_data<TCONVERT_PRIVATE_DATA>(input.data_);
+    }
+
+    inline task_pick_id<id_type> yield_value(task_pick_id<id_type>&& input) noexcept {
+      if (get_context()) {
+        input.data_ = get_context()->get_id();
+      } else {
+        input.data_ = 0;
+      }
+      return task_pick_id<id_type>(input.data_);
     }
 
     using promise_base_type::yield_value;

@@ -62,7 +62,7 @@ if(NOT MSVC)
 endif()
 
 # ============ test - coroutine test frame ============
-set(CMAKE_BUILD_RPATH "$ORIGIN/../lib" "$ORIGIN/../lib64")
+set(CMAKE_BUILD_RPATH "$ORIGIN" "$ORIGIN/../lib" "$ORIGIN/../lib64")
 if(NOT (WIN32 AND (BUILD_SHARED_LIBS OR LIBCOPP_USE_DYNAMIC_LIBRARY)))
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/test")
 endif()
@@ -80,6 +80,13 @@ target_link_libraries(
 
 if(MSVC AND MSVC_VERSION LESS 1910)
   target_compile_options(libcopp_unit_test PRIVATE /wd4503)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  # GCC 12&13 BUG: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106297
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.0.0")
+    target_compile_options(libcopp_unit_test PRIVATE -Wno-error=stringop-overflow)
+  endif()
 endif()
 
 add_test(
