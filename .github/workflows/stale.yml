@@ -1,0 +1,14 @@
+name: "Mark and close stale issues"
+on:
+  schedule:
+    - cron: "30 2 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v6
+        with:
+          stale-issue-message: "This issue was marked as stale due to lack of activity."
+          days-before-issue-stale: 90
+          exempt-issue-labels: "do-not-stale"
