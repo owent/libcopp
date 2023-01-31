@@ -83,6 +83,20 @@
 #cmakedefine THREAD_TLS_USE_PTHREAD @THREAD_TLS_USE_PTHREAD@
 #endif
 
+#if defined(__cpp_exceptions)
+#  define LIBCOPP_MACRO_HAS_EXCEPTION __cpp_exceptions
+#elif defined(__EXCEPTIONS) && __EXCEPTIONS
+#  define LIBCOPP_MACRO_HAS_EXCEPTION 1
+#elif defined(__clang__)
+#  if __has_feature(cxx_exceptions)
+#    define LIBCOPP_MACRO_HAS_EXCEPTION 1
+#  endif
+#elif defined(_MSC_VER)
+#  if defined(_CPPUNWIND)
+#    define LIBCOPP_MACRO_HAS_EXCEPTION 1
+#  endif
+#endif
+
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 #cmakedefine01 LIBCOPP_MACRO_USE_STD_EXPERIMENTAL_COROUTINE
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_EXCEPTION
