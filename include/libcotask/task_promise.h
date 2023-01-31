@@ -16,6 +16,7 @@
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
 #include <assert.h>
+#include <cstdlib>
 #include <functional>
 #include <type_traits>
 
@@ -1231,6 +1232,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
       throw;
       // get_context()->last_exception_ = std::current_exception();
     }
+#  elif defined(LIBCOPP_MACRO_HAS_EXCEPTION) && LIBCOPP_MACRO_HAS_EXCEPTION
+    void unhandled_exception() { throw; }
+#  else
+    void unhandled_exception() { std::abort(); }
 #  endif
 
     template <class TCONVERT_PRIVATE_DATA>
