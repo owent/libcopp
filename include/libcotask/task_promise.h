@@ -799,6 +799,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
     return l.context_ != r.context_;
   }
 
+  inline operator bool() const noexcept { return valid(); }
+
   void assign(const task_future_base& other) noexcept {
     if (this == &other || context_ == other.context_) {
       return;
@@ -1061,6 +1063,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
 
     return context_->get_id();
   }
+
+  UTIL_FORCEINLINE bool valid() const noexcept { return !!context_; }
 
  private:
   context_pointer_type context_;

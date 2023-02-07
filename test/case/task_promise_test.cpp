@@ -207,6 +207,9 @@ CASE_TEST(task_promise, task_future_void_yield_task_id) {
   CASE_EXPECT_TRUE(t.start());
 
   CASE_EXPECT_EQ(t.get_id(), task_id);
+
+  CASE_EXPECT_TRUE(t.valid());
+  CASE_EXPECT_TRUE(t);
 }
 
 CASE_TEST(task_promise, task_future_integer_need_resume) {
@@ -756,9 +759,17 @@ CASE_TEST(task_promise, task_destroy_and_auto_resume) {
     CASE_EXPECT_EQ(1, parent.get_ref_future_count());
     CASE_EXPECT_EQ(1, child.get_ref_future_count());
 
+    CASE_EXPECT_TRUE(child.valid());
+    CASE_EXPECT_TRUE(child);
+
     task_future_int_type move_child_assign = std::move(child);
     CASE_EXPECT_EQ(0, child.get_ref_future_count());
     CASE_EXPECT_EQ(1, move_child_assign.get_ref_future_count());
+    CASE_EXPECT_FALSE(child.valid());
+    CASE_EXPECT_FALSE(child);
+    CASE_EXPECT_TRUE(move_child_assign.valid());
+    CASE_EXPECT_TRUE(move_child_assign);
+
     task_future_int_type move_child_ctor{std::move(move_child_assign)};
     CASE_EXPECT_EQ(0, move_child_assign.get_ref_future_count());
     CASE_EXPECT_EQ(1, move_child_ctor.get_ref_future_count());

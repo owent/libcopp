@@ -36,7 +36,12 @@
 #  include <Processthreadsapi.h>
 #  include <Synchapi.h>  // Windows server
 #  include <intrin.h>
-
+#elif defined(__i386__) || defined(__x86_64__)
+#  if defined(__clang__)
+#    include <emmintrin.h>
+#  elif defined(__INTEL_COMPILER)
+#    include <immintrin.h>
+#  endif
 #endif
 
 #include <libcopp/utils/config/libcopp_build_features.h>
@@ -66,7 +71,13 @@
  * PAUSE-Spin Loop Hint, 4-57
  * http://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.html?wapkw=instruction+set+reference
  */
-#    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("pause")
+// #    define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __asm__ __volatile__("pause")
+#    if defined(__clang__) || defined(__INTEL_COMPILER)
+#      define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() _mm_pause()
+#    else
+#      define __LIBCOPP_UTIL_LOCK_SPIN_LOCK_PAUSE() __builtin_ia32_pause()
+#    endif
+
 #  elif defined(__ia64__) || defined(__ia64)
 /**
  * See: Intel(R) Itanium(R) Architecture Developer's Manual, Vol.3
