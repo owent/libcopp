@@ -20,13 +20,14 @@
 #  include <list>
 #endif
 
+#if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
+#  include <variant>
+#endif
+
 #ifdef __cpp_impl_three_way_comparison
 #  include <compare>
 #endif
 
-#if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
-#  include <variant>
-#endif
 // clang-format off
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
 // clang-format on
@@ -182,7 +183,7 @@ class promise_caller_manager {
   };
 
   using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
   std::variant<handle_delegate, multi_caller_set> callers_;
 #  else
   handle_delegate unique_caller_;

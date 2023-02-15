@@ -412,8 +412,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_pick_id {
 
 template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context<TVALUE, void, TERROR_TRANSFORM>
-    : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE, void, TERROR_TRANSFORM>> {
+    : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value> {
  public:
   using base_type =
       task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>;
@@ -436,8 +435,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context<TVALUE, void, TERROR_TRANSFORM>
 
 template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_context
-    : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<task_context<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>> {
+    : public task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value> {
  public:
   using base_type =
       task_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>;
@@ -799,6 +797,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
     return l.context_ != r.context_;
   }
 
+  inline operator bool() const noexcept { return valid(); }
+
   void assign(const task_future_base& other) noexcept {
     if (this == &other || context_ == other.context_) {
       return;
@@ -1061,6 +1061,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
 
     return context_->get_id();
   }
+
+  UTIL_FORCEINLINE bool valid() const noexcept { return !!context_; }
 
  private:
   context_pointer_type context_;

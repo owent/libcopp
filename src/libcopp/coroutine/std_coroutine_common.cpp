@@ -19,7 +19,7 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 
 LIBCOPP_COPP_API promise_caller_manager::promise_caller_manager()
     :
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
       callers_(handle_delegate{nullptr})
 #  else
       unique_caller_(nullptr)
@@ -34,7 +34,7 @@ LIBCOPP_COPP_API void promise_caller_manager::add_caller(handle_delegate delegat
     return;
   }
 
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
   if (std::holds_alternative<multi_caller_set>(callers_)) {
     std::get<multi_caller_set>(callers_).insert(delegate);
     return;
@@ -66,7 +66,7 @@ LIBCOPP_COPP_API void promise_caller_manager::add_caller(handle_delegate delegat
 LIBCOPP_COPP_API bool promise_caller_manager::remove_caller(handle_delegate delegate) noexcept {
   bool has_caller = false;
   do {
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
     if (std::holds_alternative<multi_caller_set>(callers_)) {
       has_caller = std::get<multi_caller_set>(callers_).erase(delegate) > 0;
       break;
@@ -94,7 +94,7 @@ LIBCOPP_COPP_API bool promise_caller_manager::remove_caller(handle_delegate dele
 
 LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   size_t resume_count = 0;
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
   if (std::holds_alternative<handle_delegate>(callers_)) {
     auto caller = std::get<handle_delegate>(callers_);
     std::get<handle_delegate>(callers_) = nullptr;
@@ -143,7 +143,7 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
 }
 
 LIBCOPP_COPP_API bool promise_caller_manager::has_multiple_callers() const noexcept {
-#  if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
+#  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
   if (std::holds_alternative<handle_delegate>(callers_)) {
     return false;
   } else if (std::holds_alternative<multi_caller_set>(callers_)) {
