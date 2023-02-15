@@ -1,4 +1,4 @@
-// Copyright 2022 owent
+// Copyright 2023 owent
 #pragma once
 
 // ================ import/export ================
@@ -153,8 +153,8 @@
 #  endif
 #endif
 
-//#ifndef UTIL_TRIVIAL_ABI
-//#define UTIL_TRIVIAL_ABI [[trivial_abi]]
-//#define UTIL_TRIVIAL_ABI [[clang::trivial_abi]]
-//#define UTIL_TRIVIAL_ABI __attribute__((trivial_abi))
-//#endif
+// #ifndef UTIL_TRIVIAL_ABI
+// #define UTIL_TRIVIAL_ABI [[trivial_abi]]
+// #define UTIL_TRIVIAL_ABI [[clang::trivial_abi]]
+// #define UTIL_TRIVIAL_ABI __attribute__((trivial_abi))
+// #endif

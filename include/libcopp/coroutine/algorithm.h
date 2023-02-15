@@ -1,4 +1,4 @@
-// Copyright 2022 owent
+// Copyright 2023 owent
 
 #pragma once
 
@@ -49,9 +49,9 @@ template <class TREADY_CONTAINER, class TWAITING_CONTAINER
               typename some_waiting_container_traits<TWAITING_CONTAINER>::value_type>::type
 #  endif
           >
-    LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> some(TREADY_CONTAINER&&ready_futures,
-                                                                           size_t ready_count,
-                                                                           TWAITING_CONTAINER&&pending_futures)
+LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> some(TREADY_CONTAINER&& ready_futures,
+                                                                       size_t ready_count,
+                                                                       TWAITING_CONTAINER&& pending_futures)
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
     // clang-format off
         requires SomeContainerConvertible<
@@ -73,8 +73,8 @@ template <class TREADY_CONTAINER, class TWAITING_CONTAINER
               typename some_waiting_container_traits<TWAITING_CONTAINER>::value_type>::type
 #  endif
           >
-    LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> any(TREADY_CONTAINER&&ready_futures,
-                                                                          TWAITING_CONTAINER&&pending_futures)
+LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> any(TREADY_CONTAINER&& ready_futures,
+                                                                      TWAITING_CONTAINER&& pending_futures)
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
     // clang-format off
         requires SomeContainerConvertible<
@@ -96,8 +96,8 @@ template <class TREADY_CONTAINER, class TWAITING_CONTAINER
               typename some_waiting_container_traits<TWAITING_CONTAINER>::value_type>::type
 #  endif
           >
-    LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> all(TREADY_CONTAINER&&ready_futures,
-                                                                          TWAITING_CONTAINER&&pending_futures)
+LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> all(TREADY_CONTAINER&& ready_futures,
+                                                                      TWAITING_CONTAINER&& pending_futures)
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
     // clang-format off
         requires SomeContainerConvertible<

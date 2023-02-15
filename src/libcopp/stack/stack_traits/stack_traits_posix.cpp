@@ -1,4 +1,4 @@
-// Copyright 2022 owent
+// Copyright 2023 owent
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
@@ -17,7 +17,7 @@ extern "C" {
 #  include <unistd.h>
 }
 
-//#if _POSIX_C_SOURCE >= 200112L
+// #if _POSIX_C_SOURCE >= 200112L
 
 #  include <algorithm>
 #  include <cmath>
