@@ -709,7 +709,17 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
         real_checkpoints.insert(new_checkpoint);
       }
 
-      task_timeout_timer_.swap(task_timeout_timer_);
+      task_timeout_timer_.swap(real_checkpoints);
+      for (typename std::set<detail::task_timer_node<id_type>>::iterator iter = task_timeout_timer_.begin();
+           task_timeout_timer_.end() != iter; ++iter) {
+        const typename std::set<detail::task_timer_node<id_type>>::value_type &checkpoint = *iter;
+        using co_iter_type = typename container_type::iterator;
+        co_iter_type  co_iter = tasks_.find(checkpoint.task_id);
+
+        if (tasks_.end() != co_iter) {
+          co_iter->second.timer_node = iter;
+        }
+      }
       last_tick_time_ = now_tick_time;
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_SUCCESS;
     }
