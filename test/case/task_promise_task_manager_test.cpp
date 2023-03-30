@@ -158,6 +158,9 @@ CASE_TEST(task_promise_task_manager, add_and_timeout) {
     size_t old_resume_generator_count = g_task_manager_future_resume_generator_count;
     size_t old_suspend_generator_count = g_task_manager_future_suspend_generator_count;
 
+    time_t cur_time = time(NULL);
+    time_t next_time = cur_time;
+
     task_mgr->add_task(co_task, 5, 0);
     task_mgr->add_task(co_another_task);
 
@@ -168,20 +171,22 @@ CASE_TEST(task_promise_task_manager, add_and_timeout) {
     CASE_EXPECT_TRUE(co_another_task == *task_mgr->find_task(co_another_task.get_id()));
 
     CASE_EXPECT_EQ(0, (int)task_mgr->get_last_tick_time().tv_sec);
-    task_mgr->tick(3);
+    task_mgr->tick(cur_time);
     CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
 
     co_task.start();
 
-    task_mgr->tick(8);
-    CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
+    next_time = cur_time + 8;
+    task_mgr->tick(next_time);
+    CASE_EXPECT_EQ(next_time, (int)task_mgr->get_last_tick_time().tv_sec);
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_checkpoints().size());
 
-    task_mgr->tick(9);
-    CASE_EXPECT_EQ(9, (int)task_mgr->get_last_tick_time().tv_sec);
+    next_time = cur_time + 9;
+    task_mgr->tick(next_time);
+    CASE_EXPECT_EQ(next_time, (int)task_mgr->get_last_tick_time().tv_sec);
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_container().size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
@@ -229,6 +234,9 @@ CASE_TEST(task_promise_task_manager, add_and_timeout_no_start) {
     size_t old_resume_generator_count = g_task_manager_future_resume_generator_count;
     size_t old_suspend_generator_count = g_task_manager_future_suspend_generator_count;
 
+    time_t cur_time = time(NULL);
+    time_t next_time = cur_time;
+
     task_mgr->add_task(co_task, 5, 0);
     task_mgr->add_task(co_another_task);
 
@@ -239,18 +247,20 @@ CASE_TEST(task_promise_task_manager, add_and_timeout_no_start) {
     CASE_EXPECT_TRUE(co_another_task == *task_mgr->find_task(co_another_task.get_id()));
 
     CASE_EXPECT_EQ(0, (int)task_mgr->get_last_tick_time().tv_sec);
-    task_mgr->tick(3);
+    task_mgr->tick(cur_time);
     CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
 
-    task_mgr->tick(8);
-    CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
+    next_time = cur_time + 8;
+    task_mgr->tick(next_time);
+    CASE_EXPECT_EQ(next_time, (int)task_mgr->get_last_tick_time().tv_sec);
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_checkpoints().size());
 
-    task_mgr->tick(9);
-    CASE_EXPECT_EQ(9, (int)task_mgr->get_last_tick_time().tv_sec);
+    next_time = cur_time + 9;
+    task_mgr->tick(next_time);
+    CASE_EXPECT_EQ(next_time, (int)task_mgr->get_last_tick_time().tv_sec);
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_container().size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
@@ -310,19 +320,24 @@ CASE_TEST(task_promise_task_manager, add_and_timeout_last_reference) {
       CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
     }
 
+    time_t cur_time = time(NULL);
+    time_t next_time = cur_time;
+
     CASE_EXPECT_EQ(0, (int)task_mgr->get_last_tick_time().tv_sec);
-    task_mgr->tick(3);
+    task_mgr->tick(cur_time);
     CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
 
-    task_mgr->tick(8);
-    CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
+    next_time = cur_time + 8;
+    task_mgr->tick(next_time);
+    CASE_EXPECT_EQ(next_time, (int)task_mgr->get_last_tick_time().tv_sec);
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_checkpoints().size());
 
-    task_mgr->tick(9);
-    CASE_EXPECT_EQ(9, (int)task_mgr->get_last_tick_time().tv_sec);
+    next_time = cur_time + 9;
+    task_mgr->tick(next_time);
+    CASE_EXPECT_EQ(next_time, (int)task_mgr->get_last_tick_time().tv_sec);
     CASE_EXPECT_EQ(1, (int)task_mgr->get_task_size());
     CASE_EXPECT_EQ(1, (int)task_mgr->get_container().size());
     CASE_EXPECT_EQ(0, (int)task_mgr->get_tick_checkpoint_size());
