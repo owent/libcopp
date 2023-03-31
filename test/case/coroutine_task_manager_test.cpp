@@ -133,6 +133,8 @@ CASE_TEST(coroutine_task_manager, add_and_timeout) {
   task_mgr->tick(3);
   CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
   CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());
+  task_mgr->tick(8);
+  CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
   // tick reset timeout: 3 + 5 = 8
   CASE_EXPECT_EQ(8, (int)task_mgr->get_container().find(co_task->get_id())->second.timer_node->expired_time.tv_sec);
   CASE_EXPECT_EQ(1, (int)task_mgr->get_tick_checkpoint_size());

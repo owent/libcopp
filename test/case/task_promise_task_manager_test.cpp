@@ -175,6 +175,8 @@ CASE_TEST(task_promise_task_manager, add_and_timeout) {
     co_task.start();
 
     CASE_EXPECT_EQ(3, (int)task_mgr->get_last_tick_time().tv_sec);
+    task_mgr->tick(8);
+    CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
     // tick reset timeout: 3 + 5 = 8
     CASE_EXPECT_EQ(8, (int)task_mgr->get_container().find(co_task.get_id())->second.timer_node->expired_time.tv_sec);
     CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
@@ -244,6 +246,8 @@ CASE_TEST(task_promise_task_manager, add_and_timeout_no_start) {
     CASE_EXPECT_EQ(0, (int)task_mgr->get_last_tick_time().tv_sec);
     task_mgr->tick(3);
     CASE_EXPECT_EQ(3, (int)task_mgr->get_last_tick_time().tv_sec);
+    task_mgr->tick(8);
+    CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
     // tick reset timeout: 3 + 5 = 8
     CASE_EXPECT_EQ(8, (int)task_mgr->get_container().find(co_task.get_id())->second.timer_node->expired_time.tv_sec);
     CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
@@ -318,6 +322,8 @@ CASE_TEST(task_promise_task_manager, add_and_timeout_last_reference) {
     CASE_EXPECT_EQ(0, (int)task_mgr->get_last_tick_time().tv_sec);
     task_mgr->tick(3);
     CASE_EXPECT_EQ(3, (int)task_mgr->get_last_tick_time().tv_sec);
+    task_mgr->tick(8);
+    CASE_EXPECT_EQ(8, (int)task_mgr->get_last_tick_time().tv_sec);
     // tick reset timeout: 3 + 5 = 8
     CASE_EXPECT_EQ(8, (int)task_mgr->get_container().find(task_id)->second.timer_node->expired_time.tv_sec);
     CASE_EXPECT_EQ(2, (int)task_mgr->get_task_size());
