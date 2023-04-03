@@ -39,7 +39,7 @@ CASE_TEST(coroutine_task, id_allocator_mt) {
     thds[i].reset(new std::thread([sp, &alloc]() {
       size_t id_num = 36768;
 
-      for (size_t i = 0; i < id_num; ++i) {
+      for (size_t j = 0; j < id_num; ++j) {
         uint64_t id = alloc.allocate();
         CASE_EXPECT_TRUE(sp->find(id) == sp->end());
         sp->insert(id);
