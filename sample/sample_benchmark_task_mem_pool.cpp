@@ -45,7 +45,7 @@ stack_mem_pool_t stack_mem_pool;
 
 int switch_count = 100;
 int max_task_number = 100000;  // 协程Task数量
-size_t stack_size = 16 * 1024;
+size_t g_stack_size = 16 * 1024;
 
 struct my_macro_coroutine {
   using stack_allocator_type = copp::allocator::stack_allocator_memory;
@@ -86,15 +86,15 @@ int main(int argc, char *argv[]) {
   }
 
   if (argc > 3) {
-    stack_size = atoi(argv[3]) * 1024;
+    g_stack_size = atoi(argv[3]) * 1024;
   }
-  if (stack_size < copp::stack_traits::minimum_size()) {
-    stack_size = copp::stack_traits::minimum_size();
+  if (g_stack_size < copp::stack_traits::minimum_size()) {
+    g_stack_size = copp::stack_traits::minimum_size();
   }
 
   stack_mem_pool.index = 0;
-  stack_mem_pool.buff = new char[stack_size * max_task_number];
-  memset(stack_mem_pool.buff, 0, stack_size * max_task_number);
+  stack_mem_pool.buff = new char[g_stack_size * max_task_number];
+  memset(stack_mem_pool.buff, 0, g_stack_size * max_task_number);
 
   time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
@@ -102,9 +102,10 @@ int main(int argc, char *argv[]) {
   // create coroutines
   task_arr.reserve(static_cast<size_t>(max_task_number));
   while (task_arr.size() < static_cast<size_t>(max_task_number)) {
-    copp::allocator::stack_allocator_memory alloc(stack_mem_pool.buff + stack_mem_pool.index * stack_size, stack_size);
+    copp::allocator::stack_allocator_memory alloc(stack_mem_pool.buff + stack_mem_pool.index * g_stack_size,
+                                                  g_stack_size);
     ++stack_mem_pool.index;
-    task_arr.push_back(my_task_t::create(my_task_action, alloc, stack_size));
+    task_arr.push_back(my_task_t::create(my_task_action, alloc, g_stack_size));
   }
 
   time_t end_time = time(nullptr);

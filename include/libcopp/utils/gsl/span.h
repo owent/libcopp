@@ -117,7 +117,7 @@ class span {
   template <bool B = EXTENT == 0, typename std::enable_if<B>::type * = nullptr>
   span() noexcept : data_{nullptr} {}
 
-  span(T *data, size_t count) noexcept : data_{data} {
+  span(T *input_data, size_t count) noexcept : data_{input_data} {
     if (count != EXTENT) {
       std::terminate();
     }
@@ -192,7 +192,7 @@ class span<T, dynamic_extent> {
 
   span() noexcept : extent_{0}, data_{nullptr} {}
 
-  span(T *data, size_t count) noexcept : extent_{count}, data_{data} {}
+  span(T *input_data, size_t count) noexcept : extent_{count}, data_{input_data} {}
 
   span(T *first, T *last) noexcept : extent_{static_cast<size_t>(std::distance(first, last))}, data_{first} {
     assert(first <= last);
