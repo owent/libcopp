@@ -779,9 +779,9 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     size_t left = --p->ref_count_;
     if (0 == left) {
       // save coroutine context first, make sure it's still available after destroy task
-      using coroutine_type = typename task<TCO_MACRO>::coroutine_type;
-      using coroutine_ptr_type = typename coroutine_type::ptr_type;
-      coroutine_ptr_type coro = p->coroutine_obj_;
+      using this_coroutine_type = typename task<TCO_MACRO>::coroutine_type;
+      using this_coroutine_ptr_type = typename this_coroutine_type::ptr_type;
+      this_coroutine_ptr_type coro = p->coroutine_obj_;
 
       // then, find and destroy action
       void *action_ptr = reinterpret_cast<void *>(p->_get_action());
