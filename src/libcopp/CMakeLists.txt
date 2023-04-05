@@ -61,7 +61,7 @@ install(
   PATTERN ".git" EXCLUDE
   PATTERN "*.in" EXCLUDE)
 
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/_generated/include/libcopp/utils/config/libcopp_build_features.h"
+install(FILES "${LIBCOPP_GENERATED_DIR}/include/libcopp/utils/config/libcopp_build_features.h"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libcopp/utils/config/")
 
 export(
