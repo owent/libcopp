@@ -31,7 +31,7 @@ endif()
 target_include_directories(
   ${PROJECT_LIBCOPP_LIB_LINK}
   INTERFACE "$<INSTALL_INTERFACE:include>"
-  PUBLIC "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_ROOT_INC_DIR}>")
+  PUBLIC "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_ROOT_INC_DIR}>" "$<BUILD_INTERFACE:${LIBCOPP_GENERATED_DIR}/include>")
 if(PROJECT_LIBCOPP_DEP_INC_DIR)
   target_include_directories(${PROJECT_LIBCOPP_LIB_LINK} PUBLIC "$<BUILD_INTERFACE:${PROJECT_LIBCOPP_DEP_INC_DIR}>")
 endif()
@@ -60,6 +60,9 @@ install(
   PATTERN ".svn" EXCLUDE
   PATTERN ".git" EXCLUDE
   PATTERN "*.in" EXCLUDE)
+
+install(FILES "${LIBCOPP_GENERATED_DIR}/include/libcopp/utils/config/libcopp_build_features.h"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libcopp/utils/config/")
 
 export(
   TARGETS ${PROJECT_LIBCOPP_LIB_LINK}
