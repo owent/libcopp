@@ -89,9 +89,11 @@ elif [[ "$1" == "codeql.build" ]]; then
   cd build_jobs_ci
   cmake --build . -j --config $CONFIGURATION || cmake --build . --config $CONFIGURATION
 elif [[ "$1" == "gcc.test" ]] || [[ "$1" == "gcc.legacy.test" ]] || [[ "$1" == "clang.test" ]] || [[ "$1" == "memcheck" ]]; then
-  bash cmake_dev.sh -lus -b $CONFIGURATION -r build_jobs_ci -c $USE_CC -- ${PROJECT_ADDON_OPTIONS[@]}
+  bash cmake_dev.sh -lus -b $CONFIGURATION -r build_jobs_ci -c $USE_CC -- ${PROJECT_ADDON_OPTIONS[@]} "-DCMAKE_INSTALL_PREFIX=$PWD/build_jobs_ci/prebuilt"
   cd build_jobs_ci
   cmake --build . -j2 --config $CONFIGURATION || cmake --build . --config $CONFIGURATION
+  cmake --install .
+  ls -lh $PWD/build_jobs_ci/prebuilt/include/libcopp/utils/config/libcopp_build_features.h
 elif [[ "$1" == "msys2.mingw.test" ]]; then
   pacman -S --needed --noconfirm mingw-w64-x86_64-cmake git m4 curl wget tar autoconf automake \
     mingw-w64-x86_64-git-lfs mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool \
