@@ -140,7 +140,11 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
 
       // all children do not make a help_msg_t
       if (callback_children_.find(iter->first) != callback_children_.end()) {
+#if defined(LIBCOPP_MACRO_ENABLE_RTTI) && LIBCOPP_MACRO_ENABLE_RTTI
         self_type *child = dynamic_cast<self_type *>(iter->second.get());
+#else
+        self_type *child = static_cast<self_type *>(iter->second.get());
+#endif
         assert(child);
         child->list_help_msg(msg, (prefix + " ") + iter->first.c_str());
         continue;
@@ -607,8 +611,13 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
   }
 
   std::shared_ptr<binder::cmd_option_bind_base> bind_child_cmd(const std::string cmd_content, ptr_type cmd_opt) {
+#if defined(LIBATFRAME_UTILS_ENABLE_RTTI) && LIBATFRAME_UTILS_ENABLE_RTTI
     std::shared_ptr<binder::cmd_option_bind_base> base_node =
         std::dynamic_pointer_cast<binder::cmd_option_bind_base>(cmd_opt);
+#else
+    std::shared_ptr<binder::cmd_option_bind_base> base_node =
+        std::static_pointer_cast<binder::cmd_option_bind_base>(cmd_opt);
+#endif
     std::vector<std::string> cmds = split_cmd(cmd_content.c_str());
     for (std::vector<std::string>::size_type index = 0; index < cmds.size(); ++index) {
       TCmdStr cmd_obj = TCmdStr(cmds[index].c_str(), cmds[index].size());

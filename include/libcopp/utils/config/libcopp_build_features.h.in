@@ -104,6 +104,19 @@
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_RTTI
 #cmakedefine01 LIBCOPP_MACRO_ENABLE_STD_SPAN
 
+// Patch for disable RTTI on later options
+#if defined(LIBCOPP_MACRO_ENABLE_RTTI) && LIBCOPP_MACRO_ENABLE_RTTI
+#  if defined(_MSC_VER)
+#    if !defined(_CPPRTTI)
+#      undef LIBCOPP_MACRO_ENABLE_RTTI
+#    endif
+#  elif defined(__GNUC__) && __GNUC__ >= 4
+#    if !defined(__GXX_RTTI)
+#      undef LIBCOPP_MACRO_ENABLE_RTTI
+#    endif
+#  endif
+#endif
+
 #if defined(__has_include)
 #  if __has_include(<variant>)
 #    define LIBCOPP_MACRO_ENABLE_STD_VARIANT 1

@@ -124,8 +124,11 @@ set(LIBCOPP_VERSION "${PROJECT_VERSION}")
 
 set(LIBCOPP_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/_generated")
 file(MAKE_DIRECTORY "${LIBCOPP_GENERATED_DIR}/include/libcopp/utils/config")
+file(MAKE_DIRECTORY "${LIBCOPP_GENERATED_DIR}/temp")
 configure_file("${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config/libcopp_build_features.h.in"
-               "${LIBCOPP_GENERATED_DIR}/include/libcopp/utils/config/libcopp_build_features.h" @ONLY)
+               "${LIBCOPP_GENERATED_DIR}/temp/libcopp_build_features.h" @ONLY)
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LIBCOPP_GENERATED_DIR}/temp/libcopp_build_features.h"
+                        "${LIBCOPP_GENERATED_DIR}/include/libcopp/utils/config")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   get_filename_component(CMAKE_CXX_COMPILER_WE ${CMAKE_CXX_COMPILER} NAME_WE CACHE)

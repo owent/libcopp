@@ -21,7 +21,11 @@ LIBCOPP_COTASK_API impl::task_impl *get_task() LIBCOPP_MACRO_NOEXCEPT;
  */
 template <typename Tt>
 LIBCOPP_COTASK_API_HEAD_ONLY Tt *get() {
+#if defined(LIBCOPP_MACRO_ENABLE_RTTI) && LIBCOPP_MACRO_ENABLE_RTTI
   return dynamic_cast<Tt *>(get_task());
+#else
+  return static_cast<Tt *>(get_task());
+#endif
 }
 }  // namespace this_task
 LIBCOPP_COTASK_NAMESPACE_END

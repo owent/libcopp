@@ -408,7 +408,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
    * get current running task and convert to task object
    * @return task smart pointer
    */
-  static self_type *this_task() { return dynamic_cast<self_type *>(impl::task_impl::this_task()); }
+  static self_type *this_task() {
+#if defined(LIBCOPP_MACRO_ENABLE_RTTI) && LIBCOPP_MACRO_ENABLE_RTTI
+    return dynamic_cast<self_type *>(impl::task_impl::this_task());
+#else
+    return static_cast<self_type *>(impl::task_impl::this_task());
+#endif
+  }
 
  public:
   virtual ~task() {
