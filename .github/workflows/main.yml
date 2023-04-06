@@ -80,6 +80,10 @@ jobs:
           - os: ubuntu-22.04
             triplet: x64-linux
             cc: gcc-latest
+            no_rtti: 1
+          - os: ubuntu-22.04
+            triplet: x64-linux
+            cc: gcc-latest
             thread_unsafe: 1
           - os: ubuntu-20.04
             triplet: x64-linux
@@ -100,6 +104,7 @@ jobs:
           USE_CC: ${{ matrix.cc }}
           BUILD_SHARED_LIBS: ${{ matrix.build_shared_libs }}
           NO_EXCEPTION: ${{ matrix.no_exception }}
+          NO_RTTI: ${{ matrix.no_rtti }}
           THREAD_UNSAFE: ${{ matrix.thread_unsafe }}
           CI_MODE: ${{ matrix.mode }}
         run: |
