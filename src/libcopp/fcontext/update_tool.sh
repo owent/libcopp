@@ -13,6 +13,8 @@ perl -p -i -e 's;\bontop_fcontext\b;copp_ontop_fcontext_v2;g' ${ALL_FILES[@]}
 
 perl -p -i -e 's;\bBOOST_CONTEXT_EXPORT\b;EXPORT;g' ${ALL_FILES[@]}
 perl -p -i -e 's;\bBOOST_USE_TSX\b;LIBCOPP_FCONTEXT_USE_TSX;g' ${ALL_FILES[@]}
+perl -p -i -e 's;\bBOOST_CONTEXT_TLS_STACK_PROTECTOR\b;LIBCOPP_FCONTEXT_TLS_STACK_PROTECTOR;g' ${ALL_FILES[@]}
+perl -p -i -e 's;\bBOOST_CONTEXT_SHADOW_STACK\b;LIBCOPP_FCONTEXT_SHADOW_STACK;g' ${ALL_FILES[@]}
 
 for CPP_FILE in asm/*.cpp; do
   perl -p -i -e 's;\bboost/context/detail/fcontext.hpp\b;libcopp/fcontext/fcontext.hpp;g' "$CPP_FILE"

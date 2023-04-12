@@ -37,7 +37,7 @@ if(NOT LIBCOPP_FCONTEXT_OS_PLATFORM)
     echowithcolor(
       COLOR
       RED
-      "Can not detect the processor, please add -DLIBCOPP_FCONTEXT_OS_PLATFORM=arm/arm64/i386/x86_64/combined/mips32/mips64/ppc32/ppc64 to help us to find target processor"
+      "Can not detect the processor, please add -DLIBCOPP_FCONTEXT_OS_PLATFORM=arm/arm64/i386/x86_64/combined/mips32/mips64/ppc32/ppc64/loongarch64 to help us to find target processor"
     )
     message(FATAL_ERROR "-DLIBCOPP_FCONTEXT_OS_PLATFORM is required")
   endif()
