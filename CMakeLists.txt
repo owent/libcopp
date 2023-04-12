@@ -20,7 +20,7 @@ enable_testing()
 
 project(
   libcopp
-  VERSION "2.1.4"
+  VERSION "2.2.0"
   DESCRIPTION "Cross-platform coroutine library in C++ ."
   HOMEPAGE_URL "https://libcopp.atframe.work"
   LANGUAGES C CXX ASM)
@@ -70,6 +70,10 @@ cmake_dependent_option(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR "Enable C++11 std:
                        "COMPILER_OPTIONS_TEST_STD_EXCEPTION_PTR" OFF)
 cmake_dependent_option(LIBCOPP_MACRO_ENABLE_RTTI "Enable C++11 std::exception_ptr support for libcopp" ON
                        "COMPILER_OPTIONS_TEST_RTTI" OFF)
+option(
+  LIBCOPP_MACRO_TLS_STACK_PROTECTOR
+  "Users need set LIBCOPP_MACRO_TLS_STACK_PROTECTOR=ON when compiling with -fstack-protector, because it changes the default context switching logic."
+  OFF)
 
 check_cxx_source_compiles(
   "

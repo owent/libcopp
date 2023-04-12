@@ -217,6 +217,9 @@ Options can be cmake options. such as set compile toolchains, source directory o
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | LIBCOPP_FCONTEXT_USE_TSX=YES|NO          | [default=YES] Enable `Intel Transactional Synchronisation Extensions (TSX) <https://software.intel.com/en-us/node/695149>`_. |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| LIBCOPP_MACRO_TLS_STACK_PROTECTOR=YES|NO | [default=NO] Users need set LIBCOPP_MACRO_TLS_STACK_PROTECTOR=ON when compiling with ``-fstack-protector``.                  |
+|                                          | Because it changes the default context switching logic.                                                                      |
++------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | GTEST_ROOT=[path]                        | set gtest library install prefix path                                                                                        |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | BOOST_ROOT=[path]                        | set Boost.Test library install prefix path                                                                                   |

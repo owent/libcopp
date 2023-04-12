@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2.2.0
+
+1. Merge boost.fcontext 1.81.0
+2. Add `LIBCOPP_MACRO_TLS_STACK_PROTECTOR` to work with `-fstack-protector`
+3. Optimize `-pthread` flag detection.
+4. Support `-fno-rtti` now.
+5. Optimize timestamp of generated file to reduce regeneration.
+
+## 2.1.4
+
+1. Fixes timer reset when initialization.(#46 )
+2. Update CI environment of GCC 4.8.
+3. Add more strict warnings.
+4. Optimize spin lock, add `valid()` for `task_promise`(C++ 20 coroutine).
+5. Fix consistent of variant detection.
+
+## 2.1.2
+
++ Update cmake-toolset
++ Implement `unhandled_exception` when without exception.
+
+## 2.1.1
+
++ Add helper function to pick task id and private data from C++20 coroutine task
++ Fix trivial test
++ Fix `Valgrind_ROOT`
++ Fix compatibility of GCC SFINAE
++ [CI] Add CodeQL job
++ [CI] Add auto stale job
++ [CI] Update linux image to ubuntu 22.04
+
 ## 2.1.0
 
 1. Allow custom `promise_error_transform` for C++20 coroutine.
