@@ -79,7 +79,22 @@ static void init_pthread_uint64_id_allocator_tls() {
   (void)pthread_key_create(&gt_uint64_id_allocator_tls_key, dtor_pthread_uint64_id_allocator_tls);
 }
 
-uint64_id_allocator_tls_cache_t *get_uint64_id_allocator_tls_cache() {
+struct gt_uint64_id_allocator_tls_cache_main_thread_dtor_t {
+  gt_uint64_id_allocator_tls_cache_main_thread_dtor_t() {}
+
+  ~gt_uint64_id_allocator_tls_cache_main_thread_dtor_t() {
+    void *cache_ptr = pthread_getspecific(gt_uint64_id_allocator_tls_key);
+    pthread_setspecific(gt_uint64_id_allocator_tls_key, nullptr);
+    dtor_pthread_uint64_id_allocator_tls(cache_ptr);
+  }
+};
+static void init_pthread_get_log_tls_main_thread_dtor() {
+  static gt_uint64_id_allocator_tls_cache_main_thread_dtor_t gt_uint64_id_allocator_tls_cache_main_thread_dtor;
+  (void)gt_uint64_id_allocator_tls_cache_main_thread_dtor;
+}
+
+static uint64_id_allocator_tls_cache_t *get_uint64_id_allocator_tls_cache() {
+  init_pthread_get_log_tls_main_thread_dtor();
   (void)pthread_once(&gt_uint64_id_allocator_tls_once, init_pthread_uint64_id_allocator_tls);
   uint64_id_allocator_tls_cache_t *ret =
       reinterpret_cast<uint64_id_allocator_tls_cache_t *>(pthread_getspecific(gt_uint64_id_allocator_tls_key));
@@ -92,16 +107,6 @@ uint64_id_allocator_tls_cache_t *get_uint64_id_allocator_tls_cache() {
   return ret;
 }
 
-struct gt_uint64_id_allocator_tls_cache_main_thread_dtor_t {
-  uint64_id_allocator_tls_cache_t *cache_ptr;
-  gt_uint64_id_allocator_tls_cache_main_thread_dtor_t() { cache_ptr = get_uint64_id_allocator_tls_cache(); }
-
-  ~gt_uint64_id_allocator_tls_cache_main_thread_dtor_t() {
-    pthread_setspecific(gt_uint64_id_allocator_tls_key, nullptr);
-    dtor_pthread_uint64_id_allocator_tls(reinterpret_cast<uint64_id_allocator_tls_cache_t *>(cache_ptr));
-  }
-};
-static gt_uint64_id_allocator_tls_cache_main_thread_dtor_t gt_uint64_id_allocator_tls_cache_main_thread_dtor;
 #else
 uint64_id_allocator_tls_cache_t *get_uint64_id_allocator_tls_cache() {
   static thread_local uint64_id_allocator_tls_cache_t ret = {0, 0};
