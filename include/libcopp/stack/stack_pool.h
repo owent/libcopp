@@ -3,9 +3,9 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
-
 #include <libcopp/utils/features.h>
 #include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/memory/default_smart_ptr_trait.h>
 #include <libcopp/utils/spin_lock.h>
 
 #include <libcopp/stack/stack_context.h>
@@ -27,7 +27,7 @@ template <typename TAlloc>
 class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
  public:
   using allocator_type = TAlloc;
-  using ptr_type = std::shared_ptr<stack_pool<TAlloc> >;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<stack_pool<TAlloc> >;
 
   // Compability with libcopp-1.x
   using allocator_t = allocator_type;
@@ -58,7 +58,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   stack_pool(const stack_pool &) = delete;
 
  public:
-  static ptr_type create() { return std::make_shared<stack_pool>(constructor_delegator()); }
+  static ptr_type create() {
+    return LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<stack_pool>(constructor_delegator());
+  }
 
   stack_pool(constructor_delegator) {
     memset(&limits_, 0, sizeof(limits_));

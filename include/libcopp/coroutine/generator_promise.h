@@ -220,7 +220,8 @@ template <class TVALUE, class TERROR_TRANSFORM>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_context
     : public generator_context_delegate<TVALUE, TERROR_TRANSFORM,
                                         std::is_void<typename std::decay<TVALUE>::type>::value>,
-      public std::enable_shared_from_this<generator_context<TVALUE, TERROR_TRANSFORM>> {
+      public LIBCOPP_COPP_NAMESPACE_ID::memory::default_enable_shared_from_this<
+          generator_context<TVALUE, TERROR_TRANSFORM>> {
  public:
   using base_type =
       generator_context_delegate<TVALUE, TERROR_TRANSFORM, std::is_void<typename std::decay<TVALUE>::type>::value>;
@@ -241,7 +242,7 @@ template <class TCONTEXT>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable {
  public:
   using context_type = TCONTEXT;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
   using await_suspend_callback_type = std::function<void(context_pointer_type)>;
   using await_resume_callback_type = std::function<void(const context_type&)>;
@@ -302,7 +303,7 @@ template <class TCONTEXT>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_base_type {
  public:
   using context_type = TCONTEXT;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
   using vtable_type = generator_vtable<context_type>;
   using await_suspend_callback_type = typename vtable_type::await_suspend_callback_type;
@@ -480,7 +481,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   using error_transform = TERROR_TRANSFORM;
   using self_type = generator_future<value_type, error_transform>;
   using context_type = generator_context<value_type, error_transform>;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using awaitable_type = generator_awaitable<context_type, std::is_void<typename std::decay<value_type>::type>::value>;
   using vtable_type = typename awaitable_type::vtable_type;
   using await_suspend_callback_type = typename awaitable_type::await_suspend_callback_type;
@@ -489,13 +490,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
  public:
   template <class TSUSPEND, class TRESUME>
   generator_future(TSUSPEND&& await_suspend_callback, TRESUME&& await_resume_callback)
-      : context_(std::make_shared<context_type>()),
+      : context_(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>()),
         vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback),
                                 std::forward<TRESUME>(await_resume_callback))) {}
 
   template <class TSUSPEND>
   generator_future(TSUSPEND&& await_suspend_callback)
-      : context_(std::make_shared<context_type>()),
+      : context_(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>()),
         vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback))) {}
 
   generator_future(generator_future&&) = default;
@@ -542,9 +543,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
     return promise_status::kRunning;
   }
 
-  LIBCOPP_UTIL_FORCEINLINE const std::shared_ptr<context_type>& get_context() const noexcept { return context_; }
+  LIBCOPP_UTIL_FORCEINLINE const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>& get_context()
+      const noexcept {
+    return context_;
+  }
 
-  LIBCOPP_UTIL_FORCEINLINE std::shared_ptr<context_type>& get_context() noexcept { return context_; }
+  LIBCOPP_UTIL_FORCEINLINE LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>&
+  get_context() noexcept {
+    return context_;
+  }
 
  private:
   template <class TFUTURE>
@@ -553,7 +560,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   template <class TFUTURE, class>
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action;
 
-  std::shared_ptr<context_type> context_;
+  LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type> context_;
   copp::util::intrusive_ptr<vtable_type> vtable_;
 };
 

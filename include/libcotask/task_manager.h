@@ -1,9 +1,10 @@
-// Copyright 2023 owent
+// Copyright 2025 owent
 
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/iterator_guard.h>
+#include <libcopp/utils/memory/default_smart_ptr_trait.h>
 
 #include <libcotask/task_macros.h>
 
@@ -170,7 +171,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
   using id_type = typename task_type::id_type;
   using task_ptr_type = typename task_type::ptr_type;
   using self_type = task_manager<task_type>;
-  using ptr_type = std::shared_ptr<self_type>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<self_type>;
 
   struct flag_type {
     enum type {
@@ -259,7 +260,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
    * @brief create a new task manager
    * @return smart pointer of task manager
    */
-  static ptr_type create() { return std::make_shared<self_type>(); }
+  static ptr_type create() { return LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<self_type>(); }
 
   /**
    * @brief add task to manager
@@ -884,7 +885,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
   using id_type = typename task_type::id_type;
   using task_status_type = typename task_type::task_status_type;
   using self_type = task_manager<task_type>;
-  using ptr_type = std::shared_ptr<self_type>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<self_type>;
 
   enum class flag_type : uint32_t {
     kNone = 0,
@@ -968,7 +969,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
    * @brief create a new task manager
    * @return smart pointer of task manager
    */
-  static ptr_type create() noexcept { return std::make_shared<self_type>(); }
+  static ptr_type create() noexcept { return LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<self_type>(); }
 
   /**
    * @brief add task to manager

@@ -85,6 +85,12 @@ jobs:
             triplet: x64-linux
             cc: gcc-latest
             thread_unsafe: 1
+            configure: "RelWithDebInfo"
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc
+            thread_unsafe: 1
+            configure: "Release"
           - os: ubuntu-20.04
             triplet: x64-linux
             cc: gcc-4.8
@@ -107,6 +113,7 @@ jobs:
           NO_RTTI: ${{ matrix.no_rtti }}
           THREAD_UNSAFE: ${{ matrix.thread_unsafe }}
           CI_MODE: ${{ matrix.mode }}
+          CONFIGURATION: ${{ matrix.configure }}
         run: |
           if [[ "xgcc-4.8" == "x$USE_CC" ]]; then
             sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu/ xenial main'

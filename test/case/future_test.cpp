@@ -113,7 +113,8 @@ CASE_TEST(future, poll_no_trivial) {
 }
 
 CASE_TEST(future, poll_shared_ptr) {
-  typedef copp::future::poller<test_no_trivial_parent_clazz, std::shared_ptr<test_no_trivial_parent_clazz> >
+  typedef copp::future::poller<test_no_trivial_parent_clazz,
+                               LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<test_no_trivial_parent_clazz> >
       test_poll_type;
 
   test_poll_type p1;
@@ -124,7 +125,7 @@ CASE_TEST(future, poll_shared_ptr) {
   CASE_EXPECT_EQ(p2.data() ? p2.data()->data : 0, 123);
   CASE_EXPECT_EQ(p2.data() ? p2.data()->get_type() : 0, 1);
 
-  test_poll_type p3(std::make_shared<test_no_trivial_parent_clazz>(234));
+  test_poll_type p3(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<test_no_trivial_parent_clazz>(234));
   CASE_EXPECT_TRUE(p3.is_ready() && p3.data());
   CASE_EXPECT_EQ(p3.data() ? p3.data()->data : 0, 234);
   CASE_EXPECT_EQ(p3.data() ? p3.data()->get_type() : 0, 1);
@@ -134,7 +135,7 @@ CASE_TEST(future, poll_shared_ptr) {
   CASE_EXPECT_EQ(p4.data() ? p4.data()->data : 0, -345);
   CASE_EXPECT_EQ(p4.data() ? p4.data()->get_type() : 0, 2);
 
-  test_poll_type p5(std::make_shared<test_no_trivial_child_clazz>(456));
+  test_poll_type p5(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<test_no_trivial_child_clazz>(456));
   CASE_EXPECT_TRUE(p5.is_ready() && p5.data());
   CASE_EXPECT_EQ(p5.data() ? p5.data()->data : 0, -456);
   CASE_EXPECT_EQ(p5.data() ? p5.data()->get_type() : 0, 2);

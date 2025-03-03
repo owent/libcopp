@@ -3,6 +3,7 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
+#include <libcopp/utils/memory/rc_ptr.h>
 
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
@@ -29,6 +30,8 @@ template <class T>
 struct is_shared_ptr : public std::false_type {};
 template <class T>
 struct is_shared_ptr<std::shared_ptr<T> > : public std::true_type {};
+template <class T>
+struct is_shared_ptr<LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T> > : public std::true_type {};
 }  // namespace type_traits
 LIBCOPP_COPP_NAMESPACE_END
 

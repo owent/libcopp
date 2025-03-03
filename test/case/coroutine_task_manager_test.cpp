@@ -321,6 +321,7 @@ CASE_TEST(coroutine_task_manager, protect_this_task) {
   CASE_EXPECT_EQ(3, (int)g_test_coroutine_task_manager_status);
 }
 
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_coroutine_task_manager_atomic;
 
 static constexpr const int test_context_task_manager_action_mt_run_times = 10000;
@@ -387,6 +388,7 @@ CASE_TEST(coroutine_task_manager, create_and_run_mt) {
   CASE_EXPECT_EQ(test_context_task_manager_action_mt_run_times * test_context_task_manager_action_mt_thread_num,
                  g_test_coroutine_task_manager_atomic.load());
 }
+#  endif
 
 #  if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
 CASE_TEST(coroutine_task_manager, auto_cleanup_for_manager) {

@@ -1,4 +1,4 @@
-// Copyright 2024 atframework
+// Copyright 2025 owent
 // Licenses under the MIT License
 // @note This is a smart pointer class that is compatible with std::shared_ptr, but it is more lightweight and do not
 //       use atomic operation for reference counting. It is designed for single thread usage.

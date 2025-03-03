@@ -8,6 +8,7 @@
 4. Remove `LIBCOPP_MACRO_HAS_EXCEPTION`
 5. Add nostd type_traits and `strong_rc_ptr` for non thread-safety smart pointer
 6. Remove `LIBCOPP_DISABLE_ATOMIC_LOCK`, `LIBCOPP_LOCK_DISABLE_THIS_MT` and `LIBCOPP_LOCK_DISABLE_MT`. We use the only one option `LIBCOPP_ENABLE_MULTI_THREAD` now.
+7. Allow to disable multi-thread support for stack pool and C++20 coroutine to reduce cache miss.
 
 ## 2.2.0
 

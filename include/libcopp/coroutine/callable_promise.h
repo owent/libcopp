@@ -20,6 +20,7 @@
 #include "libcopp/coroutine/algorithm_common.h"
 #include "libcopp/coroutine/std_coroutine_common.h"
 #include "libcopp/future/future.h"
+#include "libcopp/utils/memory/default_smart_ptr_trait.h"
 #include "libcopp/utils/uint64_id_allocator.h"
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
@@ -653,7 +654,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
   }
 
  private:
-  std::shared_ptr<context_type> context_;
+  LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type> context_;
 };
 
 // some

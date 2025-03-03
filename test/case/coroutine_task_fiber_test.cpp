@@ -649,6 +649,7 @@ CASE_TEST(coroutine_task_fiber, then_with_stack_pool) {
   CASE_EXPECT_EQ(g_test_coroutine_task_fiber_on_finished, 5);
 }
 
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_context_task_fiber_test_atomic;
 static constexpr const int g_test_context_task_fiber_test_mt_run_times = 10000;
 static size_t g_test_context_task_fiber_test_mt_max_run_thread_number = 0;
@@ -730,5 +731,6 @@ CASE_TEST(coroutine_task_fiber, mt_run_competition) {
   CASE_MSG_INFO() << "Fiber tasks are run on " << g_test_context_task_fiber_test_mt_max_run_thread_number
                   << " threads at most." << std::endl;
 }
+#  endif
 
 #endif

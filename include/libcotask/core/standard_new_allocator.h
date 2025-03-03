@@ -3,8 +3,8 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
-
 #include <libcopp/utils/features.h>
+#include <libcopp/utils/memory/default_smart_ptr_trait.h>
 
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
@@ -24,12 +24,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator{
        * @return pointer of new object
        */
       template <class Ty, class... TARGS>
-      static std::shared_ptr<Ty>
-          allocate(Ty *, TARGS &&...args){return std::make_shared<Ty>(std::forward<TARGS>(args)...);
+      static LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<Ty>
+          allocate(Ty *, TARGS &&...args){
+              return LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<Ty>(std::forward<TARGS>(args)...);
 }
 
 template <class Ty>
-static void deallocate(std::shared_ptr<Ty> &) {}
+static void deallocate(LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<Ty> &) {}
 }
 ;
 }  // namespace core

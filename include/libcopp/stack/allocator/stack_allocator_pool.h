@@ -3,8 +3,8 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
-
 #include <libcopp/utils/features.h>
+#include <libcopp/utils/memory/default_smart_ptr_trait.h>
 
 #include <assert.h>
 #include <cstddef>
@@ -33,7 +33,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
 
  public:
   stack_allocator_pool() LIBCOPP_MACRO_NOEXCEPT {}
-  stack_allocator_pool(const std::shared_ptr<pool_type> &p) LIBCOPP_MACRO_NOEXCEPT : pool_(p) {}
+  stack_allocator_pool(const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<pool_type> &p)
+      LIBCOPP_MACRO_NOEXCEPT : pool_(p) {}
   ~stack_allocator_pool() {}
 
   /**
@@ -42,7 +43,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
    * @param max_size buffer size
    * @note must be called before allocate operation
    */
-  void attach(const std::shared_ptr<pool_type> &p) LIBCOPP_MACRO_NOEXCEPT { pool_ = p; }
+  void attach(const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<pool_type> &p) LIBCOPP_MACRO_NOEXCEPT {
+    pool_ = p;
+  }
 
   /**
    * allocate memory and attach to stack context [standard function]
@@ -69,7 +72,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
   }
 
  private:
-  std::shared_ptr<pool_type> pool_;
+  LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<pool_type> pool_;
 };
 }  // namespace allocator
 LIBCOPP_COPP_NAMESPACE_END

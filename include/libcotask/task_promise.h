@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include <libcopp/utils/config/libcopp_build_features.h>
-
 #include <libcopp/coroutine/algorithm_common.h>
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/std_coroutine_common.h>
 #include <libcopp/future/future.h>
+#include <libcopp/utils/config/libcopp_build_features.h>
 #include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/memory/default_smart_ptr_trait.h>
 #include <libcopp/utils/spin_lock.h>
 #include <libcopp/utils/uint64_id_allocator.h>
 
@@ -472,13 +472,14 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, TERR
   using value_type = TVALUE;
   using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using private_data_type = typename context_type::private_data_type;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using handle_delegate = typename context_type::handle_delegate;
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
 
   template <class... TARGS>
   task_promise_base(TARGS&&... args)
-      : context_strong_ref_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
+      : context_strong_ref_(
+            LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_void() noexcept {
     set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kHasReturned, true);
@@ -521,12 +522,13 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, TERR
   using value_type = TVALUE;
   using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using private_data_type = typename context_type::private_data_type;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
 
   template <class... TARGS>
   task_promise_base(TARGS&&... args)
-      : context_strong_ref_(std::make_shared<context_type>(std::forward<TARGS>(args)...)) {}
+      : context_strong_ref_(
+            LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>(std::forward<TARGS>(args)...)) {}
 
   void return_value(value_type value) {
     set_flag(LIBCOPP_COPP_NAMESPACE_ID::promise_flag::kHasReturned, true);
@@ -579,7 +581,7 @@ template <class TCONTEXT>
 class LIBCOPP_COTASK_API_HEAD_ONLY task_awaitable_base : public LIBCOPP_COPP_NAMESPACE_ID::awaitable_base_type {
  public:
   using context_type = TCONTEXT;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
   using task_status_type = LIBCOPP_COPP_NAMESPACE_ID::promise_status;
   using promise_flag = LIBCOPP_COPP_NAMESPACE_ID::promise_flag;
@@ -753,7 +755,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future_base {
   using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;
   using id_type = typename context_type::id_type;
   using private_data_type = typename context_type::private_data_type;
-  using context_pointer_type = std::shared_ptr<context_type>;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using task_status_type = typename context_type::task_status_type;
   using promise_flag = typename context_type::promise_flag;
 

@@ -28,6 +28,7 @@ CASE_TEST(coroutine_task, id_allocator_st) {
   CASE_EXPECT_EQ(id_num, s.size());
 }
 
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 CASE_TEST(coroutine_task, id_allocator_mt) {
   copp::util::uint64_id_allocator alloc;
   ((void)alloc);
@@ -59,3 +60,4 @@ CASE_TEST(coroutine_task, id_allocator_mt) {
 
   CASE_EXPECT_EQ(id_num, s[0].size());
 }
+#endif

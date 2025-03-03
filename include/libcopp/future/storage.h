@@ -3,7 +3,7 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
-
+#include <libcopp/utils/memory/default_smart_ptr_trait.h>
 #include <libcopp/utils/std/coroutine.h>
 #include <libcopp/utils/std/explicit_declare.h>
 #include <libcopp/utils/std/type_traits.h>
@@ -75,7 +75,7 @@ template <class T>
 struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage_selector {
   using type = typename std::conditional<LIBCOPP_IS_TIRVIALLY_COPYABLE_V(T) && sizeof(T) <= (sizeof(size_t) << 2),
                                          std::unique_ptr<T, small_object_optimize_storage_deleter<T> >,
-                                         std::shared_ptr<T> >::type;
+                                         LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<T> >::type;
 };
 
 template <class T, class TPTR>
@@ -244,9 +244,17 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base : public std::false_type {
   template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value &&
                                                  type_traits::is_shared_ptr<ptr_type>::value,
                                              bool>::type = false>
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(
+      storage_type &out, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<U> &&in) LIBCOPP_MACRO_NOEXCEPT {
+    out = std::move(LIBCOPP_COPP_NAMESPACE_ID::memory::static_pointer_cast<typename ptr_type::element_type>(in));
+  }
+
+  template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value &&
+                                                 type_traits::is_shared_ptr<ptr_type>::value,
+                                             bool>::type = false>
   LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         std::shared_ptr<U> &&in) LIBCOPP_MACRO_NOEXCEPT {
-    out = std::move(std::static_pointer_cast<typename ptr_type::element_type>(in));
+                                                         ::std::shared_ptr<U> &&in) LIBCOPP_MACRO_NOEXCEPT {
+    out = std::move(::std::static_pointer_cast<typename ptr_type::element_type>(in));
   }
 
   template <class... U>
@@ -336,9 +344,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::unique_ptr<T, small_ob
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::shared_ptr<T> > : public std::false_type {
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T> >
+    : public std::false_type {
   using value_type = T;
-  using ptr_type = std::shared_ptr<T>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T>;
   using storage_type = ptr_type;
 
   LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return true; }
@@ -357,9 +366,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::shared_ptr<T> > : publ
 
   template <class U,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, std::shared_ptr<U> &&in) {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
+                                                         LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<U> &&in) {
     if (in) {
-      out = std::static_pointer_cast<T>(in);
+      out = LIBCOPP_COPP_NAMESPACE_ID::memory::static_pointer_cast<T>(in);
     } else {
       out.reset();
     }
@@ -367,7 +377,59 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::shared_ptr<T> > : publ
 
   template <class... TARGS>
   LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, TARGS &&...in) {
-    out = std::make_shared<T>(std::forward<TARGS>(in)...);
+    out = LIBCOPP_COPP_NAMESPACE_ID::memory::make_strong_rc<T>(std::forward<TARGS>(in)...);
+  }
+
+  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) { out = in; }
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+    out.swap(in);
+    in.reset();
+  }
+
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+
+  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
+    return storage.get();
+  }
+  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
+    return storage.get();
+  }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { return storage; }
+};
+
+template <class T>
+struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, ::std::shared_ptr<T> > : public std::false_type {
+  using value_type = T;
+  using ptr_type = ::std::shared_ptr<T>;
+  using storage_type = ptr_type;
+
+  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return true; }
+  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &out) { out.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) { out.reset(); }
+
+  template <class U, class UDELETOR,
+            typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, std::unique_ptr<U, UDELETOR> &&in) {
+    if (in) {
+      out = std::move(in);
+    } else {
+      out.reset();
+    }
+  }
+
+  template <class U,
+            typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, ::std::shared_ptr<U> &&in) {
+    if (in) {
+      out = ::std::static_pointer_cast<T>(in);
+    } else {
+      out.reset();
+    }
+  }
+
+  template <class... TARGS>
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, TARGS &&...in) {
+    out = ::std::make_shared<T>(std::forward<TARGS>(in)...);
   }
 
   LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) { out = in; }
@@ -575,9 +637,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
   }
 
   template <class TSTORAGE, class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static void make_object(std::shared_ptr<typename TSTORAGE::storage_type> &out,
-                                                   TARGS &&...args) {
-    TSTORAGE::construct_storage(out, std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
+  LIBCOPP_UTIL_FORCEINLINE static void make_object(
+      LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<typename TSTORAGE::storage_type> &out, TARGS &&...args) {
+    TSTORAGE::construct_storage(out,
+                                LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<typename TSTORAGE::storage_type>(
+                                    std::forward<TARGS>(args)...));
   }
 
   using success_storage_type = typename default_compact_storage<success_type>::type;

@@ -643,6 +643,7 @@ CASE_TEST(coroutine_task, github_issues_18) {
   }
 }
 
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
 static constexpr const int g_test_context_task_test_mt_run_times = 10000;
 static size_t g_test_context_task_test_mt_max_run_thread_number = 0;
@@ -724,6 +725,7 @@ CASE_TEST(coroutine_task, mt_run_competition) {
   CASE_MSG_INFO() << "Coroutine tasks are run on " << g_test_context_task_test_mt_max_run_thread_number
                   << " threads at most." << std::endl;
 }
+#  endif
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 static copp::callable_future<int> call_for_await_cotask(const cotask::task<>::ptr_t &t) {
