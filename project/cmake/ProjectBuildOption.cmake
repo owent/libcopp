@@ -25,16 +25,20 @@ option(PROJECT_ENABLE_SAMPLE "Build samples." OFF)
 
 # If you do not call libcopp's API on multi-thread at the same time
 option(LIBCOPP_USE_DYNAMIC_LIBRARY "Build dynamic libraries." OFF)
-# You can set LIBCOPP_DISABLE_ATOMIC_LOCK=ON to reduce cache miss slightly
-option(LIBCOPP_DISABLE_ATOMIC_LOCK "Do not use atomic API and lock to keep thread-safe for libcopp." OFF)
-cmake_dependent_option(LIBCOPP_LOCK_DISABLE_MT "Disable multi-thread support for lock and intrusive_ptr." ON
-                       "LIBCOPP_DISABLE_ATOMIC_LOCK" OFF)
 
-# This option can be set to ON only if the user do not use multi-thread at all. it can reduce the cache miss slightly.
-option(
-  LIBCOPP_LOCK_DISABLE_THIS_MT
-  "Do not use multi-thread for this_coroutine/this_task, this options can only be set to ON on single thread process."
-  OFF)
+# Support legacy options, disable multi-thread support can reduce cache miss
+if(LIBCOPP_DISABLE_ATOMIC_LOCK OR LIBCOPP_LOCK_DISABLE_THIS_MT)
+  option(LIBCOPP_ENABLE_MULTI_THREAD
+         "Enable multi-thread support for coroutine/task, this option can only be set to OFF on single thread process."
+         OFF)
+else()
+  option(LIBCOPP_ENABLE_MULTI_THREAD
+         "Enable multi-thread support for coroutine/task, this option can only be set to OFF on single thread process."
+         ON)
+endif()
+if(LIBCOPP_ENABLE_MULTI_THREAD)
+  set(LIBCOPP_MACRO_ENABLE_MULTI_THREAD ${LIBCOPP_ENABLE_MULTI_THREAD})
+endif()
 
 set(LIBCOPP_FCONTEXT_OS_PLATFORM
     ""

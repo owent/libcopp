@@ -187,12 +187,12 @@ class coroutine_context_container : public coroutine_context {
 
  private:
   allocator_type alloc_; /** stack allocator **/
-#if defined(LIBCOPP_DISABLE_ATOMIC_LOCK) && LIBCOPP_DISABLE_ATOMIC_LOCK
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t> ref_count_; /** status **/
+#else
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t> >
       ref_count_; /** status **/
-#else
-  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t> ref_count_; /** status **/
 #endif
 };
 

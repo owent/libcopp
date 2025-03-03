@@ -198,10 +198,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY spin_lock {
  private:
   typedef enum { UNLOCKED = 0, LOCKED = 1 } lock_state_t;
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
-#if defined(LIBCOPP_LOCK_DISABLE_MT) && LIBCOPP_LOCK_DISABLE_MT
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<unsigned int>
-#else
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       unsigned int
+#else
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<unsigned int>
 #endif
       >
       lock_status_;

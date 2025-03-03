@@ -105,10 +105,6 @@ unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 include("${CMAKE_CURRENT_LIST_DIR}/include/include.macro.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/src/libcopp.macro.cmake")
 
-if(NOT EXISTS "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
-  file(MAKE_DIRECTORY "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
-endif()
-
 if(LIBCOTASK_ENABLE)
   set(LIBCOTASK_MACRO_ENABLED 1)
 endif()

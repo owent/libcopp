@@ -115,7 +115,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
    * @note size must less or equal than attached
    */
   void allocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
         action_lock_);
 #endif
@@ -183,7 +183,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   void deallocate(stack_context &ctx) LIBCOPP_MACRO_NOEXCEPT {
     assert(ctx.sp && ctx.size > 0);
     do {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
           action_lock_);
 #endif
@@ -241,7 +241,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       }
     }
 
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
         action_lock_);
 #endif
@@ -290,7 +290,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   }
 
   void clear() {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
         action_lock_);
 #endif
@@ -309,7 +309,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
   limit_t limits_;
   configure_t conf_;
   allocator_type alloc_;
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;
 #endif
   std::list<stack_context> free_list_;

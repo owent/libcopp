@@ -246,10 +246,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_base {
  private:
   id_type id_;
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
-#  if defined(LIBCOPP_LOCK_DISABLE_MT) && LIBCOPP_LOCK_DISABLE_MT
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t>
-#  else
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       size_t
+#  else
+      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t>
 #  endif
       >
       future_counter_;

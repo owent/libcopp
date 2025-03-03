@@ -7,6 +7,7 @@
 3. Merge boost.fcontext 1.87
 4. Remove `LIBCOPP_MACRO_HAS_EXCEPTION`
 5. Add nostd type_traits and `strong_rc_ptr` for non thread-safety smart pointer
+6. Remove `LIBCOPP_DISABLE_ATOMIC_LOCK`, `LIBCOPP_LOCK_DISABLE_THIS_MT` and `LIBCOPP_LOCK_DISABLE_MT`. We use the only one option `LIBCOPP_ENABLE_MULTI_THREAD` now.
 
 ## 2.2.0
 

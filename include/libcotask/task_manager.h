@@ -3,6 +3,7 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
+#include <libcopp/utils/iterator_guard.h>
 
 #include <libcotask/task_macros.h>
 
@@ -132,18 +133,24 @@ struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node;
 template <class TCO_MACRO>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task<TCO_MACRO>> {
   using task_ptr_type = typename task<TCO_MACRO>::ptr_type;
+  using task_id_type = typename task<TCO_MACRO>::id_type;
+  using task_timer_node_type = task_timer_node<task_id_type>;
+  using task_timer_container_type = std::set<task_timer_node_type>;
 
   task_ptr_type task_;
-  typename std::set<task_timer_node<typename task<TCO_MACRO>::id_type>>::iterator timer_node;
+  LIBCOPP_COPP_NAMESPACE_ID::util::iterator_guard<task_timer_container_type> timer_node;
 };
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
 struct LIBCOPP_COTASK_API_HEAD_ONLY task_manager_node<task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>> {
   using task_type = task_future<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM>;
+  using task_id_type = typename task_type::id_type;
+  using task_timer_node_type = task_timer_node<task_id_type>;
+  using task_timer_container_type = std::set<task_timer_node_type>;
 
   task_type task_;
-  typename std::set<task_timer_node<typename task_type::id_type>>::iterator timer_node;
+  LIBCOPP_COPP_NAMESPACE_ID::util::iterator_guard<task_timer_container_type> timer_node;
 };
 #endif
 
@@ -223,7 +230,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     std::vector<task_ptr_type> all_tasks;
     // first, lock and reset all data
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -285,15 +292,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     using pair_type = typename container_type::value_type;
     detail::task_manager_node<task_type> task_node;
     task_node.task_ = task;
-    task_node.timer_node = task_timeout_timer_.end();
+    task_node.timer_node.reset(task_timeout_timer_);
 
     if (!task_node.task_) {
       assert(task_node.task_);
       return LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_CAST_FAILED;
     }
 
-    // lock before we will operator tasks_
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+    // lock before we will operate tasks_
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
         action_lock_};
 #endif
@@ -354,7 +361,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     }
 
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -397,7 +404,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     task_ptr_type task_inst;
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -444,7 +451,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
       return task_ptr_type();
     }
 
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
         action_lock_};
 #endif
@@ -477,7 +484,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     task_ptr_type task_inst;
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -526,7 +533,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     task_ptr_type task_inst;
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -575,7 +582,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     task_ptr_type task_inst;
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -628,7 +635,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
     task_ptr_type task_inst;
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -695,7 +702,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
     // first tick, init and reset task timeout
     if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
       // hold lock
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #endif
@@ -717,7 +724,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
         co_iter_type co_iter = tasks_.find(checkpoint.task_id);
 
         if (tasks_.end() != co_iter) {
-          co_iter->second.timer_node = iter;
+          co_iter->second.timer_node.set(task_timeout_timer_, iter);
         }
       }
       last_tick_time_ = now_tick_time;
@@ -733,22 +740,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
 
       {
         // hold lock
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
         LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
             action_lock_};
 #endif
 
-        const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node =
+        const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node_value =
             *task_timeout_timer_.begin();
         // all tasks those expired time less than now are timeout
-        if (now_tick_time <= timer_node.expired_time) {
+        if (now_tick_time <= timer_node_value.expired_time) {
           break;
         }
 
         // check expire time(may be changed)
         using iter_type = typename container_type::iterator;
 
-        iter_type iter = tasks_.find(timer_node.task_id);
+        iter_type iter = tasks_.find(timer_node_value.task_id);
 
         if (tasks_.end() != iter) {
           // task may be removed before
@@ -826,22 +833,21 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
       return;
     }
 
-    detail::task_timer_node<id_type> timer_node;
-    timer_node.task_id = node.task_->get_id();
-    timer_node.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
-    timer_node.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
+    detail::task_timer_node<id_type> timer_node_value;
+    timer_node_value.task_id = node.task_->get_id();
+    timer_node_value.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
+    timer_node_value.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
 
     std::pair<typename std::set<detail::task_timer_node<id_type>>::iterator, bool> res =
-        task_timeout_timer_.insert(timer_node);
+        task_timeout_timer_.insert(timer_node_value);
     if (res.second) {
-      node.timer_node = res.first;
+      node.timer_node.set(task_timeout_timer_, res.first);
     }
   }
 
   void remove_timeout_timer(detail::task_manager_node<task_type> &node) {
-    if (node.timer_node != task_timeout_timer_.end()) {
-      task_timeout_timer_.erase(node.timer_node);
-      node.timer_node = task_timeout_timer_.end();
+    if (node.timer_node.valid(task_timeout_timer_)) {
+      task_timeout_timer_.erase(node.timer_node.release(task_timeout_timer_));
     }
   }
 
@@ -860,7 +866,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
   detail::tickspec_t last_tick_time_;
   std::set<detail::task_timer_node<id_type>> task_timeout_timer_;
 
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;
 #endif
   int flags_;
@@ -927,7 +933,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     std::vector<task_type> all_tasks;
     // first, lock and reset all data
     {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -990,10 +996,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     using pair_type = typename container_type::value_type;
     detail::task_manager_node<task_type> task_node;
     task_node.task_ = task;
-    task_node.timer_node = task_timeout_timer_.end();
+    task_node.timer_node.reset(task_timeout_timer_);
 
     // lock before we will operator tasks_
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
         action_lock_};
 #  endif
@@ -1055,7 +1061,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     }
 
     {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -1100,7 +1106,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
     task_type task_inst;
     {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -1147,7 +1153,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       return nullptr;
     }
 
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
         action_lock_};
 #  endif
@@ -1167,7 +1173,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
     task_type task_inst;
     {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -1201,7 +1207,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
     task_type task_inst;
     {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -1239,7 +1245,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
     task_type task_inst;
     {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -1303,7 +1309,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
     // first tick, init and reset task timeout
     if (0 == last_tick_time_.tv_sec && 0 == last_tick_time_.tv_nsec) {
       // hold lock
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
           action_lock_};
 #  endif
@@ -1325,7 +1331,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
         co_iter_type co_iter = tasks_.find(checkpoint.task_id);
 
         if (tasks_.end() != co_iter) {
-          co_iter->second.timer_node = iter;
+          co_iter->second.timer_node.set(task_timeout_timer_, iter);
         }
       }
       last_tick_time_ = now_tick_time;
@@ -1338,22 +1344,22 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
 
       {
         // hold lock
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
         LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard{
             action_lock_};
 #  endif
 
-        const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node =
+        const typename std::set<detail::task_timer_node<id_type>>::value_type &timer_node_value =
             *task_timeout_timer_.begin();
         // all tasks those expired time less than now are timeout
-        if (now_tick_time <= timer_node.expired_time) {
+        if (now_tick_time <= timer_node_value.expired_time) {
           break;
         }
 
         // check expire time(may be changed)
         using iter_type = typename container_type::iterator;
 
-        iter_type iter = tasks_.find(timer_node.task_id);
+        iter_type iter = tasks_.find(timer_node_value.task_id);
 
         if (tasks_.end() != iter) {
           // task may be removed before
@@ -1423,22 +1429,21 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
       return;
     }
 
-    detail::task_timer_node<id_type> timer_node;
-    timer_node.task_id = node.task_.get_id();
-    timer_node.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
-    timer_node.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
+    detail::task_timer_node<id_type> timer_node_value;
+    timer_node_value.task_id = node.task_.get_id();
+    timer_node_value.expired_time.tv_sec = last_tick_time_.tv_sec + timeout_sec;
+    timer_node_value.expired_time.tv_nsec = last_tick_time_.tv_nsec + timeout_nsec;
 
     std::pair<typename std::set<detail::task_timer_node<id_type>>::iterator, bool> res =
-        task_timeout_timer_.insert(timer_node);
+        task_timeout_timer_.insert(timer_node_value);
     if (res.second) {
-      node.timer_node = res.first;
+      node.timer_node.set(task_timeout_timer_, res.first);
     }
   }
 
   void remove_timeout_timer(detail::task_manager_node<task_type> &node) {
-    if (node.timer_node != task_timeout_timer_.end()) {
-      task_timeout_timer_.erase(node.timer_node);
-      node.timer_node = task_timeout_timer_.end();
+    if (node.timer_node.valid(task_timeout_timer_)) {
+      task_timeout_timer_.erase(node.timer_node.release(task_timeout_timer_));
     }
   }
 
@@ -1457,7 +1462,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
   detail::tickspec_t last_tick_time_;
   std::set<detail::task_timer_node<id_type>> task_timeout_timer_;
 
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock action_lock_;
 #  endif
   uint32_t flags_;

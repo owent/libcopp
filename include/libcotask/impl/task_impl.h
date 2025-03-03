@@ -151,7 +151,7 @@ class LIBCOPP_UTIL_SYMBOL_VISIBLE task_impl {
   void *finish_priv_data_;
 
  private:
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<uint32_t> status_;
 #else
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<

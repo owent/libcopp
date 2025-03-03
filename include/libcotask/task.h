@@ -246,7 +246,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
       return next_task;
     }
 
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
     LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
         inner_action_lock_);
 #endif
@@ -689,7 +689,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #endif
     // first, lock and swap container
     {
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
           inner_action_lock_);
 #endif
@@ -810,7 +810,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     template <class>
     friend class LIBCOPP_COTASK_API_HEAD_ONLY task_manager;
     static bool setup_task_manager(self_type &task_inst, void *manager_ptr, void (*fn)(void *, self_type &)) {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
           task_inst.inner_action_lock_);
 #  endif
@@ -824,7 +824,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     static bool cleanup_task_manager(self_type &task_inst, void *manager_ptr) {
-#  if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
       LIBCOPP_COPP_NAMESPACE_ID::util::lock::lock_holder<LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock> lock_guard(
           task_inst.inner_action_lock_);
 #  endif
@@ -928,7 +928,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   // ============== action information ==============
   void (*action_destroy_fn_)(void *);
 
-#if !defined(LIBCOPP_DISABLE_ATOMIC_LOCK) || !(LIBCOPP_DISABLE_ATOMIC_LOCK)
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock inner_action_lock_;
 #else

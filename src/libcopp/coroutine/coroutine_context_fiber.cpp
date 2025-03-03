@@ -40,10 +40,10 @@ struct fiber_context_tls_data_t {
   }
 };
 
-#  if defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT
-static fiber_context_tls_data_t gt_current_fiber;
-#  else
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static LIBCOPP_MACRO_THREAD_LOCAL fiber_context_tls_data_t gt_current_fiber;
+#  else
+static fiber_context_tls_data_t gt_current_fiber;
 #  endif
 
 static inline LPVOID get_this_fiber_address() {

@@ -38,7 +38,7 @@ void __splitstack_block_signals_context(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUM
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace detail {
 
-#if defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT
+#if !LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static coroutine_context_base *gt_current_coroutine = nullptr;
 #elif defined(LIBCOPP_MACRO_THREAD_LOCAL)
 static LIBCOPP_MACRO_THREAD_LOCAL coroutine_context_base *gt_current_coroutine = nullptr;
@@ -49,7 +49,7 @@ static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt
 #endif
 
 static inline void set_this_coroutine_context(coroutine_context_base *p) {
-#if (defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT) || defined(LIBCOPP_MACRO_THREAD_LOCAL)
+#if !LIBCOPP_MACRO_ENABLE_MULTI_THREAD || defined(LIBCOPP_MACRO_THREAD_LOCAL)
   gt_current_coroutine = p;
 #else
   (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -58,7 +58,7 @@ static inline void set_this_coroutine_context(coroutine_context_base *p) {
 }
 
 static inline coroutine_context_base *get_this_coroutine_context() {
-#if (defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT) || defined(LIBCOPP_MACRO_THREAD_LOCAL)
+#if !LIBCOPP_MACRO_ENABLE_MULTI_THREAD || defined(LIBCOPP_MACRO_THREAD_LOCAL)
   return gt_current_coroutine;
 #else
   (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
