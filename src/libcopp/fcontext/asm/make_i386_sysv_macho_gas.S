@@ -25,6 +25,7 @@
  ****************************************************************************************/
 
 .text
+.private_extern _copp_make_fcontext_v2
 .globl _copp_make_fcontext_v2
 .align 2
 _copp_make_fcontext_v2:
@@ -38,8 +39,8 @@ _copp_make_fcontext_v2:
     /* shift address in EAX to lower 16 byte boundary */
     andl  $-16, %eax
 
-    /* reserve space for context-data on context-stack */
-    leal  -0x2c(%eax), %eax
+    /* reserve space for context-data on context-stack, and align the stack */
+    leal  -0x34(%eax), %eax
 
     /* third arg of copp_make_fcontext_v2() == address of context-function */
     /* stored in EBX */

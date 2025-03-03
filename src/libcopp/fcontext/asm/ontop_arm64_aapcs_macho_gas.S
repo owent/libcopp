@@ -52,6 +52,7 @@
  *******************************************************/
 
 .text
+.private_extern _copp_ontop_fcontext_v2
 .global _copp_ontop_fcontext_v2
 .balign 16
 _copp_ontop_fcontext_v2:

@@ -55,6 +55,7 @@
 .text
 .align  2
 .global copp_make_fcontext_v2
+.hidden copp_make_fcontext_v2
 .type   copp_make_fcontext_v2, %function
 copp_make_fcontext_v2:
     # shift address in x0 (allocated stack) to lower 16 byte boundary

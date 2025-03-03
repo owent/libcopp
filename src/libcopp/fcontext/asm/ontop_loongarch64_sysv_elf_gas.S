@@ -41,6 +41,7 @@
 .file "ontop_loongarch64_sysv_elf_gas.S"
 .text
 .globl copp_ontop_fcontext_v2
+.hidden copp_ontop_fcontext_v2
 .align 2
 .type copp_ontop_fcontext_v2,@function
 copp_ontop_fcontext_v2:

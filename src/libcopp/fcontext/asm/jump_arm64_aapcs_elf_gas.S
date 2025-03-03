@@ -55,6 +55,7 @@
 .text
 .align  2
 .global copp_jump_fcontext_v2
+.hidden copp_jump_fcontext_v2
 .type   copp_jump_fcontext_v2, %function
 copp_jump_fcontext_v2:
     # prepare stack for GP + FPU

@@ -52,6 +52,7 @@
  *******************************************************/
 
 .text
+.private_extern _copp_jump_fcontext_v2
 .globl _copp_jump_fcontext_v2
 .balign 16
 _copp_jump_fcontext_v2:

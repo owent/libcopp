@@ -68,6 +68,7 @@
 
 .file "ontop_ppc64_sysv_elf_gas.S"
 .globl copp_ontop_fcontext_v2
+.hidden copp_ontop_fcontext_v2
 #if _CALL_ELF == 2
 	.text
 	.align 2

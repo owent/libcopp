@@ -64,8 +64,10 @@
  *  |    FCTX   |    DATA   |           |           |  *
  *  -------------------------------------------------  *
  *                                                     *
+ *******************************************************/
 
 .text
+.private_extern _copp_make_fcontext_v2
 .globl _copp_make_fcontext_v2
 _copp_make_fcontext_v2:
     ; save return address into R6
