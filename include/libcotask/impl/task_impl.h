@@ -37,7 +37,7 @@ enum EN_TASK_STATUS {
 
 namespace impl {
 
-class UTIL_SYMBOL_VISIBLE task_impl {
+class LIBCOPP_UTIL_SYMBOL_VISIBLE task_impl {
  public:
   using id_type = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator::value_type;
   using id_allocator_type = LIBCOPP_COPP_NAMESPACE_ID::util::uint64_id_allocator;
@@ -71,13 +71,13 @@ class UTIL_SYMBOL_VISIBLE task_impl {
   LIBCOPP_COTASK_API task_impl();
   LIBCOPP_COTASK_API virtual ~task_impl() = 0;
 
-  UTIL_FORCEINLINE id_type get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
+  LIBCOPP_UTIL_FORCEINLINE id_type get_id() const LIBCOPP_MACRO_NOEXCEPT { return id_; }
 
   /**
    * get task status
    * @return task status
    */
-  UTIL_FORCEINLINE EN_TASK_STATUS get_status() const LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE EN_TASK_STATUS get_status() const LIBCOPP_MACRO_NOEXCEPT {
     return static_cast<EN_TASK_STATUS>(status_.load(LIBCOPP_COPP_NAMESPACE_ID::util::lock::memory_order_acquire));
   }
 
@@ -102,14 +102,14 @@ class UTIL_SYMBOL_VISIBLE task_impl {
   virtual int yield(void **priv_data) = 0;
   virtual int cancel(void *priv_data) = 0;
   virtual int kill(enum EN_TASK_STATUS status, void *priv_data) = 0;
-  UTIL_FORCEINLINE int kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
+  LIBCOPP_UTIL_FORCEINLINE int kill(void *priv_data) { return kill(EN_TS_KILLED, priv_data); }
 
-  UTIL_FORCEINLINE int start() { return start(nullptr); }
-  UTIL_FORCEINLINE int resume() { return resume(nullptr); }
-  UTIL_FORCEINLINE int yield() { return yield(nullptr); }
-  UTIL_FORCEINLINE int cancel() { return cancel(nullptr); }
-  UTIL_FORCEINLINE int kill(enum EN_TASK_STATUS status) { return kill(status, nullptr); }
-  UTIL_FORCEINLINE int kill() { return kill(nullptr); }
+  LIBCOPP_UTIL_FORCEINLINE int start() { return start(nullptr); }
+  LIBCOPP_UTIL_FORCEINLINE int resume() { return resume(nullptr); }
+  LIBCOPP_UTIL_FORCEINLINE int yield() { return yield(nullptr); }
+  LIBCOPP_UTIL_FORCEINLINE int cancel() { return cancel(nullptr); }
+  LIBCOPP_UTIL_FORCEINLINE int kill(enum EN_TASK_STATUS status) { return kill(status, nullptr); }
+  LIBCOPP_UTIL_FORCEINLINE int kill() { return kill(nullptr); }
 
   LIBCOPP_COTASK_API virtual int on_finished();
 
@@ -129,7 +129,7 @@ class UTIL_SYMBOL_VISIBLE task_impl {
    * cotask
    * @return pointer to task_action instance
    */
-  UTIL_FORCEINLINE action_ptr_type get_raw_action() const LIBCOPP_MACRO_NOEXCEPT { return action_; }
+  LIBCOPP_UTIL_FORCEINLINE action_ptr_type get_raw_action() const LIBCOPP_MACRO_NOEXCEPT { return action_; }
 
  protected:
   LIBCOPP_COTASK_API void _set_action(action_ptr_type action);

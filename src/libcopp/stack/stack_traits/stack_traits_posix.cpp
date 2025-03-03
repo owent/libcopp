@@ -28,8 +28,8 @@ extern "C" {
 #    define UDEF_MINSIGSTKSZ
 #  endif
 
-#  ifdef COPP_HAS_ABI_HEADERS
-#    include COPP_ABI_PREFIX
+#  ifdef LIBCOPP_HAS_ABI_HEADERS
+#    include LIBCOPP_ABI_PREFIX
 #  endif
 // clang-format off
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
@@ -83,8 +83,8 @@ LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacks
 }
 LIBCOPP_COPP_NAMESPACE_END
 
-#  ifdef COPP_HAS_ABI_HEADERS
-#    include COPP_ABI_SUFFIX
+#  ifdef LIBCOPP_HAS_ABI_HEADERS
+#    include LIBCOPP_ABI_SUFFIX
 #  endif
 
 #  ifdef UDEF_MINSIGSTKSZ

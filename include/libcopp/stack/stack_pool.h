@@ -138,20 +138,20 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       assert(iter != free_list_.rend());
 
       // free limit
-      COPP_LIKELY_IF (limits_.free_stack_number > 0) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (limits_.free_stack_number > 0) {
         --limits_.free_stack_number;
       } else {
         limits_.free_stack_number = free_list_.size() - 1;
       }
 
-      COPP_LIKELY_IF (limits_.free_stack_size >= (*iter).size) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (limits_.free_stack_size >= (*iter).size) {
         limits_.free_stack_size -= (*iter).size;
       } else {
         limits_.free_stack_size = 0;
       }
 
       // make sure the stack must be greater or equal than configure after reset
-      COPP_LIKELY_IF (iter->size >= conf_.stack_size) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (iter->size >= conf_.stack_size) {
         ctx = *iter;
         free_list_.pop_back();
 
@@ -193,13 +193,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       }
 
       // limits
-      COPP_LIKELY_IF (limits_.used_stack_size >= ctx.size) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (limits_.used_stack_size >= ctx.size) {
         limits_.used_stack_size -= ctx.size;
       } else {
         limits_.used_stack_size = 0;
       }
 
-      COPP_LIKELY_IF (limits_.used_stack_number > 0) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (limits_.used_stack_number > 0) {
         --limits_.used_stack_number;
       }
 
@@ -259,13 +259,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_pool {
       typename std::list<stack_context>::iterator iter = free_list_.begin();
       assert(iter != free_list_.end());
 
-      COPP_LIKELY_IF (limits_.free_stack_number > 0) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (limits_.free_stack_number > 0) {
         --limits_.free_stack_number;
       } else {
         limits_.free_stack_number = free_list_.size() - 1;
       }
 
-      COPP_LIKELY_IF (limits_.free_stack_size >= (*iter).size) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (limits_.free_stack_size >= (*iter).size) {
         limits_.free_stack_size -= (*iter).size;
       } else {
         limits_.free_stack_size = 0;

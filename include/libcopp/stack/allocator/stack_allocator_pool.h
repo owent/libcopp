@@ -10,8 +10,8 @@
 #include <cstddef>
 #include <memory>
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_PREFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_PREFIX
 #endif
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
@@ -74,6 +74,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY stack_allocator_pool {
 }  // namespace allocator
 LIBCOPP_COPP_NAMESPACE_END
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_SUFFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_SUFFIX
 #endif

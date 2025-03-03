@@ -16,13 +16,13 @@
 #include "libcopp/fcontext/detail/config.hpp"
 #include "libcopp/utils/features.h"
 
-#if defined(COPP_MACRO_COMPILER_MSVC)
+#if defined(LIBCOPP_MACRO_COMPILER_MSVC)
 #  pragma warning(push)
 #  pragma warning(disable : 4351)
 #endif
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_PREFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_PREFIX
 #endif
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
@@ -30,7 +30,7 @@ namespace fcontext {
 
 extern "C" {
 
-#define COPP_BOOST_CONTEXT_CALLDECL
+#define LIBCOPP_BOOST_CONTEXT_CALLDECL
 
 struct stack_t {
   void *sp;
@@ -53,10 +53,10 @@ struct fcontext_t {
 }  // namespace fcontext
 LIBCOPP_COPP_NAMESPACE_END
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_SUFFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_SUFFIX
 #endif
 
-#if defined(COPP_MACRO_COMPILER_MSVC)
+#if defined(LIBCOPP_MACRO_COMPILER_MSVC)
 #  pragma warning(pop)
 #endif

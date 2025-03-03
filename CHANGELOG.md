@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.0
+
+1. Rename all macros `COPP_*` to `LIBCOPP_*`
+2. Make all macros in compile_optimize.h and explicit_declare. standalone from atframework
+
 ## 2.2.0
 
 1. Merge boost.fcontext 1.81.0

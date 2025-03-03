@@ -24,18 +24,18 @@ extern "C" {
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
-void *__splitstack_makecontext(std::size_t, void *[COPP_MACRO_SEGMENTED_STACK_NUMBER], std::size_t *);
+void *__splitstack_makecontext(std::size_t, void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER], std::size_t *);
 
-void __splitstack_releasecontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_releasecontext(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_resetcontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_resetcontext(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_block_signals_context(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER], int *new_value, int *old_value);
+void __splitstack_block_signals_context(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER], int *new_value, int *old_value);
 }
 #endif
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_PREFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_PREFIX
 #endif
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
@@ -79,6 +79,6 @@ LIBCOPP_COPP_API void stack_allocator_split_segment::deallocate(stack_context &c
 }  // namespace allocator
 LIBCOPP_COPP_NAMESPACE_END
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_SUFFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_SUFFIX
 #endif

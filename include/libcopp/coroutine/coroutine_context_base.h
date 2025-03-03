@@ -157,7 +157,7 @@ class coroutine_context_base {
   /**
    * @brief coroutine entrance function
    */
-  UTIL_FORCEINLINE void run_and_recv_retcode(void *priv_data) {
+  LIBCOPP_UTIL_FORCEINLINE void run_and_recv_retcode(void *priv_data) {
     if (!runner_) return;
 
     runner_ret_code_ = runner_(priv_data);
@@ -175,13 +175,15 @@ class coroutine_context_base {
    * get runner of this coroutine context (const)
    * @return nullptr of pointer of runner
    */
-  UTIL_FORCEINLINE const std::function<int(void *)> &get_runner() const LIBCOPP_MACRO_NOEXCEPT { return runner_; }
+  LIBCOPP_UTIL_FORCEINLINE const std::function<int(void *)> &get_runner() const LIBCOPP_MACRO_NOEXCEPT {
+    return runner_;
+  }
 
   /**
    * @brief get runner return code
    * @return
    */
-  UTIL_FORCEINLINE int get_ret_code() const LIBCOPP_MACRO_NOEXCEPT { return runner_ret_code_; }
+  LIBCOPP_UTIL_FORCEINLINE int get_ret_code() const LIBCOPP_MACRO_NOEXCEPT { return runner_ret_code_; }
 
   /**
    * @brief get runner return code
@@ -192,15 +194,17 @@ class coroutine_context_base {
   /**
    * @brief get private buffer(raw pointer)
    */
-  UTIL_FORCEINLINE void *get_private_buffer() const LIBCOPP_MACRO_NOEXCEPT { return priv_data_; }
+  LIBCOPP_UTIL_FORCEINLINE void *get_private_buffer() const LIBCOPP_MACRO_NOEXCEPT { return priv_data_; }
 
   /**
    * @brief get private buffer size
    */
-  UTIL_FORCEINLINE size_t get_private_buffer_size() const LIBCOPP_MACRO_NOEXCEPT { return private_buffer_size_; }
+  LIBCOPP_UTIL_FORCEINLINE size_t get_private_buffer_size() const LIBCOPP_MACRO_NOEXCEPT {
+    return private_buffer_size_;
+  }
 
  public:
-  UTIL_FORCEINLINE static size_t align_private_data_size(size_t sz) {
+  LIBCOPP_UTIL_FORCEINLINE static size_t align_private_data_size(size_t sz) {
     // static size_t random_index = 0;
     // constexpr const size_t random_mask = 63;
     constexpr const size_t align_mask = COROUTINE_CONTEXT_BASE_ALIGN_UNIT_SIZE - 1;
@@ -234,14 +238,14 @@ class coroutine_context_base {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
   static inline void maybe_rethrow(std::exception_ptr &inout) {
-    COPP_UNLIKELY_IF (inout) {
+    if LIBCOPP_UTIL_UNLIKELY_CONDITION (inout) {
       std::exception_ptr eptr;
       std::swap(eptr, inout);
       std::rethrow_exception(eptr);
     }
   }
 
-  UTIL_FORCEINLINE void maybe_rethrow() { maybe_rethrow(unhandle_exception_); }
+  LIBCOPP_UTIL_FORCEINLINE void maybe_rethrow() { maybe_rethrow(unhandle_exception_); }
 #endif
 
   /**

@@ -20,15 +20,15 @@
 #include "libcopp/fcontext/detail/config.hpp"
 #include "libcopp/utils/features.h"
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_PREFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_PREFIX
 #endif
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace fcontext {
 
 extern "C" {
 
-#define COPP_BOOST_CONTEXT_CALLDECL __attribute__((cdecl))
+#define LIBCOPP_BOOST_CONTEXT_CALLDECL __attribute__((cdecl))
 
 struct stack_t {
   void *sp;
@@ -48,6 +48,6 @@ struct fcontext_t {
 }  // namespace fcontext
 LIBCOPP_COPP_NAMESPACE_END
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_SUFFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_SUFFIX
 #endif

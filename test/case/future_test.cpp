@@ -288,7 +288,7 @@ CASE_TEST(future, future_with_no_trival_result) {
 
 CASE_TEST(future, future_with_copp_trivial_result) {
   using result_type = copp::future::result_type<int, long>;
-  static_assert(COPP_IS_TIRVIALLY_COPYABLE_V(result_type), "result_type<int, long> must be trivial");
+  static_assert(LIBCOPP_IS_TIRVIALLY_COPYABLE_V(result_type), "result_type<int, long> must be trivial");
 
   copp::future::future<result_type> fut;
 
@@ -306,7 +306,7 @@ CASE_TEST(future, future_with_copp_trivial_result) {
 
 CASE_TEST(future, future_with_copp_no_trivial_result) {
   using result_type = copp::future::result_type<int, std::string>;
-  static_assert(!COPP_IS_TIRVIALLY_COPYABLE_V(result_type), "result_type<int, std::string> must not be trivial");
+  static_assert(!LIBCOPP_IS_TIRVIALLY_COPYABLE_V(result_type), "result_type<int, std::string> must not be trivial");
 
   copp::future::future<result_type> fut;
 

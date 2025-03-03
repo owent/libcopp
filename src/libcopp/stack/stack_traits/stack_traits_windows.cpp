@@ -15,7 +15,7 @@ extern "C" {
 #include <assert.h>
 }
 
-#if defined(COPP_MACRO_COMPILER_MSVC)
+#if defined(LIBCOPP_MACRO_COMPILER_MSVC)
 #  pragma warning(push)
 #  pragma warning(disable : 4244 4267)
 #endif
@@ -50,8 +50,8 @@ extern "C" {
 #  define MIN_STACKSIZE 4 * 1024
 #endif
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_PREFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_PREFIX
 #endif
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
@@ -123,6 +123,6 @@ LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacks
 }
 LIBCOPP_COPP_NAMESPACE_END
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_SUFFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_SUFFIX
 #endif
