@@ -54,12 +54,12 @@ inline void CreateMiniDump(EXCEPTION_POINTERS *pep, LPCTSTR strFileName) {
 }
 
 LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo) {
-  //得到当前时间
+  // 得到当前时间
   SYSTEMTIME st;
   ::GetLocalTime(&st);
-  //得到程序所在文件夹
-  // TCHAR exeFullPath[256]; // MAX_PATH
-  // GetModuleFileName(nullptr, exeFullPath, 256);//得到程序模块名称，全路径
+  // 得到程序所在文件夹
+  //  TCHAR exeFullPath[256]; // MAX_PATH
+  //  GetModuleFileName(nullptr, exeFullPath, 256);//得到程序模块名称，全路径
 
   TCHAR szFileName[_MAX_FNAME] = {0};
 

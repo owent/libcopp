@@ -91,14 +91,14 @@
 #    define CASE_EXPECT_GE(l, r) BOOST_CHECK_GE(l, r)
 
 #  else
-#    define CASE_EXPECT_TRUE(c) test_manager::me().expect_true((c), #    c, __FILE__, __LINE__)
-#    define CASE_EXPECT_FALSE(c) test_manager::me().expect_false((c), #    c, __FILE__, __LINE__)
-#    define CASE_EXPECT_EQ(l, r) test_manager::me().expect_eq((l), (r), #    l, #    r, __FILE__, __LINE__)
-#    define CASE_EXPECT_NE(l, r) test_manager::me().expect_ne((l), (r), #    l, #    r, __FILE__, __LINE__)
-#    define CASE_EXPECT_LT(l, r) test_manager::me().expect_lt((l), (r), #    l, #    r, __FILE__, __LINE__)
-#    define CASE_EXPECT_LE(l, r) test_manager::me().expect_le((l), (r), #    l, #    r, __FILE__, __LINE__)
-#    define CASE_EXPECT_GT(l, r) test_manager::me().expect_gt((l), (r), #    l, #    r, __FILE__, __LINE__)
-#    define CASE_EXPECT_GE(l, r) test_manager::me().expect_ge((l), (r), #    l, #    r, __FILE__, __LINE__)
+#    define CASE_EXPECT_TRUE(c) test_manager::me().expect_true((c), #c, __FILE__, __LINE__)
+#    define CASE_EXPECT_FALSE(c) test_manager::me().expect_false((c), #c, __FILE__, __LINE__)
+#    define CASE_EXPECT_EQ(l, r) test_manager::me().expect_eq((l), (r), #l, #r, __FILE__, __LINE__)
+#    define CASE_EXPECT_NE(l, r) test_manager::me().expect_ne((l), (r), #l, #r, __FILE__, __LINE__)
+#    define CASE_EXPECT_LT(l, r) test_manager::me().expect_lt((l), (r), #l, #r, __FILE__, __LINE__)
+#    define CASE_EXPECT_LE(l, r) test_manager::me().expect_le((l), (r), #l, #r, __FILE__, __LINE__)
+#    define CASE_EXPECT_GT(l, r) test_manager::me().expect_gt((l), (r), #l, #r, __FILE__, __LINE__)
+#    define CASE_EXPECT_GE(l, r) test_manager::me().expect_ge((l), (r), #l, #r, __FILE__, __LINE__)
 
 #  endif
 

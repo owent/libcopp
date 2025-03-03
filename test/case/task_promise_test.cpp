@@ -822,7 +822,9 @@ static callable_future_int_type task_func_callable_await_task_int_simple() {
 
 CASE_TEST(task_promise, forget_to_start) {
   // This should be safe here
-  { auto f = task_func_callable_await_task_int_simple(); }
+  {
+    auto f = task_func_callable_await_task_int_simple();
+  }
 
   resume_pending_contexts({});
 }

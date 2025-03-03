@@ -714,7 +714,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task<TCO_MACRO>> {
            task_timeout_timer_.end() != iter; ++iter) {
         const typename std::set<detail::task_timer_node<id_type>>::value_type &checkpoint = *iter;
         using co_iter_type = typename container_type::iterator;
-        co_iter_type  co_iter = tasks_.find(checkpoint.task_id);
+        co_iter_type co_iter = tasks_.find(checkpoint.task_id);
 
         if (tasks_.end() != co_iter) {
           co_iter->second.timer_node = iter;
@@ -880,10 +880,10 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
   using self_type = task_manager<task_type>;
   using ptr_type = std::shared_ptr<self_type>;
 
-  enum class flag_type : uint32_t{
-      kNone = 0,
-      kTimerTick = 0x01,
-      kTimerReset = 0x02,
+  enum class flag_type : uint32_t {
+    kNone = 0,
+    kTimerTick = 0x01,
+    kTimerReset = 0x02,
   };
 
  private:
@@ -1322,7 +1322,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_manager<task_future<TVALUE, TPRIVATE_DAT
            task_timeout_timer_.end() != iter; ++iter) {
         const typename std::set<detail::task_timer_node<id_type>>::value_type &checkpoint = *iter;
         using co_iter_type = typename container_type::iterator;
-        co_iter_type  co_iter = tasks_.find(checkpoint.task_id);
+        co_iter_type co_iter = tasks_.find(checkpoint.task_id);
 
         if (tasks_.end() != co_iter) {
           co_iter->second.timer_node = iter;

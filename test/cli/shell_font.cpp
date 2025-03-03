@@ -105,8 +105,7 @@ std::string shell_font::GetStyleCode(int iFlag) {
   if (iFlag & 0xff) {
     std::string base = "30";
     int iStart = 0;
-    for (; iStart < 8 && !(iFlag & (1 << iStart)); ++iStart)
-      ;
+    for (; iStart < 8 && !(iFlag & (1 << iStart)); ++iStart);
     if (iStart < 8) base[1] += static_cast<char>(iStart);
     ret += std::string((!bFirst) ? ";" : "") + base;
     bFirst = false;
@@ -117,8 +116,7 @@ std::string shell_font::GetStyleCode(int iFlag) {
   if (iFlag & 0xff) {
     std::string base = "40";
     int iStart = 0;
-    for (; iStart < 8 && !(iFlag & (1 << iStart)); ++iStart)
-      ;
+    for (; iStart < 8 && !(iFlag & (1 << iStart)); ++iStart);
     if (iStart < 8) base[1] += static_cast<char>(iStart);
     ret += std::string((!bFirst) ? ";" : "") + base;
     // bFirst = false; no need to set because not used later

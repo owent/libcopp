@@ -86,10 +86,12 @@ struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference<gsl::not_null<TELEMENT*>> 
 };
 
 template <class TELEMENT>
-struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference {
-  inline static TELEMENT& unwrap(TELEMENT& input) noexcept { return input; }
-  inline static const TELEMENT& unwrap(const TELEMENT& input) noexcept { return input; }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY pick_some_reference{inline static TELEMENT &
+                                                      unwrap(TELEMENT & input) noexcept {return input;
+}
+inline static const TELEMENT& unwrap(const TELEMENT& input) noexcept { return input; }
+}
+;
 
 LIBCOPP_COPP_NAMESPACE_END
 
