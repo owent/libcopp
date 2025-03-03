@@ -57,6 +57,8 @@ foreach(SAMPLE_SRC_FILE IN LISTS SAMPLE_SRC_LIST)
     endif()
   endif()
 
+  set_property(TARGET ${SAMPLE_SRC_BIN_NAME} PROPERTY FOLDER "libcopp/sample")
+
   # add benchmark script
   string(FIND ${SAMPLE_SRC_BIN_NAME} "_benchmark_" SAMPLE_SRC_IS_BENCHMARK)
 

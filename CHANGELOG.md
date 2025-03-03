@@ -4,6 +4,9 @@
 
 1. Rename all macros `COPP_*` to `LIBCOPP_*`
 2. Make all macros in compile_optimize.h and explicit_declare. standalone from atframework
+3. Merge boost.fcontext 1.87
+4. Remove `LIBCOPP_MACRO_HAS_EXCEPTION`
+5. Add nostd type_traits and `strong_rc_ptr` for non thread-safety smart pointer
 
 ## 2.2.0
 

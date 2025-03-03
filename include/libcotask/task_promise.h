@@ -1236,8 +1236,6 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
       throw;
       // get_context()->last_exception_ = std::current_exception();
     }
-#  elif defined(LIBCOPP_MACRO_HAS_EXCEPTION) && LIBCOPP_MACRO_HAS_EXCEPTION
-    void unhandled_exception() { throw; }
 #  else
     void unhandled_exception() { std::abort(); }
 #  endif

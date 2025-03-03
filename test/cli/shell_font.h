@@ -6,6 +6,20 @@
 #include <map>
 #include <string>
 
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
+#  if (__GNUC__ * 100 + __GNUC_MINOR__ * 10) >= 460
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Waddress"
+
+#    if (__GNUC__ * 100 + __GNUC_MINOR__ * 10) >= 600
+#      pragma GCC diagnostic ignored "-Wnonnull-compare"
+#    endif
+#  endif
+#elif defined(__clang__) || defined(__apple_build_version__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Waddress"
+#endif
+
 /**
  * Window 控制台相关
  * @see https://msdn.microsoft.com/zh-cn/windows/apps/ms686047%28v=vs.100%29.aspx
@@ -98,7 +112,7 @@ class shell_font {
    * 字体信息
    * @param iFlag
    */
-  shell_font(int iFlag = 0);
+  explicit shell_font(int iFlag = 0);
   virtual ~shell_font();
 
   /**
@@ -194,3 +208,11 @@ class shell_stream {
 
 }  // namespace cli
 }  // namespace util
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
+#  if (__GNUC__ * 100 + __GNUC_MINOR__ * 10) >= 460
+#    pragma GCC diagnostic pop
+#  endif
+#elif defined(__clang__) || defined(__apple_build_version__)
+#  pragma clang diagnostic pop
+#endif

@@ -296,8 +296,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
     initial_awaitable initial_suspend() noexcept { return {}; }
 #  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
     void unhandled_exception() { throw; }
-#  elif defined(LIBCOPP_MACRO_HAS_EXCEPTION) && LIBCOPP_MACRO_HAS_EXCEPTION
-    void unhandled_exception() { throw; }
 #  else
     void unhandled_exception() { std::abort(); }
 #  endif

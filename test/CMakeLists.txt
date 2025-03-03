@@ -89,6 +89,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   endif()
 endif()
 
+set_property(TARGET libcopp_unit_test PROPERTY FOLDER "libcopp/test")
+
 add_test(
   NAME "libcopp.unit_test"
   COMMAND "$<TARGET_FILE:libcopp_unit_test>"

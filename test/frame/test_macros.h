@@ -28,6 +28,7 @@
 
 #  define CASE_TEST(test_name, case_name) TEST(test_name, case_name)
 
+#  define CASE_EXPECT_ERROR(msg) GTEST_NONFATAL_FAILURE_(msg)
 #  define CASE_EXPECT_TRUE(c) EXPECT_TRUE(c)
 #  define CASE_EXPECT_FALSE(c) EXPECT_FALSE(c)
 #  define CASE_EXPECT_EQ(l, r) EXPECT_EQ(l, r)
@@ -81,6 +82,7 @@
 #  endif
 
 #  ifdef UTILS_TEST_MACRO_TEST_ENABLE_BOOST_TEST
+#    define CASE_EXPECT_ERROR(msg) BOOST_ERROR(msg)
 #    define CASE_EXPECT_TRUE(c) BOOST_CHECK(c)
 #    define CASE_EXPECT_FALSE(c) BOOST_CHECK(!(c))
 #    define CASE_EXPECT_EQ(l, r) BOOST_CHECK_EQUAL(l, r)
@@ -91,6 +93,7 @@
 #    define CASE_EXPECT_GE(l, r) BOOST_CHECK_GE(l, r)
 
 #  else
+#    define CASE_EXPECT_ERROR(msg) test_manager::me().expect_false(true, msg, __FILE__, __LINE__)
 #    define CASE_EXPECT_TRUE(c) test_manager::me().expect_true((c), #c, __FILE__, __LINE__)
 #    define CASE_EXPECT_FALSE(c) test_manager::me().expect_false((c), #c, __FILE__, __LINE__)
 #    define CASE_EXPECT_EQ(l, r) test_manager::me().expect_eq((l), (r), #l, #r, __FILE__, __LINE__)
