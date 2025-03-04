@@ -9,6 +9,8 @@
 5. Add nostd type_traits and `strong_rc_ptr` for non thread-safety smart pointer
 6. Remove `LIBCOPP_DISABLE_ATOMIC_LOCK`, `LIBCOPP_LOCK_DISABLE_THIS_MT` and `LIBCOPP_LOCK_DISABLE_MT`. We use the only one option `LIBCOPP_ENABLE_MULTI_THREAD` now.
 7. Allow to disable multi-thread support for stack pool and C++20 coroutine to reduce cache miss.
+8. We allow use lightweight callback or channel mode(without callback) for C++20 coroutine generator.
+9. Add `copp::make_channel<T>()` to create channel receiver and sender for easier usage.
 
 ## 2.2.0
 

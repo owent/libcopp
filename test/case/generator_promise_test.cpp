@@ -18,13 +18,10 @@
 using generator_future_int_type = copp::generator_future<int>;
 using generator_future_void_type = copp::generator_future<void>;
 
-using generator_future_int_lightweight_type =
-    copp::generator_future<int, copp::promise_error_transform<int>, copp::generator_vtable_type::kLightWeight>;
-using generator_future_void_lightweight_type =
-    copp::generator_future<void, copp::promise_error_transform<void>, copp::generator_vtable_type::kLightWeight>;
+using generator_future_int_lightweight_type = copp::generator_lightweight_future<int>;
+using generator_future_void_lightweight_type = copp::generator_lightweight_future<void>;
 
-using generator_future_int_channel_type =
-    copp::generator_future<int, copp::promise_error_transform<int>, copp::generator_vtable_type::kNone>;
+using generator_future_int_channel_type = copp::generator_channel_future<int, copp::promise_error_transform<int>>;
 
 namespace {
 std::list<generator_future_int_type::context_pointer_type> g_pending_int_contexts;
@@ -61,8 +58,8 @@ size_t resume_pending_contexts(std::list<int> values, int max_count = 32767) {
 
       ++ret;
     } else if (!g_pending_int_lightweight_contexts.empty()) {
-      auto ctx = *g_pending_int_contexts.begin();
-      g_pending_int_contexts.pop_front();
+      auto ctx = *g_pending_int_lightweight_contexts.begin();
+      g_pending_int_lightweight_contexts.pop_front();
 
       if (!values.empty()) {
         int val = values.front();
@@ -117,7 +114,7 @@ static copp::callable_future<int> callable_func_await_int() {
   CASE_EXPECT_FALSE(gen_left_value.is_pending());
   CASE_EXPECT_TRUE(gen_left_value.get_status() == copp::promise_status::kDone);
 
-  // Await a ready generator will be ignored and will not incease suspend count
+  // Await a ready generator will be ignored and will not increase suspend count
   CASE_EXPECT_EQ(x1, co_await gen_left_value);
 
   // await right value
@@ -144,7 +141,7 @@ static copp::callable_future<int> callable_func_await_int() {
   CASE_EXPECT_FALSE(gen_left_void.is_pending());
   CASE_EXPECT_TRUE(gen_left_void.get_status() == copp::promise_status::kDone);
 
-  // Await a ready generator will be ignored and will not incease suspend count
+  // Await a ready generator will be ignored and will not increase suspend count
   co_await gen_left_void;
 
   // await right value
@@ -180,7 +177,7 @@ static copp::callable_future<int> callable_func_await_int_lightweight() {
   generator_future_int_lightweight_type gen_left_value{
       [](generator_future_int_lightweight_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
-        g_pending_int_contexts.push_back(ctx);
+        g_pending_int_lightweight_contexts.push_back(ctx);
       },
       [](const generator_future_int_lightweight_type::context_type &) { ++g_resume_generator_count; }};
 
@@ -193,21 +190,21 @@ static copp::callable_future<int> callable_func_await_int_lightweight() {
   CASE_EXPECT_FALSE(gen_left_value.is_pending());
   CASE_EXPECT_TRUE(gen_left_value.get_status() == copp::promise_status::kDone);
 
-  // Await a ready generator will be ignored and will not incease suspend count
+  // Await a ready generator will be ignored and will not increase suspend count
   CASE_EXPECT_EQ(x1, co_await gen_left_value);
 
   // await right value
   int x2 = co_await generator_future_int_lightweight_type{
       [](generator_future_int_lightweight_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
-        g_pending_int_contexts.push_back(ctx);
+        g_pending_int_lightweight_contexts.push_back(ctx);
       },
       [](const generator_future_int_lightweight_type::context_type &) { ++g_resume_generator_count; }};
 
   generator_future_void_lightweight_type gen_left_void{
       [](generator_future_void_lightweight_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
-        g_pending_void_contexts.push_back(ctx);
+        g_pending_void_lightweight_contexts.push_back(ctx);
       },
       [](const generator_future_void_lightweight_type::context_type &) { ++g_resume_generator_count; }};
 
@@ -220,14 +217,14 @@ static copp::callable_future<int> callable_func_await_int_lightweight() {
   CASE_EXPECT_FALSE(gen_left_void.is_pending());
   CASE_EXPECT_TRUE(gen_left_void.get_status() == copp::promise_status::kDone);
 
-  // Await a ready generator will be ignored and will not incease suspend count
+  // Await a ready generator will be ignored and will not increase suspend count
   co_await gen_left_void;
 
   // await right value
   co_await generator_future_void_lightweight_type{
       [](generator_future_void_lightweight_type::context_pointer_type ctx) {
         ++g_suspend_generator_count;
-        g_pending_void_contexts.push_back(ctx);
+        g_pending_void_lightweight_contexts.push_back(ctx);
       },
       [](const generator_future_void_lightweight_type::context_type &) { ++g_resume_generator_count; }};
 
@@ -243,13 +240,54 @@ CASE_TEST(generator_promise, lightweight_int_generator) {
   CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
   CASE_EXPECT_FALSE(f.is_ready());
 
-  resume_pending_contexts({13100, 13});
+  resume_pending_contexts({13107, 15});
 
   CASE_EXPECT_TRUE(f.is_ready());
-  CASE_EXPECT_EQ(13113, f.get_internal_promise().data());
+  CASE_EXPECT_EQ(13122, f.get_internal_promise().data());
 
   CASE_EXPECT_EQ(old_resume_generator_count + 4, g_resume_generator_count);
   CASE_EXPECT_EQ(old_suspend_generator_count + 4, g_suspend_generator_count);
+}
+
+template <class TVALUE, class TERROR_TRANSFORM>
+static copp::generator_channel_receiver<TVALUE, TERROR_TRANSFORM> callable_func_await_int_channel_pick_reciever(
+    std::pair<copp::generator_channel_receiver<TVALUE, TERROR_TRANSFORM>,
+              copp::generator_channel_sender<TVALUE, TERROR_TRANSFORM>> &&input) {
+  g_pending_int_channel_contexts.emplace_back(std::move(input.second));
+  return std::move(input.first);
+}
+
+static copp::callable_future<int> callable_func_await_int_channel() {
+  auto gen_left_value = callable_func_await_int_channel_pick_reciever(copp::make_channel<int>());
+
+  // await left value
+  CASE_EXPECT_FALSE(gen_left_value.is_ready());
+  CASE_EXPECT_TRUE(gen_left_value.is_pending());
+  CASE_EXPECT_TRUE(gen_left_value.get_status() == copp::promise_status::kRunning);
+  int x1 = co_await gen_left_value;
+  CASE_EXPECT_TRUE(gen_left_value.is_ready());
+  CASE_EXPECT_FALSE(gen_left_value.is_pending());
+  CASE_EXPECT_TRUE(gen_left_value.get_status() == copp::promise_status::kDone);
+
+  // Await a ready generator will be ignored and will not increase suspend count
+  CASE_EXPECT_EQ(x1, co_await gen_left_value);
+
+  // await right value
+  int x2 = co_await callable_func_await_int_channel_pick_reciever(copp::make_channel<int>());
+
+  co_return x1 + x2;
+}
+
+CASE_TEST(generator_promise, channel_int_generator) {
+  copp::callable_future<int> f = callable_func_await_int_channel();
+
+  CASE_EXPECT_NE(static_cast<int>(copp::promise_status::kDone), static_cast<int>(f.get_status()));
+  CASE_EXPECT_FALSE(f.is_ready());
+
+  resume_pending_contexts({13101, 15});
+
+  CASE_EXPECT_TRUE(f.is_ready());
+  CASE_EXPECT_EQ(13116, f.get_internal_promise().data());
 }
 
 static copp::callable_future<int> callable_func_await_int_killed() {

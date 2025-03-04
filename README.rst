@@ -44,11 +44,7 @@ Cross-platform coroutine library in C++ .
                     :alt: Coveralls coverage
                     :target: https://codecov.io/gh/owent/libcopp
 
-.. |lgtm-badge|  image:: https://img.shields.io/lgtm/grade/cpp/g/owent/libcopp.svg?logo=lgtm&logoWidth=18
-                 :alt: Language grade: C/C++
-                 :target: https://lgtm.com/projects/g/owent/libcopp/context:cpp
-
-|release-badge| |code-size-badge| |repo-size-badge| |ci-badge| |codecov-badge| |lgtm-badge| |forks-badge| |stars-badge|
+|release-badge| |code-size-badge| |repo-size-badge| |ci-badge| |codecov-badge| |forks-badge| |stars-badge|
 
 CI Job Matrix
 ----------------
@@ -308,6 +304,7 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 8. Custom error (timeout for example) when using c++20 coroutine
 9. Let c++20 coroutine work with ``cotask::task``
 10. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
+11. Using c++20 coroutine with channel receiver and sender
 
 All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owent/libcopp/tree/v2/sample>`_ .
 

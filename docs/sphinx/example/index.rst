@@ -94,3 +94,10 @@ Some applications will use ``SetUnhandledExceptionFilter`` to catch unhandled ex
 .. literalinclude:: ../../../sample/sample_readme_10.cpp
     :language: cpp
     :encoding: utf-8
+
+Using c++20 coroutine with channel receiver and sender
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: ../../../sample/sample_readme_11.cpp
+    :language: cpp
+    :encoding: utf-8

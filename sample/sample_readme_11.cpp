@@ -1,7 +1,7 @@
 /*
- * sample_readme_7.cpp
+ * sample_readme_11.cpp
  *
- *  Created on: 2020-05-22
+ *  Created on: 2025-03-04
  *      Author: owent
  *
  *  Released under the MIT license
@@ -17,23 +17,23 @@
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 
-using my_generator = copp::generator_future<int>;
-std::list<my_generator::context_pointer_type> g_sample_executor;
+using my_receiver = copp::generator_channel_receiver<int>;
+using my_sender = copp::generator_channel_sender<int>;
+std::list<my_sender> g_sample_executor;
 
-static void generator_callback(my_generator::context_pointer_type ctx) {
-  g_sample_executor.emplace_back(std::move(ctx));
+static my_receiver generator_pick_receiver(std::pair<my_receiver, my_sender>&& receiver_and_sender) {
+  g_sample_executor.emplace_back(std::move(receiver_and_sender.second));
+  return receiver_and_sender.first;
 }
 
 static copp::callable_future<void> coroutine_simulator_rpc() {
-  my_generator generator_object{generator_callback};
-  auto value1 = co_await generator_object;
-  std::cout << "co_await named generator: " << value1 << std::endl;
-  auto value2 = co_await my_generator{generator_callback};
-  std::cout << "co_await temporary generator: " << value2 << std::endl;
+  my_receiver my_generator = generator_pick_receiver(copp::make_channel<int>());
 
-  generator_object.get_context()->reset_value();
-  auto value3 = co_await generator_object;
-  std::cout << "reset and co_await named generator again: " << value3 << std::endl;
+  auto value1 = co_await my_generator;
+  std::cout << "co_await named channel receiver: " << value1 << std::endl;
+  auto value2 = co_await generator_pick_receiver(copp::make_channel<int>());
+  std::cout << "co_await temporary channel receiver: " << value2 << std::endl;
+
   co_return;
 }
 
