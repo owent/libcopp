@@ -39,12 +39,12 @@ void make_unique(TARGS &&...) = delete;
 
 template <class T>
 struct LIBCOPP_COPP_API_HEAD_ONLY small_object_optimize_storage_deleter {
-  LIBCOPP_UTIL_FORCEINLINE void
-  operator()(T *) const LIBCOPP_MACRO_NOEXCEPT{
-      // Do nothing
-  } template <class U>
-  LIBCOPP_UTIL_FORCEINLINE void operator()(U *) const LIBCOPP_MACRO_NOEXCEPT{
-      // Do nothing
+  LIBCOPP_UTIL_FORCEINLINE void operator()(T *) const noexcept {
+    // Do nothing
+  }
+  template <class U>
+  LIBCOPP_UTIL_FORCEINLINE void operator()(U *) const noexcept {
+    // Do nothing
   }
 };
 
@@ -83,20 +83,17 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base;
 
 template <>
 struct LIBCOPP_COPP_API_HEAD_ONLY
-    poll_storage_base<void, std::unique_ptr<void, small_object_optimize_storage_deleter<void> > >
-    : public std::true_type {
+poll_storage_base<void, std::unique_ptr<void, small_object_optimize_storage_deleter<void> > > : public std::true_type {
   using value_type = void;
   using ptr_type = std::unique_ptr<void, small_object_optimize_storage_deleter<void> >;
   using storage_type = ptr_type;
 
-  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT {
-    out.reset();
-  }
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) noexcept { out.reset(); }
 
   template <class U, class UDELETOR,
             typename std::enable_if<std::is_convertible<typename std::decay<U>::type, bool>::value, bool>::type = false>
   LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         std::unique_ptr<U, UDELETOR> &&in) LIBCOPP_MACRO_NOEXCEPT {
+                                                         std::unique_ptr<U, UDELETOR> &&in) noexcept {
     if (in) {
       out.reset(reinterpret_cast<void *>(&out));
     } else {
@@ -106,7 +103,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY
 
   template <class U,
             typename std::enable_if<std::is_convertible<typename std::decay<U>::type, bool>::value, bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&in) noexcept {
     if (in) {
       out.reset(reinterpret_cast<void *>(&out));
     } else {
@@ -114,7 +111,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY
     }
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
     if (in) {
       out.reset(reinterpret_cast<void *>(&out));
     } else {
@@ -124,8 +121,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY
     in.reset();
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void reset(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { storage.reset(); }
-  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void reset(storage_type &storage) noexcept { storage.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) noexcept {
     if (!!l == !!r) {
       return;
     }
@@ -139,10 +136,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY
     }
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static const ptr_type &unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return storage;
-  }
-  LIBCOPP_UTIL_FORCEINLINE static ptr_type &unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { return storage; }
+  LIBCOPP_UTIL_FORCEINLINE static const ptr_type &unwrap(const storage_type &storage) noexcept { return storage; }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type &unwrap(storage_type &storage) noexcept { return storage; }
 };
 
 template <class T>
@@ -152,7 +147,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
   using ptr_type = std::unique_ptr<T, small_object_optimize_storage_deleter<T> >;
   using storage_type = std::pair<T, ptr_type>;
 
-  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) noexcept {
     memset(&out.first, 0, sizeof(out.first));
     out.second.reset();
   }
@@ -162,7 +157,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
                                         std::is_convertible<typename std::decay<U>::type, T>::value,
                                     bool>::type = false>
   LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         std::unique_ptr<U, UDELETOR> &&in) LIBCOPP_MACRO_NOEXCEPT {
+                                                         std::unique_ptr<U, UDELETOR> &&in) noexcept {
     if (in) {
       out.first = *in;
       out.second.reset(&out.first);
@@ -176,18 +171,18 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
   template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value ||
                                                  std::is_convertible<typename std::decay<U>::type, T>::value,
                                              bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&in) noexcept {
     out.first = in;
     out.second.reset(&out.first);
   }
 
   template <class... U>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&...in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&...in) noexcept {
     out.first = value_type(std::forward<U>(in)...);
     out.second.reset(&out.first);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
     if (in.second) {
       out.first = in.first;
       out.second.reset(&out.first);
@@ -198,8 +193,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
     }
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void reset(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { storage.second.reset(); }
-  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void reset(storage_type &storage) noexcept { storage.second.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) noexcept {
     value_type lv = l.first;
     l.first = r.first;
     r.first = lv;
@@ -216,12 +211,10 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
     }
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static const ptr_type &unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static const ptr_type &unwrap(const storage_type &storage) noexcept {
     return storage.second;
   }
-  LIBCOPP_UTIL_FORCEINLINE static ptr_type &unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return storage.second;
-  }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type &unwrap(storage_type &storage) noexcept { return storage.second; }
 };
 
 template <class T, class TPTR>
@@ -230,14 +223,12 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base : public std::false_type {
   using ptr_type = TPTR;
   using storage_type = ptr_type;
 
-  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT {
-    out.reset();
-  }
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) noexcept { out.reset(); }
 
   template <class U, class UDELETOR,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
   LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         std::unique_ptr<U, UDELETOR> &&in) LIBCOPP_MACRO_NOEXCEPT {
+                                                         std::unique_ptr<U, UDELETOR> &&in) noexcept {
     out = std::move(in);
   }
 
@@ -245,36 +236,32 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base : public std::false_type {
                                                  type_traits::is_shared_ptr<ptr_type>::value,
                                              bool>::type = false>
   LIBCOPP_UTIL_FORCEINLINE static void construct_storage(
-      storage_type &out, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<U> &&in) LIBCOPP_MACRO_NOEXCEPT {
+      storage_type &out, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<U> &&in) noexcept {
     out = std::move(LIBCOPP_COPP_NAMESPACE_ID::memory::static_pointer_cast<typename ptr_type::element_type>(in));
   }
 
   template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value &&
                                                  type_traits::is_shared_ptr<ptr_type>::value,
                                              bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         ::std::shared_ptr<U> &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, ::std::shared_ptr<U> &&in) noexcept {
     out = std::move(::std::static_pointer_cast<typename ptr_type::element_type>(in));
   }
 
   template <class... U>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&...in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&...in) noexcept(
+      std::is_nothrow_constructible<value_type, U...>::value) {
     out.reset(new value_type(std::forward<U>(in)...));
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
     out = std::move(in);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void reset(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { storage.reset(); }
-  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT {
-    std::swap(l, r);
-  }
+  LIBCOPP_UTIL_FORCEINLINE static void reset(storage_type &storage) noexcept { storage.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) noexcept { std::swap(l, r); }
 
-  LIBCOPP_UTIL_FORCEINLINE static const ptr_type &unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return storage;
-  }
-  LIBCOPP_UTIL_FORCEINLINE static ptr_type &unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { return storage; }
+  LIBCOPP_UTIL_FORCEINLINE static const ptr_type &unwrap(const storage_type &storage) noexcept { return storage; }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type &unwrap(storage_type &storage) noexcept { return storage; }
 };
 
 template <class T, class TPTR>
@@ -287,24 +274,22 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::unique_ptr<T, small_ob
   using ptr_type = std::unique_ptr<T, small_object_optimize_storage_deleter<T> >;
   using storage_type = T;
 
-  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return false; }
-  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &) {
+  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() noexcept { return false; }
+  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &) noexcept {
     // do nothing for trival copyable object
   }
-  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) noexcept {
     memset(&out, 0, sizeof(out));
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out) LIBCOPP_MACRO_NOEXCEPT {
-    construct_default_storage(out);
-  }
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out) noexcept { construct_default_storage(out); }
 
   template <class U, class UDELETOR,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value ||
                                         std::is_convertible<typename std::decay<U>::type, T>::value,
                                     bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         std::unique_ptr<U, UDELETOR> &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, std::unique_ptr<U, UDELETOR> &&in) noexcept(
+      std::is_nothrow_assignable<storage_type, U>::value) {
     if (in) {
       out = *in;
     } else {
@@ -315,32 +300,29 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::unique_ptr<T, small_ob
   template <class U, typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value ||
                                                  std::is_convertible<typename std::decay<U>::type, T>::value,
                                              bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, U &&in) noexcept(
+      std::is_nothrow_assignable<storage_type, U>::value) {
     out = in;
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) noexcept {
     memcpy(&out, &in, sizeof(out));
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
     memcpy(&out, &in, sizeof(out));
     memset(&in, 0, sizeof(in));
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) noexcept {
     storage_type lv = l;
     l = r;
     r = lv;
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { return &storage; }
-  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return &storage;
-  }
-  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return ptr_type(&storage);
-  }
+  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) noexcept { return &storage; }
+  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) noexcept { return &storage; }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) noexcept { return ptr_type(&storage); }
 };
 
 template <class T>
@@ -350,9 +332,9 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, LIBCOPP_COPP_NAMESPACE_ID::
   using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T>;
   using storage_type = ptr_type;
 
-  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return true; }
-  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &out) { out.reset(); }
-  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) { out.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() noexcept { return true; }
+  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &out) noexcept { out.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) noexcept { out.reset(); }
 
   template <class U, class UDELETOR,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
@@ -366,8 +348,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, LIBCOPP_COPP_NAMESPACE_ID::
 
   template <class U,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out,
-                                                         LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<U> &&in) {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(
+      storage_type &out, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<U> &&in) noexcept {
     if (in) {
       out = LIBCOPP_COPP_NAMESPACE_ID::memory::static_pointer_cast<T>(in);
     } else {
@@ -376,25 +358,24 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, LIBCOPP_COPP_NAMESPACE_ID::
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, TARGS &&...in) {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, TARGS &&...in) noexcept(
+      std::is_nothrow_constructible<T, TARGS...>::value) {
     out = LIBCOPP_COPP_NAMESPACE_ID::memory::make_strong_rc<T>(std::forward<TARGS>(in)...);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) { out = in; }
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) noexcept { out = in; }
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
     out.swap(in);
     in.reset();
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) noexcept { l.swap(r); }
 
-  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) noexcept { return storage.get(); }
+  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) noexcept {
     return storage.get();
   }
-  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return storage.get();
-  }
-  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { return storage; }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) noexcept { return storage; }
 };
 
 template <class T>
@@ -403,9 +384,9 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, ::std::shared_ptr<T> > : pu
   using ptr_type = ::std::shared_ptr<T>;
   using storage_type = ptr_type;
 
-  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() LIBCOPP_MACRO_NOEXCEPT { return true; }
-  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &out) { out.reset(); }
-  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) { out.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static bool is_shared_storage() noexcept { return true; }
+  LIBCOPP_UTIL_FORCEINLINE static void destroy_storage(storage_type &out) noexcept { out.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE static void construct_default_storage(storage_type &out) noexcept { out.reset(); }
 
   template <class U, class UDELETOR,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
@@ -419,7 +400,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, ::std::shared_ptr<T> > : pu
 
   template <class U,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, ::std::shared_ptr<U> &&in) {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, ::std::shared_ptr<U> &&in) noexcept {
     if (in) {
       out = ::std::static_pointer_cast<T>(in);
     } else {
@@ -428,25 +409,24 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, ::std::shared_ptr<T> > : pu
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, TARGS &&...in) {
+  LIBCOPP_UTIL_FORCEINLINE static void construct_storage(storage_type &out, TARGS &&...in) noexcept(
+      std::is_nothrow_constructible<T, TARGS...>::value) {
     out = ::std::make_shared<T>(std::forward<TARGS>(in)...);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) { out = in; }
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static void clone_storage(storage_type &out, const storage_type &in) noexcept { out = in; }
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
     out.swap(in);
     in.reset();
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  LIBCOPP_UTIL_FORCEINLINE static void swap(storage_type &l, storage_type &r) noexcept { l.swap(r); }
 
-  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE static value_type *unwrap(storage_type &storage) noexcept { return storage.get(); }
+  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) noexcept {
     return storage.get();
   }
-  LIBCOPP_UTIL_FORCEINLINE static const value_type *unwrap(const storage_type &storage) LIBCOPP_MACRO_NOEXCEPT {
-    return storage.get();
-  }
-  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) LIBCOPP_MACRO_NOEXCEPT { return storage; }
+  LIBCOPP_UTIL_FORCEINLINE static ptr_type clone_ptr(storage_type &storage) noexcept { return storage; }
 };
 
 template <class T>
@@ -467,21 +447,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
     EN_RESULT_ERROR = 1,
   };
 
-  LIBCOPP_UTIL_FORCEINLINE bool is_success() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_SUCCESS; }
-  LIBCOPP_UTIL_FORCEINLINE bool is_error() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_ERROR; }
+  LIBCOPP_UTIL_FORCEINLINE bool is_success() const noexcept { return mode_ == EN_RESULT_SUCCESS; }
+  LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
 
-  LIBCOPP_UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE const success_type *get_success() const noexcept {
     return is_success() ? &success_data_ : nullptr;
   }
-  LIBCOPP_UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT {
-    return is_success() ? &success_data_ : nullptr;
-  }
-  LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? &error_data_ : nullptr;
-  }
-  LIBCOPP_UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT {
-    return is_error() ? &error_data_ : nullptr;
-  }
+  LIBCOPP_UTIL_FORCEINLINE success_type *get_success() noexcept { return is_success() ? &success_data_ : nullptr; }
+  LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const noexcept { return is_error() ? &error_data_ : nullptr; }
+  LIBCOPP_UTIL_FORCEINLINE error_type *get_error() noexcept { return is_error() ? &error_data_ : nullptr; }
 
  private:
   template <class UOK, class UERR>
@@ -490,28 +464,28 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
   friend struct _make_result_instance_helper;
 
   template <class TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void construct_success(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE void construct_success(TARGS &&args) noexcept {
     make_success_base(std::forward<TARGS>(args));
   }
 
   template <class TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void construct_error(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE void construct_error(TARGS &&args) noexcept {
     make_error_base(std::forward<TARGS>(args));
   }
 
   template <class TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&args) noexcept {
     success_data_ = args;
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&args) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&args) noexcept {
     error_data_ = args;
     mode_ = EN_RESULT_ERROR;
   }
 
-  inline void swap(result_base &other) LIBCOPP_MACRO_NOEXCEPT {
+  inline void swap(result_base &other) noexcept {
     using std::swap;
     if (is_success()) {
       swap(success_data_, other.success_data_);
@@ -521,7 +495,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
     swap(mode_, other.mode_);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE friend void swap(result_base &l, result_base &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  LIBCOPP_UTIL_FORCEINLINE friend void swap(result_base &l, result_base &r) noexcept { l.swap(r); }
 
  private:
   union {
@@ -542,49 +516,49 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
     EN_RESULT_NONE = 2,
   };
 
-  LIBCOPP_UTIL_FORCEINLINE bool is_success() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_SUCCESS; }
-  LIBCOPP_UTIL_FORCEINLINE bool is_error() const LIBCOPP_MACRO_NOEXCEPT { return mode_ == EN_RESULT_ERROR; }
+  LIBCOPP_UTIL_FORCEINLINE bool is_success() const noexcept { return mode_ == EN_RESULT_SUCCESS; }
+  LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
 
-  LIBCOPP_UTIL_FORCEINLINE const success_type *get_success() const LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE const success_type *get_success() const noexcept {
     return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
   }
-  LIBCOPP_UTIL_FORCEINLINE success_type *get_success() LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE success_type *get_success() noexcept {
     return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
   }
-  LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const noexcept {
     return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
   }
-  LIBCOPP_UTIL_FORCEINLINE error_type *get_error() LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE error_type *get_error() noexcept {
     return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
   }
 
-  result_base() : mode_(EN_RESULT_NONE) {
+  result_base() noexcept : mode_(EN_RESULT_NONE) {
     success_storage_type::construct_default_storage(success_data_);
     error_storage_type::construct_default_storage(error_data_);
   }
   ~result_base() { reset(); }
 
-  result_base(result_base &&other) : mode_(EN_RESULT_NONE) {
+  result_base(result_base &&other) noexcept : mode_(EN_RESULT_NONE) {
     success_storage_type::construct_default_storage(success_data_);
     error_storage_type::construct_default_storage(error_data_);
 
     swap(other);
   }
 
-  result_base &operator=(result_base &&other) {
+  result_base &operator=(result_base &&other) noexcept {
     swap(other);
     other.reset();
     return *this;
   }
 
-  LIBCOPP_UTIL_FORCEINLINE void swap(result_base &other) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE void swap(result_base &other) noexcept {
     using std::swap;
     success_storage_type::swap(success_data_, other.success_data_);
     error_storage_type::swap(error_data_, other.error_data_);
     swap(mode_, other.mode_);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE friend void swap(result_base &l, result_base &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  LIBCOPP_UTIL_FORCEINLINE friend void swap(result_base &l, result_base &r) noexcept { l.swap(r); }
 
  private:
   template <class UOK, class UERR>
@@ -593,34 +567,38 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
   friend struct _make_result_instance_helper;
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void construct_success(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE void construct_success(TARGS &&...args) noexcept(
+      noexcept(success_storage_type::construct_storage(success_data_, std::forward<TARGS>(args)...))) {
     reset();
     success_storage_type::construct_storage(success_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void construct_error(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE void construct_error(TARGS &&...args) noexcept(
+      noexcept(error_storage_type::construct_storage(error_data_, std::forward<TARGS>(args)...))) {
     reset();
     error_storage_type::construct_storage(error_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&...args) noexcept(
+      noexcept(make_object<success_storage_type>(success_data_, std::forward<TARGS>(args)...))) {
     reset();
     make_object<success_storage_type>(success_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&...args) noexcept(
+      noexcept(make_object<error_storage_type>(error_data_, std::forward<TARGS>(args)...))) {
     reset();
     make_object<error_storage_type>(error_data_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
-  inline void reset() {
+  inline void reset() noexcept {
     if (EN_RESULT_SUCCESS == mode_) {
       success_storage_type::destroy_storage(success_data_);
     } else if (EN_RESULT_ERROR == mode_) {
@@ -632,13 +610,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
 
  private:
   template <class TSTORAGE, class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static void make_object(typename TSTORAGE::storage_type &out, TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static void make_object(typename TSTORAGE::storage_type &out, TARGS &&...args) noexcept(
+      noexcept(TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...))) {
     TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...);
   }
 
   template <class TSTORAGE, class... TARGS>
   LIBCOPP_UTIL_FORCEINLINE static void make_object(
-      LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<typename TSTORAGE::storage_type> &out, TARGS &&...args) {
+      LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<typename TSTORAGE::storage_type> &out,
+      TARGS &&...args) noexcept(noexcept(TSTORAGE::construct_storage(out, LIBCOPP_COPP_NAMESPACE_ID::memory::
+                                                                              default_make_strong<
+                                                                                  typename TSTORAGE::storage_type>(
+                                                                                  std::forward<TARGS>(args)...)))) {
     TSTORAGE::construct_storage(out,
                                 LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<typename TSTORAGE::storage_type>(
                                     std::forward<TARGS>(args)...));
@@ -660,7 +643,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
   using type = std::unique_ptr<TRESULT>;
 
   template <class... TARGS>
-  inline static type make_success(TARGS &&...args) {
+  inline static type make_success(TARGS &&...args) noexcept(
+      noexcept(std::declval<TRESULT>().make_success_base(std::forward<TARGS>(args)...))) {
     type ret = LIBCOPP_COPP_NAMESPACE_ID::future::make_unique<TRESULT>();
     if (ret) {
       ret->make_success_base(std::forward<TARGS>(args)...);
@@ -670,7 +654,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, false> {
   }
 
   template <class... TARGS>
-  inline static type make_error(TARGS &&...args) {
+  inline static type make_error(TARGS &&...args) noexcept(
+      noexcept(std::declval<TRESULT>().make_error_base(std::forward<TARGS>(args)...))) {
     type ret = LIBCOPP_COPP_NAMESPACE_ID::future::make_unique<TRESULT>();
     if (ret) {
       ret->make_error_base(std::forward<TARGS>(args)...);
@@ -685,14 +670,16 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _make_result_instance_helper<TRESULT, true> {
   using type = TRESULT;
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static type make_success(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static type make_success(TARGS &&...args) noexcept(
+      noexcept(std::declval<TRESULT>().make_success_base(std::forward<TARGS>(args)...))) {
     TRESULT ret;
     ret.make_success_base(std::forward<TARGS>(args)...);
     return ret;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static type make_error(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static type make_error(TARGS &&...args) noexcept(
+      noexcept(std::declval<TRESULT>().make_error_base(std::forward<TARGS>(args)...))) {
     TRESULT ret;
     ret.make_error_base(std::forward<TARGS>(args)...);
     return ret;
@@ -714,14 +701,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_type
   using storage_type = typename _make_instance_type::type;
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static self_type create_success(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static self_type create_success(TARGS &&...args) noexcept(
+      noexcept(std::declval<self_type>().construct_success(std::forward<TARGS>(args)...))) {
     self_type ret;
     ret.construct_success(std::forward<TARGS>(args)...);
     return ret;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static self_type create_error(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static self_type create_error(TARGS &&...args) noexcept(
+      noexcept(std::declval<self_type>().construct_error(std::forward<TARGS>(args)...))) {
     self_type ret;
     ret.construct_error(std::forward<TARGS>(args)...);
     return ret;
@@ -729,12 +718,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_type
 
  public:
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static storage_type make_success(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static storage_type make_success(TARGS &&...args) noexcept(
+      noexcept(_make_instance_type::make_success(std::forward<TARGS>(args)...))) {
     return _make_instance_type::make_success(std::forward<TARGS>(args)...);
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static storage_type make_error(TARGS &&...args) {
+  LIBCOPP_UTIL_FORCEINLINE static storage_type make_error(TARGS &&...args) noexcept(
+      noexcept(_make_instance_type::make_error(std::forward<TARGS>(args)...))) {
     return _make_instance_type::make_error(std::forward<TARGS>(args)...);
   }
 };

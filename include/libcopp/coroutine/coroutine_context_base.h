@@ -7,7 +7,7 @@
 #include <libcopp/stack/stack_context.h>
 #include <libcopp/utils/atomic_int_type.h>
 #include <libcopp/utils/features.h>
-#include <libcopp/utils/intrusive_ptr.h>
+#include <libcopp/utils/memory/intrusive_ptr.h>
 #include <libcopp/fcontext/all.hpp>
 
 // clang-format off

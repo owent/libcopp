@@ -30,7 +30,7 @@ class coroutine_context_fiber_container : public coroutine_context_fiber {
   using base_type = coroutine_context_fiber;
   using allocator_type = TALLOC;
   using this_type = coroutine_context_fiber_container<allocator_type>;
-  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<this_type>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<this_type>;
   using callback_type = coroutine_context_fiber::callback_type;
 
   // Compability with libcopp-1.x

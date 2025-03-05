@@ -117,6 +117,11 @@ class promise_caller_manager {
     friend inline bool operator==(const handle_delegate &l, const handle_delegate &r) noexcept {
       return l.handle == r.handle;
     }
+#  ifdef __cpp_impl_three_way_comparison
+    friend inline auto operator<=>(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle <=> r.handle;
+    }
+#  else
     friend inline bool operator!=(const handle_delegate &l, const handle_delegate &r) noexcept {
       return l.handle != r.handle;
     }
@@ -132,6 +137,7 @@ class promise_caller_manager {
     friend inline bool operator>=(const handle_delegate &l, const handle_delegate &r) noexcept {
       return l.handle >= r.handle;
     }
+#  endif
     inline operator bool() const noexcept { return !!handle; }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -176,23 +182,21 @@ class promise_caller_manager {
 
  private:
   // hash for handle_delegate
-  struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash{
-      inline size_t operator()(const handle_delegate &handle_delegate)
-          const noexcept {return std::hash<void *>()(handle_delegate.handle.address());
-}
-}
-;
+  struct LIBCOPP_COPP_API_HEAD_ONLY handle_delegate_hash {
+    inline size_t operator()(const handle_delegate &handle_delegate) const noexcept {
+      return std::hash<void *>()(handle_delegate.handle.address());
+    }
+  };
 
-using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
+  using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
-std::variant<handle_delegate, multi_caller_set> callers_;
+  std::variant<handle_delegate, multi_caller_set> callers_;
 #  else
-handle_delegate unique_caller_;
-// Mostly, there is only one caller for a promise, we needn't hash map to store one handle
-std::unique_ptr<multi_caller_set> multiple_callers_;
+  handle_delegate unique_caller_;
+  // Mostly, there is only one caller for a promise, we needn't hash map to store one handle
+  std::unique_ptr<multi_caller_set> multiple_callers_;
 #  endif
-}
-;
+};
 
 class promise_base_type {
  public:
@@ -283,68 +287,66 @@ class promise_base_type {
   LIBCOPP_COPP_API void resume_waiting(handle_delegate current_delegate, bool inherit_status);
 
   // C++20 coroutine
-  struct LIBCOPP_COPP_API_HEAD_ONLY final_awaitable{inline bool await_ready() const noexcept {return false;
-} inline void await_resume() const noexcept {
-}
+  struct LIBCOPP_COPP_API_HEAD_ONLY final_awaitable {
+    inline bool await_ready() const noexcept { return false; }
+    inline void await_resume() const noexcept {}
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-template <DerivedPromiseBaseType TPROMISE>
+    template <DerivedPromiseBaseType TPROMISE>
 #  else
-template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+    template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
-inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> self) noexcept {
-  auto &promise = self.promise();
-  promise.set_flag(promise_flag::kFinalSuspend, true);
-  promise.resume_callers();
-}
-}
-;
-final_awaitable final_suspend() noexcept { return {}; }
+    inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> self) noexcept {
+      auto &promise = self.promise();
+      promise.set_flag(promise_flag::kFinalSuspend, true);
+      promise.resume_callers();
+    }
+  };
+  final_awaitable final_suspend() noexcept { return {}; }
 
-LIBCOPP_COPP_API void add_caller(handle_delegate handle) noexcept;
+  LIBCOPP_COPP_API void add_caller(handle_delegate handle) noexcept;
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-template <DerivedPromiseBaseType TPROMISE>
+  template <DerivedPromiseBaseType TPROMISE>
 #  else
-template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
-LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
-    const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle) noexcept {
-  add_caller(handle_delegate{handle});
-}
+  LIBCOPP_COPP_API_HEAD_ONLY void add_caller(
+      const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle) noexcept {
+    add_caller(handle_delegate{handle});
+  }
 
-LIBCOPP_COPP_API void remove_caller(handle_delegate handle, bool inherit_status) noexcept;
+  LIBCOPP_COPP_API void remove_caller(handle_delegate handle, bool inherit_status) noexcept;
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
-template <DerivedPromiseBaseType TPROMISE>
+  template <DerivedPromiseBaseType TPROMISE>
 #  else
-template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
+  template <class TPROMISE, typename = std::enable_if_t<std::is_base_of<promise_base_type, TPROMISE>::value>>
 #  endif
-LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
-    const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle, bool inherit_status) noexcept {
-  remove_caller(handle_delegate{handle}, inherit_status);
-}
+  LIBCOPP_COPP_API_HEAD_ONLY void remove_caller(
+      const LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TPROMISE> &handle, bool inherit_status) noexcept {
+    remove_caller(handle_delegate{handle}, inherit_status);
+  }
 
-LIBCOPP_UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
+  LIBCOPP_UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
 
-LIBCOPP_COPP_API pick_promise_status_awaitable yield_value(pick_promise_status_awaitable &&args) const noexcept;
-static LIBCOPP_COPP_API_HEAD_ONLY inline pick_promise_status_awaitable pick_current_status() noexcept { return {}; }
+  LIBCOPP_COPP_API pick_promise_status_awaitable yield_value(pick_promise_status_awaitable &&args) const noexcept;
+  static LIBCOPP_COPP_API_HEAD_ONLY inline pick_promise_status_awaitable pick_current_status() noexcept { return {}; }
 
-private:
-LIBCOPP_COPP_API void resume_callers();
+ private:
+  LIBCOPP_COPP_API void resume_callers();
 
-private:
-// promise_flags
-uint32_t flags_;
+ private:
+  // promise_flags
+  uint32_t flags_;
 
-// promise_status
-promise_status status_;
+  // promise_status
+  promise_status status_;
 
-// We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
-handle_delegate current_waiting_;
+  // We must erase type here, because MSVC use is_empty_v<coroutine_handle<...>>, which need to calculate the type size
+  handle_delegate current_waiting_;
 
-// caller manager
-promise_caller_manager caller_manager_;
-}
-;
+  // caller manager
+  promise_caller_manager caller_manager_;
+};
 
 class awaitable_base_type {
  public:

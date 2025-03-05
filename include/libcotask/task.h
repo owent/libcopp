@@ -38,7 +38,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   using macro_coroutine_type = TCO_MACRO;
   using self_type = task<macro_coroutine_type>;
-  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<self_type>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<self_type>;
 
   using coroutine_type = typename macro_coroutine_type::coroutine_type;
   using stack_allocator_type = typename macro_coroutine_type::stack_allocator_type;
@@ -950,7 +950,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <typename TCO_MACRO>
-auto operator co_await(const LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<task<TCO_MACRO> > &t)
+auto operator co_await(const LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<task<TCO_MACRO> > &t)
     LIBCOPP_MACRO_NOEXCEPT {
   using awaitable = typename task<TCO_MACRO>::stackful_task_awaitable;
   return awaitable{t.get()};

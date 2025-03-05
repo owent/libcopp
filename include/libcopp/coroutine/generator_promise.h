@@ -4,7 +4,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
-#include <libcopp/utils/intrusive_ptr.h>
+#include <libcopp/utils/memory/intrusive_ptr.h>
 
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
@@ -369,7 +369,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_delegate<TCONTEXT, generator_v
   }
 
  private:
-  copp::util::intrusive_ptr<vtable_type> vtable_;
+  copp::memory::intrusive_ptr<vtable_type> vtable_;
 };
 
 template <class TCONTEXT>
@@ -412,7 +412,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_delegate<TCONTEXT, generator_v
   }
 
  private:
-  copp::util::intrusive_ptr<vtable_type> vtable_;
+  copp::memory::intrusive_ptr<vtable_type> vtable_;
 };
 
 template <class TCONTEXT>
@@ -672,15 +672,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
     return promise_status::kRunning;
   }
 
-  LIBCOPP_UTIL_FORCEINLINE const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>& get_context()
-      const noexcept {
-    return context_;
-  }
+  LIBCOPP_UTIL_FORCEINLINE const context_pointer_type& get_context() const noexcept { return context_; }
 
-  LIBCOPP_UTIL_FORCEINLINE LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>&
-  get_context() noexcept {
-    return context_;
-  }
+  LIBCOPP_UTIL_FORCEINLINE context_pointer_type& get_context() noexcept { return context_; }
 
  private:
   template <class TFUTURE>
@@ -689,7 +683,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   template <class TFUTURE, class, generator_vtable_type>
   friend struct LIBCOPP_COPP_API_HEAD_ONLY some_delegate_generator_action;
 
-  LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type> context_;
+  context_pointer_type context_;
   vtable_delegate_type vtable_delegate_;
 };
 

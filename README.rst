@@ -95,7 +95,7 @@ UPGRADE FROM 1.3.X-1.4.X to 2.X
 + Rename ``stack_allocator_t`` to ``stack_allocator_type`` in ``T`` when using ``cotask::task<T>``.
 + Rename ``coroutine_t`` to ``coroutine_type`` in ``T`` when using ``cotask::task<T>``.
 + Rename ``libcopp::util::*`` to ``copp::util::``.
-+ We are not allowed to use ``libcopp::util::intrusive_ptr<cotask::impl::task_impl>`` now, please use ``cotask::task<T>::ptr_type`` instead.
++ We are not allowed to use ``libcopp::memory::intrusive_ptr<cotask::impl::task_impl>`` now, please use ``cotask::task<T>::ptr_type`` instead.
 
 UPGRADE FROM 1.2.X to 1.3.X-1.4.X
 ------------------------------------

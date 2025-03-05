@@ -19,65 +19,63 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
   using value_type = typename poll_storage::value_type;
 
  public:
-  inline poller() LIBCOPP_MACRO_NOEXCEPT { poll_storage::construct_default_storage(storage_data_); }
+  inline poller() noexcept { poll_storage::construct_default_storage(storage_data_); }
 
   template <class... U>
-  inline poller(U &&...in) LIBCOPP_MACRO_NOEXCEPT {
+  inline poller(U &&...in) noexcept(noexcept(poll_storage::construct_storage(storage_data_, std::forward<U>(in)...))) {
     setup_from(std::forward<U>(in)...);
   }
 
-  inline poller(self_type &&other) LIBCOPP_MACRO_NOEXCEPT { setup_from(std::move(other)); }
+  inline poller(self_type &&other) noexcept(noexcept(poll_storage::construct_storage(storage_data_,
+                                                                                     std::move(other)))) {
+    setup_from(std::move(other));
+  }
 
-  inline poller &operator=(self_type &&other) LIBCOPP_MACRO_NOEXCEPT {
+  inline poller &operator=(self_type &&other) noexcept {
     setup_from(std::move(other));
     return *this;
   }
 
   template <class U>
-  inline poller &operator=(U &&in) LIBCOPP_MACRO_NOEXCEPT {
+  inline poller &operator=(U &&in) noexcept(noexcept(poll_storage::construct_storage(storage_data_,
+                                                                                     std::forward<U>(in)))) {
     setup_from(std::forward<U>(in));
     return *this;
   }
 
-  LIBCOPP_UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT {
-    return !!poll_storage::unwrap(storage_data_);
-  }
+  LIBCOPP_UTIL_FORCEINLINE bool is_ready() const noexcept { return !!poll_storage::unwrap(storage_data_); }
 
-  LIBCOPP_UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT {
-    return !poll_storage::unwrap(storage_data_);
-  }
+  LIBCOPP_UTIL_FORCEINLINE bool is_pending() const noexcept { return !poll_storage::unwrap(storage_data_); }
 
-  LIBCOPP_UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
-    return poll_storage::unwrap(storage_data_).get();
-  }
-  LIBCOPP_UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT {
-    return poll_storage::unwrap(storage_data_).get();
-  }
+  LIBCOPP_UTIL_FORCEINLINE const value_type *data() const noexcept { return poll_storage::unwrap(storage_data_).get(); }
+  LIBCOPP_UTIL_FORCEINLINE value_type *data() noexcept { return poll_storage::unwrap(storage_data_).get(); }
 
-  LIBCOPP_UTIL_FORCEINLINE const ptr_type &raw_ptr() const LIBCOPP_MACRO_NOEXCEPT {
-    return poll_storage::unwrap(storage_data_);
-  }
-  LIBCOPP_UTIL_FORCEINLINE ptr_type &raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_storage::unwrap(storage_data_); }
+  LIBCOPP_UTIL_FORCEINLINE const ptr_type &raw_ptr() const noexcept { return poll_storage::unwrap(storage_data_); }
+  LIBCOPP_UTIL_FORCEINLINE ptr_type &raw_ptr() noexcept { return poll_storage::unwrap(storage_data_); }
 
-  LIBCOPP_UTIL_FORCEINLINE void reset() { poll_storage::reset(storage_data_); }
-  LIBCOPP_UTIL_FORCEINLINE void swap(self_type &other) LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE void reset() noexcept(noexcept(poll_storage::reset(storage_data_))) {
+    poll_storage::reset(storage_data_);
+  }
+  LIBCOPP_UTIL_FORCEINLINE void swap(self_type &other) noexcept {
     poll_storage::swap(storage_data_, other.storage_data_);
   }
-  LIBCOPP_UTIL_FORCEINLINE friend void swap(self_type &l, self_type &r) LIBCOPP_MACRO_NOEXCEPT { l.swap(r); }
+  LIBCOPP_UTIL_FORCEINLINE friend void swap(self_type &l, self_type &r) noexcept { l.swap(r); }
 
  private:
   template <class U, class UDELETER,
             typename std::enable_if<std::is_base_of<T, typename std::decay<U>::type>::value, bool>::type = false>
-  inline void setup_from(std::unique_ptr<U, UDELETER> &&in) {
+  inline void setup_from(std::unique_ptr<U, UDELETER> &&in) noexcept(
+      noexcept(poll_storage::construct_storage(storage_data_, std::move(in)))) {
     poll_storage::construct_storage(storage_data_, std::move(in));
   }
 
   template <class... TARGS>
-  inline void setup_from(TARGS &&...args) {
+  inline void setup_from(TARGS &&...args) noexcept(
+      noexcept(poll_storage::construct_storage(storage_data_, std::forward<TARGS>(args)...))) {
     poll_storage::construct_storage(storage_data_, std::forward<TARGS>(args)...);
   }
 
-  inline void setup_from(self_type &&other) {
+  inline void setup_from(self_type &&other) noexcept {
     poll_storage::move_storage(storage_data_, std::move(other.storage_data_));
   }
 

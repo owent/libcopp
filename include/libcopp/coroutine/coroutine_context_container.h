@@ -29,7 +29,7 @@ class coroutine_context_container : public coroutine_context {
   using base_type = coroutine_context;
   using allocator_type = TALLOC;
   using this_type = coroutine_context_container<allocator_type>;
-  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<this_type>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<this_type>;
   using callback_type = coroutine_context::callback_type;
 
   // Compability with libcopp-1.x
