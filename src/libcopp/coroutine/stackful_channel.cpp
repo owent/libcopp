@@ -21,13 +21,15 @@
 LIBCOPP_COPP_NAMESPACE_BEGIN
 
 LIBCOPP_COPP_API int stackful_channel_resume_handle<coroutine_context>::resume(
-    coroutine_context_base *invoke_ctx, stackful_channel_context_base *priv_data) {
-  return stackful_channel_resume_invoker<coroutine_context>::resume(invoke_ctx, priv_data);
+    void *invoke_ctx, stackful_channel_context_base *priv_data) {
+  return stackful_channel_resume_invoker<coroutine_context>::resume(
+      reinterpret_cast<coroutine_context_base *>(invoke_ctx), priv_data);
 }
 
 LIBCOPP_COPP_API int stackful_channel_resume_handle<coroutine_context_fiber>::resume(
-    coroutine_context_base *invoke_ctx, stackful_channel_context_base *priv_data) {
-  return stackful_channel_resume_invoker<coroutine_context_fiber>::resume(invoke_ctx, priv_data);
+    void *invoke_ctx, stackful_channel_context_base *priv_data) {
+  return stackful_channel_resume_invoker<coroutine_context_fiber>::resume(
+      reinterpret_cast<coroutine_context_base *>(invoke_ctx), priv_data);
 }
 
 LIBCOPP_COPP_API stackful_channel_context_base::stackful_channel_context_base() noexcept {}
@@ -103,16 +105,16 @@ LIBCOPP_COPP_API size_t stackful_channel_context_base::resume_callers() {
   if (std::holds_alternative<handle_delegate>(callers_)) {
     auto caller = std::get<handle_delegate>(callers_);
     std::get<handle_delegate>(callers_) = nullptr;
-    if (caller.context && caller.resume_handle) {
-      caller.resume_handle(caller.context, this);
+    if (caller.handle_data && caller.resume_handle) {
+      caller.resume_handle(caller.handle_data, this);
       ++resume_count;
     }
   } else if (std::holds_alternative<multi_caller_set>(callers_)) {
     multi_caller_set callers;
     callers.swap(std::get<multi_caller_set>(callers_));
     for (auto &caller : callers) {
-      if (caller.context && caller.resume_handle) {
-        caller.resume_handle(caller.context, this);
+      if (caller.handle_data && caller.resume_handle) {
+        caller.resume_handle(caller.handle_data, this);
         ++resume_count;
       }
     }
@@ -124,15 +126,15 @@ LIBCOPP_COPP_API size_t stackful_channel_context_base::resume_callers() {
   multiple_callers.swap(multiple_callers_);
 
   // The promise object may be destroyed after first caller.resume()
-  if (unique_caller.context && unique_caller.resume_handle) {
-    unique_caller.resume_handle(unique_caller.context, this);
+  if (unique_caller.handle_data && unique_caller.resume_handle) {
+    unique_caller.resume_handle(unique_caller.handle_data, this);
     ++resume_count;
   }
 
   if (multiple_callers) {
     for (auto &caller : *multiple_callers) {
-      if (caller.context && caller.resume_handle) {
-        caller.resume_handle(caller.context, this);
+      if (caller.handle_data && caller.resume_handle) {
+        caller.resume_handle(caller.handle_data, this);
         ++resume_count;
       }
     }

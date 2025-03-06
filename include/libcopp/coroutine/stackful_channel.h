@@ -45,7 +45,7 @@ class stackful_channel_context_base;
 template <class TCONTEXT>
 struct stackful_channel_resume_invoker;
 
-template <class TCONTEXT>
+template <class TCOROUTINE_OBJECT>
 struct stackful_channel_resume_handle;
 
 template <class TVALUE>
@@ -59,37 +59,40 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_sender;
 
 template <>
 struct stackful_channel_resume_handle<coroutine_context> {
-  LIBCOPP_COPP_API static int resume(coroutine_context_base *invoke_ctx, stackful_channel_context_base *priv_data);
+  LIBCOPP_COPP_API static int resume(void *invoke_ctx, stackful_channel_context_base *priv_data);
 };
 
 template <>
 struct stackful_channel_resume_handle<coroutine_context_fiber> {
-  LIBCOPP_COPP_API static int resume(coroutine_context_base *invoke_ctx, stackful_channel_context_base *priv_data);
+  LIBCOPP_COPP_API static int resume(void *invoke_ctx, stackful_channel_context_base *priv_data);
 };
 
-template <class TCONTEXT>
+template <class TCOROUTINE_OBJECT>
 struct stackful_channel_resume_invoker {
   LIBCOPP_UTIL_FORCEINLINE static int resume(coroutine_context_base *invoke_ctx,
                                              stackful_channel_context_base *priv_data) {
     if (nullptr != invoke_ctx) {
-      return static_cast<TCONTEXT *>(invoke_ctx)->resume(reinterpret_cast<void *>(priv_data));
+      return static_cast<TCOROUTINE_OBJECT *>(invoke_ctx)->resume(reinterpret_cast<void *>(priv_data));
     }
 
     return 0;
   }
 };
 
-template <class TCONTEXT>
+template <class TCOROUTINE_OBJECT>
 struct stackful_channel_resume_handle {
-  LIBCOPP_COPP_API_HEAD_ONLY inline static int resume(coroutine_context_base *invoke_ctx,
-                                                      stackful_channel_context_base *priv_data) {
-    return stackful_channel_resume_invoker<TCONTEXT>::resume(invoke_ctx, priv_data);
+  static_assert(::std::is_base_of<coroutine_context_base, TCOROUTINE_OBJECT>::value,
+                "TCOROUTINE_OBJECT must be coroutine_context_base or it's derived class");
+
+  LIBCOPP_COPP_API_HEAD_ONLY inline static int resume(void *invoke_ctx, stackful_channel_context_base *priv_data) {
+    return stackful_channel_resume_invoker<TCOROUTINE_OBJECT>::resume(
+        reinterpret_cast<coroutine_context_base *>(invoke_ctx), priv_data);
   }
 };
 
 struct LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_handle_delegate {
-  coroutine_context_base *context = nullptr;
-  int (*resume_handle)(coroutine_context_base *, stackful_channel_context_base *priv_data) = nullptr;
+  void *handle_data = nullptr;
+  int (*resume_handle)(void *, stackful_channel_context_base *priv_data) = nullptr;
 
   LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate() noexcept = default;
   LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate(const stackful_channel_handle_delegate &) noexcept =
@@ -100,61 +103,62 @@ struct LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_handle_delegate {
   LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate &operator=(stackful_channel_handle_delegate &&) noexcept =
       default;
 
-  template <class TCONTEXT>
-  explicit inline stackful_channel_handle_delegate(TCONTEXT *ctx) noexcept : context{ctx}, resume_handle{nullptr} {
-    if (context != nullptr) {
-      resume_handle = stackful_channel_resume_handle<TCONTEXT>::resume;
+  template <class TCOROUTINE_OBJECT>
+  explicit inline stackful_channel_handle_delegate(TCOROUTINE_OBJECT *ctx) noexcept
+      : handle_data{reinterpret_cast<void *>(ctx)}, resume_handle{nullptr} {
+    if (handle_data != nullptr) {
+      resume_handle = stackful_channel_resume_handle<TCOROUTINE_OBJECT>::resume;
     }
   }
 
   explicit LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate(std::nullptr_t) noexcept
-      : context{nullptr}, resume_handle{nullptr} {}
+      : handle_data{nullptr}, resume_handle{nullptr} {}
 
   friend LIBCOPP_UTIL_FORCEINLINE bool operator==(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
-    return l.context == r.context;
+    return l.handle_data == r.handle_data;
   }
 #ifdef __cpp_impl_three_way_comparison
   friend LIBCOPP_UTIL_FORCEINLINE auto operator<=>(const stackful_channel_handle_delegate &l,
                                                    const stackful_channel_handle_delegate &r) noexcept {
-    return l.context <=> r.context;
+    return l.handle_data <=> r.handle_data;
   }
 #else
   friend LIBCOPP_UTIL_FORCEINLINE bool operator!=(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
-    return l.context != r.context;
+    return l.handle_data != r.handle_data;
   }
   friend LIBCOPP_UTIL_FORCEINLINE bool operator<(const stackful_channel_handle_delegate &l,
                                                  const stackful_channel_handle_delegate &r) noexcept {
-    return l.context < r.context;
+    return l.handle_data < r.handle_data;
   }
   friend LIBCOPP_UTIL_FORCEINLINE bool operator<=(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
-    return l.context <= r.context;
+    return l.handle_data <= r.handle_data;
   }
   friend LIBCOPP_UTIL_FORCEINLINE bool operator>(const stackful_channel_handle_delegate &l,
                                                  const stackful_channel_handle_delegate &r) noexcept {
-    return l.context > r.context;
+    return l.handle_data > r.handle_data;
   }
   friend LIBCOPP_UTIL_FORCEINLINE bool operator>=(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
-    return l.context >= r.context;
+    return l.handle_data >= r.handle_data;
   }
 #endif
-  LIBCOPP_UTIL_FORCEINLINE operator bool() const noexcept { return !!context; }
+  LIBCOPP_UTIL_FORCEINLINE operator bool() const noexcept { return !!handle_data; }
 
-  template <class TCONTEXT>
-  LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate &operator=(TCONTEXT *ctx) noexcept {
-    context = ctx;
-    if (context != nullptr) {
-      resume_handle = stackful_channel_resume_handle<TCONTEXT>::resume;
+  template <class TCOROUTINE_OBJECT>
+  LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate &operator=(TCOROUTINE_OBJECT *ctx) noexcept {
+    handle_data = reinterpret_cast<void *>(ctx);
+    if (handle_data != nullptr) {
+      resume_handle = stackful_channel_resume_handle<TCOROUTINE_OBJECT>::resume;
     }
 
     return *this;
   }
 
   LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate &operator=(std::nullptr_t) noexcept {
-    context = nullptr;
+    handle_data = nullptr;
     resume_handle = nullptr;
     return *this;
   }
@@ -163,7 +167,7 @@ struct LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_handle_delegate {
 // hash for stackful_channel_handle_delegate
 struct LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_handle_delegate_hash {
   inline size_t operator()(const stackful_channel_handle_delegate &stackful_channel_handle_delegate) const noexcept {
-    return std::hash<void *>()(stackful_channel_handle_delegate.context);
+    return std::hash<void *>()(stackful_channel_handle_delegate.handle_data);
   }
 };
 
@@ -321,12 +325,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_receiver {
     return context_->is_pending();
   }
 
-  LIBCOPP_UTIL_FORCEINLINE void reset_value() noexcept(noexcept(context_->reset_data())) {
+  LIBCOPP_UTIL_FORCEINLINE void reset_value() noexcept(noexcept(context_->reset_value())) {
     if LIBCOPP_UTIL_UNLIKELY_CONDITION (!context_) {
       return;
     }
 
-    context_->reset_data();
+    context_->reset_value();
   }
 
   LIBCOPP_UTIL_FORCEINLINE const value_type *get_value() const noexcept {
@@ -390,12 +394,12 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_sender {
     return context_->is_pending();
   }
 
-  LIBCOPP_UTIL_FORCEINLINE void reset_value() noexcept(noexcept(context_->reset_data())) {
+  LIBCOPP_UTIL_FORCEINLINE void reset_value() noexcept(noexcept(context_->reset_value())) {
     if LIBCOPP_UTIL_UNLIKELY_CONDITION (!context_) {
       return;
     }
 
-    context_->reset_data();
+    context_->reset_value();
   }
 
   template <class U>

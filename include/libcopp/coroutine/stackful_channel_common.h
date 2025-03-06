@@ -6,6 +6,7 @@
 #include <libcopp/utils/config/libcopp_build_features.h>
 
 #include <libcopp/utils/errno.h>
+#include <libcopp/utils/nostd/type_traits.h>
 
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
@@ -60,5 +61,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_error_transform
 
 template <class TAWAITABLE>
 struct LIBCOPP_COPP_API_HEAD_ONLY stackful_inject_awaitable : ::std::false_type {};
+
+template <class TCONTAINER>
+using container_value_type = typename nostd::remove_cvref_t<TCONTAINER>::value_type;
 
 LIBCOPP_COPP_NAMESPACE_END

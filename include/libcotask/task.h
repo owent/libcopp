@@ -4,6 +4,7 @@
 
 #include <libcopp/utils/config/libcopp_build_features.h>
 
+#include <libcopp/coroutine/stackful_channel.h>
 #include <libcopp/coroutine/std_coroutine_common.h>
 #include <libcopp/future/future.h>
 #include <libcopp/utils/config/libcopp_build_features.h>
@@ -33,7 +34,7 @@
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 
-template <typename TCO_MACRO = macro_coroutine>
+template <class TCO_MACRO = macro_coroutine>
 class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
  public:
   using macro_coroutine_type = TCO_MACRO;
@@ -61,7 +62,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   using action_ptr_t = action_ptr_type;
 
   struct task_group {
-    std::list<std::pair<ptr_type, void *> > member_list_;
+    std::list<std::pair<ptr_type, void *>> member_list_;
   };
 
  public:
@@ -158,7 +159,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
                                 size_t private_buffer_size = 0) {
     using decay_type = typename std::decay<Ty>::type;
     using a_t = typename std::conditional<std::is_base_of<impl::task_action_impl, decay_type>::value, decay_type,
-                                          task_action_functor<decay_type> >::type;
+                                          task_action_functor<decay_type>>::type;
 
     return create_with_delegate<a_t>(std::forward<Ty>(functor), alloc, stack_size, private_buffer_size);
   }
@@ -362,6 +363,57 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     return ret;
   }
 
+  /**
+   * @brief Waits for the specified awaitable object to finish and retrieves its result.
+   *
+   * @param  awaitable         The awaitable object to be consumed.
+   * @param  error_transform   A callable object used to transform error code to return type if any occur.
+   *
+   * @return The result of the awaitable object, of type TAWAITABLE::value_type.
+   */
+  template <class TAWAITABLE, class TERROR_TRANSFORM,
+            class = LIBCOPP_COPP_NAMESPACE_ID::nostd::enable_if_t<LIBCOPP_COPP_NAMESPACE_ID::stackful_inject_awaitable<
+                LIBCOPP_COPP_NAMESPACE_ID::nostd::remove_cvref_t<TAWAITABLE>>::value>>
+  inline LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE>
+  await_value(TAWAITABLE &&awaitable, TERROR_TRANSFORM &&error_transform) noexcept(
+      std::is_nothrow_copy_constructible<LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE>>::value &&
+      noexcept(error_transform(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR))) {
+    if (!coroutine_obj_) {
+      return error_transform(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_INITED);
+    }
+
+    return awaitable.inject_await(this, std::forward<TERROR_TRANSFORM>(error_transform));
+  }
+
+  /**
+   * @brief Waits for the specified awaitable object to finish and retrieves its result.
+   *
+   * @param  awaitable         The awaitable object to be consumed.
+   *
+   * @return The result of the awaitable object, of type TAWAITABLE::value_type.
+   *         If any error happens it will call value_type's constructor and pass error code.
+   */
+  template <class TAWAITABLE,
+            class = LIBCOPP_COPP_NAMESPACE_ID::nostd::enable_if_t<LIBCOPP_COPP_NAMESPACE_ID::stackful_inject_awaitable<
+                LIBCOPP_COPP_NAMESPACE_ID::nostd::remove_cvref_t<TAWAITABLE>>::value>>
+  inline LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE> await_value(TAWAITABLE &&awaitable) noexcept(
+      std::is_nothrow_copy_constructible<LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE>>::value &&
+      noexcept(LIBCOPP_COPP_NAMESPACE_ID::stackful_channel_error_transform<
+               LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE>>()(
+          LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ARGS_ERROR))) {
+    if (!coroutine_obj_) {
+      return LIBCOPP_COPP_NAMESPACE_ID::stackful_channel_error_transform<
+          LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE>>()(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_INITED);
+    }
+
+    return awaitable.inject_await(this, LIBCOPP_COPP_NAMESPACE_ID::stackful_channel_error_transform<
+                                            LIBCOPP_COPP_NAMESPACE_ID::container_value_type<TAWAITABLE>>());
+  }
+
+  /**
+   * @brief await another task
+   * @return 0 or error code
+   */
   template <typename TTask>
   inline int await_task(TTask *wait_task) {
     return await_task(ptr_type(wait_task));
@@ -431,6 +483,15 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #else
       active_next_tasks();
 #endif
+    }
+
+    // then, find and destroy action
+    void *action_ptr = reinterpret_cast<void *>(_get_action());
+    if (nullptr != action_destroy_fn_ && nullptr != action_ptr) {
+      (*action_destroy_fn_)(action_ptr);
+
+      action_destroy_fn_ = nullptr;
+      _set_action(nullptr);
     }
   }
 
@@ -682,7 +743,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 #else
   void active_next_tasks() {
 #endif
-    std::list<std::pair<ptr_type, void *> > next_list;
+    std::list<std::pair<ptr_type, void *>> next_list;
 #if defined(LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER) && LIBCOTASK_MACRO_AUTO_CLEANUP_MANAGER
     void *manager_ptr;
     void (*manager_fn)(void *, self_type &);
@@ -703,7 +764,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     }
 
     // then, do all the pending tasks
-    for (typename std::list<std::pair<ptr_type, void *> >::iterator iter = next_list.begin(); iter != next_list.end();
+    for (typename std::list<std::pair<ptr_type, void *>>::iterator iter = next_list.begin(); iter != next_list.end();
          ++iter) {
       if (!iter->first || EN_TS_INVALID == iter->first->get_status()) {
         continue;
@@ -789,12 +850,6 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
       using this_coroutine_ptr_type = typename this_coroutine_type::ptr_type;
       this_coroutine_ptr_type coro = p->coroutine_obj_;
 
-      // then, find and destroy action
-      void *action_ptr = reinterpret_cast<void *>(p->_get_action());
-      if (nullptr != p->action_destroy_fn_ && nullptr != action_ptr) {
-        (*p->action_destroy_fn_)(action_ptr);
-      }
-
       // then, destruct task
       p->~task();
 
@@ -860,7 +915,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
     template <LIBCOPP_COPP_NAMESPACE_ID::DerivedPromiseBaseType TCPROMISE>
 #  else
     template <class TCPROMISE, typename = std::enable_if_t<
-                                   std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value> >
+                                   std::is_base_of<LIBCOPP_COPP_NAMESPACE_ID::promise_base_type, TCPROMISE>::value>>
 #  endif
     inline void await_suspend(LIBCOPP_MACRO_STD_COROUTINE_NAMESPACE coroutine_handle<TCPROMISE> caller) noexcept {
       if (waiting_task_ && !waiting_task_->is_exiting() &&
@@ -932,8 +987,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<size_t> ref_count_; /** ref_count **/
   LIBCOPP_COPP_NAMESPACE_ID::util::lock::spin_lock inner_action_lock_;
 #else
-  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<
-      LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t> >
+  LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<LIBCOPP_COPP_NAMESPACE_ID::util::lock::unsafe_int_type<size_t>>
       ref_count_; /** ref_count **/
 #endif
 
@@ -950,10 +1004,24 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task : public impl::task_impl {
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 template <typename TCO_MACRO>
-auto operator co_await(const LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<task<TCO_MACRO> > &t)
+auto operator co_await(const LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<task<TCO_MACRO>> &t)
     LIBCOPP_MACRO_NOEXCEPT {
   using awaitable = typename task<TCO_MACRO>::stackful_task_awaitable;
   return awaitable{t.get()};
 }
 #endif
 LIBCOPP_COTASK_NAMESPACE_END
+
+LIBCOPP_COPP_NAMESPACE_BEGIN
+template <class TCO_MACRO>
+struct stackful_channel_resume_handle<LIBCOPP_COTASK_NAMESPACE_ID::task<TCO_MACRO>> {
+  LIBCOPP_COPP_API_HEAD_ONLY inline static int resume(void *invoke_task, stackful_channel_context_base *priv_data) {
+    if (nullptr != invoke_task) {
+      return reinterpret_cast<LIBCOPP_COTASK_NAMESPACE_ID::task<TCO_MACRO> *>(invoke_task)
+          ->resume(reinterpret_cast<void *>(priv_data));
+    }
+
+    return 0;
+  }
+};
+LIBCOPP_COPP_NAMESPACE_END

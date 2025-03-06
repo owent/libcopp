@@ -8,7 +8,9 @@
 
 #include <libcopp/utils/uint64_id_allocator.h>
 
+#include <libcopp/coroutine/stackful_channel_common.h>
 #include <libcopp/utils/lock_holder.h>
+#include <libcopp/utils/nostd/type_traits.h>
 #include <libcopp/utils/spin_lock.h>
 
 #include <libcotask/task_actions.h>

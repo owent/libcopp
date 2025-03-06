@@ -314,10 +314,10 @@ CASE_TEST(coroutine_channel, fiber_channel_int) {
 
     CASE_EXPECT_EQ(g_test_coroutine_channel_status, 2);
 
-    runner.sender->set_value(137);
+    runner.sender->set_value(157);
 
     CASE_EXPECT_EQ(g_test_coroutine_channel_status, 3);
-    CASE_EXPECT_EQ(runner.last_value, 137);
+    CASE_EXPECT_EQ(runner.last_value, 157);
 
     CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_NOT_READY, co->resume());
     CASE_EXPECT_EQ(LIBCOPP_COPP_NAMESPACE_ID::COPP_EC_ALREADY_EXIST, co->yield());

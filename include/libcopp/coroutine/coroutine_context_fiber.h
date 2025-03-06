@@ -149,21 +149,37 @@ class coroutine_context_fiber : public coroutine_context_base {
    */
   LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
 
+  /**
+   * @brief Waits for the specified awaitable object to finish and retrieves its result.
+   *
+   * @param  awaitable         The awaitable object to be consumed.
+   * @param  error_transform   A callable object used to transform error code to return type if any occur.
+   *
+   * @return The result of the awaitable object, of type TAWAITABLE::value_type.
+   */
   template <class TAWAITABLE, class TERROR_TRANSFORM,
             class = nostd::enable_if_t<stackful_inject_awaitable<nostd::remove_cvref_t<TAWAITABLE>>::value>>
-  LIBCOPP_COPP_API_HEAD_ONLY typename TAWAITABLE::value_type
+  LIBCOPP_COPP_API_HEAD_ONLY inline container_value_type<TAWAITABLE>
   await_value(TAWAITABLE &&awaitable, TERROR_TRANSFORM &&error_transform) noexcept(
-      std::is_nothrow_copy_constructible<typename TAWAITABLE::value_type>::value &&
+      std::is_nothrow_copy_constructible<container_value_type<TAWAITABLE>>::value &&
       noexcept(error_transform(COPP_EC_ARGS_ERROR))) {
     return awaitable.inject_await(this, std::forward<TERROR_TRANSFORM>(error_transform));
   }
 
+  /**
+   * @brief Waits for the specified awaitable object to finish and retrieves its result.
+   *
+   * @param  awaitable         The awaitable object to be consumed.
+   *
+   * @return The result of the awaitable object, of type TAWAITABLE::value_type.
+   *         If any error happens it will call value_type's constructor and pass error code.
+   */
   template <class TAWAITABLE,
             class = nostd::enable_if_t<stackful_inject_awaitable<nostd::remove_cvref_t<TAWAITABLE>>::value>>
-  LIBCOPP_COPP_API_HEAD_ONLY typename TAWAITABLE::value_type await_value(TAWAITABLE &&awaitable) noexcept(
-      std::is_nothrow_copy_constructible<typename TAWAITABLE::value_type>::value &&
-      noexcept(stackful_channel_error_transform<typename TAWAITABLE::value_type>()(COPP_EC_ARGS_ERROR))) {
-    return awaitable.inject_await(this, stackful_channel_error_transform<typename TAWAITABLE::value_type>());
+  LIBCOPP_COPP_API_HEAD_ONLY inline container_value_type<TAWAITABLE> await_value(TAWAITABLE &&awaitable) noexcept(
+      std::is_nothrow_copy_constructible<container_value_type<TAWAITABLE>>::value &&
+      noexcept(stackful_channel_error_transform<container_value_type<TAWAITABLE>>()(COPP_EC_ARGS_ERROR))) {
+    return awaitable.inject_await(this, stackful_channel_error_transform<container_value_type<TAWAITABLE>>());
   }
 };
 

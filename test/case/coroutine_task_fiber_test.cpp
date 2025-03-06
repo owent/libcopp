@@ -94,6 +94,9 @@ CASE_TEST(coroutine_task_fiber, custom_action) {
     CASE_EXPECT_FALSE(co_task->is_canceled());
     CASE_EXPECT_FALSE(co_task->is_faulted());
 
+    CASE_EXPECT_EQ(co_task->get_status(), cotask::EN_TS_DONE);
+    CASE_EXPECT_EQ(co_another_task->get_status(), cotask::EN_TS_DONE);
+
     CASE_EXPECT_GT(0, co_another_task->resume(co_another_task.get()));
     CASE_EXPECT_EQ(g_test_coroutine_task_fiber_status, 4);
 

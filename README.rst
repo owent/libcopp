@@ -305,6 +305,7 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 9. Let c++20 coroutine work with ``cotask::task``
 10. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
 11. Using c++20 coroutine with channel receiver and sender
+12. Using stackful coroutine task with channel receiver and sender
 
 All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owent/libcopp/tree/v2/sample>`_ .
 
