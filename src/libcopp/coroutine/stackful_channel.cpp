@@ -26,11 +26,13 @@ LIBCOPP_COPP_API int stackful_channel_resume_handle<coroutine_context>::resume(
       reinterpret_cast<coroutine_context_base *>(invoke_ctx), priv_data);
 }
 
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 LIBCOPP_COPP_API int stackful_channel_resume_handle<coroutine_context_fiber>::resume(
     void *invoke_ctx, stackful_channel_context_base *priv_data) {
   return stackful_channel_resume_invoker<coroutine_context_fiber>::resume(
       reinterpret_cast<coroutine_context_base *>(invoke_ctx), priv_data);
 }
+#endif
 
 LIBCOPP_COPP_API stackful_channel_context_base::stackful_channel_context_base() noexcept {}
 

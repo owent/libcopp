@@ -38,7 +38,9 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 
 class coroutine_context_base;
 class coroutine_context;
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 class coroutine_context_fiber;
+#endif
 
 class stackful_channel_context_base;
 
@@ -62,10 +64,12 @@ struct stackful_channel_resume_handle<coroutine_context> {
   LIBCOPP_COPP_API static int resume(void *invoke_ctx, stackful_channel_context_base *priv_data);
 };
 
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
 template <>
 struct stackful_channel_resume_handle<coroutine_context_fiber> {
   LIBCOPP_COPP_API static int resume(void *invoke_ctx, stackful_channel_context_base *priv_data);
 };
+#endif
 
 template <class TCOROUTINE_OBJECT>
 struct stackful_channel_resume_invoker {
@@ -217,8 +221,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_context : public stackful_chan
   using handle_delegate_hash = stackful_channel_context_base::handle_delegate_hash;
 
  public:
-  LIBCOPP_UTIL_FORCEINLINE stackful_channel_context() = default;
-  LIBCOPP_UTIL_FORCEINLINE ~stackful_channel_context() = default;
+  LIBCOPP_UTIL_FORCEINLINE stackful_channel_context() noexcept = default;
+  LIBCOPP_UTIL_FORCEINLINE ~stackful_channel_context() noexcept = default;
 
  public:
   LIBCOPP_UTIL_FORCEINLINE bool is_ready() const noexcept { return data_.is_ready(); }
@@ -241,8 +245,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_context : public stackful_chan
 
   template <
       class TCONTEXT, class TERROR_TRANSFORM,
-      class = nostd::enable_if_t<!std::is_base_of<coroutine_context, nostd::remove_cvref_t<TCONTEXT>>::value &&
-                                 !std::is_base_of<coroutine_context_fiber, nostd::remove_cvref_t<TCONTEXT>>::value>>
+      class = nostd::enable_if_t<!std::is_base_of<coroutine_context, nostd::remove_cvref_t<TCONTEXT>>::value
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
+                                 && !std::is_base_of<coroutine_context_fiber, nostd::remove_cvref_t<TCONTEXT>>::value
+#endif
+                                 >>
   LIBCOPP_UTIL_FORCEINLINE value_type inject_await(TCONTEXT *ctx, TERROR_TRANSFORM &&error_transform) noexcept(
       std::is_nothrow_copy_constructible<value_type>::value && noexcept(error_transform(COPP_EC_ARGS_ERROR))) {
     return internal_inject_await<TCONTEXT>(ctx, std::forward<TERROR_TRANSFORM>(error_transform));
@@ -254,6 +261,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_context : public stackful_chan
     return internal_inject_await<coroutine_context>(ctx, std::forward<TERROR_TRANSFORM>(error_transform));
   }
 
+#if defined(LIBCOPP_MACRO_ENABLE_WIN_FIBER) && LIBCOPP_MACRO_ENABLE_WIN_FIBER
   template <class TERROR_TRANSFORM>
   LIBCOPP_UTIL_FORCEINLINE value_type
   inject_await(coroutine_context_fiber *ctx,
@@ -261,6 +269,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_context : public stackful_chan
                                                             noexcept(error_transform(COPP_EC_ARGS_ERROR))) {
     return internal_inject_await<coroutine_context_fiber>(ctx, std::forward<TERROR_TRANSFORM>(error_transform));
   }
+#endif
 
  private:
   template <class TCONTEXT, class TERROR_TRANSFORM>
@@ -309,7 +318,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_receiver {
 
  public:
   inline stackful_channel_receiver() noexcept
-      : context_{LIBCOPP_COPP_NAMESPACE_ID::memory::make_strong_rc<context_type>()} {}
+      : context_(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>()) {}
 
   LIBCOPP_UTIL_FORCEINLINE bool is_ready() const noexcept {
     if LIBCOPP_UTIL_UNLIKELY_CONDITION (!context_) {

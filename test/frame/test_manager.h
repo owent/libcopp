@@ -141,8 +141,8 @@ class test_manager {
     static inline value_type pick(TVAL v) { return value_type(v); }
   };
 
-  template <>
-  struct try_convert_to_string_view<const char *, true> {
+  template <bool CONVERTABLE_TO_SV>
+  struct try_convert_to_string_view<const char *, CONVERTABLE_TO_SV> {
     using value_type = const char *;
     static inline value_type pick(const char *v) { return v; }
   };

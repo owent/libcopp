@@ -39,7 +39,7 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 
 namespace detail {
 static std::size_t pagesize() {
-  std::size_t size = ::sysconf(_SC_PAGESIZE);
+  std::size_t size = static_cast<size_t>(::sysconf(_SC_PAGESIZE));
   return size;
 }
 
@@ -70,7 +70,7 @@ LIBCOPP_COPP_API std::size_t stack_traits::default_size() LIBCOPP_MACRO_NOEXCEPT
   return maximum_size() == size ? size : (std::min)(size, maximum_size());
 }
 
-LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() LIBCOPP_MACRO_NOEXCEPT { return MINSIGSTKSZ; }
+LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() LIBCOPP_MACRO_NOEXCEPT { return static_cast<size_t>(MINSIGSTKSZ); }
 
 LIBCOPP_COPP_API std::size_t stack_traits::maximum_size() LIBCOPP_MACRO_NOEXCEPT {
   if (is_unbounded()) return std::numeric_limits<std::size_t>::max();

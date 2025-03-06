@@ -329,7 +329,7 @@ enum { test_context_task_manager_action_mt_thread_num = 1000 };
 
 struct test_context_task_manager_action_mt_thread : public cotask::impl::task_action_impl {
  public:
-  int operator()(void *run_count_p) {
+  int operator()(void *run_count_p) override {
     assert(run_count_p);
     int *run_count = reinterpret_cast<int *>(run_count_p);
 

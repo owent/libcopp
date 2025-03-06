@@ -661,7 +661,7 @@ struct test_context_task_test_action_mt_thread : public cotask::impl::task_actio
  public:
   test_context_task_test_action_mt_thread() : run_count(0) {}
 
-  int operator()(void *thread_func_address) {
+  int operator()(void *thread_func_address) override {
     std::set<void *> thread_counter;
 
     while (run_count < g_test_context_task_test_mt_run_times) {
