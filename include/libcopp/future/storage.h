@@ -517,6 +517,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
     EN_RESULT_NONE = 2,
   };
 
+  using success_storage_type = typename default_compact_storage<success_type>::type;
+  using error_storage_type = typename default_compact_storage<error_type>::type;
+
   LIBCOPP_UTIL_FORCEINLINE bool is_success() const noexcept { return mode_ == EN_RESULT_SUCCESS; }
   LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
 
@@ -627,9 +630,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
                                 LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<typename TSTORAGE::storage_type>(
                                     std::forward<TARGS>(args)...));
   }
-
-  using success_storage_type = typename default_compact_storage<success_type>::type;
-  using error_storage_type = typename default_compact_storage<error_type>::type;
 
   typename success_storage_type::storage_type success_data_;
   typename error_storage_type::storage_type error_data_;

@@ -200,7 +200,7 @@ jobs:
           - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc
-            gcov_flags: "--coverage -fprofile-arcs -ftest-coverage -fno-omit-frame-pointer"
+            gcov_flags: "--coverage -fprofile-arcs -ftest-coverage -fno-omit-frame-pointer -fprofile-update=atomic"
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
