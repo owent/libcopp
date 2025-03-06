@@ -599,6 +599,15 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false, VTABLE_TYP
   using base_type::get_context;
 };
 
+template <class T>
+struct is_generator_future;
+
+template <class TVALUE, class TERROR_TRANSFORM, generator_vtable_type VTABLE_TYPE>
+struct is_generator_future<generator_future<TVALUE, TERROR_TRANSFORM, VTABLE_TYPE>> : ::std::true_type {};
+
+template <class T>
+struct is_generator_future : ::std::false_type {};
+
 template <class TVALUE, class TERROR_TRANSFORM, generator_vtable_type VTABLE_TYPE>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
  public:
@@ -612,14 +621,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_future {
   using vtable_delegate_type = generator_vtable_delegate<context_type, VTABLE_TYPE>;
 
  public:
-  template <class TSUSPEND, class TRESUME, class = nostd::enable_if_t<VTABLE_TYPE != generator_vtable_type::kNone>>
+  template <class TSUSPEND, class TRESUME,
+            class = nostd::enable_if_t<!is_generator_vtable_delegate<nostd::decay_t<TSUSPEND>>::value>>
   inline generator_future(TSUSPEND&& await_suspend_callback,
                           TRESUME&& await_resume_callback) noexcept(std::is_nothrow_constructible<context_type>::value)
       : context_(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>()),
         vtable_delegate_(std::forward<TSUSPEND>(await_suspend_callback), std::forward<TRESUME>(await_resume_callback)) {
   }
 
-  template <class TSUSPEND, class = nostd::enable_if_t<VTABLE_TYPE != generator_vtable_type::kNone>>
+  template <class TSUSPEND, class = nostd::enable_if_t<!is_generator_vtable_delegate<nostd::decay_t<TSUSPEND>>::value &&
+                                                       !is_generator_future<nostd::decay_t<TSUSPEND>>::value>>
   inline generator_future(TSUSPEND&& await_suspend_callback) noexcept(
       std::is_nothrow_constructible<context_type>::value)
       : context_(LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<context_type>()),

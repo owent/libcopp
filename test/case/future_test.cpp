@@ -22,8 +22,8 @@ struct test_no_trivial_parent_clazz {
 struct test_no_trivial_child_clazz : public test_no_trivial_parent_clazz {
   test_no_trivial_child_clazz() {}
   test_no_trivial_child_clazz(int a) : test_no_trivial_parent_clazz(-a) {}
-  virtual ~test_no_trivial_child_clazz() {}
-  virtual int get_type() { return 2; }
+  ~test_no_trivial_child_clazz() {}
+  int get_type() override { return 2; }
 };
 
 struct test_trivial_clazz {

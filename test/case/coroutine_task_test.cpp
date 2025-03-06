@@ -21,7 +21,7 @@ class test_context_task_action_base : public cotask::impl::task_action_impl {
   // add a same name function to find the type detection error
   virtual int operator()() = 0;
 
-  int operator()(void *priv_data) {
+  int operator()(void *priv_data) override {
     ++g_test_coroutine_task_status;
 
     CASE_EXPECT_EQ(&g_test_coroutine_task_status, priv_data);
@@ -37,7 +37,7 @@ class test_context_task_action_base : public cotask::impl::task_action_impl {
     return 0;
   }
 
-  virtual int on_finished(cotask::impl::task_impl &) {
+  int on_finished(cotask::impl::task_impl &) override {
     ++g_test_coroutine_task_on_finished;
     return 0;
   }
@@ -48,7 +48,7 @@ class test_context_task_action : public test_context_task_action_base {
   using test_context_task_action_base::operator();
 
   // add a same name function to find the type detection error
-  virtual int operator()() { return 0; }
+  int operator()() override { return 0; }
 };
 
 CASE_TEST(coroutine_task, custom_action) {
@@ -328,7 +328,7 @@ struct test_context_task_next_action : public cotask::impl::task_action_impl {
   int check_;
   test_context_task_next_action(int s, int c) : cotask::impl::task_action_impl(), set_(s), check_(c) {}
 
-  int operator()(void *) {
+  int operator()(void *) override {
     CASE_EXPECT_EQ(g_test_coroutine_task_status, check_);
     g_test_coroutine_task_status = set_;
 
@@ -378,7 +378,7 @@ struct test_context_task_functor_drived : public cotask::impl::task_action_impl 
   int b_;
   test_context_task_functor_drived(int a, int b) : a_(a), b_(b) {}
 
-  virtual int operator()(void *) {
+  int operator()(void *) override {
     CASE_EXPECT_EQ(a_, 1);
     CASE_EXPECT_EQ(3, b_);
 

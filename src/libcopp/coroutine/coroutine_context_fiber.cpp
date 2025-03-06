@@ -217,7 +217,8 @@ LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p,
     return COPP_EC_ARGS_ERROR;
   }
 
-  size_t this_offset = reinterpret_cast<unsigned char *>(callee_stack.sp) - reinterpret_cast<unsigned char *>(p);
+  size_t this_offset =
+      static_cast<size_t>(reinterpret_cast<unsigned char *>(callee_stack.sp) - reinterpret_cast<unsigned char *>(p));
   if (this_offset < sizeof(coroutine_context_fiber) + private_buffer_size || this_offset > stack_offset) {
     return COPP_EC_ARGS_ERROR;
   }

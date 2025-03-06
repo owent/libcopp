@@ -111,36 +111,36 @@ struct LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_handle_delegate {
     }
   }
 
-  explicit LIBCOPP_UTIL_FORCEINLINE stackful_channel_handle_delegate(std::nullptr_t) noexcept
+  LIBCOPP_UTIL_FORCEINLINE explicit stackful_channel_handle_delegate(std::nullptr_t) noexcept
       : handle_data{nullptr}, resume_handle{nullptr} {}
 
-  friend LIBCOPP_UTIL_FORCEINLINE bool operator==(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend bool operator==(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data == r.handle_data;
   }
 #ifdef __cpp_impl_three_way_comparison
-  friend LIBCOPP_UTIL_FORCEINLINE auto operator<=>(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend auto operator<=>(const stackful_channel_handle_delegate &l,
                                                    const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data <=> r.handle_data;
   }
 #else
-  friend LIBCOPP_UTIL_FORCEINLINE bool operator!=(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend bool operator!=(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data != r.handle_data;
   }
-  friend LIBCOPP_UTIL_FORCEINLINE bool operator<(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend bool operator<(const stackful_channel_handle_delegate &l,
                                                  const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data < r.handle_data;
   }
-  friend LIBCOPP_UTIL_FORCEINLINE bool operator<=(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend bool operator<=(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data <= r.handle_data;
   }
-  friend LIBCOPP_UTIL_FORCEINLINE bool operator>(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend bool operator>(const stackful_channel_handle_delegate &l,
                                                  const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data > r.handle_data;
   }
-  friend LIBCOPP_UTIL_FORCEINLINE bool operator>=(const stackful_channel_handle_delegate &l,
+  LIBCOPP_UTIL_FORCEINLINE friend bool operator>=(const stackful_channel_handle_delegate &l,
                                                   const stackful_channel_handle_delegate &r) noexcept {
     return l.handle_data >= r.handle_data;
   }

@@ -56,7 +56,7 @@ file(
 source_group_by_dir(COPP_TEST_SRC_LIST)
 
 # ================ multi thread ================
-if(NOT MSVC)
+if(ATFRAMEWORK_CMAKE_TOOLSET_TEST_FLAG_PTHREAD)
   add_definitions(-D_POSIX_MT_)
   set(PROJECT_LIBCOPP_TEST_LIB_LINK ${PROJECT_LIBCOPP_TEST_LIB_LINK} pthread)
 endif()

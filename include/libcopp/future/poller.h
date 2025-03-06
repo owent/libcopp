@@ -26,12 +26,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
     setup_from(std::forward<U>(in)...);
   }
 
-  inline poller(self_type &&other) noexcept(noexcept(poll_storage::construct_storage(storage_data_,
-                                                                                     std::move(other)))) {
+  inline poller(self_type &&other) noexcept(noexcept(poll_storage::move_storage(storage_data_,
+                                                                                std::move(other.storage_data_)))) {
     setup_from(std::move(other));
   }
 
-  inline poller &operator=(self_type &&other) noexcept {
+  inline poller &operator=(self_type &&other) noexcept(
+      noexcept(poll_storage::move_storage(storage_data_, std::move(other.storage_data_)))) {
     setup_from(std::move(other));
     return *this;
   }
@@ -75,7 +76,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
     poll_storage::construct_storage(storage_data_, std::forward<TARGS>(args)...);
   }
 
-  inline void setup_from(self_type &&other) noexcept {
+  inline void setup_from(self_type &&other) noexcept(
+      noexcept(poll_storage::move_storage(storage_data_, std::move(other.storage_data_)))) {
     poll_storage::move_storage(storage_data_, std::move(other.storage_data_));
   }
 

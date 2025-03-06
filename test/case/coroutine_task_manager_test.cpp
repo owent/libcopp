@@ -15,7 +15,7 @@
 static int g_test_coroutine_task_manager_status = 0;
 class test_context_task_manager_action : public cotask::impl::task_action_impl {
  public:
-  int operator()(void *) {
+  int operator()(void *) override {
     ++g_test_coroutine_task_manager_status;
 
     // CASE_EXPECT_EQ(cotask::EN_TS_RUNNING, cotask::this_task::get_task()->get_status());
@@ -266,7 +266,7 @@ CASE_TEST(coroutine_task_manager, update_timeout) {
 
 class test_context_task_manager_action_protect_this_task : public cotask::impl::task_action_impl {
  public:
-  int operator()(void *) {
+  int operator()(void *) override {
     int use_count = static_cast<int>(cotask::this_task::get<cotask::task<> >()->use_count());
     CASE_EXPECT_EQ(2, use_count);
     cotask::this_task::get_task()->yield();
@@ -416,7 +416,7 @@ CASE_TEST(coroutine_task_manager, auto_cleanup_for_manager) {
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 class test_context_task_manager_action_with_exception : public cotask::impl::task_action_impl {
  public:
-  int operator()(void *) {
+  int operator()(void *) override {
     ++g_test_coroutine_task_manager_status;
 
     cotask::this_task::get_task()->yield();

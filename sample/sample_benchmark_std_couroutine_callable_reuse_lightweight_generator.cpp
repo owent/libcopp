@@ -40,7 +40,7 @@ int max_task_number = 100000;
 benchmark_callable_future_type run_benchmark(size_t idx, int left_switch_count) {
   int64_t result = 0;
 
-  benchmark_generator_future_type generator{[idx](benchmark_generator_future_type::context_pointer_type /*ctx*/) {
+  benchmark_generator_future_type generator{[](benchmark_generator_future_type::context_pointer_type /*ctx*/) {
     // Do nothing
   }};
 

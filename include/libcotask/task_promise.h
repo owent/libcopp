@@ -1225,7 +1225,7 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_future
 #  endif
 
         // Notify callers
-        LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::final_awaitable::template await_suspend(self);
+        LIBCOPP_COPP_NAMESPACE_ID::promise_base_type::final_awaitable::await_suspend(self);
 
         // At last it may be destroyed after all callers and managers is unbind.
       }

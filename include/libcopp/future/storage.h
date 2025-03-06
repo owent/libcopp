@@ -182,7 +182,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_
     out.second.reset(&out.first);
   }
 
-  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept {
+  LIBCOPP_UTIL_FORCEINLINE static void move_storage(storage_type &out, storage_type &&in) noexcept(
+      std::is_nothrow_copy_assignable<value_type>::value) {
     if (in.second) {
       out.first = in.first;
       out.second.reset(&out.first);
