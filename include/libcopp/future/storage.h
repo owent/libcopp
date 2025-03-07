@@ -435,6 +435,32 @@ struct default_compact_storage : public compact_storage<T, typename compact_stor
   using type = compact_storage<T, typename compact_storage_selector<T>::type>;
 };
 
+template <class TSTORAGE, class... TARGS>
+LIBCOPP_UTIL_FORCEINLINE static void __make_result_value(
+    typename TSTORAGE::storage_type &out,
+    TARGS &&...args) noexcept(noexcept(TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...))) {
+  TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...);
+}
+
+template <class TSTORAGE, class... TARGS>
+LIBCOPP_UTIL_FORCEINLINE static void __make_result_value(
+    LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<typename TSTORAGE::storage_type> &out,
+    TARGS &&...args) noexcept(noexcept(TSTORAGE::construct_storage(out,
+                                                                   LIBCOPP_COPP_NAMESPACE_ID::memory::make_strong_rc<
+                                                                       typename TSTORAGE::storage_type>(
+                                                                       std::forward<TARGS>(args)...)))) {
+  TSTORAGE::construct_storage(out, LIBCOPP_COPP_NAMESPACE_ID::memory::make_strong_rc<typename TSTORAGE::storage_type>(
+                                       std::forward<TARGS>(args)...));
+}
+
+template <class TSTORAGE, class... TARGS>
+LIBCOPP_UTIL_FORCEINLINE static void
+__make_result_value(::std::shared_ptr<typename TSTORAGE::storage_type> &out, TARGS &&...args) noexcept(noexcept(
+    TSTORAGE::construct_storage(out,
+                                ::std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...)))) {
+  TSTORAGE::construct_storage(out, ::std::make_shared<typename TSTORAGE::storage_type>(std::forward<TARGS>(args)...));
+}
+
 template <class TOK, class TERR, bool is_all_trivial>
 class LIBCOPP_COPP_API_HEAD_ONLY result_base;
 
@@ -519,11 +545,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
 
   using success_storage_type = typename default_compact_storage<success_type>::type;
   using error_storage_type = typename default_compact_storage<error_type>::type;
-<<<<<<< HEAD
   using success_value_type = typename success_storage_type::storage_type;
   using error_value_type = typename error_storage_type::storage_type;
-=======
->>>>>>> 6ead59ad8a78a075ca2cdbde38cc7f06fad5b887
 
   LIBCOPP_UTIL_FORCEINLINE bool is_success() const noexcept { return mode_ == EN_RESULT_SUCCESS; }
   LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
@@ -592,18 +615,18 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&...args) noexcept(
-      noexcept(make_object<success_storage_type>(std::declval<success_value_type &>(), std::forward<TARGS>(args)...))) {
+  LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&...args) noexcept(noexcept(
+      __make_result_value<success_storage_type>(std::declval<success_value_type &>(), std::forward<TARGS>(args)...))) {
     reset();
-    make_object<success_storage_type>(success_value_, std::forward<TARGS>(args)...);
+    __make_result_value<success_storage_type>(success_value_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&...args) noexcept(
-      noexcept(make_object<error_storage_type>(std::declval<error_value_type &>(), std::forward<TARGS>(args)...))) {
+  LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&...args) noexcept(noexcept(
+      __make_result_value<error_storage_type>(std::declval<error_value_type &>(), std::forward<TARGS>(args)...))) {
     reset();
-    make_object<error_storage_type>(error_value_, std::forward<TARGS>(args)...);
+    __make_result_value<error_storage_type>(error_value_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
@@ -618,31 +641,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
   }
 
  private:
-  template <class TSTORAGE, class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static void make_object(typename TSTORAGE::storage_type &out, TARGS &&...args) noexcept(
-      noexcept(TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...))) {
-    TSTORAGE::construct_storage(out, std::forward<TARGS>(args)...);
-  }
-
-  template <class TSTORAGE, class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE static void make_object(
-      LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<typename TSTORAGE::storage_type> &out,
-      TARGS &&...args) noexcept(noexcept(TSTORAGE::construct_storage(out, LIBCOPP_COPP_NAMESPACE_ID::memory::
-                                                                              default_make_strong<
-                                                                                  typename TSTORAGE::storage_type>(
-                                                                                  std::forward<TARGS>(args)...)))) {
-    TSTORAGE::construct_storage(out,
-                                LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<typename TSTORAGE::storage_type>(
-                                    std::forward<TARGS>(args)...));
-  }
-
-<<<<<<< HEAD
   success_value_type success_value_;
   error_value_type error_value_;
-=======
-  typename success_storage_type::storage_type success_data_;
-  typename error_storage_type::storage_type error_data_;
->>>>>>> 6ead59ad8a78a075ca2cdbde38cc7f06fad5b887
   mode_type mode_;
 };
 

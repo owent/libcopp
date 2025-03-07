@@ -21,6 +21,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY poller {
  public:
   inline poller() noexcept { poll_storage::construct_default_storage(storage_data_); }
 
+  inline ~poller() noexcept(std::is_nothrow_destructible<storage_type>::value) {
+    poll_storage::construct_default_storage(storage_data_);
+  }
+
   template <class... U>
   inline poller(U &&...in) noexcept(noexcept(poll_storage::construct_storage(std::declval<storage_type &>(),
                                                                              std::forward<U>(in)...))) {

@@ -17,7 +17,7 @@ namespace cli {
 namespace detail {
 static char tolower(char c) {
   if (c >= 'A' && c <= 'Z') {
-    return c - 'A' + 'a';
+    return static_cast<char>(c + static_cast<char>('a' - 'A'));
   }
 
   return c;
