@@ -452,11 +452,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
   LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
 
   LIBCOPP_UTIL_FORCEINLINE const success_type *get_success() const noexcept {
-    return is_success() ? &success_data_ : nullptr;
+    return is_success() ? &success_value_ : nullptr;
   }
-  LIBCOPP_UTIL_FORCEINLINE success_type *get_success() noexcept { return is_success() ? &success_data_ : nullptr; }
-  LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const noexcept { return is_error() ? &error_data_ : nullptr; }
-  LIBCOPP_UTIL_FORCEINLINE error_type *get_error() noexcept { return is_error() ? &error_data_ : nullptr; }
+  LIBCOPP_UTIL_FORCEINLINE success_type *get_success() noexcept { return is_success() ? &success_value_ : nullptr; }
+  LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const noexcept { return is_error() ? &error_value_ : nullptr; }
+  LIBCOPP_UTIL_FORCEINLINE error_type *get_error() noexcept { return is_error() ? &error_value_ : nullptr; }
 
  private:
   template <class UOK, class UERR>
@@ -476,22 +476,22 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
 
   template <class TARGS>
   LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&args) noexcept {
-    success_data_ = args;
+    success_value_ = args;
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class TARGS>
   LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&args) noexcept {
-    error_data_ = args;
+    error_value_ = args;
     mode_ = EN_RESULT_ERROR;
   }
 
   inline void swap(result_base &other) noexcept {
     using std::swap;
     if (is_success()) {
-      swap(success_data_, other.success_data_);
+      swap(success_value_, other.success_value_);
     } else {
-      swap(error_data_, other.error_data_);
+      swap(error_value_, other.error_value_);
     }
     swap(mode_, other.mode_);
   }
@@ -500,8 +500,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, true> {
 
  private:
   union {
-    success_type success_data_;
-    error_type error_data_;
+    success_type success_value_;
+    error_type error_value_;
   };
   mode_type mode_;
 };
@@ -517,31 +517,36 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
     EN_RESULT_NONE = 2,
   };
 
+  using success_storage_type = typename default_compact_storage<success_type>::type;
+  using error_storage_type = typename default_compact_storage<error_type>::type;
+  using success_value_type = typename success_storage_type::storage_type;
+  using error_value_type = typename error_storage_type::storage_type;
+
   LIBCOPP_UTIL_FORCEINLINE bool is_success() const noexcept { return mode_ == EN_RESULT_SUCCESS; }
   LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
 
   LIBCOPP_UTIL_FORCEINLINE const success_type *get_success() const noexcept {
-    return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
+    return is_success() ? success_storage_type::unwrap(success_value_) : nullptr;
   }
   LIBCOPP_UTIL_FORCEINLINE success_type *get_success() noexcept {
-    return is_success() ? success_storage_type::unwrap(success_data_) : nullptr;
+    return is_success() ? success_storage_type::unwrap(success_value_) : nullptr;
   }
   LIBCOPP_UTIL_FORCEINLINE const error_type *get_error() const noexcept {
-    return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
+    return is_error() ? error_storage_type::unwrap(error_value_) : nullptr;
   }
   LIBCOPP_UTIL_FORCEINLINE error_type *get_error() noexcept {
-    return is_error() ? error_storage_type::unwrap(error_data_) : nullptr;
+    return is_error() ? error_storage_type::unwrap(error_value_) : nullptr;
   }
 
   result_base() noexcept : mode_(EN_RESULT_NONE) {
-    success_storage_type::construct_default_storage(success_data_);
-    error_storage_type::construct_default_storage(error_data_);
+    success_storage_type::construct_default_storage(success_value_);
+    error_storage_type::construct_default_storage(error_value_);
   }
   ~result_base() { reset(); }
 
   result_base(result_base &&other) noexcept : mode_(EN_RESULT_NONE) {
-    success_storage_type::construct_default_storage(success_data_);
-    error_storage_type::construct_default_storage(error_data_);
+    success_storage_type::construct_default_storage(success_value_);
+    error_storage_type::construct_default_storage(error_value_);
 
     swap(other);
   }
@@ -554,8 +559,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
 
   LIBCOPP_UTIL_FORCEINLINE void swap(result_base &other) noexcept {
     using std::swap;
-    success_storage_type::swap(success_data_, other.success_data_);
-    error_storage_type::swap(error_data_, other.error_data_);
+    success_storage_type::swap(success_value_, other.success_value_);
+    error_storage_type::swap(error_value_, other.error_value_);
     swap(mode_, other.mode_);
   }
 
@@ -568,42 +573,42 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
   friend struct _make_result_instance_helper;
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void construct_success(TARGS &&...args) noexcept(
-      noexcept(success_storage_type::construct_storage(success_data_, std::forward<TARGS>(args)...))) {
+  LIBCOPP_UTIL_FORCEINLINE void construct_success(TARGS &&...args) noexcept(noexcept(
+      success_storage_type::construct_storage(std::declval<success_value_type &>(), std::forward<TARGS>(args)...))) {
     reset();
-    success_storage_type::construct_storage(success_data_, std::forward<TARGS>(args)...);
+    success_storage_type::construct_storage(success_value_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
-  LIBCOPP_UTIL_FORCEINLINE void construct_error(TARGS &&...args) noexcept(
-      noexcept(error_storage_type::construct_storage(error_data_, std::forward<TARGS>(args)...))) {
+  LIBCOPP_UTIL_FORCEINLINE void construct_error(TARGS &&...args) noexcept(noexcept(
+      error_storage_type::construct_storage(std::declval<error_value_type &>(), std::forward<TARGS>(args)...))) {
     reset();
-    error_storage_type::construct_storage(error_data_, std::forward<TARGS>(args)...);
+    error_storage_type::construct_storage(error_value_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
   template <class... TARGS>
   LIBCOPP_UTIL_FORCEINLINE void make_success_base(TARGS &&...args) noexcept(
-      noexcept(make_object<success_storage_type>(success_data_, std::forward<TARGS>(args)...))) {
+      noexcept(make_object<success_storage_type>(std::declval<success_value_type &>(), std::forward<TARGS>(args)...))) {
     reset();
-    make_object<success_storage_type>(success_data_, std::forward<TARGS>(args)...);
+    make_object<success_storage_type>(success_value_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_SUCCESS;
   }
 
   template <class... TARGS>
   LIBCOPP_UTIL_FORCEINLINE void make_error_base(TARGS &&...args) noexcept(
-      noexcept(make_object<error_storage_type>(error_data_, std::forward<TARGS>(args)...))) {
+      noexcept(make_object<error_storage_type>(std::declval<error_value_type &>(), std::forward<TARGS>(args)...))) {
     reset();
-    make_object<error_storage_type>(error_data_, std::forward<TARGS>(args)...);
+    make_object<error_storage_type>(error_value_, std::forward<TARGS>(args)...);
     mode_ = EN_RESULT_ERROR;
   }
 
   inline void reset() noexcept {
     if (EN_RESULT_SUCCESS == mode_) {
-      success_storage_type::destroy_storage(success_data_);
+      success_storage_type::destroy_storage(success_value_);
     } else if (EN_RESULT_ERROR == mode_) {
-      error_storage_type::destroy_storage(error_data_);
+      error_storage_type::destroy_storage(error_value_);
     }
 
     mode_ = EN_RESULT_NONE;
@@ -628,11 +633,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
                                     std::forward<TARGS>(args)...));
   }
 
-  using success_storage_type = typename default_compact_storage<success_type>::type;
-  using error_storage_type = typename default_compact_storage<error_type>::type;
-
-  typename success_storage_type::storage_type success_data_;
-  typename error_storage_type::storage_type error_data_;
+  success_value_type success_value_;
+  error_value_type error_value_;
   mode_type mode_;
 };
 
