@@ -46,16 +46,16 @@
 .text
 .align  8
 .global copp_ontop_fcontext_v2
+# .hidden copp_ontop_fcontext_v2
 .type   copp_ontop_fcontext_v2, @function
 
 #define ARG_OFFSET         0
-#define GR_OFFSET	   16
-#define R14_OFFSET	   88
-#define FP_OFFSET	   96
-#define FPC_OFFSET	   160
-#define PC_OFFSET	   168
-#define CONTEXT_SIZE	   176
-
+#define GR_OFFSET          16
+#define R14_OFFSET         88
+#define FP_OFFSET          96
+#define FPC_OFFSET         160
+#define PC_OFFSET          168
+#define CONTEXT_SIZE       176
 
 /*
 

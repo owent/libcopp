@@ -60,7 +60,7 @@ static void benchmark_round(int index) {
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
-  my_cotoutine_t::ptr_t *co_arr = new my_cotoutine_t::ptr_t[MAX_COROUTINE_NUMBER];
+  my_cotoutine_t::ptr_t *co_arr = new my_cotoutine_t::ptr_t[static_cast<size_t>(MAX_COROUTINE_NUMBER)];
 
   time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();

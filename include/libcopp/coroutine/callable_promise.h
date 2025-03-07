@@ -20,6 +20,7 @@
 #include "libcopp/coroutine/algorithm_common.h"
 #include "libcopp/coroutine/std_coroutine_common.h"
 #include "libcopp/future/future.h"
+#include "libcopp/utils/memory/default_smart_ptr_trait.h"
 #include "libcopp/utils/uint64_id_allocator.h"
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
@@ -95,8 +96,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_promise_base<TVALUE, false> : public p
     data_ = std::move(value);
   }
 
-  UTIL_FORCEINLINE value_type& data() noexcept { return data_; }
-  UTIL_FORCEINLINE const value_type& data() const noexcept { return data_; }
+  LIBCOPP_UTIL_FORCEINLINE value_type& data() noexcept { return data_; }
+  LIBCOPP_UTIL_FORCEINLINE const value_type& data() const noexcept { return data_; }
 
  protected:
   value_type data_;
@@ -116,7 +117,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
  public:
   callable_awaitable_base(handle_type handle) : callee_{handle} {}
 
-  UTIL_FORCEINLINE bool await_ready() noexcept {
+  LIBCOPP_UTIL_FORCEINLINE bool await_ready() noexcept {
     if (!callee_) {
       return true;
     }
@@ -164,8 +165,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
     }
   }
 
-  UTIL_FORCEINLINE handle_type& get_callee() noexcept { return callee_; }
-  UTIL_FORCEINLINE const handle_type& get_callee() const noexcept { return callee_; }
+  LIBCOPP_UTIL_FORCEINLINE handle_type& get_callee() noexcept { return callee_; }
+  LIBCOPP_UTIL_FORCEINLINE const handle_type& get_callee() const noexcept { return callee_; }
 
  protected:
   void detach() noexcept {
@@ -213,7 +214,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, TERROR_TRANSFORM, 
   using base_type::set_caller;
   callable_awaitable(handle_type handle) : base_type(handle) {}
 
-  UTIL_FORCEINLINE void await_resume() {
+  LIBCOPP_UTIL_FORCEINLINE void await_resume() {
     detach();
     get_callee().promise().resume_waiting(get_callee(), true);
   }
@@ -296,8 +297,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
     initial_awaitable initial_suspend() noexcept { return {}; }
 #  if defined(LIBCOPP_MACRO_ENABLE_EXCEPTION) && LIBCOPP_MACRO_ENABLE_EXCEPTION
     void unhandled_exception() { throw; }
-#  elif defined(LIBCOPP_MACRO_HAS_EXCEPTION) && LIBCOPP_MACRO_HAS_EXCEPTION
-    void unhandled_exception() { throw; }
 #  else
     void unhandled_exception() { std::abort(); }
 #  endif
@@ -351,7 +350,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
     return current_handle_.done() || current_handle_.promise().check_flag(promise_flag::kHasReturned);
   }
 
-  UTIL_FORCEINLINE promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
+  LIBCOPP_UTIL_FORCEINLINE promise_status get_status() const noexcept { return current_handle_.promise().get_status(); }
 
   static auto yield_status() noexcept { return promise_base_type::pick_current_status(); }
 
@@ -424,7 +423,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal handle
    */
-  UTIL_FORCEINLINE const handle_type& get_internal_handle() const noexcept { return current_handle_; }
+  LIBCOPP_UTIL_FORCEINLINE const handle_type& get_internal_handle() const noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal handle object
@@ -432,7 +431,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal handle
    */
-  UTIL_FORCEINLINE handle_type& get_internal_handle() noexcept { return current_handle_; }
+  LIBCOPP_UTIL_FORCEINLINE handle_type& get_internal_handle() noexcept { return current_handle_; }
 
   /**
    * @brief Get the internal promise object
@@ -440,7 +439,9 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal promise object
    */
-  UTIL_FORCEINLINE const promise_type& get_internal_promise() const noexcept { return current_handle_.promise(); }
+  LIBCOPP_UTIL_FORCEINLINE const promise_type& get_internal_promise() const noexcept {
+    return current_handle_.promise();
+  }
 
   /**
    * @brief Get the internal promise object
@@ -448,7 +449,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_future {
    *
    * @return internal promise object
    */
-  UTIL_FORCEINLINE promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
+  LIBCOPP_UTIL_FORCEINLINE promise_type& get_internal_promise() noexcept { return current_handle_.promise(); }
 
  private:
   handle_type current_handle_;
@@ -595,7 +596,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
     promise_type& operator=(const promise_type&) = delete;
     promise_type& operator=(promise_type&&) = delete;
     ~promise_type() {
-      COPP_LIKELY_IF (nullptr != context_ && !!context_->caller_handle) {
+      if LIBCOPP_UTIL_LIKELY_CONDITION (nullptr != context_ && !!context_->caller_handle) {
         force_resume_all(*context_);
       }
     }
@@ -653,7 +654,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY some_delegate_base {
   }
 
  private:
-  std::shared_ptr<context_type> context_;
+  LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type> context_;
 };
 
 // some

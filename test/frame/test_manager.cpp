@@ -32,7 +32,8 @@ struct test_manager_tls_block_t {
 };
 
 #  if (defined(__cplusplus) && __cplusplus >= 201402L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201402L))
-static_assert(std::is_trivially_copyable<test_manager_tls_block_t>::value, "test_manager_tls_block_t must be trially");
+static_assert(std::is_trivially_copyable<test_manager_tls_block_t>::value,
+              "test_manager_tls_block_t must be trivially copyable");
 #  elif (defined(__cplusplus) && __cplusplus >= 201103L) || ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L))
 static_assert(std::is_trivial<test_manager_tls_block_t>::value, "test_manager_tls_block_t must be trially");
 #  else
@@ -105,41 +106,6 @@ struct topological_sort_object_t {
 };
 }  // namespace detail
 
-test_manager::pick_param_str_t::pick_param_str_t(const char *in) : str_(in) {}
-test_manager::pick_param_str_t::pick_param_str_t(const std::string &in) : str_(in.c_str()) {}
-
-bool test_manager::pick_param_str_t::operator==(const pick_param_str_t &other) const {
-  return strcmp(str_, other.str_) == 0;
-}
-#ifdef __cpp_impl_three_way_comparison
-std::strong_ordering test_manager::pick_param_str_t::operator<=>(const pick_param_str_t &other) const {
-  int res = strcmp(str_, other.str_);
-  if (res < 0) {
-    return std::strong_ordering::less;
-  } else if (res > 0) {
-    return std::strong_ordering::greater;
-  }
-
-  return std::strong_ordering::equal;
-}
-#else
-bool test_manager::pick_param_str_t::operator!=(const pick_param_str_t &other) const {
-  return strcmp(str_, other.str_) != 0;
-}
-bool test_manager::pick_param_str_t::operator>=(const pick_param_str_t &other) const {
-  return strcmp(str_, other.str_) >= 0;
-}
-bool test_manager::pick_param_str_t::operator>(const pick_param_str_t &other) const {
-  return strcmp(str_, other.str_) > 0;
-}
-bool test_manager::pick_param_str_t::operator<=(const pick_param_str_t &other) const {
-  return strcmp(str_, other.str_) <= 0;
-}
-bool test_manager::pick_param_str_t::operator<(const pick_param_str_t &other) const {
-  return strcmp(str_, other.str_) < 0;
-}
-#endif
-
 test_manager::test_manager() {
   success_ = 0;
   failed_ = 0;
@@ -185,9 +151,9 @@ int test_manager::run() {
 
 #else
 
-static void topological_sort(UTIL_UNIT_TEST_MACRO_AUTO_MAP(std::string, detail::topological_sort_object_t) & in,
+static void topological_sort(std::unordered_map<std::string, detail::topological_sort_object_t> &in,
                              std::vector<detail::topological_sort_object_t *> &out) {
-  typedef UTIL_UNIT_TEST_MACRO_AUTO_MAP(std::string, detail::topological_sort_object_t) index_by_name_t;
+  using index_by_name_t = std::unordered_map<std::string, detail::topological_sort_object_t>;
   out.reserve(in.size());
 
   for (index_by_name_t::iterator iter = in.begin(); iter != in.end(); ++iter) {
@@ -212,7 +178,7 @@ static void topological_sort(UTIL_UNIT_TEST_MACRO_AUTO_MAP(std::string, detail::
 
 int test_manager::run_event_on_start() {
   // generate topological_sort_object_t
-  typedef UTIL_UNIT_TEST_MACRO_AUTO_MAP(std::string, detail::topological_sort_object_t) index_by_name_t;
+  using index_by_name_t = std::unordered_map<std::string, detail::topological_sort_object_t>;
   index_by_name_t index_by_name;
   for (size_t i = 0; i < evt_on_starts_.size(); ++i) {
     detail::topological_sort_object_t &obj = index_by_name[evt_on_starts_[i].first];
@@ -256,7 +222,7 @@ int test_manager::run_event_on_start() {
 }
 
 int test_manager::run_event_on_exit() {
-  typedef UTIL_UNIT_TEST_MACRO_AUTO_MAP(std::string, detail::topological_sort_object_t) index_by_name_t;
+  using index_by_name_t = std::unordered_map<std::string, detail::topological_sort_object_t>;
   // generate topological_sort_object_t
   index_by_name_t index_by_name;
   for (size_t i = 0; i < evt_on_exits_.size(); ++i) {
@@ -386,8 +352,7 @@ int test_manager::run() {
   clock_t all_end_time = clock();
   ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << util::cli::shell_font_style::SHELL_FONT_SPEC_BOLD
        << "[==========] " << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << (success_ + failed_)
-       << " test(s) ran."
-       << " (" << get_expire_time(all_begin_time, all_end_time) << " total)" << std::endl;
+       << " test(s) ran." << " (" << get_expire_time(all_begin_time, all_end_time) << " total)" << std::endl;
 
   ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_GREEN << "[  PASSED  ] "
        << util::cli::shell_font_style::SHELL_FONT_SPEC_NULL << success_ << " test case(s)." << std::endl;
@@ -431,7 +396,7 @@ test_manager &test_manager::me() {
 
 std::string test_manager::get_expire_time(clock_t begin, clock_t end) {
   std::stringstream ss;
-  double ms = 1000.0 * (end - begin) / CLOCKS_PER_SEC;
+  double ms = 1000.0 * static_cast<double>(end - begin) / CLOCKS_PER_SEC;
 
   ss << ms << " ms";
 
@@ -450,7 +415,7 @@ void test_manager::set_counter_ptr(int *success_counter_ptr, int *failed_counter
 
 void test_manager::inc_success_counter() {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  COPP_LIKELY_IF (nullptr != block && nullptr != block->success_counter_ptr) {
+  if LIBCOPP_UTIL_LIKELY_CONDITION (nullptr != block && nullptr != block->success_counter_ptr) {
     ++(*block->success_counter_ptr);
     return;
   }
@@ -463,7 +428,7 @@ void test_manager::inc_success_counter() {
 
 void test_manager::inc_failed_counter() {
   detail::test_manager_tls_block_t *block = detail::get_test_manager_tls_block();
-  COPP_LIKELY_IF (nullptr != block && nullptr != block->failed_counter_ptr) {
+  if LIBCOPP_UTIL_LIKELY_CONDITION (nullptr != block && nullptr != block->failed_counter_ptr) {
     ++(*block->failed_counter_ptr);
     return;
   }

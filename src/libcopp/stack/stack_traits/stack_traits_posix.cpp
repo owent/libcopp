@@ -28,8 +28,8 @@ extern "C" {
 #    define UDEF_MINSIGSTKSZ
 #  endif
 
-#  ifdef COPP_HAS_ABI_HEADERS
-#    include COPP_ABI_PREFIX
+#  ifdef LIBCOPP_HAS_ABI_HEADERS
+#    include LIBCOPP_ABI_PREFIX
 #  endif
 // clang-format off
 #include <libcopp/utils/config/stl_include_suffix.h>  // NOLINT(build/include_order)
@@ -39,7 +39,7 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
 
 namespace detail {
 static std::size_t pagesize() {
-  std::size_t size = ::sysconf(_SC_PAGESIZE);
+  std::size_t size = static_cast<size_t>(::sysconf(_SC_PAGESIZE));
   return size;
 }
 
@@ -70,7 +70,7 @@ LIBCOPP_COPP_API std::size_t stack_traits::default_size() LIBCOPP_MACRO_NOEXCEPT
   return maximum_size() == size ? size : (std::min)(size, maximum_size());
 }
 
-LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() LIBCOPP_MACRO_NOEXCEPT { return MINSIGSTKSZ; }
+LIBCOPP_COPP_API std::size_t stack_traits::minimum_size() LIBCOPP_MACRO_NOEXCEPT { return static_cast<size_t>(MINSIGSTKSZ); }
 
 LIBCOPP_COPP_API std::size_t stack_traits::maximum_size() LIBCOPP_MACRO_NOEXCEPT {
   if (is_unbounded()) return std::numeric_limits<std::size_t>::max();
@@ -83,8 +83,8 @@ LIBCOPP_COPP_API std::size_t stack_traits::round_to_page_size(std::size_t stacks
 }
 LIBCOPP_COPP_NAMESPACE_END
 
-#  ifdef COPP_HAS_ABI_HEADERS
-#    include COPP_ABI_SUFFIX
+#  ifdef LIBCOPP_HAS_ABI_HEADERS
+#    include LIBCOPP_ABI_SUFFIX
 #  endif
 
 #  ifdef UDEF_MINSIGSTKSZ

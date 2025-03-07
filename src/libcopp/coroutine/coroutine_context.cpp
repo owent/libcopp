@@ -10,7 +10,7 @@
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
-#if defined(COPP_MACRO_THREAD_LOCAL)
+#if defined(LIBCOPP_MACRO_THREAD_LOCAL)
 // using thread_local
 #else
 #  include <pthread.h>
@@ -25,23 +25,23 @@
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 extern "C" {
-void __splitstack_getcontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_getcontext(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_setcontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_setcontext(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_releasecontext(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER]);
+void __splitstack_releasecontext(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER]);
 
-void __splitstack_block_signals_context(void *[COPP_MACRO_SEGMENTED_STACK_NUMBER], int *, int *);
+void __splitstack_block_signals_context(void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER], int *, int *);
 }
 #endif
 
 LIBCOPP_COPP_NAMESPACE_BEGIN
 namespace detail {
 
-#if defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT
+#if !LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static coroutine_context_base *gt_current_coroutine = nullptr;
-#elif defined(COPP_MACRO_THREAD_LOCAL)
-static COPP_MACRO_THREAD_LOCAL coroutine_context_base *gt_current_coroutine = nullptr;
+#elif defined(LIBCOPP_MACRO_THREAD_LOCAL)
+static LIBCOPP_MACRO_THREAD_LOCAL coroutine_context_base *gt_current_coroutine = nullptr;
 #else
 static pthread_once_t gt_coroutine_init_once = PTHREAD_ONCE_INIT;
 static pthread_key_t gt_coroutine_tls_key;
@@ -49,7 +49,7 @@ static void init_pthread_this_coroutine_context() { (void)pthread_key_create(&gt
 #endif
 
 static inline void set_this_coroutine_context(coroutine_context_base *p) {
-#if (defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT) || defined(COPP_MACRO_THREAD_LOCAL)
+#if !LIBCOPP_MACRO_ENABLE_MULTI_THREAD || defined(LIBCOPP_MACRO_THREAD_LOCAL)
   gt_current_coroutine = p;
 #else
   (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -58,7 +58,7 @@ static inline void set_this_coroutine_context(coroutine_context_base *p) {
 }
 
 static inline coroutine_context_base *get_this_coroutine_context() {
-#if (defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT) || defined(COPP_MACRO_THREAD_LOCAL)
+#if !LIBCOPP_MACRO_ENABLE_MULTI_THREAD || defined(LIBCOPP_MACRO_THREAD_LOCAL)
   return gt_current_coroutine;
 #else
   (void)pthread_once(&gt_coroutine_init_once, init_pthread_this_coroutine_context);
@@ -132,22 +132,22 @@ LIBCOPP_COPP_API void coroutine_context_base::set_this_coroutine_base(coroutine_
 struct libcopp_internal_api_set {
   using jump_src_data_t = coroutine_context::jump_src_data_t;
 
-  UTIL_FORCEINLINE static void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+  LIBCOPP_UTIL_FORCEINLINE static void set_caller(coroutine_context *src, const fcontext::fcontext_t &fctx) {
     if (nullptr != src) {
       src->caller_ = fctx;
     }
   }
 
-  UTIL_FORCEINLINE static void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
+  LIBCOPP_UTIL_FORCEINLINE static void set_callee(coroutine_context *src, const fcontext::fcontext_t &fctx) {
     if (nullptr != src) {
       src->callee_ = fctx;
     }
   }
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-  UTIL_FORCEINLINE static void splitstack_swapcontext(EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
-                                                      EXPLICIT_UNUSED_ATTR stack_context &to_sctx,
-                                                      libcopp_internal_api_set::jump_src_data_t &jump_transfer) {
+  LIBCOPP_UTIL_FORCEINLINE static void splitstack_swapcontext(
+      LIBCOPP_EXPLICIT_UNUSED_ATTR stack_context &from_sctx, LIBCOPP_EXPLICIT_UNUSED_ATTR stack_context &to_sctx,
+      libcopp_internal_api_set::jump_src_data_t &jump_transfer) {
     if (nullptr != jump_transfer.from_co) {
       __splitstack_getcontext(jump_transfer.from_co->callee_stack_.segments_ctx);
       if (&from_sctx != &jump_transfer.from_co->callee_stack_) {
@@ -216,8 +216,8 @@ struct libcopp_internal_api_set {
  * @param to_sctx jump to stack context(only used for set segment stack)
  * @param jump_transfer jump data
  */
-static inline void jump_to(fcontext::fcontext_t &to_fctx, EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
-                           EXPLICIT_UNUSED_ATTR stack_context &to_sctx,
+static inline void jump_to(fcontext::fcontext_t &to_fctx, LIBCOPP_EXPLICIT_UNUSED_ATTR stack_context &from_sctx,
+                           LIBCOPP_EXPLICIT_UNUSED_ATTR stack_context &to_sctx,
                            libcopp_internal_api_set::jump_src_data_t &jump_transfer) LIBCOPP_MACRO_NOEXCEPT {
   LIBCOPP_COPP_NAMESPACE_ID::fcontext::transfer_t res;
   libcopp_internal_api_set::jump_src_data_t *jump_src;
@@ -309,7 +309,8 @@ LIBCOPP_COPP_API int coroutine_context::create(coroutine_context *p, callback_ty
     return COPP_EC_ARGS_ERROR;
   }
 
-  size_t this_offset = reinterpret_cast<unsigned char *>(callee_stack.sp) - reinterpret_cast<unsigned char *>(p);
+  size_t this_offset =
+      static_cast<size_t>(reinterpret_cast<unsigned char *>(callee_stack.sp) - reinterpret_cast<unsigned char *>(p));
   if (this_offset < sizeof(coroutine_context) + private_buffer_size || this_offset > stack_offset) {
     return COPP_EC_ARGS_ERROR;
   }
@@ -404,7 +405,7 @@ LIBCOPP_COPP_API int coroutine_context::start(void *priv_data) {
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  COPP_UNLIKELY_IF (unhandle_exception_) {
+  if LIBCOPP_UTIL_UNLIKELY_CONDITION (unhandle_exception_) {
     std::swap(unhandled, unhandle_exception_);
   }
 #endif
@@ -480,7 +481,7 @@ LIBCOPP_COPP_API int yield(void **priv_data) LIBCOPP_MACRO_NOEXCEPT {
 #else
   coroutine_context *pco = static_cast<coroutine_context *>(detail::get_this_coroutine_context());
 #endif
-  COPP_LIKELY_IF (nullptr != pco) {
+  if LIBCOPP_UTIL_LIKELY_CONDITION (nullptr != pco) {
     return pco->yield(priv_data);
   }
 

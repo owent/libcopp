@@ -12,8 +12,8 @@
 #  include <valgrind/valgrind.h>
 #endif
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_PREFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_PREFIX
 #endif
 
 // clang-format off
@@ -112,7 +112,7 @@ LIBCOPP_COPP_API void stack_allocator_memory::allocate(stack_context &ctx, std::
   is_used_ = true;
 }
 
-LIBCOPP_COPP_API void stack_allocator_memory::deallocate(EXPLICIT_UNUSED_ATTR stack_context &ctx)
+LIBCOPP_COPP_API void stack_allocator_memory::deallocate(LIBCOPP_EXPLICIT_UNUSED_ATTR stack_context &ctx)
     LIBCOPP_MACRO_NOEXCEPT {
   assert(ctx.sp);
   assert(stack_traits::minimum_size() <= ctx.size);
@@ -126,6 +126,6 @@ LIBCOPP_COPP_API void stack_allocator_memory::deallocate(EXPLICIT_UNUSED_ATTR st
 }  // namespace allocator
 LIBCOPP_COPP_NAMESPACE_END
 
-#ifdef COPP_HAS_ABI_HEADERS
-#  include COPP_ABI_SUFFIX
+#ifdef LIBCOPP_HAS_ABI_HEADERS
+#  include LIBCOPP_ABI_SUFFIX
 #endif

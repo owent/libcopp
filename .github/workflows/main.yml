@@ -10,10 +10,10 @@ on: # @see https://help.github.com/en/articles/events-that-trigger-workflows#web
 jobs:
   format:
     name: Format
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: CI Job
         shell: bash
         run: |
@@ -24,13 +24,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build & Test
         shell: bash
         run: |
@@ -61,34 +61,40 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc
             build_shared_libs: "ON"
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc
             build_shared_libs: "OFF"
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc-latest
             mode: memcheck
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc-latest
             no_exception: 1
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc-latest
             no_rtti: 1
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc-latest
             thread_unsafe: 1
+            configure: "RelWithDebInfo"
+          - os: ubuntu-latest
+            triplet: x64-linux
+            cc: gcc
+            thread_unsafe: 1
+            configure: "Release"
           - os: ubuntu-20.04
             triplet: x64-linux
             cc: gcc-4.8
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: clang-latest
           - os: macos-latest
@@ -97,7 +103,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build & Test
         shell: bash
         env:
@@ -107,6 +113,7 @@ jobs:
           NO_RTTI: ${{ matrix.no_rtti }}
           THREAD_UNSAFE: ${{ matrix.thread_unsafe }}
           CI_MODE: ${{ matrix.mode }}
+          CONFIGURATION: ${{ matrix.configure }}
         run: |
           if [[ "xgcc-4.8" == "x$USE_CC" ]]; then
             sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu/ xenial main'
@@ -146,7 +153,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build & Test
         shell: pwsh
         env:
@@ -170,7 +177,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build & Test
         shell: bash
         env:
@@ -178,7 +185,7 @@ jobs:
         run: |
           C:/msys64/msys2_shell.cmd -mingw64 -defterm -no-start -here -lc "ci/do_ci.sh msys2.mingw.test"
       - name: Cache packages
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             C:/msys64/var/cache/pacman/pkg
@@ -190,14 +197,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             triplet: x64-linux
             cc: gcc
-            gcov_flags: "--coverage -fprofile-arcs -ftest-coverage"
+            gcov_flags: "--coverage -fprofile-arcs -ftest-coverage -fno-omit-frame-pointer -fprofile-update=atomic"
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Generate coverage
         shell: bash
         env:
@@ -214,11 +221,11 @@ jobs:
           fi
           bash ci/do_ci.sh coverage ;
       - name: Uploaded code coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
           fail_ci_if_error: true
-          file: ${{ github.workspace }}/build_jobs_coverage/coverage.info
+          files: ${{ github.workspace }}/build_jobs_coverage/coverage.info
   codeql:
     name: CodeQL
     # This job runs on Linux
@@ -235,7 +242,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         shell: bash
         env:
@@ -245,7 +252,7 @@ jobs:
         run: |
           bash ci/do_ci.sh codeql.configure
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           config-file: ./.github/codeql/codeql-config.yml
       - name: Build
@@ -257,6 +264,6 @@ jobs:
         run: |
           bash ci/do_ci.sh codeql.build
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:cpp"

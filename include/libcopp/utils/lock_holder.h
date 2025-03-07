@@ -29,53 +29,61 @@ namespace util {
 namespace lock {
 namespace detail {
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_lock_action {
-  inline bool operator()(TLock &lock) const noexcept {
-    lock.lock();
-    return true;
-  }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_lock_action{inline bool operator()(TLock &lock) const noexcept {lock.lock();
+return true;
+}  // namespace detail
+};  // namespace lock
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_try_lock_action {
-  inline bool operator()(TLock &lock) const noexcept { return lock.try_lock(); }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_try_lock_action{inline bool operator()(TLock &lock)
+                                                              const noexcept {return lock.try_lock();
+}  // namespace util
+}
+;
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_unlock_action {
-  inline void operator()(TLock &lock) const noexcept { lock.unlock(); }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_unlock_action{inline void operator()(TLock &lock)
+                                                            const noexcept {lock.unlock();
+}
+}
+;
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_try_unlock_action {
-  inline bool operator()(TLock &lock) const noexcept { return lock.try_unlock(); }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_try_unlock_action{inline bool operator()(TLock &lock)
+                                                                const noexcept {return lock.try_unlock();
+}
+}
+;
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_read_lock_action {
-  inline bool operator()(TLock &lock) const noexcept {
-    lock.read_lock();
-    return true;
-  }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_read_lock_action{inline bool operator()(TLock &lock)
+                                                               const noexcept {lock.read_lock();
+return true;
+}
+}
+;
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_read_unlock_action {
-  inline void operator()(TLock &lock) const noexcept { lock.read_unlock(); }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_read_unlock_action{inline void operator()(TLock &lock)
+                                                                 const noexcept {lock.read_unlock();
+}
+}
+;
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_write_lock_action {
-  inline bool operator()(TLock &lock) const noexcept {
-    lock.write_lock();
-    return true;
-  }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_write_lock_action{inline bool operator()(TLock &lock)
+                                                                const noexcept {lock.write_lock();
+return true;
+}
+}
+;
 
 template <typename TLock>
-struct LIBCOPP_COPP_API_HEAD_ONLY default_write_unlock_action {
-  inline void operator()(TLock &lock) const noexcept { lock.write_unlock(); }
-};
+struct LIBCOPP_COPP_API_HEAD_ONLY default_write_unlock_action{inline void operator()(TLock &lock)
+                                                                  const noexcept {lock.write_unlock();
+}
+}
+;
 }  // namespace detail
 
 template <typename TLock, typename TLockAct = detail::default_lock_action<TLock>,

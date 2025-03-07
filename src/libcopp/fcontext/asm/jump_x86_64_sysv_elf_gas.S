@@ -31,16 +31,20 @@
  *                                                                                      *
  ****************************************************************************************/
 
-# if defined __CET__
-#  include <cet.h>
-#  define SHSTK_ENABLED (__CET__ & 0x2)
-#  define LIBCOPP_FCONTEXT_SHADOW_STACK (SHSTK_ENABLED && SHADOW_STACK_SYSCALL)
+# ifdef __i386__
+#  include "jump_i386_sysv_elf_gas.S"
 # else
-#  define _CET_ENDBR
-# endif
+#  if defined __CET__
+#   include <cet.h>
+#   define SHSTK_ENABLED (__CET__ & 0x2)
+#   define LIBCOPP_FCONTEXT_SHADOW_STACK (SHSTK_ENABLED && SHADOW_STACK_SYSCALL)
+#  else
+#   define _CET_ENDBR
+#  endif
 .file "jump_x86_64_sysv_elf_gas.S"
 .text
 .globl copp_jump_fcontext_v2
+# .hidden copp_jump_fcontext_v2
 .type copp_jump_fcontext_v2,@function
 .align 16
 copp_jump_fcontext_v2:
@@ -70,7 +74,7 @@ copp_jump_fcontext_v2:
     /* read the current SSP and store it */
     rdsspq  %rcx
     movq  %rcx, (%rsp)
-#endif
+# endif
 
     /* store RSP (pointing to context-data) in RAX */
     movq  %rsp, %rax
@@ -140,3 +144,4 @@ copp_jump_fcontext_v2:
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits
+# endif

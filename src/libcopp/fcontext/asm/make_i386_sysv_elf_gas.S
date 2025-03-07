@@ -24,9 +24,14 @@
  *                                                                                      *
  ****************************************************************************************/
 
+#ifdef __x86_64__
+#include "make_x86_64_sysv_elf_gas.S"
+#else
+
 .file "make_i386_sysv_elf_gas.S"
 .text
 .globl copp_make_fcontext_v2
+# .hidden copp_make_fcontext_v2
 .align 2
 .type copp_make_fcontext_v2,@function
 copp_make_fcontext_v2:
@@ -40,8 +45,8 @@ copp_make_fcontext_v2:
     /* shift address in EAX to lower 16 byte boundary */
     andl  $-16, %eax
 
-    /* reserve space for context-data on context-stack */
-    leal  -0x2c(%eax), %eax
+    /* reserve space for context-data on context-stack, and align the stack */
+    leal  -0x34(%eax), %eax
 
     /* third arg of copp_make_fcontext_v2() == address of context-function */
     /* stored in EBX */
@@ -111,3 +116,5 @@ finish:
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits
+
+#endif

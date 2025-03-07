@@ -3,8 +3,10 @@
 #pragma once
 
 #include <libcopp/utils/config/libcopp_build_features.h>
+#include <libcopp/utils/nostd/type_traits.h>
 
-#include "coroutine_context_base.h"
+#include "libcopp/coroutine/coroutine_context_base.h"
+#include "libcopp/coroutine/stackful_channel_common.h"
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
 #  define COROUTINE_CONTEXT_BASE_USING_BASE_SEGMENTED_STACKS(base_type) using base_type::caller_stack_;
@@ -25,7 +27,7 @@ LIBCOPP_COPP_NAMESPACE_BEGIN
  */
 class coroutine_context : public coroutine_context_base {
  public:
-  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::util::intrusive_ptr<coroutine_context>;
+  using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::intrusive_ptr<coroutine_context>;
   using callback_type = coroutine_context_base::callback_type;
   using status_type = coroutine_context_base::status_type;
   using flag_type = coroutine_context_base::flag_type;
@@ -139,6 +141,39 @@ class coroutine_context : public coroutine_context_base {
    * @return COPP_EC_SUCCESS or error code
    */
   LIBCOPP_COPP_API int yield(void **priv_data = nullptr) LIBCOPP_MACRO_NOEXCEPT;
+
+  /**
+   * @brief Waits for the specified awaitable object to finish and retrieves its result.
+   *
+   * @param  awaitable         The awaitable object to be consumed.
+   * @param  error_transform   A callable object used to transform error code to return type if any occur.
+   *
+   * @return The result of the awaitable object, of type TAWAITABLE::value_type.
+   */
+  template <class TAWAITABLE, class TERROR_TRANSFORM,
+            class = nostd::enable_if_t<stackful_inject_awaitable<nostd::remove_cvref_t<TAWAITABLE>>::value>>
+  LIBCOPP_COPP_API_HEAD_ONLY inline container_value_type<TAWAITABLE>
+  await_value(TAWAITABLE &&awaitable, TERROR_TRANSFORM &&error_transform) noexcept(
+      std::is_nothrow_copy_constructible<container_value_type<TAWAITABLE>>::value &&
+      noexcept(error_transform(COPP_EC_ARGS_ERROR))) {
+    return awaitable.inject_await(this, std::forward<TERROR_TRANSFORM>(error_transform));
+  }
+
+  /**
+   * @brief Waits for the specified awaitable object to finish and retrieves its result.
+   *
+   * @param  awaitable         The awaitable object to be consumed.
+   *
+   * @return The result of the awaitable object, of type TAWAITABLE::value_type.
+   *         If any error happens it will call value_type's constructor and pass error code.
+   */
+  template <class TAWAITABLE,
+            class = nostd::enable_if_t<stackful_inject_awaitable<nostd::remove_cvref_t<TAWAITABLE>>::value>>
+  LIBCOPP_COPP_API_HEAD_ONLY inline container_value_type<TAWAITABLE> await_value(TAWAITABLE &&awaitable) noexcept(
+      std::is_nothrow_copy_constructible<container_value_type<TAWAITABLE>>::value &&
+      noexcept(stackful_channel_error_transform<container_value_type<TAWAITABLE>>()(COPP_EC_ARGS_ERROR))) {
+    return awaitable.inject_await(this, stackful_channel_error_transform<container_value_type<TAWAITABLE>>());
+  }
 };
 
 namespace this_coroutine {

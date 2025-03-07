@@ -48,6 +48,7 @@
 .file "ontop_mips64_n64_elf_gas.S"
 .text
 .globl copp_ontop_fcontext_v2
+# .hidden copp_ontop_fcontext_v2
 .align 3
 .type copp_ontop_fcontext_v2,@function
 .ent copp_ontop_fcontext_v2

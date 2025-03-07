@@ -25,6 +25,7 @@
  ****************************************************************************************/
 
 .text
+.private_extern _copp_ontop_fcontext_v2
 .globl _copp_ontop_fcontext_v2
 .align 8
 _copp_ontop_fcontext_v2:

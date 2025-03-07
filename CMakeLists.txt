@@ -15,12 +15,20 @@ endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.20.0")
   cmake_policy(SET CMP0117 NEW)
 endif()
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.22.0")
+  cmake_policy(SET CMP0128 NEW)
+endif()
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.27.0")
+  cmake_policy(SET CMP0144 NEW)
+endif()
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 enable_testing()
 
 project(
   libcopp
-  VERSION "2.2.0"
+  VERSION "2.3.0"
   DESCRIPTION "Cross-platform coroutine library in C++ ."
   HOMEPAGE_URL "https://libcopp.atframe.work"
   LANGUAGES C CXX ASM)
@@ -97,10 +105,6 @@ unset(PROJECT_LIBCOPP_SYSLIB_LINK_NAMES)
 include("${CMAKE_CURRENT_LIST_DIR}/include/include.macro.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/src/libcopp.macro.cmake")
 
-if(NOT EXISTS "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
-  file(MAKE_DIRECTORY "${PROJECT_LIBCOPP_ROOT_INC_DIR}/libcopp/utils/config")
-endif()
-
 if(LIBCOTASK_ENABLE)
   set(LIBCOTASK_MACRO_ENABLED 1)
 endif()
@@ -111,8 +115,7 @@ endif()
 
 unset(LIBCOPP_SPECIFY_CXX_FLAGS)
 
-find_package(Threads)
-if(CMAKE_USE_PTHREADS_INIT)
+if(ATFRAMEWORK_CMAKE_TOOLSET_TEST_FLAG_PTHREAD)
   list(APPEND PROJECT_LIBCOPP_SYSLIB_LINK_NAMES pthread)
   set(THREAD_TLS_USE_PTHREAD 1)
 endif()
@@ -140,6 +143,10 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     if(COMPILER_STRICT_CFLAGS)
       list(APPEND LIBCOPP_SPECIFY_CXX_FLAGS ${COMPILER_STRICT_CFLAGS})
     endif()
+
+    if(COMPILER_STRICT_RECOMMEND_EXTRA_CFLAGS)
+      list(APPEND LIBCOPP_SPECIFY_CXX_FLAGS ${COMPILER_STRICT_RECOMMEND_EXTRA_CFLAGS})
+    endif()
   endif()
 else()
   if(COMPILER_STRICT_EXTRA_CFLAGS)
@@ -148,6 +155,10 @@ else()
 
   if(COMPILER_STRICT_CFLAGS)
     list(APPEND LIBCOPP_SPECIFY_CXX_FLAGS ${COMPILER_STRICT_CFLAGS})
+  endif()
+
+  if(COMPILER_STRICT_RECOMMEND_EXTRA_CFLAGS)
+    list(APPEND LIBCOPP_SPECIFY_CXX_FLAGS ${COMPILER_STRICT_RECOMMEND_EXTRA_CFLAGS})
   endif()
 endif()
 

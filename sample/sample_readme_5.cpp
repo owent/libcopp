@@ -48,7 +48,7 @@ int main() {
         return "return value will be ignored";
       })
       ->then(
-          [&](EXPLICIT_UNUSED_ATTR void *priv_data) {
+          [&](LIBCOPP_EXPLICIT_UNUSED_ATTR void *priv_data) {
             puts("|it's boring");
             printf("test code is %d\n", ++test_code);
             assert(&test_code == priv_data);

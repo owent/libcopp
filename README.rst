@@ -44,11 +44,7 @@ Cross-platform coroutine library in C++ .
                     :alt: Coveralls coverage
                     :target: https://codecov.io/gh/owent/libcopp
 
-.. |lgtm-badge|  image:: https://img.shields.io/lgtm/grade/cpp/g/owent/libcopp.svg?logo=lgtm&logoWidth=18
-                 :alt: Language grade: C/C++
-                 :target: https://lgtm.com/projects/g/owent/libcopp/context:cpp
-
-|release-badge| |code-size-badge| |repo-size-badge| |ci-badge| |codecov-badge| |lgtm-badge| |forks-badge| |stars-badge|
+|release-badge| |code-size-badge| |repo-size-badge| |ci-badge| |codecov-badge| |forks-badge| |stars-badge|
 
 CI Job Matrix
 ----------------
@@ -99,7 +95,7 @@ UPGRADE FROM 1.3.X-1.4.X to 2.X
 + Rename ``stack_allocator_t`` to ``stack_allocator_type`` in ``T`` when using ``cotask::task<T>``.
 + Rename ``coroutine_t`` to ``coroutine_type`` in ``T`` when using ``cotask::task<T>``.
 + Rename ``libcopp::util::*`` to ``copp::util::``.
-+ We are not allowed to use ``libcopp::util::intrusive_ptr<cotask::impl::task_impl>`` now, please use ``cotask::task<T>::ptr_type`` instead.
++ We are not allowed to use ``libcopp::memory::intrusive_ptr<cotask::impl::task_impl>`` now, please use ``cotask::task<T>::ptr_type`` instead.
 
 UPGRADE FROM 1.2.X to 1.3.X-1.4.X
 ------------------------------------
@@ -209,9 +205,7 @@ Options can be cmake options. such as set compile toolchains, source directory o
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | PROJECT_ENABLE_SAMPLE=YES|NO             | [default=NO] Build samples.                                                                                                  |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
-| LIBCOPP_LOCK_DISABLE_THIS_MT=YES|NO      | [default=NO] Disable multi-thread support for ``copp::this_coroutine`` and ``cotask::this_task``.                            |
-+------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
-| LIBCOPP_DISABLE_ATOMIC_LOCK=YES|NO       | [default=NO] Disable multi-thread support.                                                                                   |
+| LIBCOPP_ENABLE_MULTI_THREAD=YES|NO       | [default=YES] Enable multi-thread support.                                                                                   |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | LIBCOTASK_ENABLE=YES|NO                  | [default=YES] Enable build libcotask.                                                                                        |
 +------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
@@ -310,6 +304,8 @@ There serveral samples to use ``copp::coroutine_context`` 、 ``copp::coroutine_
 8. Custom error (timeout for example) when using c++20 coroutine
 9. Let c++20 coroutine work with ``cotask::task``
 10. Using Windows fiber and ``SetUnhandledExceptionFilter`` on Windows with ``cotask::task``
+11. Using c++20 coroutine with channel receiver and sender
+12. Using stackful coroutine task with channel receiver and sender
 
 All sample codes can be found on :ref:`EXAMPLES <examples_doc_anchor>` and `sample <https://github.com/owent/libcopp/tree/v2/sample>`_ .
 

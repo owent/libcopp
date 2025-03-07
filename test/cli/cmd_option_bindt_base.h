@@ -37,7 +37,7 @@ class cmd_option_bindt : public cmd_option_bind_base {
 
   cmd_option_bindt(_F f, _PL l) : func_obj_(f), param_list_(l) {}
 
-  void operator()(callback_param args) { param_list_(func_obj_, args, 0); }
+  void operator()(callback_param args) override { param_list_(func_obj_, args, 0); }
 };
 }  // namespace binder
 }  // namespace cli

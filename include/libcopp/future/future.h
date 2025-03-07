@@ -27,14 +27,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
   using ptr_type = typename poller_type::ptr_type;
 
  public:
-  future() {}
-  ~future() {}
+  future() noexcept(std::is_nothrow_constructible<poller_type>::value) {}
+  ~future() noexcept(std::is_nothrow_destructible<poller_type>::value) {}
 
-  UTIL_FORCEINLINE bool is_ready() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_ready(); }
+  LIBCOPP_UTIL_FORCEINLINE bool is_ready() const noexcept { return poll_data_.is_ready(); }
 
-  UTIL_FORCEINLINE bool is_pending() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.is_pending(); }
+  LIBCOPP_UTIL_FORCEINLINE bool is_pending() const noexcept { return poll_data_.is_pending(); }
 
-  UTIL_FORCEINLINE const value_type *data() const LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE const value_type *data() const noexcept {
     if (!is_ready()) {
       return nullptr;
     }
@@ -42,7 +42,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
     return poll_data_.data();
   }
 
-  UTIL_FORCEINLINE value_type *data() LIBCOPP_MACRO_NOEXCEPT {
+  LIBCOPP_UTIL_FORCEINLINE value_type *data() noexcept {
     if (!is_ready()) {
       return nullptr;
     }
@@ -50,14 +50,16 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
     return poll_data_.data();
   }
 
-  UTIL_FORCEINLINE const ptr_type &raw_ptr() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
-  UTIL_FORCEINLINE ptr_type &raw_ptr() LIBCOPP_MACRO_NOEXCEPT { return poll_data_.raw_ptr(); }
-  UTIL_FORCEINLINE const poller_type &poll_data() const LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
-  UTIL_FORCEINLINE poller_type &poll_data() LIBCOPP_MACRO_NOEXCEPT { return poll_data_; }
-  UTIL_FORCEINLINE void reset_data() { poll_data_.reset(); }
+  LIBCOPP_UTIL_FORCEINLINE const ptr_type &raw_ptr() const noexcept { return poll_data_.raw_ptr(); }
+  LIBCOPP_UTIL_FORCEINLINE ptr_type &raw_ptr() noexcept { return poll_data_.raw_ptr(); }
+  LIBCOPP_UTIL_FORCEINLINE const poller_type &poll_data() const noexcept { return poll_data_; }
+  LIBCOPP_UTIL_FORCEINLINE poller_type &poll_data() noexcept { return poll_data_; }
+  LIBCOPP_UTIL_FORCEINLINE void reset_data() noexcept(noexcept(::std::declval<poller_type>().reset())) {
+    poll_data_.reset();
+  }
 
   template <class U>
-  UTIL_FORCEINLINE void reset_data(U &&in) {
+  LIBCOPP_UTIL_FORCEINLINE void reset_data(U &&in) noexcept(std::is_nothrow_assignable<poller_type, U>::value) {
     poll_data_ = std::forward<U>(in);
   }
 

@@ -56,7 +56,7 @@ file(
 source_group_by_dir(COPP_TEST_SRC_LIST)
 
 # ================ multi thread ================
-if(NOT MSVC)
+if(ATFRAMEWORK_CMAKE_TOOLSET_TEST_FLAG_PTHREAD)
   add_definitions(-D_POSIX_MT_)
   set(PROJECT_LIBCOPP_TEST_LIB_LINK ${PROJECT_LIBCOPP_TEST_LIB_LINK} pthread)
 endif()
@@ -84,10 +84,12 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   # GCC 12&13 BUG: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106297
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.0.0")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7.1.0")
     target_compile_options(libcopp_unit_test PRIVATE -Wno-error=stringop-overflow)
   endif()
 endif()
+
+set_property(TARGET libcopp_unit_test PROPERTY FOLDER "libcopp/test")
 
 add_test(
   NAME "libcopp.unit_test"

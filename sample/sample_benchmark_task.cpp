@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
   size_t stack_size = 16 * 1024;
   if (argc > 3) {
-    stack_size = atoi(argv[3]) * 1024;
+    stack_size = static_cast<size_t>(atoi(argv[3]) * 1024);
   }
 
   time_t begin_time = time(nullptr);
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 
   // start a task
   for (int i = 0; i < max_task_number; ++i) {
-    task_arr[i]->start();
+    task_arr[static_cast<size_t>(i)]->start();
   }
 
   // yield & resume from runner
@@ -116,10 +116,10 @@ int main(int argc, char *argv[]) {
   while (continue_flag) {
     continue_flag = false;
     for (int i = 0; i < max_task_number; ++i) {
-      if (false == task_arr[i]->is_completed()) {
+      if (false == task_arr[static_cast<size_t>(i)]->is_completed()) {
         continue_flag = true;
         ++real_switch_times;
-        task_arr[i]->resume();
+        task_arr[static_cast<size_t>(i)]->resume();
       }
     }
   }

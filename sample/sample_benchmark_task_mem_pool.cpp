@@ -86,15 +86,15 @@ int main(int argc, char *argv[]) {
   }
 
   if (argc > 3) {
-    g_stack_size = atoi(argv[3]) * 1024;
+    g_stack_size = static_cast<size_t>(atoi(argv[3]) * 1024);
   }
   if (g_stack_size < copp::stack_traits::minimum_size()) {
     g_stack_size = copp::stack_traits::minimum_size();
   }
 
   stack_mem_pool.index = 0;
-  stack_mem_pool.buff = new char[g_stack_size * max_task_number];
-  memset(stack_mem_pool.buff, 0, g_stack_size * max_task_number);
+  stack_mem_pool.buff = new char[g_stack_size * static_cast<size_t>(max_task_number)];
+  memset(stack_mem_pool.buff, 0, g_stack_size * static_cast<size_t>(max_task_number));
 
   time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
@@ -102,8 +102,8 @@ int main(int argc, char *argv[]) {
   // create coroutines
   task_arr.reserve(static_cast<size_t>(max_task_number));
   while (task_arr.size() < static_cast<size_t>(max_task_number)) {
-    copp::allocator::stack_allocator_memory alloc(stack_mem_pool.buff + stack_mem_pool.index * g_stack_size,
-                                                  g_stack_size);
+    copp::allocator::stack_allocator_memory alloc(
+        stack_mem_pool.buff + static_cast<size_t>(stack_mem_pool.index) * g_stack_size, g_stack_size);
     ++stack_mem_pool.index;
     task_arr.push_back(my_task_t::create(my_task_action, alloc, g_stack_size));
   }
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 
   // start a task
   for (int i = 0; i < max_task_number; ++i) {
-    task_arr[i]->start();
+    task_arr[static_cast<size_t>(i)]->start();
   }
 
   // yield & resume from runner
@@ -129,10 +129,10 @@ int main(int argc, char *argv[]) {
   while (continue_flag) {
     continue_flag = false;
     for (int i = 0; i < max_task_number; ++i) {
-      if (false == task_arr[i]->is_completed()) {
+      if (false == task_arr[static_cast<size_t>(i)]->is_completed()) {
         continue_flag = true;
         ++real_switch_times;
-        task_arr[i]->resume();
+        task_arr[static_cast<size_t>(i)]->resume();
       }
     }
   }

@@ -43,8 +43,7 @@ void cmd_option_list::init_key_value_map() {
     }
 
     const char *str_val = str_key;
-    for (; *str_val && ':' != *str_val && '=' != *str_val; ++str_val)
-      ;
+    for (; *str_val && ':' != *str_val && '=' != *str_val; ++str_val);
     if (*str_val) {
       ++str_val;
     } else {

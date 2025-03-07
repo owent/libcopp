@@ -18,6 +18,7 @@
 #include <libcopp/coroutine/coroutine_context_container.h>
 #include <libcotask/task.h>
 
+#if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 class test_this_context_get_cotoutine_runner {
  public:
   typedef copp::coroutine_context_default value_type;
@@ -32,9 +33,9 @@ class test_this_context_get_cotoutine_runner {
 
     value_ptr_type this_co = static_cast<value_ptr_type>(copp::this_coroutine::get_coroutine());
     CASE_EXPECT_EQ(addr_, this_co);
-#ifdef LIBCOTASK_MACRO_ENABLED
+#  ifdef LIBCOTASK_MACRO_ENABLED
     CASE_EXPECT_EQ(nullptr, cotask::this_task::get_task());
-#endif
+#  endif
     run_ = true;
 
     std::chrono::milliseconds dura(4);
@@ -96,6 +97,7 @@ CASE_TEST(this_context, get_coroutine) {
     CASE_EXPECT_LT(1, test_this_context_get_cotoutine_runner::get_max_thd_count());
   }
 }
+#endif
 
 class test_this_context_yield_runner {
  public:

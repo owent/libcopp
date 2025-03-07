@@ -1,26 +1,34 @@
-/*
- * test_manager.h
- *
- *  Created on: 2014年3月11日
- *      Author: owent
- *
- *  Released under the MIT license
- */
-
-#ifndef TEST_MANAGER_H_
-#define TEST_MANAGER_H_
+// Copyright 2024 atframework
 
 #pragma once
 
+// Import the C++20 feature-test macros
+#ifdef __has_include
+#  if __has_include(<version>)
+#    include <version>
+#  endif
+#elif defined(_MSC_VER) && \
+    ((defined(__cplusplus) && __cplusplus >= 202002L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L))
+#  if _MSC_VER >= 1922
+#    include <version>
+#  endif
+#endif
+
 #include <stdint.h>
 #include <ctime>
-#include <map>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #ifdef __cpp_impl_three_way_comparison
 #  include <compare>
+#endif
+
+#ifdef __cpp_lib_string_view
+#  include <string_view>
 #endif
 
 #include "cli/shell_font.h"
@@ -29,8 +37,6 @@
 
 #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
 
-#  include <unordered_map>
-#  include <unordered_set>
 #  define UTILS_TEST_ENV_AUTO_MAP(...) std::unordered_map<__VA_ARGS__>
 #  define UTILS_TEST_ENV_AUTO_SET(...) std::unordered_set<__VA_ARGS__>
 #  define UTILS_TEST_ENV_AUTO_UNORDERED 1
@@ -48,13 +54,13 @@
  */
 class test_manager {
  public:
-  typedef test_case_base *case_ptr_type;
-  typedef test_on_start_base *on_start_ptr_type;
-  typedef test_on_exit_base *on_exit_ptr_type;
-  typedef std::vector<std::pair<std::string, case_ptr_type> > test_type;
-  typedef std::vector<std::pair<std::string, on_start_ptr_type> > event_on_start_type;
-  typedef std::vector<std::pair<std::string, on_exit_ptr_type> > event_on_exit_type;
-  typedef UTILS_TEST_ENV_AUTO_MAP(std::string, test_type) test_data_type;
+  using case_ptr_type = test_case_base *;
+  using on_start_ptr_type = test_on_start_base *;
+  using on_exit_ptr_type = test_on_exit_base *;
+  using test_type = std::vector<std::pair<std::string, case_ptr_type> >;
+  using event_on_start_type = std::vector<std::pair<std::string, on_start_ptr_type> >;
+  using event_on_exit_type = std::vector<std::pair<std::string, on_exit_ptr_type> >;
+  using test_data_type = std::unordered_map<std::string, test_type>;
 
  public:
   test_manager();
@@ -78,64 +84,117 @@ class test_manager {
   static boost::unit_test::test_suite *&test_suit();
 #endif
 
-  struct pick_param_str_t {
-    const char *str_;
-    pick_param_str_t(const char *in);
-    pick_param_str_t(const std::string &in);
+  template <class T>
+  struct is_numberic : std::conditional<std::is_arithmetic<T>::value || std::is_enum<T>::value, std::true_type,
+                                        std::false_type>::type {};
 
-    bool operator==(const pick_param_str_t &other) const;
-#ifdef __cpp_impl_three_way_comparison
-    std::strong_ordering operator<=>(const pick_param_str_t &other) const;
-#else
-    bool operator!=(const pick_param_str_t &other) const;
-    bool operator>=(const pick_param_str_t &other) const;
-    bool operator>(const pick_param_str_t &other) const;
-    bool operator<=(const pick_param_str_t &other) const;
-    bool operator<(const pick_param_str_t &other) const;
-#endif
-  };
-
-  template <typename TL, typename TR, bool has_pointer, bool has_integer, bool all_integer>
+  template <class TL, class TR,
+            bool has_pointer = std::is_pointer<typename std::decay<TL>::type>::value ||
+                               std::is_pointer<typename std::decay<TR>::type>::value,
+            bool has_number =
+                is_numberic<typename std::decay<TL>::type>::value || is_numberic<typename std::decay<TR>::type>::value,
+            bool all_number =
+                is_numberic<typename std::decay<TL>::type>::value && is_numberic<typename std::decay<TR>::type>::value>
   struct pick_param;
 
   // compare pointer with integer
-  template <typename TL, typename TR>
+  template <class TL, class TR>
   struct pick_param<TL, TR, true, true, false> {
-    template <typename T>
-    uintptr_t operator()(const T &t) {
-      return (uintptr_t)(t);
+    using value_type = uintptr_t;
+
+    template <class T>
+    value_type operator()(T &&t) {
+      return (value_type)(std::forward<T>(t));
     }
   };
 
-  // compare integer with integer, all converted to int64_t or uint64_t
-  template <typename TL, typename TR>
+  // compare integer with integer, all converted to double/int64_t/uint64_t
+  template <class TL, class TR>
   struct pick_param<TL, TR, false, true, true> {
-    // uint64_t operator()(const uint64_t &t) { return static_cast<uint64_t>(t); }
+    using value_type =
+        typename std::conditional<std::is_floating_point<typename std::decay<TL>::type>::value ||
+                                      std::is_floating_point<typename std::decay<TR>::type>::value,
+                                  double,
+                                  typename std::conditional<std::is_unsigned<typename std::decay<TL>::type>::value &&
+                                                                std::is_unsigned<typename std::decay<TR>::type>::value,
+                                                            uint64_t, int64_t>::type>::type;
 
-    template <typename T>
-    int64_t operator()(const T &t) {
-      return static_cast<int64_t>(t);
+    template <class T>
+    value_type operator()(T &&t) {
+      return static_cast<value_type>(std::forward<T>(t));
     }
   };
 
-  template <typename TL, typename TR, bool has_pointer, bool has_integer, bool all_integer>
+  template <class TVAL, bool>
+  struct try_convert_to_string_view;
+
+#ifdef __cpp_lib_string_view
+  using string_view_type = ::std::string_view;
+#else
+  using string_view_type = ::std::string;
+#endif
+
+  template <class TVAL>
+  struct try_convert_to_string_view<TVAL, true> {
+    using value_type = typename std::conditional<std::is_same<std::nullptr_t, typename std::decay<TVAL>::type>::value,
+                                                 std::nullptr_t, string_view_type>::type;
+    static inline value_type pick(TVAL v) { return value_type(v); }
+  };
+
+  template <bool CONVERTABLE_TO_SV>
+  struct try_convert_to_string_view<const char *, CONVERTABLE_TO_SV> {
+    using value_type = const char *;
+    static inline value_type pick(const char *v) { return v; }
+  };
+
+  template <class TVAL>
+  struct try_convert_to_string_view<TVAL, false> {
+    using value_type = TVAL;
+    static inline value_type pick(TVAL v) { return v; }
+  };
+
+  template <class TL, class TR, bool has_pointer, bool has_integer, bool all_integer>
   struct pick_param {
-    pick_param_str_t operator()(const char *t) { return pick_param_str_t(t); }
-    pick_param_str_t operator()(const std::string &t) { return pick_param_str_t(t); }
-
-    template <typename T>
-    const T &operator()(const T &t) {
-      return t;
+    template <class T>
+    typename try_convert_to_string_view<T, std::is_convertible<T, string_view_type>::value>::value_type operator()(
+        T &&t) {
+      return try_convert_to_string_view<T, std::is_convertible<T, string_view_type>::value>::pick(std::forward<T>(t));
     }
   };
+
+  template <class TL, bool CONVERT_TO_VOID_P = std::is_pointer<typename std::decay<TL>::type>::value ||
+                                               std::is_function<typename std::decay<TL>::type>::value>
+  struct convert_param;
+
+  template <class TL>
+  struct convert_param<TL, true> {
+    using value_type = void;
+    using type = const void *;
+    template <class TINPUT>
+    static inline const void *pick(TINPUT &&v) {
+      return reinterpret_cast<const void *>(v);
+    }
+  };
+
+  template <class TL>
+  struct convert_param<TL, false> {
+    using value_type = typename std::decay<TL>::type;
+    using type = const value_type &;
+    template <class TINPUT>
+    static inline const value_type &pick(TINPUT &&v) {
+      return v;
+    }
+  };
+
+  template <class TL>
+  typename convert_param<TL>::type pick_convert_value(TL &&v) {
+    return convert_param<TL>::pick(std::forward<TL>(v));
+  }
 
   // expect functions
-  template <typename TL, typename TR>
-  bool expect_eq(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-    pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
-               std::is_integral<TL>::value || std::is_integral<TR>::value,
-               std::is_integral<TL>::value && std::is_integral<TR>::value>
-        pp;
+  template <class TL, class TR>
+  bool expect_eq(TL &&l, TR &&r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
+    pick_param<TL, TR> pp;
     if (pp(l) == pp(r)) {
       inc_success_counter();
       return true;
@@ -144,19 +203,16 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected: " << lexpr << " == " << rexpr << std::endl
-           << lexpr << ": " << l << std::endl
-           << rexpr << ": " << r << std::endl;
+           << lexpr << ": " << pick_convert_value(l) << std::endl
+           << rexpr << ": " << pick_convert_value(r) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL, typename TR>
-  bool expect_ne(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-    pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
-               std::is_integral<TL>::value || std::is_integral<TR>::value,
-               std::is_integral<TL>::value && std::is_integral<TR>::value>
-        pp;
+  template <class TL, class TR>
+  bool expect_ne(TL &&l, TR &&r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
+    pick_param<TL, TR> pp;
 
     if (pp(l) != pp(r)) {
       inc_success_counter();
@@ -166,19 +222,16 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected: " << lexpr << " ！= " << rexpr << std::endl
-           << lexpr << ": " << l << std::endl
-           << rexpr << ": " << r << std::endl;
+           << lexpr << ": " << pick_convert_value(l) << std::endl
+           << rexpr << ": " << pick_convert_value(r) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL, typename TR>
-  bool expect_lt(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-    pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
-               std::is_integral<TL>::value || std::is_integral<TR>::value,
-               std::is_integral<TL>::value && std::is_integral<TR>::value>
-        pp;
+  template <class TL, class TR>
+  bool expect_lt(TL &&l, TR &&r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
+    pick_param<TL, TR> pp;
 
     if (pp(l) < pp(r)) {
       inc_success_counter();
@@ -188,19 +241,16 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected: " << lexpr << " < " << rexpr << std::endl
-           << lexpr << ": " << l << std::endl
-           << rexpr << ": " << r << std::endl;
+           << lexpr << ": " << pick_convert_value(l) << std::endl
+           << rexpr << ": " << pick_convert_value(r) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL, typename TR>
-  bool expect_le(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-    pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
-               std::is_integral<TL>::value || std::is_integral<TR>::value,
-               std::is_integral<TL>::value && std::is_integral<TR>::value>
-        pp;
+  template <class TL, class TR>
+  bool expect_le(TL &&l, TR &&r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
+    pick_param<TL, TR> pp;
 
     if (pp(l) <= pp(r)) {
       inc_success_counter();
@@ -210,19 +260,16 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected: " << lexpr << " <= " << rexpr << std::endl
-           << lexpr << ": " << l << std::endl
-           << rexpr << ": " << r << std::endl;
+           << lexpr << ": " << pick_convert_value(l) << std::endl
+           << rexpr << ": " << pick_convert_value(r) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL, typename TR>
-  bool expect_gt(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-    pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
-               std::is_integral<TL>::value || std::is_integral<TR>::value,
-               std::is_integral<TL>::value && std::is_integral<TR>::value>
-        pp;
+  template <class TL, class TR>
+  bool expect_gt(TL &&l, TR &&r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
+    pick_param<TL, TR> pp;
 
     if (pp(l) > pp(r)) {
       inc_success_counter();
@@ -232,19 +279,16 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected: " << lexpr << " > " << rexpr << std::endl
-           << lexpr << ": " << l << std::endl
-           << rexpr << ": " << r << std::endl;
+           << lexpr << ": " << pick_convert_value(l) << std::endl
+           << rexpr << ": " << pick_convert_value(r) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL, typename TR>
-  bool expect_ge(const TL &l, const TR &r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
-    pick_param<TL, TR, std::is_pointer<TL>::value || std::is_pointer<TR>::value,
-               std::is_integral<TL>::value || std::is_integral<TR>::value,
-               std::is_integral<TL>::value && std::is_integral<TR>::value>
-        pp;
+  template <class TL, class TR>
+  bool expect_ge(TL &&l, TR &&r, const char *lexpr, const char *rexpr, const char *file, size_t line) {
+    pick_param<TL, TR> pp;
 
     if (pp(l) >= pp(r)) {
       inc_success_counter();
@@ -254,15 +298,15 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected: " << lexpr << " >= " << rexpr << std::endl
-           << lexpr << ": " << l << std::endl
-           << rexpr << ": " << r << std::endl;
+           << lexpr << ": " << pick_convert_value(l) << std::endl
+           << rexpr << ": " << pick_convert_value(r) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL>
-  bool expect_true(const TL &l, const char *expr, const char *file, size_t line) {
+  template <class TL>
+  bool expect_true(TL &&l, const char *expr, const char *file, size_t line) {
     if (!!(l)) {
       inc_success_counter();
       return true;
@@ -271,14 +315,14 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected true: " << expr << std::endl
-           << expr << ": " << l << std::endl;
+           << expr << ": " << pick_convert_value(l) << std::endl;
 
       return false;
     }
   }
 
-  template <typename TL>
-  bool expect_false(const TL &l, const char *expr, const char *file, size_t line) {
+  template <class TL>
+  bool expect_false(TL &&l, const char *expr, const char *file, size_t line) {
     if (!(l)) {
       inc_success_counter();
       return true;
@@ -287,7 +331,7 @@ class test_manager {
       util::cli::shell_stream ss(std::cout);
       ss() << util::cli::shell_font_style::SHELL_FONT_COLOR_RED << "FAILED => " << file << ":" << line << std::endl
            << "Expected false: " << expr << std::endl
-           << expr << ": " << l << std::endl;
+           << expr << ": " << pick_convert_value(l) << std::endl;
 
       return false;
     }
@@ -303,12 +347,10 @@ class test_manager {
   event_on_exit_type evt_on_exits_;
   int success_;
   int failed_;
-  UTILS_TEST_ENV_AUTO_SET(std::string) run_cases_;
-  UTILS_TEST_ENV_AUTO_SET(std::string) run_groups_;
+  std::unordered_set<std::string> run_cases_;
+  std::unordered_set<std::string> run_groups_;
 };
 
 int run_event_on_start();
 int run_event_on_exit();
 int run_tests(int argc, char *argv[]);
-
-#endif /* TEST_MANAGER_H_ */

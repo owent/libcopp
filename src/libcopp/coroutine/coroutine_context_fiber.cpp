@@ -40,10 +40,10 @@ struct fiber_context_tls_data_t {
   }
 };
 
-#  if defined(LIBCOPP_LOCK_DISABLE_THIS_MT) && LIBCOPP_LOCK_DISABLE_THIS_MT
-static fiber_context_tls_data_t gt_current_fiber;
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
+static LIBCOPP_MACRO_THREAD_LOCAL fiber_context_tls_data_t gt_current_fiber;
 #  else
-static COPP_MACRO_THREAD_LOCAL fiber_context_tls_data_t gt_current_fiber;
+static fiber_context_tls_data_t gt_current_fiber;
 #  endif
 
 static inline LPVOID get_this_fiber_address() {
@@ -78,13 +78,13 @@ struct libcopp_fiber_internal_api_set {
     return jump_src;
   }
 
-  UTIL_FORCEINLINE static void set_caller(coroutine_context_fiber *src, LPVOID fctx) {
+  LIBCOPP_UTIL_FORCEINLINE static void set_caller(coroutine_context_fiber *src, LPVOID fctx) {
     if (nullptr != src) {
       src->caller_ = fctx;
     }
   }
 
-  // UTIL_FORCEINLINE static void set_callee(coroutine_context_fiber *src, LPVOID fctx) {
+  // LIBCOPP_UTIL_FORCEINLINE static void set_callee(coroutine_context_fiber *src, LPVOID fctx) {
   //     if (nullptr != src) {
   //         src->callee_ = fctx;
   //     }
@@ -217,7 +217,8 @@ LIBCOPP_COPP_API int coroutine_context_fiber::create(coroutine_context_fiber *p,
     return COPP_EC_ARGS_ERROR;
   }
 
-  size_t this_offset = reinterpret_cast<unsigned char *>(callee_stack.sp) - reinterpret_cast<unsigned char *>(p);
+  size_t this_offset =
+      static_cast<size_t>(reinterpret_cast<unsigned char *>(callee_stack.sp) - reinterpret_cast<unsigned char *>(p));
   if (this_offset < sizeof(coroutine_context_fiber) + private_buffer_size || this_offset > stack_offset) {
     return COPP_EC_ARGS_ERROR;
   }
@@ -299,7 +300,7 @@ LIBCOPP_COPP_API int coroutine_context_fiber::start(void *priv_data) {
   }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
-  COPP_UNLIKELY_IF (unhandle_exception_) {
+  if LIBCOPP_UTIL_UNLIKELY_CONDITION (unhandle_exception_) {
     std::swap(unhandled, unhandle_exception_);
   }
 #  endif

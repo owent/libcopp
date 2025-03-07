@@ -9,6 +9,7 @@
 // clang-format off
 #include <libcopp/utils/config/stl_include_prefix.h>  // NOLINT(build/include_order)
 // clang-format on
+
 #include <assert.h>
 #include <cstddef>
 #include <memory>
@@ -62,12 +63,12 @@ struct LIBCOPP_COPP_API_HEAD_ONLY _multiple_callers_constructor;
 
 template <class TVALUE>
 struct LIBCOPP_COPP_API_HEAD_ONLY _multiple_callers_constructor<TVALUE, true> {
-  UTIL_FORCEINLINE static TVALUE &&return_value(TVALUE &input) noexcept { return std::move(input); }
+  LIBCOPP_UTIL_FORCEINLINE static TVALUE &&return_value(TVALUE &input) noexcept { return std::move(input); }
 };
 
 template <class TVALUE>
 struct LIBCOPP_COPP_API_HEAD_ONLY _multiple_callers_constructor<TVALUE, false> {
-  UTIL_FORCEINLINE static const TVALUE &return_value(TVALUE &input) noexcept { return input; }
+  LIBCOPP_UTIL_FORCEINLINE static const TVALUE &return_value(TVALUE &input) noexcept { return input; }
 };
 
 template <class TVALUE>
@@ -117,6 +118,11 @@ class promise_caller_manager {
     friend inline bool operator==(const handle_delegate &l, const handle_delegate &r) noexcept {
       return l.handle == r.handle;
     }
+#  ifdef __cpp_impl_three_way_comparison
+    friend inline auto operator<=>(const handle_delegate &l, const handle_delegate &r) noexcept {
+      return l.handle <=> r.handle;
+    }
+#  else
     friend inline bool operator!=(const handle_delegate &l, const handle_delegate &r) noexcept {
       return l.handle != r.handle;
     }
@@ -132,6 +138,7 @@ class promise_caller_manager {
     friend inline bool operator>=(const handle_delegate &l, const handle_delegate &r) noexcept {
       return l.handle >= r.handle;
     }
+#  endif
     inline operator bool() const noexcept { return !!handle; }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_CONCEPTS) && LIBCOPP_MACRO_ENABLE_CONCEPTS
@@ -232,7 +239,7 @@ class promise_base_type {
     }
   }
 
-  UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY promise_status get_status() const noexcept { return status_; }
+  LIBCOPP_UTIL_FORCEINLINE LIBCOPP_COPP_API_HEAD_ONLY promise_status get_status() const noexcept { return status_; }
 
   LIBCOPP_COPP_API_HEAD_ONLY inline bool check_flag(promise_flag flag) const noexcept {
     return 0 != (flags_ & (static_cast<uint32_t>(1) << static_cast<uint8_t>(flag)));
@@ -320,7 +327,7 @@ class promise_base_type {
     remove_caller(handle_delegate{handle}, inherit_status);
   }
 
-  UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
+  LIBCOPP_UTIL_FORCEINLINE bool has_multiple_callers() const noexcept { return caller_manager_.has_multiple_callers(); }
 
   LIBCOPP_COPP_API pick_promise_status_awaitable yield_value(pick_promise_status_awaitable &&args) const noexcept;
   static LIBCOPP_COPP_API_HEAD_ONLY inline pick_promise_status_awaitable pick_current_status() noexcept { return {}; }

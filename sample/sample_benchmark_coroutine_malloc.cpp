@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
   size_t stack_size = 16 * 1024;
   if (argc > 3) {
-    stack_size = atoi(argv[3]) * 1024;
+    stack_size = static_cast<size_t>(atoi(argv[3]) * 1024);
   }
   if (stack_size < copp::stack_traits::minimum_size()) {
     stack_size = copp::stack_traits::minimum_size();
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
-  co_arr = new my_cotoutine_t::ptr_t[MAX_COROUTINE_NUMBER];
+  co_arr = new my_cotoutine_t::ptr_t[static_cast<size_t>(MAX_COROUTINE_NUMBER)];
 
   time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();

@@ -306,7 +306,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
     map_value_[(uc_t)','] = map_value_[(uc_t)';'] = CMDSPLIT;
 
     // 转义字符设置
-    for (int i = 0; i < 256; ++i) trans_value_[i] = (uc_t)i;
+    for (int i = 0; i < 256; ++i) trans_value_[i] = static_cast<char>(i);
 
     trans_value_[(uc_t)'0'] = '\0';
     trans_value_[(uc_t)'a'] = '\a';
@@ -390,8 +390,8 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
 
       for (; i < argv; ++i) {
         // 把所有的非指令字符串设为指令参数
-        if (callback_funcs_.find(args[i]->to_string()) == callback_funcs_.end()) {
-          cmd_args.add(args[i]->to_string());
+        if (callback_funcs_.find(args[static_cast<size_t>(i)]->to_string()) == callback_funcs_.end()) {
+          cmd_args.add(args[static_cast<size_t>(i)]->to_string());
         } else {
           // 如果是单指令且有未知参数则分发@OnError错误处理
           if (is_single_cmd && cmd_args.get_params_number() > 0) {
@@ -403,8 +403,9 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
 
           // 追加所有参数，执行单指令
           if (is_single_cmd) {
-            cmd_content = TCmdStr(args[i]->to_cpp_string().c_str(), args[i]->to_cpp_string().size());
-            for (++i; i < argv; ++i) cmd_args.add(args[i]->to_string());
+            cmd_content = TCmdStr(args[static_cast<size_t>(i)]->to_cpp_string().c_str(),
+                                  args[static_cast<size_t>(i)]->to_cpp_string().size());
+            for (++i; i < argv; ++i) cmd_args.add(args[static_cast<size_t>(i)]->to_string());
           }
           break;
         }
@@ -412,7 +413,8 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
 
       run_cmd(cmd_content, cmd_args);
       if (i >= argv) break;
-      cmd_content = TCmdStr(args[i]->to_cpp_string().c_str(), args[i]->to_cpp_string().size());
+      cmd_content = TCmdStr(args[static_cast<size_t>(i)]->to_cpp_string().c_str(),
+                            args[static_cast<size_t>(i)]->to_cpp_string().size());
     }
   }
 
@@ -517,7 +519,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
   /**
    * 执行子结构
    */
-  virtual void operator()(callback_param arg) {
+  void operator()(callback_param arg) override {
     // 响应@OnCallFunc事件
     typename funmap_type::const_iterator iter = callback_funcs_.find("@OnCallFunc");
     if (iter != callback_funcs_.end()) (*iter->second)(arg);
@@ -530,7 +532,7 @@ class cmd_option_bind : public binder::cmd_option_bind_base {
    * 获取命令集合的帮助信息
    * @param prefix_data 前缀
    */
-  virtual std::string get_help_msg(const char *prefix_data = "") const {
+  std::string get_help_msg(const char *prefix_data = "") const override {
     std::set<typename funmap_type::mapped_type> set_obj;
     std::string help_msg_content;
 

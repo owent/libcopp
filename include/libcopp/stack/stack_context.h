@@ -20,7 +20,7 @@ struct LIBCOPP_COPP_API stack_context {
   void *sp;    /** @brief stack end pointer **/
 
 #ifdef LIBCOPP_MACRO_USE_SEGMENTED_STACKS
-  using segments_context_t = void *[COPP_MACRO_SEGMENTED_STACK_NUMBER];
+  using segments_context_t = void *[LIBCOPP_MACRO_SEGMENTED_STACK_NUMBER];
   segments_context_t segments_ctx; /** @brief gcc split segment stack data **/
 #endif
 

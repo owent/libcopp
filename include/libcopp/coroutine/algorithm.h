@@ -61,7 +61,7 @@ LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> some(TREADY_CO
 // clang-format on
 #  endif
 {
-  return some_delegate<typename some_ready_container<TREADY_CONTAINER>::value_type>::template run(
+  return some_delegate<typename some_ready_container<TREADY_CONTAINER>::value_type>::run(
       std::forward<TREADY_CONTAINER>(ready_futures), ready_count, &pending_futures);
 }
 
@@ -84,7 +84,7 @@ LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> any(TREADY_CON
 // clang-format on
 #  endif
 {
-  return some_delegate<typename some_ready_container<TREADY_CONTAINER>::value_type>::template run(
+  return some_delegate<typename some_ready_container<TREADY_CONTAINER>::value_type>::run(
       std::forward<TREADY_CONTAINER>(ready_futures), 1, &pending_futures);
 }
 
@@ -107,7 +107,7 @@ LIBCOPP_COPP_API_HEAD_ONLY inline callable_future<promise_status> all(TREADY_CON
 // clang-format on
 #  endif
 {
-  return some_delegate<typename some_ready_container<TREADY_CONTAINER>::value_type>::template run(
+  return some_delegate<typename some_ready_container<TREADY_CONTAINER>::value_type>::run(
       std::forward<TREADY_CONTAINER>(ready_futures), gsl::size(pending_futures), &pending_futures);
 }
 

@@ -97,7 +97,7 @@ static void benchmark_round(int index) {
 
   // start a task
   for (int i = 0; i < max_task_number; ++i) {
-    task_arr[i]->start();
+    task_arr[static_cast<size_t>(i)]->start();
   }
 
   // yield & resume from runner
@@ -107,10 +107,10 @@ static void benchmark_round(int index) {
   while (continue_flag) {
     continue_flag = false;
     for (int i = 0; i < max_task_number; ++i) {
-      if (false == task_arr[i]->is_completed()) {
+      if (false == task_arr[static_cast<size_t>(i)]->is_completed()) {
         continue_flag = true;
         ++real_switch_times;
-        task_arr[i]->resume();
+        task_arr[static_cast<size_t>(i)]->resume();
       }
     }
   }

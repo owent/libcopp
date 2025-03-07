@@ -21,7 +21,7 @@ class test_context_task_action_base : public cotask::impl::task_action_impl {
   // add a same name function to find the type detection error
   virtual int operator()() = 0;
 
-  int operator()(void *priv_data) {
+  int operator()(void *priv_data) override {
     ++g_test_coroutine_task_status;
 
     CASE_EXPECT_EQ(&g_test_coroutine_task_status, priv_data);
@@ -37,7 +37,7 @@ class test_context_task_action_base : public cotask::impl::task_action_impl {
     return 0;
   }
 
-  virtual int on_finished(cotask::impl::task_impl &) {
+  int on_finished(cotask::impl::task_impl &) override {
     ++g_test_coroutine_task_on_finished;
     return 0;
   }
@@ -48,7 +48,7 @@ class test_context_task_action : public test_context_task_action_base {
   using test_context_task_action_base::operator();
 
   // add a same name function to find the type detection error
-  virtual int operator()() { return 0; }
+  int operator()() override { return 0; }
 };
 
 CASE_TEST(coroutine_task, custom_action) {
@@ -86,6 +86,9 @@ CASE_TEST(coroutine_task, custom_action) {
     CASE_EXPECT_TRUE(co_another_task->is_completed());
     CASE_EXPECT_FALSE(co_task->is_canceled());
     CASE_EXPECT_FALSE(co_task->is_faulted());
+
+    CASE_EXPECT_EQ(co_task->get_status(), cotask::EN_TS_DONE);
+    CASE_EXPECT_EQ(co_another_task->get_status(), cotask::EN_TS_DONE);
 
     CASE_EXPECT_GT(0, co_another_task->resume(co_another_task.get()));
     CASE_EXPECT_EQ(g_test_coroutine_task_status, 4);
@@ -325,7 +328,7 @@ struct test_context_task_next_action : public cotask::impl::task_action_impl {
   int check_;
   test_context_task_next_action(int s, int c) : cotask::impl::task_action_impl(), set_(s), check_(c) {}
 
-  int operator()(void *) {
+  int operator()(void *) override {
     CASE_EXPECT_EQ(g_test_coroutine_task_status, check_);
     g_test_coroutine_task_status = set_;
 
@@ -375,7 +378,7 @@ struct test_context_task_functor_drived : public cotask::impl::task_action_impl 
   int b_;
   test_context_task_functor_drived(int a, int b) : a_(a), b_(b) {}
 
-  virtual int operator()(void *) {
+  int operator()(void *) override {
     CASE_EXPECT_EQ(a_, 1);
     CASE_EXPECT_EQ(3, b_);
 
@@ -643,6 +646,7 @@ CASE_TEST(coroutine_task, github_issues_18) {
   }
 }
 
+#  if LIBCOPP_MACRO_ENABLE_MULTI_THREAD
 static LIBCOPP_COPP_NAMESPACE_ID::util::lock::atomic_int_type<int> g_test_context_task_test_atomic;
 static constexpr const int g_test_context_task_test_mt_run_times = 10000;
 static size_t g_test_context_task_test_mt_max_run_thread_number = 0;
@@ -657,7 +661,7 @@ struct test_context_task_test_action_mt_thread : public cotask::impl::task_actio
  public:
   test_context_task_test_action_mt_thread() : run_count(0) {}
 
-  int operator()(void *thread_func_address) {
+  int operator()(void *thread_func_address) override {
     std::set<void *> thread_counter;
 
     while (run_count < g_test_context_task_test_mt_run_times) {
@@ -724,6 +728,7 @@ CASE_TEST(coroutine_task, mt_run_competition) {
   CASE_MSG_INFO() << "Coroutine tasks are run on " << g_test_context_task_test_mt_max_run_thread_number
                   << " threads at most." << std::endl;
 }
+#  endif
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_COROUTINE) && LIBCOPP_MACRO_ENABLE_STD_COROUTINE
 static copp::callable_future<int> call_for_await_cotask(const cotask::task<>::ptr_t &t) {

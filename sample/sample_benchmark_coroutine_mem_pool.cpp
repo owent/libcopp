@@ -71,20 +71,20 @@ int main(int argc, char *argv[]) {
 
   size_t stack_size = 16 * 1024;
   if (argc > 3) {
-    stack_size = atoi(argv[3]) * 1024;
+    stack_size = static_cast<size_t>(atoi(argv[3]) * 1024);
   }
   if (stack_size < copp::stack_traits::minimum_size()) {
     stack_size = copp::stack_traits::minimum_size();
   }
 
-  stack_mem_pool = new char[MAX_COROUTINE_NUMBER * stack_size];
-  memset(stack_mem_pool, 0, MAX_COROUTINE_NUMBER * stack_size);
+  stack_mem_pool = new char[static_cast<size_t>(MAX_COROUTINE_NUMBER) * stack_size];
+  memset(stack_mem_pool, 0, static_cast<size_t>(MAX_COROUTINE_NUMBER) * stack_size);
 
   time_t begin_time = time(nullptr);
   CALC_CLOCK_T begin_clock = CALC_CLOCK_NOW();
 
   // create coroutines
-  co_arr = new my_cotoutine_t::ptr_t[MAX_COROUTINE_NUMBER];
+  co_arr = new my_cotoutine_t::ptr_t[static_cast<size_t>(MAX_COROUTINE_NUMBER)];
 
   time_t end_time = time(nullptr);
   CALC_CLOCK_T end_clock = CALC_CLOCK_NOW();
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
   // create a runner
   // bind runner to coroutine object
   for (int i = 0; i < MAX_COROUTINE_NUMBER; ++i) {
-    copp::allocator::stack_allocator_memory alloc(stack_mem_pool + i * stack_size, stack_size);
+    copp::allocator::stack_allocator_memory alloc(stack_mem_pool + static_cast<size_t>(i) * stack_size, stack_size);
     co_arr[i] = my_cotoutine_t::create(my_runner, alloc, stack_size);
   }
 
