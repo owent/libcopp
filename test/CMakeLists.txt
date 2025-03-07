@@ -84,7 +84,7 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   # GCC 12&13 BUG: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106297
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.0.0")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7.1.0")
     target_compile_options(libcopp_unit_test PRIVATE -Wno-error=stringop-overflow)
   endif()
 endif()
