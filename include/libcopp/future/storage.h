@@ -519,8 +519,11 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
 
   using success_storage_type = typename default_compact_storage<success_type>::type;
   using error_storage_type = typename default_compact_storage<error_type>::type;
+<<<<<<< HEAD
   using success_value_type = typename success_storage_type::storage_type;
   using error_value_type = typename error_storage_type::storage_type;
+=======
+>>>>>>> 6ead59ad8a78a075ca2cdbde38cc7f06fad5b887
 
   LIBCOPP_UTIL_FORCEINLINE bool is_success() const noexcept { return mode_ == EN_RESULT_SUCCESS; }
   LIBCOPP_UTIL_FORCEINLINE bool is_error() const noexcept { return mode_ == EN_RESULT_ERROR; }
@@ -633,8 +636,13 @@ class LIBCOPP_COPP_API_HEAD_ONLY result_base<TOK, TERR, false> {
                                     std::forward<TARGS>(args)...));
   }
 
+<<<<<<< HEAD
   success_value_type success_value_;
   error_value_type error_value_;
+=======
+  typename success_storage_type::storage_type success_data_;
+  typename error_storage_type::storage_type error_data_;
+>>>>>>> 6ead59ad8a78a075ca2cdbde38cc7f06fad5b887
   mode_type mode_;
 };
 

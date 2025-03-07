@@ -12,7 +12,7 @@ template <class T, class TPTR = typename poll_storage_ptr_selector<T>::type>
 class LIBCOPP_COPP_API_HEAD_ONLY poller {
  public:
   using self_type = poller<T, TPTR>;
-  // If T is trivial and is smaller than size of four pointer, using small object optimization
+  // If T is trivial and is smaller than size of four pointers, using small object optimization
   using poll_storage = poll_storage_base<T, TPTR>;
   using storage_type = typename poll_storage::storage_type;
   using ptr_type = typename poll_storage::ptr_type;
