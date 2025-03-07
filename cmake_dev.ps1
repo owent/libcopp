@@ -29,6 +29,16 @@
     Enable Test: yes|no|true|false|1|0
 .PARAMETER EnableTools
     Enable Tools: yes|no|true|false|1|0
+.PARAMETER EnableAdderssSanitizer
+    Enable Adderss Sanitizer: yes|no|true|false|1|0
+.PARAMETER EnableThreadSanitizer
+    Enable Thread Sanitizer: yes|no|true|false|1|0
+.PARAMETER EnableLeakSanitizer
+    Enable Leak Sanitizer: yes|no|true|false|1|0
+.PARAMETER EnableUndefinedSanitizer
+    Enable Undefined Sanitizer: yes|no|true|false|1|0
+.PARAMETER EnableHWAddressSanitizer
+    Enable Hardware Address Sanitizer: yes|no|true|false|1|0
 .PARAMETER CMakeOptions
     CMake options(pwsh -File <this file> [options...] --% [cmake options])
 .EXAMPLE
@@ -98,6 +108,26 @@ param (
   [Parameter(ValueFromPipeline = $true,
     ValueFromPipelineByPropertyName = $true)]
   [string]$EnableTools = "true",
+
+  [Parameter(ValueFromPipeline = $true,
+    ValueFromPipelineByPropertyName = $true)]
+  [string]$EnableAdderssSanitizer = "false",
+
+  [Parameter(ValueFromPipeline = $true,
+    ValueFromPipelineByPropertyName = $true)]
+  [string]$EnableThreadSanitizer = "false",
+
+  [Parameter(ValueFromPipeline = $true,
+    ValueFromPipelineByPropertyName = $true)]
+  [string]$EnableLeakSanitizer = "false",
+
+  [Parameter(ValueFromPipeline = $true,
+    ValueFromPipelineByPropertyName = $true)]
+  [string]$EnableUndefinedSanitizer = "false",
+
+  [Parameter(ValueFromPipeline = $true,
+    ValueFromPipelineByPropertyName = $true)]
+  [string]$EnableHWAddressSanitizer = "false",
 
   [Parameter(ValueFromPipeline = $true,
     ValueFromPipelineByPropertyName = $true,
@@ -358,6 +388,36 @@ if ((Check-BooleanString "$EnableTest")) {
 }
 if ((Check-BooleanString "$EnableTools")) {
   $CMakeGeneratorArgs += @("-DPROJECT_ENABLE_TOOLS=ON")
+}
+if ((Check-BooleanString $EnableAdderssSanitizer)) {
+  $CMakeGeneratorArgs += @("-DPROJECT_SANTIZER_USE_ADDRESS=ON")
+  if (-Not $BuildDirectorySet) {
+    $BuildDirectory = "${BuildDirectory}_asan"
+  }
+}
+elseif ((Check-BooleanString $EnableThreadSanitizer)) {
+  $CMakeGeneratorArgs += @("-DPROJECT_SANTIZER_USE_THREAD=ON")
+  if (-Not $BuildDirectorySet) {
+    $BuildDirectory = "${BuildDirectory}_tsan"
+  }
+}
+elseif ((Check-BooleanString $EnableLeakSanitizer)) {
+  $CMakeGeneratorArgs += @("-DPROJECT_SANTIZER_USE_LEAK=ON")
+  if (-Not $BuildDirectorySet) {
+    $BuildDirectory = "${BuildDirectory}_lsan"
+  }
+}
+elseif ((Check-BooleanString $EnableUndefinedSanitizer)) {
+  $CMakeGeneratorArgs += @("-DPROJECT_SANTIZER_USE_UNDEFINED=ON")
+  if (-Not $BuildDirectorySet) {
+    $BuildDirectory = "${BuildDirectory}_ubsan"
+  }
+}
+elseif ((Check-BooleanString $EnableHWAddressSanitizer)) {
+  $CMakeGeneratorArgs += @("-DPROJECT_SANTIZER_USE_HWADDRESS=ON")
+  if (-Not $BuildDirectorySet) {
+    $BuildDirectory = "${BuildDirectory}_hwasan"
+  }
 }
 
 if (($null -ne $CMakeOptions) -and ($CMakeOptions.Count -gt 0)) {

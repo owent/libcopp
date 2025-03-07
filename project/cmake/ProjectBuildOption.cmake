@@ -86,3 +86,5 @@ option(LIBCOPP_TEST_ENABLE_BOOST_UNIT_TEST "Enable boost unit test." OFF)
 include("${CMAKE_CURRENT_LIST_DIR}/FetchDependeny.cmake")
 include(IncludeDirectoryRecurse)
 include(EchoWithColor)
+
+include("${CMAKE_CURRENT_LIST_DIR}/ProjectSantizerChecker.cmake")
