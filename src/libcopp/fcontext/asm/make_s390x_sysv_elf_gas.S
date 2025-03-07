@@ -46,7 +46,7 @@
 .text
 .align	8
 .global	copp_make_fcontext_v2
-.hidden copp_make_fcontext_v2
+# .hidden copp_make_fcontext_v2
 .type	copp_make_fcontext_v2, @function
 
 #define ARG_OFFSET         0

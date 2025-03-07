@@ -68,7 +68,7 @@
 
 .file "jump_ppc64_sysv_elf_gas.S"
 .globl copp_jump_fcontext_v2
-.hidden copp_jump_fcontext_v2
+# .hidden copp_jump_fcontext_v2
 #if _CALL_ELF == 2
 	.text
 	.align 2
@@ -87,7 +87,7 @@ copp_jump_fcontext_v2:
         .align 2
 .L.copp_jump_fcontext_v2:
 # else
-        .hidden .copp_jump_fcontext_v2
+        # .hidden .copp_jump_fcontext_v2
         .globl  .copp_jump_fcontext_v2
         .quad   .copp_jump_fcontext_v2,.TOC.@tocbase,0
         .size   copp_jump_fcontext_v2,24

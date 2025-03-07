@@ -31,7 +31,7 @@
 .file "jump_i386_sysv_elf_gas.S"
 .text
 .globl copp_jump_fcontext_v2
-.hidden copp_jump_fcontext_v2
+# .hidden copp_jump_fcontext_v2
 .align 2
 .type copp_jump_fcontext_v2,@function
 copp_jump_fcontext_v2:

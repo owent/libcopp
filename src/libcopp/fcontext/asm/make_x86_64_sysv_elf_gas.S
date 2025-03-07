@@ -44,7 +44,7 @@
 .file "make_x86_64_sysv_elf_gas.S"
 .text
 .globl copp_make_fcontext_v2
-.hidden copp_make_fcontext_v2
+# .hidden copp_make_fcontext_v2
 .type copp_make_fcontext_v2,@function
 .align 16
 copp_make_fcontext_v2:

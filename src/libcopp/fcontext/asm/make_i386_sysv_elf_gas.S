@@ -31,7 +31,7 @@
 .file "make_i386_sysv_elf_gas.S"
 .text
 .globl copp_make_fcontext_v2
-.hidden copp_make_fcontext_v2
+# .hidden copp_make_fcontext_v2
 .align 2
 .type copp_make_fcontext_v2,@function
 copp_make_fcontext_v2:

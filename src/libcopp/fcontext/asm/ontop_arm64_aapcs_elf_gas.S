@@ -55,7 +55,7 @@
 .text
 .align  2
 .global copp_ontop_fcontext_v2
-.hidden copp_ontop_fcontext_v2
+# .hidden copp_ontop_fcontext_v2
 .type   copp_ontop_fcontext_v2, %function
 copp_ontop_fcontext_v2:
     # prepare stack for GP + FPU
