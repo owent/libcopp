@@ -155,8 +155,7 @@ LIBCOPP_COPP_API bool stackful_channel_context_base::has_multiple_callers() cons
   return false;
 #else
   size_t count = 0;
-  if (unique_caller_.handle && !unique_caller_.handle.done() &&
-      (nullptr == unique_caller_.promise || !unique_caller_.promise->check_flag(promise_flag::kDestroying))) {
+  if (unique_caller_.handle_data && unique_caller_.resume_handle) {
     ++count;
   }
 

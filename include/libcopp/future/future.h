@@ -28,7 +28,7 @@ class LIBCOPP_COPP_API_HEAD_ONLY future {
 
  public:
   future() noexcept(std::is_nothrow_constructible<poller_type>::value) {}
-  ~future() {}
+  ~future() noexcept(std::is_nothrow_destructible<poller_type>::value) {}
 
   LIBCOPP_UTIL_FORCEINLINE bool is_ready() const noexcept { return poll_data_.is_ready(); }
 
