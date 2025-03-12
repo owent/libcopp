@@ -765,8 +765,8 @@ template <class TVALUE, class TERROR_TRANSFORM = promise_error_transform<TVALUE>
 using generator_channel_sender = typename generator_channel_receiver<TVALUE, TERROR_TRANSFORM>::context_pointer_type;
 
 template <class TVALUE, class TERROR_TRANSFORM = promise_error_transform<TVALUE>>
-inline std::pair<generator_channel_receiver<TVALUE, TERROR_TRANSFORM>,
-                 generator_channel_sender<TVALUE, TERROR_TRANSFORM>>
+LIBCOPP_UTIL_FORCEINLINE
+std::pair<generator_channel_receiver<TVALUE, TERROR_TRANSFORM>, generator_channel_sender<TVALUE, TERROR_TRANSFORM>>
 make_channel() {
   generator_channel_receiver<TVALUE, TERROR_TRANSFORM> future;
   generator_channel_sender<TVALUE, TERROR_TRANSFORM> context = future.get_context();

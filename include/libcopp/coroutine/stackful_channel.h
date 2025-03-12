@@ -455,7 +455,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY stackful_channel_sender {
 };
 
 template <class TVALUE>
-inline std::pair<stackful_channel_receiver<TVALUE>, stackful_channel_sender<TVALUE>> make_stackful_channel() {
+LIBCOPP_UTIL_FORCEINLINE std::pair<stackful_channel_receiver<TVALUE>, stackful_channel_sender<TVALUE>>
+make_stackful_channel() {
   stackful_channel_receiver<TVALUE> receiver;
   stackful_channel_sender<TVALUE> sender{receiver.get_context()};
   return std::make_pair(std::move(receiver), std::move(sender));
