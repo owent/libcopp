@@ -13,9 +13,6 @@ libcopp
 
 Cross-platform coroutine library in C++ .
 
-.. image:: https://img.shields.io/github/forks/owent/libcopp?style=social
-.. image:: https://img.shields.io/github/stars/owent/libcopp?style=social
-
 .. |release-badge| image:: https://img.shields.io/github/v/release/owent/libcopp
                :alt: Release
                :target: https://github.com/owent/libcopp/releases
