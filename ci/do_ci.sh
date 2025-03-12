@@ -98,9 +98,7 @@ elif [[ "$1" == "gcc.test" ]] || [[ "$1" == "gcc.legacy.test" ]] || [[ "$1" == "
   cmake --install .
   ls -lh prebuilt/include/libcopp/utils/config/libcopp_build_features.h
 elif [[ "$1" == "msys2.mingw.test" ]]; then
-  pacman -S --needed --noconfirm mingw-w64-x86_64-cmake git m4 curl wget tar autoconf automake \
-    mingw-w64-x86_64-git-lfs mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool \
-    mingw-w64-x86_64-python mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-setuptools || true
+  pacman -S --needed --noconfirm mingw-w64-x86_64-cmake git curl mingw-w64-x86_64-git-lfs mingw-w64-x86_64-toolchain || true
   git config --global http.sslBackend openssl
   mkdir -p build_jobs_ci
   cd build_jobs_ci

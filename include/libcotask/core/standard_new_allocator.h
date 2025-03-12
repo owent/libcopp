@@ -16,22 +16,20 @@
 
 LIBCOPP_COTASK_NAMESPACE_BEGIN
 namespace core {
-class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator{
-  public :
-      /**
-       * @brief allocate a object
-       * @param args construct parameters
-       * @return pointer of new object
-       */
-      template <class Ty, class... TARGS>
-      static LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<Ty>
-          allocate(Ty *, TARGS &&...args){
-              return LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<Ty>(std::forward<TARGS>(args)...);
-}
+class LIBCOPP_COTASK_API_HEAD_ONLY standard_new_allocator {
+ public:
+  /**
+   * @brief allocate a object
+   * @param args construct parameters
+   * @return pointer of new object
+   */
+  template <class Ty, class... TARGS>
+  static LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<Ty> allocate(Ty *, TARGS &&...args) {
+    return LIBCOPP_COPP_NAMESPACE_ID::memory::default_make_strong<Ty>(std::forward<TARGS>(args)...);
+  }
 
-template <class Ty>
-static void deallocate(LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<Ty> &) {}
-}
-;
+  template <class Ty>
+  static void deallocate(LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<Ty> &) {}
+};
 }  // namespace core
 LIBCOPP_COTASK_NAMESPACE_END

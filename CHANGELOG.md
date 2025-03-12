@@ -2,7 +2,8 @@
 
 ## 2.3.1
 
-1. Fix storage types in `generator_vtable`.
+1. Fixes storage types in `generator_vtable`.
+2. Fixes format rule.
 
 ## 2.3.0
 

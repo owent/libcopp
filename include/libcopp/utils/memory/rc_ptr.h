@@ -311,10 +311,10 @@ class LIBCOPP_COPP_API_HEAD_ONLY __rc_ptr_counted_data_with_deleter_allocator fi
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY __strong_rc_default_alloc_shared_tag{};
+struct LIBCOPP_COPP_API_HEAD_ONLY __strong_rc_default_alloc_shared_tag {};
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY __strong_rc_with_alloc_shared_tag{};
+struct LIBCOPP_COPP_API_HEAD_ONLY __strong_rc_with_alloc_shared_tag {};
 
 template <class T>
 class LIBCOPP_COPP_API_HEAD_ONLY __weak_rc_counter;

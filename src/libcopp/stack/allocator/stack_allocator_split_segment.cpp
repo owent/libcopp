@@ -43,16 +43,15 @@ namespace allocator {
 
 LIBCOPP_COPP_API stack_allocator_split_segment::stack_allocator_split_segment() LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_split_segment::~stack_allocator_split_segment() {}
-LIBCOPP_COPP_API
-stack_allocator_split_segment::stack_allocator_split_segment(const stack_allocator_split_segment &)
+LIBCOPP_COPP_API stack_allocator_split_segment::stack_allocator_split_segment(const stack_allocator_split_segment &)
     LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::operator=(
     const stack_allocator_split_segment &) LIBCOPP_MACRO_NOEXCEPT {
   return *this;
 }
 
-LIBCOPP_COPP_API
-stack_allocator_split_segment::stack_allocator_split_segment(stack_allocator_split_segment &&) LIBCOPP_MACRO_NOEXCEPT {}
+LIBCOPP_COPP_API stack_allocator_split_segment::stack_allocator_split_segment(stack_allocator_split_segment &&)
+    LIBCOPP_MACRO_NOEXCEPT {}
 LIBCOPP_COPP_API stack_allocator_split_segment &stack_allocator_split_segment::operator=(
     stack_allocator_split_segment &&) LIBCOPP_MACRO_NOEXCEPT {
   return *this;

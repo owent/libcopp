@@ -409,16 +409,14 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_delegate<TCONTEXT, generator_v
   using await_resume_callback_type = typename vtable_type::await_resume_callback_type;
 
   template <class TSUSPEND, class TRESUME>
-  LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(
-      TSUSPEND&& await_suspend_callback,
-      TRESUME&& await_resume_callback) noexcept(std::is_nothrow_constructible<vtable_type, TSUSPEND, TRESUME>::value)
+  LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(TSUSPEND&& await_suspend_callback,
+                                                     TRESUME&& await_resume_callback) noexcept
       : vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback),
                                 std::forward<TRESUME>(await_resume_callback))) {}
 
   template <class TSUSPEND>
-  LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(TSUSPEND&& await_suspend_callback) noexcept(
-      std::is_nothrow_constructible<vtable_type, TSUSPEND>::value)
-      : vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback))) {}
+  LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(TSUSPEND&& await_suspend_callback) noexcept
+      : vtable_(new vtable_type(std::forward<TSUSPEND>(await_suspend_callback)), nullptr) {}
 
   LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate() noexcept : vtable_(nullptr) {}
 
