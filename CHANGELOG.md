@@ -1,12 +1,16 @@
 # CHANGELOG
 
+## 2.3.1
+
+1. Fix storage types in `generator_vtable`.
+
 ## 2.3.0
 
-1. Rename all macros `COPP_*` to `LIBCOPP_*`
-2. Make all macros in compile_optimize.h and explicit_declare. standalone from atframework
-3. Merge boost.fcontext 1.87
-4. Remove `LIBCOPP_MACRO_HAS_EXCEPTION`
-5. Add nostd type_traits and `strong_rc_ptr` for non thread-safety smart pointer
+1. Rename all macros `COPP_*` to `LIBCOPP_*` .
+2. Make all macros in compile_optimize.h and explicit_declare. standalone from atframework.
+3. Merge boost.fcontext 1.87.
+4. Remove `LIBCOPP_MACRO_HAS_EXCEPTION`.
+5. Add nostd type_traits and `strong_rc_ptr` for non thread-safety smart pointer.
 6. Remove `LIBCOPP_DISABLE_ATOMIC_LOCK`, `LIBCOPP_LOCK_DISABLE_THIS_MT` and `LIBCOPP_LOCK_DISABLE_MT`. We use the only one option `LIBCOPP_ENABLE_MULTI_THREAD` now.
 7. Allow to disable multi-thread support for stack pool and C++20 coroutine to reduce cache miss.
 8. We allow use lightweight callback or channel mode(without callback) for C++20 coroutine generator.

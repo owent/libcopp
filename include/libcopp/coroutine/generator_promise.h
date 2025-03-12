@@ -34,6 +34,12 @@ enum class generator_vtable_type : uint8_t {
   kNone = 2,
 };
 
+template <class TCONTEXT, generator_vtable_type VTABLE_TYPE = generator_vtable_type::kDefault>
+class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable;
+
+template <class TCONTEXT, generator_vtable_type VTABLE_TYPE = generator_vtable_type::kDefault>
+struct LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_type_trait;
+
 template <class TVALUE>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base;
 
@@ -252,13 +258,33 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context
 };
 
 template <class TCONTEXT>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable {
- public:
+struct LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_type_trait<TCONTEXT, generator_vtable_type::kDefault> {
   using context_type = TCONTEXT;
   using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
   using await_suspend_callback_type = std::function<void(context_pointer_type)>;
   using await_resume_callback_type = std::function<void(const context_type&)>;
+};
+
+template <class TCONTEXT>
+struct LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_type_trait<TCONTEXT, generator_vtable_type::kLightWeight> {
+  using context_type = TCONTEXT;
+  using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
+  using value_type = typename context_type::value_type;
+  using await_suspend_callback_type = void (*)(context_pointer_type);
+  using await_resume_callback_type = void (*)(const context_type&);
+};
+
+template <class TCONTEXT, generator_vtable_type VTABLE_TYPE>
+class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable {
+ public:
+  using context_type = typename generator_vtable_type_trait<TCONTEXT, VTABLE_TYPE>::context_type;
+  using context_pointer_type = typename generator_vtable_type_trait<TCONTEXT, VTABLE_TYPE>::context_pointer_type;
+  using value_type = typename generator_vtable_type_trait<TCONTEXT, VTABLE_TYPE>::value_type;
+  using await_suspend_callback_type =
+      typename generator_vtable_type_trait<TCONTEXT, VTABLE_TYPE>::await_suspend_callback_type;
+  using await_resume_callback_type =
+      typename generator_vtable_type_trait<TCONTEXT, VTABLE_TYPE>::await_resume_callback_type;
 
  public:
   template <class TSUSPEND, class TRESUME>
@@ -331,11 +357,11 @@ template <class TCONTEXT>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_delegate<TCONTEXT, generator_vtable_type::kDefault> {
  public:
   using context_type = TCONTEXT;
-  using vtable_type = generator_vtable<context_type>;
+  using vtable_type = generator_vtable<context_type, generator_vtable_type::kDefault>;
   using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
-  using await_suspend_callback_type = std::function<void(context_pointer_type)>;
-  using await_resume_callback_type = std::function<void(const context_type&)>;
+  using await_suspend_callback_type = typename vtable_type::await_suspend_callback_type;
+  using await_resume_callback_type = typename vtable_type::await_resume_callback_type;
 
   template <class TSUSPEND, class TRESUME>
   LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(
@@ -376,11 +402,11 @@ template <class TCONTEXT>
 class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_delegate<TCONTEXT, generator_vtable_type::kLightWeight> {
  public:
   using context_type = TCONTEXT;
-  using vtable_type = generator_vtable<context_type>;
+  using vtable_type = generator_vtable<context_type, generator_vtable_type::kLightWeight>;
   using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
-  using await_suspend_callback_type = void (*)(context_pointer_type);
-  using await_resume_callback_type = void (*)(const context_type&);
+  using await_suspend_callback_type = typename vtable_type::await_suspend_callback_type;
+  using await_resume_callback_type = typename vtable_type::await_resume_callback_type;
 
   template <class TSUSPEND, class TRESUME>
   LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(
@@ -421,8 +447,6 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_vtable_delegate<TCONTEXT, generator_v
   using context_type = TCONTEXT;
   using context_pointer_type = LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr<context_type>;
   using value_type = typename context_type::value_type;
-  using await_suspend_callback_type = std::function<void(context_pointer_type)>;
-  using await_resume_callback_type = std::function<void(const context_type&)>;
 
   LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate() noexcept {}
   LIBCOPP_UTIL_FORCEINLINE generator_vtable_delegate(const generator_vtable_delegate&) noexcept {}
