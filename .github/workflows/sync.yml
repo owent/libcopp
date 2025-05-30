@@ -1,0 +1,46 @@
+name: "main"
+
+on: # @see https://help.github.com/en/articles/events-that-trigger-workflows#webhook-events
+  push:
+    branches: # Array of patterns that match refs/heads
+      - "*"
+    tags:
+      - "*"
+  schedule:
+    - cron: "10 3 * * *"
+
+jobs:
+  sync_cnb_cool: # job id, can be any string
+    name: Sync to cnb.cool
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup authentication
+        shell: bash
+        env:
+          CNB_TOOL_USER: ${{ matrix.CNB_TOOL_USER }}
+          CNB_TOOL_TOKEN: ${{ matrix.CNB_TOOL_TOKEN }}
+        run: |
+          GIT_CREDENTIAL_FILE=~/.git-credentials
+          git config --global user.cnb.cool.name "$CNB_TOOL_USER"
+          git config --global user.cnb.cool.email "admin@owent.net"
+          git config --global credential.cnb.cool.helper "store --file $GIT_CREDENTIAL_FILE"
+          echo "protocol=https
+          host=cnb.cool
+          username=$CNB_TOOL_USER
+          password=$CNB_TOOL_TOKEN" | git credential-store --file $GIT_CREDENTIAL_FILE store
+      - name: Sync branch or tags
+        shell: bash
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if [[ "${{ github.ref_type }}" == "branch" ]]; then
+            git push --progress --force "https://cnb.cool/owent/libcopp.git" "${{ github.ref_name }}:${{ github.ref_name }}"
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            git push --progress --force --tags "https://cnb.cool/owent/libcopp.git"
+          fi
+      - name: Sync mirrors
+        shell: bash
+        if: ${{ github.event_name != 'push' }}
+        run: |
+          git push --progress --prune --tags "https://cnb.cool/owent/libcopp.git" "+refs/remotes/origin/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
