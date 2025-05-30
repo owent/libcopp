@@ -19,8 +19,8 @@ jobs:
       - name: Setup authentication
         shell: bash
         env:
-          CNB_TOOL_USER: ${{ matrix.CNB_TOOL_USER }}
-          CNB_TOOL_TOKEN: ${{ matrix.CNB_TOOL_TOKEN }}
+          CNB_TOOL_USER: ${{ secrets.CNB_TOOL_USER }}
+          CNB_TOOL_TOKEN: ${{ secrets.CNB_TOOL_TOKEN }}
         run: |
           GIT_CREDENTIAL_FILE=~/.git-credentials
           git config --global user.cnb.cool.name "$CNB_TOOL_USER"
