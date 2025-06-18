@@ -91,9 +91,6 @@ jobs:
             cc: gcc
             thread_unsafe: 1
             configure: "Release"
-          - os: ubuntu-20.04
-            triplet: x64-linux
-            cc: gcc-4.8
           - os: ubuntu-latest
             triplet: x64-linux
             cc: clang-latest
@@ -115,15 +112,7 @@ jobs:
           CI_MODE: ${{ matrix.mode }}
           CONFIGURATION: ${{ matrix.configure }}
         run: |
-          if [[ "xgcc-4.8" == "x$USE_CC" ]]; then
-            sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu/ xenial main'
-            sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu/ xenial universe'
-            sudo apt-get update
-            sudo apt-get install --no-install-recommends --no-install-suggests -y g++-4.8
-            if [[ "x$CI_MODE" == "x" ]]; then
-              CI_MODE=gcc.legacy.test
-            fi
-          elif [[ "x$USE_CC" =~ xclang.* ]]; then
+          if [[ "x$USE_CC" =~ xclang.* ]]; then
             if [[ "x$CI_MODE" == "x" ]]; then
               CI_MODE=clang.test
             fi
@@ -144,10 +133,6 @@ jobs:
             platform: x64
           - os: windows-latest
             generator: "Visual Studio 17 2022"
-            build_shared_libs: "OFF"
-            platform: x64
-          - os: windows-2019
-            generator: "Visual Studio 16 2019"
             build_shared_libs: "OFF"
             platform: x64
     runs-on: ${{ matrix.os }}

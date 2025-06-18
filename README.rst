@@ -59,17 +59,13 @@ CI Job Matrix
 +---------------+--------------------+-----------------------+
 | Linux         | GCC-latest         | Thread Unsafe         |
 +---------------+--------------------+-----------------------+
-| Linux         | GCC 4.8            | Legacy                |
-+---------------+--------------------+-----------------------+
 | Linux         | Clang-latest       | With libc++           |
 +---------------+--------------------+-----------------------+
 | MinGW64       | GCC                | Dynamic linking       |
 +---------------+--------------------+-----------------------+
-| Windows       | Visual Studio 2019 | Static linking        |
+| Windows       | Visual Studio 2022 | Static linking        |
 +---------------+--------------------+-----------------------+
-| Windows       | Visual Studio 2019 | Dynamic linking       |
-+---------------+--------------------+-----------------------+
-| Windows       | Visual Studio 2017 | Legacy,Static linking |
+| Windows       | Visual Studio 2022 | Dynamic linking       |
 +---------------+--------------------+-----------------------+
 | macOS         | AppleClang         | With libc++           |
 +---------------+--------------------+-----------------------+
@@ -341,8 +337,8 @@ FEEDBACK
 If you has any question, please create a issue and provide the information of your environments. For example:
 
 + **OS**: Windows 10 Pro 19041 *(This can be see after running ``msinfo32``)* / Manjaro(Arch) Linux Linux 5.4.39-1-MANJARO
-+ **Compiler**: Visual Studio 2019 C++ 16.5.5 with VS 2019 C++ v14.25 or MSVC 1925/ gcc 9.3.0
-+ **CMake Commands**: ``cmake .. -G "Visual Studio 16 2019" -A x64 -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=%cd%/install-prefix`` / ``cmake .. -G Ninja -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/opt/libcopp``
++ **Compiler**: Visual Studio 2022 C++ 17.14.6 with VS 2022 C++ v14.38 or MSVC 1925/ gcc 9.3.0
++ **CMake Commands**: ``cmake .. -G "Visual Studio 17 2022" -A x64 -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=%cd%/install-prefix`` / ``cmake .. -G Ninja -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/opt/libcopp``
 + **Compile Commands**: ``cmake --build . -j``
 + **Related Environment Variables**: Please provide all the environment variables which will change the cmake toolchain, ``CC`` 、 ``CXX`` 、 ``AR`` and etc.
 
