@@ -20,6 +20,7 @@ nav:
 theme:
   name: material
   logo: assets/icon.png
+  favicon: favicon.ico
   features:
     - navigation.sections
     - navigation.expand
