@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 // Copy from https://github.com/owent/atframe_utils/blob/main/include/config/compile_optimize.h
 //   and remove all macros start with UTIL_* and rename all macros start with ATFW_UTIL_ to LIBCOPP_UTIL_.
 

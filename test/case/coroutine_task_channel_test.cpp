@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/coroutine/stackful_channel.h>

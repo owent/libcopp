@@ -1,4 +1,4 @@
-// Copyright 2024 atframework
+// Copyright 2026 atframework
 
 #pragma once
 

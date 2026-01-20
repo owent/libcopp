@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #pragma once
 
@@ -197,8 +197,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable_base : public awaitable_base
 };
 
 template <class TPROMISE, class TERROR_TRANSFORM>
-class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, TERROR_TRANSFORM, true>
-    : public callable_awaitable_base<TPROMISE> {
+class LIBCOPP_COPP_API_HEAD_ONLY
+callable_awaitable<TPROMISE, TERROR_TRANSFORM, true> : public callable_awaitable_base<TPROMISE> {
  public:
   using base_type = callable_awaitable_base<TPROMISE>;
   using promise_type = typename base_type::promise_type;
@@ -221,8 +221,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, TERROR_TRANSFORM, 
 };
 
 template <class TPROMISE, class TERROR_TRANSFORM>
-class LIBCOPP_COPP_API_HEAD_ONLY callable_awaitable<TPROMISE, TERROR_TRANSFORM, false>
-    : public callable_awaitable_base<TPROMISE> {
+class LIBCOPP_COPP_API_HEAD_ONLY
+callable_awaitable<TPROMISE, TERROR_TRANSFORM, false> : public callable_awaitable_base<TPROMISE> {
  public:
   using base_type = callable_awaitable_base<TPROMISE>;
   using promise_type = typename base_type::promise_type;

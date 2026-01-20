@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #include "cli/shell_font.h"
 

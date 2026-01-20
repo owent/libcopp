@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 // Sample code for stackful coroutine channel/receiver model
 
 #include <libcopp/coroutine/coroutine_context_container.h>

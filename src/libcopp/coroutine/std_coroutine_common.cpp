@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #include "libcopp/coroutine/std_coroutine_common.h"
 

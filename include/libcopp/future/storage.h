@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #pragma once
 
@@ -141,8 +141,8 @@ poll_storage_base<void, std::unique_ptr<void, small_object_optimize_storage_dele
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY poll_storage_base<T, std::unique_ptr<T, small_object_optimize_storage_deleter<T> > >
-    : public std::true_type {
+struct LIBCOPP_COPP_API_HEAD_ONLY
+poll_storage_base<T, std::unique_ptr<T, small_object_optimize_storage_deleter<T> > > : public std::true_type {
   using value_type = T;
   using ptr_type = std::unique_ptr<T, small_object_optimize_storage_deleter<T> >;
   using storage_type = std::pair<T, ptr_type>;
@@ -269,8 +269,8 @@ template <class T, class TPTR>
 struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage;
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::unique_ptr<T, small_object_optimize_storage_deleter<T> > >
-    : public std::true_type {
+struct LIBCOPP_COPP_API_HEAD_ONLY
+compact_storage<T, std::unique_ptr<T, small_object_optimize_storage_deleter<T> > > : public std::true_type {
   using value_type = T;
   using ptr_type = std::unique_ptr<T, small_object_optimize_storage_deleter<T> >;
   using storage_type = T;
@@ -327,8 +327,8 @@ struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, std::unique_ptr<T, small_ob
 };
 
 template <class T>
-struct LIBCOPP_COPP_API_HEAD_ONLY compact_storage<T, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T> >
-    : public std::false_type {
+struct LIBCOPP_COPP_API_HEAD_ONLY
+compact_storage<T, LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T> > : public std::false_type {
   using value_type = T;
   using ptr_type = LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr<T>;
   using storage_type = ptr_type;

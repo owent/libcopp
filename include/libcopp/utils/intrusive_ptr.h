@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 // Created by owent on 2017-05-18
 
 #pragma once

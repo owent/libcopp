@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #include <libcopp/coroutine/callable_promise.h>
 #include <libcopp/stack/stack_pool.h>

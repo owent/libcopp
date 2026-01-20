@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #include <libcopp/future/future.h>
 #include <libcopp/future/poller.h>

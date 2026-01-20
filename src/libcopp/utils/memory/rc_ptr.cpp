@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 // Licenses under the MIT License
 
 #include "libcopp/utils/memory/rc_ptr.h"

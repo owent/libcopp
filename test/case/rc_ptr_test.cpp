@@ -1,4 +1,4 @@
-// Copyright 2025 owebt
+// Copyright 2026 owebt
 // Licenses under the MIT License
 
 #include <stdint.h>

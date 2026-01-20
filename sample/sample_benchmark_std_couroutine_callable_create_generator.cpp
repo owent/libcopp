@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 // std coroutine trivial callable benchmark
 
 #include <libcopp/coroutine/callable_promise.h>

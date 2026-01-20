@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 // Sample code for C++20 coroutine channel/receiver model
 
 #include <libcopp/coroutine/callable_promise.h>

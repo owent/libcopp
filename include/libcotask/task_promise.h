@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #pragma once
 
@@ -262,8 +262,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_base {
 };
 
 template <class TVALUE, class TERROR_TRANSFORM>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, TERROR_TRANSFORM, true>
-    : public task_context_base<TVALUE> {
+class LIBCOPP_COTASK_API_HEAD_ONLY
+task_context_delegate<TVALUE, TERROR_TRANSFORM, true> : public task_context_base<TVALUE> {
  public:
   using base_type = task_context_base<TVALUE>;
   using id_type = typename base_type::id_type;
@@ -300,8 +300,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, TERROR_TRANSFOR
 };
 
 template <class TVALUE, class TERROR_TRANSFORM>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_context_delegate<TVALUE, TERROR_TRANSFORM, false>
-    : public task_context_base<TVALUE> {
+class LIBCOPP_COTASK_API_HEAD_ONLY
+task_context_delegate<TVALUE, TERROR_TRANSFORM, false> : public task_context_base<TVALUE> {
  public:
   using base_type = task_context_base<TVALUE>;
   using id_type = typename base_type::id_type;
@@ -466,8 +466,8 @@ class LIBCOPP_COTASK_API_HEAD_ONLY task_context
 };
 
 template <class TVALUE, class TPRIVATE_DATA, class TERROR_TRANSFORM>
-class LIBCOPP_COTASK_API_HEAD_ONLY task_promise_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, true>
-    : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
+class LIBCOPP_COTASK_API_HEAD_ONLY
+task_promise_base<TVALUE, TPRIVATE_DATA, TERROR_TRANSFORM, true> : public LIBCOPP_COPP_NAMESPACE_ID::promise_base_type {
  public:
   using value_type = TVALUE;
   using context_type = task_context<value_type, TPRIVATE_DATA, TERROR_TRANSFORM>;

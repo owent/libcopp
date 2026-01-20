@@ -1,4 +1,4 @@
-// Copyright 2023 owent
+// Copyright 2026 owent
 
 #pragma once
 
@@ -123,8 +123,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_base {
 };
 
 template <class TVALUE, class TERROR_TRANSFORM>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, TERROR_TRANSFORM, true>
-    : public generator_context_base<TVALUE> {
+class LIBCOPP_COPP_API_HEAD_ONLY
+generator_context_delegate<TVALUE, TERROR_TRANSFORM, true> : public generator_context_base<TVALUE> {
  public:
   using base_type = generator_context_base<TVALUE>;
   using value_type = typename base_type::value_type;
@@ -168,8 +168,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, TERROR_TRANS
 };
 
 template <class TVALUE, class TERROR_TRANSFORM>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_context_delegate<TVALUE, TERROR_TRANSFORM, false>
-    : public generator_context_base<TVALUE> {
+class LIBCOPP_COPP_API_HEAD_ONLY
+generator_context_delegate<TVALUE, TERROR_TRANSFORM, false> : public generator_context_base<TVALUE> {
  public:
   using base_type = generator_context_base<TVALUE>;
   using value_type = typename base_type::value_type;
@@ -548,8 +548,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable_base : public awaitable_bas
 };
 
 template <class TCONTEXT, generator_vtable_type VTABLE_TYPE>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, true, VTABLE_TYPE>
-    : public generator_awaitable_base<TCONTEXT, VTABLE_TYPE> {
+class LIBCOPP_COPP_API_HEAD_ONLY
+generator_awaitable<TCONTEXT, true, VTABLE_TYPE> : public generator_awaitable_base<TCONTEXT, VTABLE_TYPE> {
  public:
   using base_type = generator_awaitable_base<TCONTEXT, VTABLE_TYPE>;
   using value_type = typename base_type::value_type;
@@ -574,8 +574,8 @@ class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, true, VTABLE_TYPE
 };
 
 template <class TCONTEXT, generator_vtable_type VTABLE_TYPE>
-class LIBCOPP_COPP_API_HEAD_ONLY generator_awaitable<TCONTEXT, false, VTABLE_TYPE>
-    : public generator_awaitable_base<TCONTEXT, VTABLE_TYPE> {
+class LIBCOPP_COPP_API_HEAD_ONLY
+generator_awaitable<TCONTEXT, false, VTABLE_TYPE> : public generator_awaitable_base<TCONTEXT, VTABLE_TYPE> {
  public:
   using base_type = generator_awaitable_base<TCONTEXT, VTABLE_TYPE>;
   using value_type = typename base_type::value_type;

@@ -1,4 +1,4 @@
-// Copyright 2025 owent
+// Copyright 2026 owent
 
 #pragma once
 
