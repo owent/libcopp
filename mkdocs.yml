@@ -1,0 +1,57 @@
+site_name: libcopp
+site_url: https://libcopp.atframe.work
+repo_url: https://github.com/owent/libcopp
+repo_name: owent/libcopp
+edit_uri: edit/v2/docs/
+docs_dir: docs
+site_dir: site
+
+nav:
+  - Home: index.md
+  - Examples: examples/index.md
+  - Channels: channels.md
+  - Reference: reference/index.md
+  - Changelog: changelog.md
+  - Benchmarks:
+      - Overview: benchmarks/index.md
+      - Windows: benchmarks/windows.md
+      - Linux: benchmarks/linux.md
+
+theme:
+  name: material
+  logo: assets/icon.png
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - include-markdown:
+      comments: false
+      rewrite_relative_urls: true
+      preserve_includer_indent: true
+  - macros
+  - drawio
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  - attr_list
+
+extra_css:
+  - assets/highlight.css
+  - assets/custom.css
+
+extra_javascript:
+  - assets/setup_lineno.js

@@ -17,6 +17,8 @@
 /build_*
 
 # generated docs
+/site
+/docs/doxygen
 /docs/output
 /docs/sphinx/doxygen
 /docs/sphinx/_build

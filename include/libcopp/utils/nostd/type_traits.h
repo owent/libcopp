@@ -328,6 +328,7 @@ using bounded_array = T;
 template <typename T>
 using bounded_array = typename ::std::enable_if<is_bounded_array<T>::value, T>::type;
 #endif
+/// @endcond
 
 template <class AllocatorSource, class TypeSource>
 class allocator_rebind_helper {

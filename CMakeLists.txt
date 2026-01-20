@@ -1,11 +1,4 @@
 cmake_minimum_required(VERSION 3.16.0)
-cmake_policy(SET CMP0022 NEW)
-cmake_policy(SET CMP0048 NEW)
-cmake_policy(SET CMP0054 NEW)
-cmake_policy(SET CMP0067 NEW)
-cmake_policy(SET CMP0074 NEW)
-cmake_policy(SET CMP0077 NEW)
-cmake_policy(SET CMP0091 NEW)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.19.0")
   cmake_policy(SET CMP0111 NEW)
 endif()
@@ -21,6 +14,9 @@ endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.27.0")
   cmake_policy(SET CMP0144 NEW)
 endif()
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30.0")
+  cmake_policy(SET CMP0169 NEW)
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -28,7 +24,7 @@ enable_testing()
 
 project(
   libcopp
-  VERSION "2.3.1"
+  VERSION "2.3.2"
   DESCRIPTION "Cross-platform coroutine library in C++ ."
   HOMEPAGE_URL "https://libcopp.atframe.work"
   LANGUAGES C CXX ASM)

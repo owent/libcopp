@@ -1,0 +1,79 @@
+D:/workspace/git/github/owent/libcopp/CHANGELOG.md:251: warning: Reached end of file while still searching closing '`' of a verbatim block starting at line 153
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/nostd/type_traits.h:238: warning: Found ';' while parsing initializer list! (doxygen could be confused by a macro call without semicolon)
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/nostd/type_traits.h:253: warning: Found ';' while parsing initializer list! (doxygen could be confused by a macro call without semicolon)
+D:/workspace/git/github/owent/libcopp/README.md:1: warning: No matching directory found for command \dir D:/workspace/git/github/owent/libcopp/
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option_bind_param_list.h:64: warning: Detected potential recursive class relation between class util::cli::binder::cmd_option_bind_param_list::build_args_index and base class util::cli::binder::cmd_option_bind_param_list::build_args_index< N - 1, _Index..., sizeof...(_Index)>!
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option_bind_param_list.h:64: warning: Detected potential recursive class relation between class util::cli::binder::cmd_option_bind_param_list::build_args_index and base class build_args_index< N - 1, _Index..., sizeof...(_Index)>!
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/atomic_int_type.h:11: warning: Found unknown command '@history'
+warning: Included by graph for 'stl_include_prefix.h' not generated, too many nodes (56), threshold is 50. Consider increasing DOT_GRAPH_MAX_NODES.
+warning: Included by graph for 'stl_include_suffix.h' not generated, too many nodes (56), threshold is 50. Consider increasing DOT_GRAPH_MAX_NODES.
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/lock_holder.h:12: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/std/coroutine.h:10: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/spin_lock.h:14: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:10: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/test/std/ref.h:10: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/test/std/tuple.h:10: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/test/std/utility.h:10: warning: Found unknown command '@history'
+D:/workspace/git/github/owent/libcopp/include/libcopp/coroutine/coroutine_context.h:84: warning: The following parameter of coroutine_context::create(coroutine_context *p, callback_type &&runner, const stack_context &callee_stack, size_t coroutine_size, size_t private_buffer_size) is not documented:
+  parameter 'p'
+D:/workspace/git/github/owent/libcopp/include/libcopp/coroutine/coroutine_context_container.h:65: warning: The following parameter of coroutine_context_container::create(callback_type &&runner, allocator_type &alloc, size_t stack_sz=0, size_t private_buffer_size=0, size_t coroutine_size=0) is not documented:
+  parameter 'alloc'
+D:/workspace/git/github/owent/libcopp/include/libcopp/stack/stack_pool.h:114: warning: argument 'size' of command @param is not found in the argument list of stack_pool< TAlloc >::allocate(stack_context &ctx)
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:146: warning: argument 'action' of command @param is not found in the argument list of task< TCO_MACRO >::create(Ty &&functor, size_t stack_size=0, size_t private_buffer_size=0)
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:146: warning: The following parameter of task::create(Ty &&functor, size_t stack_size=0, size_t private_buffer_size=0) is not documented:
+  parameter 'functor'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:169: warning: argument 'action' of command @param is not found in the argument list of task< TCO_MACRO >::create(Ty(*func)(void *), typename coroutine_type::allocator_type &alloc, size_t stack_size=0, size_t private_buffer_size=0)
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:169: warning: The following parameters of task::create(Ty(*func)(void *), typename coroutine_type::allocator_type &alloc, size_t stack_size=0, size_t private_buffer_size=0) are not documented:
+  parameter 'func'
+  parameter 'alloc'
+  parameter 'private_buffer_size'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:189: warning: argument 'action' of command @param is not found in the argument list of task< TCO_MACRO >::create(TyTInst::*func, TInst *instance, typename coroutine_type::allocator_type &alloc, size_t stack_size=0, size_t private_buffer_size=0)
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:189: warning: The following parameters of task::create(TyTInst::*func, TInst *instance, typename coroutine_type::allocator_type &alloc, size_t stack_size=0, size_t private_buffer_size=0) are not documented:
+  parameter 'func'
+  parameter 'instance'
+  parameter 'alloc'
+  parameter 'private_buffer_size'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:211: warning: The following parameters of task::create_with(typename coroutine_type::allocator_type &alloc, size_t stack_size, size_t private_buffer_size, TParams &&... args) are not documented:
+  parameter 'alloc'
+  parameter 'private_buffer_size'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:86: warning: argument 'action' of command @param is not found in the argument list of task< TCO_MACRO >::create_with_delegate(Ty &&callable, typename coroutine_type::allocator_type &alloc, size_t stack_size=0, size_t private_buffer_size=0)
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:86: warning: The following parameters of task::create_with_delegate(Ty &&callable, typename coroutine_type::allocator_type &alloc, size_t stack_size=0, size_t private_buffer_size=0) are not documented:
+  parameter 'callable'
+  parameter 'alloc'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:261: warning: The following parameter of task::next(Ty &&functor, void *priv_data=nullptr, size_t stack_size=0, size_t private_buffer_size=0) is not documented:
+  parameter 'private_buffer_size'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:280: warning: The following parameter of task::next(Ty(*func)(void *), void *priv_data=nullptr, size_t stack_size=0, size_t private_buffer_size=0) is not documented:
+  parameter 'private_buffer_size'
+D:/workspace/git/github/owent/libcopp/include/libcotask/task.h:300: warning: The following parameter of task::next(TyTInst::*func, TInst *instance, void *priv_data=nullptr, size_t stack_size=0, size_t private_buffer_size=0) is not documented:
+  parameter 'private_buffer_size'
+D:/workspace/git/github/owent/libcopp/include/libcopp/stack/allocator/stack_allocator_pool.h:51: warning: argument 'size' of command @param is not found in the argument list of allocator::stack_allocator_pool< TPool >::allocate(stack_context &ctx, std::size_t)
+D:/workspace/git/github/owent/libcopp/include/libcopp/stack/allocator/stack_allocator_pool.h:41: warning: argument 'start_ptr' of command @param is not found in the argument list of allocator::stack_allocator_pool< TPool >::attach(const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr< pool_type > &p)
+D:/workspace/git/github/owent/libcopp/include/libcopp/stack/allocator/stack_allocator_pool.h:41: warning: argument 'max_size' of command @param is not found in the argument list of allocator::stack_allocator_pool< TPool >::attach(const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr< pool_type > &p)
+D:/workspace/git/github/owent/libcopp/include/libcopp/stack/allocator/stack_allocator_pool.h:41: warning: The following parameter of allocator::stack_allocator_pool::attach(const LIBCOPP_COPP_NAMESPACE_ID::memory::default_strong_rc_ptr< pool_type > &p) is not documented:
+  parameter 'p'
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/memory/rc_ptr.h:1396: warning: argument 'a' of command @param is not found in the argument list of std::operator<<(std::basic_ostream< CharT, TraitT > &__os, const LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr< T > &__p)
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/memory/rc_ptr.h:1396: warning: argument 'b' of command @param is not found in the argument list of std::operator<<(std::basic_ostream< CharT, TraitT > &__os, const LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr< T > &__p)
+D:/workspace/git/github/owent/libcopp/include/libcopp/utils/memory/rc_ptr.h:1396: warning: The following parameters of std::operator<<(std::basic_ostream< CharT, TraitT > &__os, const LIBCOPP_COPP_NAMESPACE_ID::memory::strong_rc_ptr< T > &__p) are not documented:
+  parameter '__os'
+  parameter '__p'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:55: warning: Found unknown command '@OnError'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:56: warning: Found unknown command '@ErrorMsg'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:56: warning: Found unknown command '@OnError'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:58: warning: Found unknown command '@OnDefault'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:59: warning: Found unknown command '@OnDefault'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:61: warning: Found unknown command '@OnCallFunc'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:575: warning: Unsupported xml/html tag <> found
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:378: warning: Found unknown command '@OnDefault'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:462: warning: The following parameter of util::cli::cmd_option_bind::start(const char *cmd_content, bool is_single_cmd=false, void *ext_param=nullptr) const is not documented:
+  parameter 'ext_param'
+D:/workspace/git/github/owent/libcopp/test/cli/cmd_option.h:482: warning: The following parameter of util::cli::cmd_option_bind::start(const std::string &cmd_content, bool is_single_cmd=false, void *ext_param=nullptr) const is not documented:
+  parameter 'ext_param'
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:400: warning: argument 'upper_case' of command @param is not found in the argument list of util::string::oct(TStr *out, TCh c)
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:172: warning: argument 'end' of command @param is not found in the argument list of util::string::reverse(TCH *begin, TCHE end_any)
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:172: warning: The following parameter of util::string::reverse(TCH *begin, TCHE end_any) is not documented:
+  parameter 'end_any'
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:287: warning: The following parameter of util::string::str2int(T &out, const TCHAR *str, size_t strsz=0) is not documented:
+  parameter 'strsz'
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:361: warning: argument 'str' of command @param is not found in the argument list of util::string::to_int(TINPUT &&input)
+D:/workspace/git/github/owent/libcopp/test/common/string_oprs.h:361: warning: The following parameter of util::string::to_int(TINPUT &&input) is not documented:
+  parameter 'input'

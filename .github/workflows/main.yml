@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: CI Job
         shell: bash
         run: |
@@ -30,13 +30,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build & Test
         shell: bash
         run: |
           sudo apt-get update ;
-          sudo apt-get install --no-install-recommends --no-install-suggests -y doxygen graphviz ;
+          sudo apt-get install --no-install-recommends --no-install-suggests -y doxygen graphviz python3-pip ;
           bash ci/do_ci.sh document ;
+
       - name: Deploy
         if: ${{ github.event_name == 'push' }}
         env:
@@ -100,7 +101,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build & Test
         shell: bash
         env:
@@ -138,7 +139,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build & Test
         shell: pwsh
         env:
@@ -162,7 +163,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build & Test
         shell: bash
         env:
@@ -170,7 +171,7 @@ jobs:
         run: |
           C:/msys64/msys2_shell.cmd -mingw64 -defterm -no-start -here -lc "ci/do_ci.sh msys2.mingw.test"
       - name: Cache packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             C:/msys64/var/cache/pacman/pkg
@@ -189,7 +190,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Generate coverage
         shell: bash
         env:
@@ -227,7 +228,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build
         shell: bash
         env:

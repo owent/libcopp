@@ -109,19 +109,23 @@ elif [[ "$1" == "document" ]]; then
   cd build_for_doxygen
   export PATH="$HOME/.local/bin:$PATH"
   cmake .. -DCMAKE_BUILD_TYPE=$CONFIGURATION -DLIBCOPP_FCONTEXT_USE_TSX=ON -DPROJECT_ENABLE_UNITTEST=ON -DPROJECT_ENABLE_SAMPLE=ON
-  cd ../docs
+  cd ..
   python3 -m pip install --user --upgrade pip
-  python3 -m pip install --user --upgrade -r requirements.txt
-  mkdir -p sphinx/doxygen
+  python3 -m pip install --user --upgrade -r docs/requirements.txt
+  cd docs
+  mkdir -p doxygen
   doxygen libcopp.doxyfile
-  du -sh sphinx/doxygen/*
-  sphinx-build -b html -a -D breathe_projects.libcopp=doxygen/xml sphinx output
-  if [[ -e "output/doxygen/html" ]]; then
-    rm -rf "output/doxygen/html"
+  du -sh doxygen/*
+  cd ..
+  mkdocs build --clean
+  if [[ -e "site/doxygen" ]]; then
+    rm -rf "site/doxygen"
   fi
-  mkdir -p output/doxygen/
-  mv -f "sphinx/doxygen/html" "output/doxygen/html"
-  echo "libcopp.atframe.work" >output/CNAME
+  mkdir -p site/doxygen/
+  if [[ -e "docs/doxygen/html" ]]; then
+    mv -f "docs/doxygen/html" "site/doxygen/html"
+  fi
+  echo "libcopp.atframe.work" >site/CNAME
   exit 0
 else
   echo "Bad configure"

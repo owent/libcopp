@@ -16,3 +16,5 @@ else {
 & $PYTHON_BIN -m pip install --user --upgrade pip
 & $PYTHON_BIN -m pip install --user --upgrade -r "$SCRIPT_DIR/requirements-vscode.txt" ;
 & $PYTHON_BIN -m pip install --user --upgrade -r "$SCRIPT_DIR/requirements.txt" ;
+& $PYTHON_BIN -m mkdocs --version
+
