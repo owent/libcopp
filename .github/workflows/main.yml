@@ -45,7 +45,7 @@ jobs:
           DOCUMENT_DEPLOY_KEY: ${{ secrets.DOCUMENT_DEPLOY_KEY }}
         shell: bash
         run: |
-          cd docs/output ;
+          cd site ;
           git config --global init.defaultBranch main ;
           git init ;
           git add . ;
