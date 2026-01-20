@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 200
+          lfs: "true"
       - name: Setup authentication
         shell: bash
         env:
