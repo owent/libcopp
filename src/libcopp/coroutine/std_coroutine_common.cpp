@@ -35,8 +35,8 @@ LIBCOPP_COPP_API void promise_caller_manager::add_caller(handle_delegate delegat
   }
 
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
-  if (std::holds_alternative<multi_caller_set>(callers_)) {
-    std::get<multi_caller_set>(callers_).insert(delegate);
+  if (std::holds_alternative<multi_caller_container>(callers_)) {
+    std::get<multi_caller_container>(callers_).add(delegate);
     return;
   }
 
@@ -45,21 +45,29 @@ LIBCOPP_COPP_API void promise_caller_manager::add_caller(handle_delegate delegat
     return;
   }
 
-  // convert to multiple caller
-  multi_caller_set callers;
-  callers.insert(std::get<handle_delegate>(callers_));
-  callers.insert(delegate);
-  callers_.emplace<multi_caller_set>(std::move(callers));
+  if (std::get<handle_delegate>(callers_) == delegate) {
+    return;
+  }
+
+  // convert to multiple callers and keep the registration order
+  multi_caller_container callers;
+  callers.add(std::get<handle_delegate>(callers_));
+  callers.add(delegate);
+  callers_.emplace<multi_caller_container>(std::move(callers));
 #  else
   if (!unique_caller_.handle) {
     unique_caller_ = delegate;
     return;
   }
 
-  if (!multiple_callers_) {
-    multiple_callers_.reset(new multi_caller_set());
+  if (unique_caller_ == delegate) {
+    return;
   }
-  multiple_callers_->insert(delegate);
+
+  if (!multiple_callers_) {
+    multiple_callers_.reset(new multi_caller_container());
+  }
+  multiple_callers_->add(delegate);
 #  endif
 }
 
@@ -67,8 +75,8 @@ LIBCOPP_COPP_API bool promise_caller_manager::remove_caller(handle_delegate dele
   bool has_caller = false;
   do {
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
-    if (std::holds_alternative<multi_caller_set>(callers_)) {
-      has_caller = std::get<multi_caller_set>(callers_).erase(delegate) > 0;
+    if (std::holds_alternative<multi_caller_container>(callers_)) {
+      has_caller = std::get<multi_caller_container>(callers_).remove(delegate);
       break;
     }
 
@@ -84,7 +92,7 @@ LIBCOPP_COPP_API bool promise_caller_manager::remove_caller(handle_delegate dele
     }
 
     if (multiple_callers_) {
-      has_caller = multiple_callers_->erase(delegate) > 0;
+      has_caller = multiple_callers_->remove(delegate);
     }
 #  endif
   } while (false);
@@ -103,10 +111,10 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
       caller.handle.resume();
       ++resume_count;
     }
-  } else if (std::holds_alternative<multi_caller_set>(callers_)) {
-    multi_caller_set callers;
-    callers.swap(std::get<multi_caller_set>(callers_));
-    for (auto &caller : callers) {
+  } else if (std::holds_alternative<multi_caller_container>(callers_)) {
+    multi_caller_container callers;
+    callers.swap(std::get<multi_caller_container>(callers_));
+    for (auto &caller : callers.callers) {
       if (caller.handle && !caller.handle.done() &&
           (nullptr == caller.promise || !caller.promise->check_flag(promise_flag::kDestroying))) {
         type_erased_handle_type handle = caller.handle;
@@ -118,7 +126,7 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
 #  else
   auto unique_caller = unique_caller_;
   unique_caller_ = nullptr;
-  std::unique_ptr<multi_caller_set> multiple_callers;
+  std::unique_ptr<multi_caller_container> multiple_callers;
   multiple_callers.swap(multiple_callers_);
 
   // The promise object may be destroyed after first caller.resume()
@@ -129,7 +137,7 @@ LIBCOPP_COPP_API size_t promise_caller_manager::resume_callers() {
   }
 
   if (multiple_callers) {
-    for (auto &caller : *multiple_callers) {
+    for (auto &caller : multiple_callers->callers) {
       if (caller.handle && !caller.handle.done() &&
           (nullptr == caller.promise || !caller.promise->check_flag(promise_flag::kDestroying))) {
         type_erased_handle_type handle = caller.handle;
@@ -146,8 +154,8 @@ LIBCOPP_COPP_API bool promise_caller_manager::has_multiple_callers() const noexc
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
   if (std::holds_alternative<handle_delegate>(callers_)) {
     return false;
-  } else if (std::holds_alternative<multi_caller_set>(callers_)) {
-    return std::get<multi_caller_set>(callers_).size() > 1;
+  } else if (std::holds_alternative<multi_caller_container>(callers_)) {
+    return std::get<multi_caller_container>(callers_).size() > 1;
   }
   return false;
 #  else

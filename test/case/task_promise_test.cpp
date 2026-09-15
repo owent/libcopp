@@ -10,6 +10,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <vector>
 
 #include "frame/test_macros.h"
 
@@ -401,6 +402,62 @@ CASE_TEST(task_promise, task_future_await_task) {
 
   CASE_EXPECT_EQ(old_resume_generator_count + 1, g_task_future_resume_generator_count);
   CASE_EXPECT_EQ(old_suspend_generator_count + 1, g_task_future_suspend_generator_count);
+}
+
+namespace {
+std::list<generator_future_int_type::context_pointer_type> g_task_future_fifo_blocker_contexts;
+std::vector<int> g_task_future_fifo_resume_order;
+
+static void generator_fifo_blocker_suspend_callback(generator_future_int_type::context_pointer_type ctx) {
+  g_task_future_fifo_blocker_contexts.push_back(ctx);
+}
+static void generator_fifo_blocker_resume_callback(const generator_future_int_type::context_type &) {}
+
+static task_future_int_type task_func_fifo_blocker() {
+  generator_future_int_type generator{generator_fifo_blocker_suspend_callback,
+                                      generator_fifo_blocker_resume_callback};
+  auto res = co_await generator;
+  co_return res;
+}
+
+static callable_future_int_type task_future_func_fifo_waiter(task_future_int_type waiting, int index) {
+  int res = co_await waiting;
+  if (res >= 0) {
+    g_task_future_fifo_resume_order.push_back(index);
+  }
+  co_return res;
+}
+}  // namespace
+
+CASE_TEST(task_promise, task_future_multiple_callers_resume_fifo) {
+  g_task_future_fifo_blocker_contexts.clear();
+  g_task_future_fifo_resume_order.clear();
+
+  task_future_int_type blocker = task_func_fifo_blocker();
+  CASE_EXPECT_TRUE(blocker.start());
+  CASE_EXPECT_FALSE(blocker.is_exiting());
+  CASE_EXPECT_EQ(1, static_cast<int>(g_task_future_fifo_blocker_contexts.size()));
+
+  constexpr int k_waiter_count = 8;
+  std::vector<callable_future_int_type> waiters;
+  for (int index = 0; index < k_waiter_count; ++index) {
+    waiters.push_back(task_future_func_fifo_waiter(blocker, index));
+    // Each waiter registers into the blocker's caller manager and stays parked.
+    CASE_EXPECT_FALSE(waiters.back().is_ready());
+    CASE_EXPECT_FALSE(blocker.is_exiting());
+  }
+
+  // Completing the blocker resumes every caller in registration (FIFO) order.
+  auto pending_context = g_task_future_fifo_blocker_contexts.front();
+  g_task_future_fifo_blocker_contexts.pop_front();
+  pending_context->set_value(0);
+
+  CASE_EXPECT_TRUE(blocker.is_exiting());
+  CASE_EXPECT_EQ(k_waiter_count, static_cast<int>(g_task_future_fifo_resume_order.size()));
+  for (int index = 0; index < k_waiter_count; ++index) {
+    CASE_EXPECT_EQ(index, g_task_future_fifo_resume_order[static_cast<size_t>(index)]);
+    CASE_EXPECT_TRUE(waiters[static_cast<size_t>(index)].is_ready());
+  }
 }
 
 namespace {

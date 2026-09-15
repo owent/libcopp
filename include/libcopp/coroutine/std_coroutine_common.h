@@ -12,9 +12,10 @@
 
 #include <assert.h>
 #include <cstddef>
+#include <list>
 #include <memory>
 #include <type_traits>
-#include <unordered_set>
+#include <unordered_map>
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR) && LIBCOPP_MACRO_ENABLE_STD_EXCEPTION_PTR
 #  include <exception>
@@ -189,13 +190,49 @@ class promise_caller_manager {
     }
   };
 
-  using multi_caller_set = std::unordered_set<handle_delegate, handle_delegate_hash>;
+  // Keep multiple callers in registration order so resume_callers() wakes them in FIFO order, which
+  // matches the stackful backend's next_list behavior and is the least surprising semantics. The
+  // list keeps the wake order and allows O(1) removal by iterator, while the hash index keeps
+  // dedup-on-add and passive removal O(1) as well.
+  struct multi_caller_container {
+    using list_type = std::list<handle_delegate>;
+    using index_type = std::unordered_map<handle_delegate, list_type::iterator, handle_delegate_hash>;
+
+    list_type callers;
+    index_type index;
+
+    inline bool add(const handle_delegate &delegate) {
+      if (index.find(delegate) != index.end()) {
+        return false;
+      }
+      auto back_iter = callers.insert(callers.end(), delegate);
+      index.emplace(delegate, back_iter);
+      return true;
+    }
+
+    inline bool remove(const handle_delegate &delegate) {
+      auto iter = index.find(delegate);
+      if (iter == index.end()) {
+        return false;
+      }
+      callers.erase(iter->second);
+      index.erase(iter);
+      return true;
+    }
+
+    inline void swap(multi_caller_container &other) noexcept {
+      callers.swap(other.callers);
+      index.swap(other.index);
+    }
+
+    inline size_t size() const noexcept { return index.size(); }
+  };
 #  if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
-  std::variant<handle_delegate, multi_caller_set> callers_;
+  std::variant<handle_delegate, multi_caller_container> callers_;
 #  else
   handle_delegate unique_caller_;
-  // Mostly, there is only one caller for a promise, we needn't hash map to store one handle
-  std::unique_ptr<multi_caller_set> multiple_callers_;
+  // Mostly, there is only one caller for a promise, we needn't container to store one handle
+  std::unique_ptr<multi_caller_container> multiple_callers_;
 #  endif
 };
 

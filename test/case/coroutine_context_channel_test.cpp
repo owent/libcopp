@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 #include "frame/test_macros.h"
 
@@ -490,3 +491,55 @@ CASE_TEST(coroutine_channel, fiber_channel_pointer) {
   delete[] stack_buff;
 }
 #endif
+
+namespace {
+struct test_context_channel_fifo_context : public copp::stackful_channel_context_base {};
+
+std::vector<int> g_test_coroutine_channel_fifo_order;
+
+int test_context_channel_fifo_resume(void *handle_data, copp::stackful_channel_context_base *) {
+  g_test_coroutine_channel_fifo_order.push_back(*reinterpret_cast<int *>(handle_data));
+  return 0;
+}
+}  // namespace
+
+CASE_TEST(coroutine_channel, multiple_callers_resume_fifo) {
+  constexpr int k_caller_count = 8;
+  int caller_indexes[k_caller_count];
+  copp::stackful_channel_handle_delegate callers[k_caller_count];
+  test_context_channel_fifo_context context;
+
+  g_test_coroutine_channel_fifo_order.clear();
+  for (int index = 0; index < k_caller_count; ++index) {
+    caller_indexes[index] = index;
+    callers[index].handle_data = &caller_indexes[index];
+    callers[index].resume_handle = &test_context_channel_fifo_resume;
+    context.add_caller(callers[index]);
+  }
+  // A repeated registration of the same handle is ignored.
+  context.add_caller(callers[3]);
+
+  CASE_EXPECT_TRUE(context.has_multiple_callers());
+  CASE_EXPECT_EQ(k_caller_count, static_cast<int>(context.resume_callers()));
+  CASE_EXPECT_EQ(k_caller_count, static_cast<int>(g_test_coroutine_channel_fifo_order.size()));
+  for (int index = 0; index < k_caller_count; ++index) {
+    CASE_EXPECT_EQ(index, g_test_coroutine_channel_fifo_order[static_cast<size_t>(index)]);
+  }
+
+  // A handle removed and registered again joins the back of the queue.
+  g_test_coroutine_channel_fifo_order.clear();
+  for (int index = 0; index < k_caller_count; ++index) {
+    context.add_caller(callers[index]);
+  }
+  CASE_EXPECT_TRUE(context.remove_caller(callers[2]));
+  context.add_caller(callers[2]);
+
+  const int expected_order[k_caller_count] = {0, 1, 3, 4, 5, 6, 7, 2};
+  CASE_EXPECT_EQ(k_caller_count, static_cast<int>(context.resume_callers()));
+  CASE_EXPECT_EQ(k_caller_count, static_cast<int>(g_test_coroutine_channel_fifo_order.size()));
+  if (k_caller_count == static_cast<int>(g_test_coroutine_channel_fifo_order.size())) {
+    for (int index = 0; index < k_caller_count; ++index) {
+      CASE_EXPECT_EQ(expected_order[index], g_test_coroutine_channel_fifo_order[static_cast<size_t>(index)]);
+    }
+  }
+}

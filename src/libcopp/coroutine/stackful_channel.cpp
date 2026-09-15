@@ -44,8 +44,8 @@ LIBCOPP_COPP_API void stackful_channel_context_base::add_caller(handle_delegate 
   }
 
 #if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
-  if (std::holds_alternative<multi_caller_set>(callers_)) {
-    std::get<multi_caller_set>(callers_).insert(handle);
+  if (std::holds_alternative<multi_caller_container>(callers_)) {
+    std::get<multi_caller_container>(callers_).add(handle);
     return;
   }
 
@@ -54,21 +54,29 @@ LIBCOPP_COPP_API void stackful_channel_context_base::add_caller(handle_delegate 
     return;
   }
 
-  // convert to multiple caller
-  multi_caller_set callers;
-  callers.insert(std::get<handle_delegate>(callers_));
-  callers.insert(handle);
-  callers_.emplace<multi_caller_set>(std::move(callers));
+  if (std::get<handle_delegate>(callers_) == handle) {
+    return;
+  }
+
+  // convert to multiple callers and keep the registration order
+  multi_caller_container callers;
+  callers.add(std::get<handle_delegate>(callers_));
+  callers.add(handle);
+  callers_.emplace<multi_caller_container>(std::move(callers));
 #else
   if (!unique_caller_) {
     unique_caller_ = handle;
     return;
   }
 
-  if (!multiple_callers_) {
-    multiple_callers_.reset(new multi_caller_set());
+  if (unique_caller_ == handle) {
+    return;
   }
-  multiple_callers_->insert(handle);
+
+  if (!multiple_callers_) {
+    multiple_callers_.reset(new multi_caller_container());
+  }
+  multiple_callers_->add(handle);
 #endif
 }
 
@@ -76,8 +84,8 @@ LIBCOPP_COPP_API bool stackful_channel_context_base::remove_caller(handle_delega
   bool has_caller = false;
   do {
 #if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
-    if (std::holds_alternative<multi_caller_set>(callers_)) {
-      has_caller = std::get<multi_caller_set>(callers_).erase(handle) > 0;
+    if (std::holds_alternative<multi_caller_container>(callers_)) {
+      has_caller = std::get<multi_caller_container>(callers_).remove(handle);
       break;
     }
 
@@ -93,7 +101,7 @@ LIBCOPP_COPP_API bool stackful_channel_context_base::remove_caller(handle_delega
     }
 
     if (multiple_callers_) {
-      has_caller = multiple_callers_->erase(handle) > 0;
+      has_caller = multiple_callers_->remove(handle);
     }
 #endif
   } while (false);
@@ -111,10 +119,10 @@ LIBCOPP_COPP_API size_t stackful_channel_context_base::resume_callers() {
       caller.resume_handle(caller.handle_data, this);
       ++resume_count;
     }
-  } else if (std::holds_alternative<multi_caller_set>(callers_)) {
-    multi_caller_set callers;
-    callers.swap(std::get<multi_caller_set>(callers_));
-    for (auto &caller : callers) {
+  } else if (std::holds_alternative<multi_caller_container>(callers_)) {
+    multi_caller_container callers;
+    callers.swap(std::get<multi_caller_container>(callers_));
+    for (auto &caller : callers.callers) {
       if (caller.handle_data && caller.resume_handle) {
         caller.resume_handle(caller.handle_data, this);
         ++resume_count;
@@ -124,7 +132,7 @@ LIBCOPP_COPP_API size_t stackful_channel_context_base::resume_callers() {
 #else
   auto unique_caller = unique_caller_;
   unique_caller_ = nullptr;
-  std::unique_ptr<multi_caller_set> multiple_callers;
+  std::unique_ptr<multi_caller_container> multiple_callers;
   multiple_callers.swap(multiple_callers_);
 
   // The promise object may be destroyed after first caller.resume()
@@ -134,7 +142,7 @@ LIBCOPP_COPP_API size_t stackful_channel_context_base::resume_callers() {
   }
 
   if (multiple_callers) {
-    for (auto &caller : *multiple_callers) {
+    for (auto &caller : multiple_callers->callers) {
       if (caller.handle_data && caller.resume_handle) {
         caller.resume_handle(caller.handle_data, this);
         ++resume_count;
@@ -149,8 +157,8 @@ LIBCOPP_COPP_API bool stackful_channel_context_base::has_multiple_callers() cons
 #if defined(LIBCOPP_MACRO_ENABLE_STD_VARIANT) && LIBCOPP_MACRO_ENABLE_STD_VARIANT
   if (std::holds_alternative<handle_delegate>(callers_)) {
     return false;
-  } else if (std::holds_alternative<multi_caller_set>(callers_)) {
-    return std::get<multi_caller_set>(callers_).size() > 1;
+  } else if (std::holds_alternative<multi_caller_container>(callers_)) {
+    return std::get<multi_caller_container>(callers_).size() > 1;
   }
   return false;
 #else

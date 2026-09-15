@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## Unreleased
+
+1. Resume multiple callers of `promise_caller_manager` (C++20 coroutine) and `stackful_channel_context_base`
+   (stackful channel) in registration (FIFO) order instead of hash order. The multi-caller containers are now a
+   dual index of an order-preserving list and a hash map, so waiters queued behind the same task or channel wake
+   in the order they registered, matching the legacy stackful `next_list` behavior, while dedup-on-add and
+   passive removal stay O(1). Duplicate registrations of the same handle are now also ignored when
+   `LIBCOPP_MACRO_ENABLE_STD_VARIANT` is off.
+
 ## 2.3.2
 
 1. Rewrite document.
