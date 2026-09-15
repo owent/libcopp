@@ -543,3 +543,42 @@ CASE_TEST(coroutine_channel, multiple_callers_resume_fifo) {
     }
   }
 }
+
+CASE_TEST(coroutine_channel, multiple_callers_add_remove_edge_cases) {
+  int caller_indexes[3] = {0, 1, 2};
+  copp::stackful_channel_handle_delegate first_caller;
+  copp::stackful_channel_handle_delegate second_caller;
+  copp::stackful_channel_handle_delegate unregistered_caller;
+  first_caller.handle_data = &caller_indexes[0];
+  first_caller.resume_handle = &test_context_channel_fifo_resume;
+  second_caller.handle_data = &caller_indexes[1];
+  second_caller.resume_handle = &test_context_channel_fifo_resume;
+  unregistered_caller.handle_data = &caller_indexes[2];
+  unregistered_caller.resume_handle = &test_context_channel_fifo_resume;
+
+  test_context_channel_fifo_context context;
+
+  // Re-adding the same handle while it's the only caller keeps a single caller.
+  context.add_caller(first_caller);
+  context.add_caller(first_caller);
+  CASE_EXPECT_FALSE(context.has_multiple_callers());
+
+  // Removing a handle that was never registered returns false while single caller.
+  CASE_EXPECT_FALSE(context.remove_caller(second_caller));
+
+  // Convert to multiple callers, then a repeated registration is still ignored.
+  context.add_caller(second_caller);
+  context.add_caller(first_caller);
+  CASE_EXPECT_TRUE(context.has_multiple_callers());
+
+  // Removing a handle not present in multi-caller mode returns false.
+  CASE_EXPECT_FALSE(context.remove_caller(unregistered_caller));
+
+  // Removing the registered handles returns true and empties the caller set.
+  CASE_EXPECT_TRUE(context.remove_caller(first_caller));
+  CASE_EXPECT_TRUE(context.remove_caller(second_caller));
+
+  g_test_coroutine_channel_fifo_order.clear();
+  CASE_EXPECT_EQ(0, static_cast<int>(context.resume_callers()));
+  CASE_EXPECT_TRUE(g_test_coroutine_channel_fifo_order.empty());
+}

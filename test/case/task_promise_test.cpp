@@ -414,8 +414,7 @@ static void generator_fifo_blocker_suspend_callback(generator_future_int_type::c
 static void generator_fifo_blocker_resume_callback(const generator_future_int_type::context_type &) {}
 
 static task_future_int_type task_func_fifo_blocker() {
-  generator_future_int_type generator{generator_fifo_blocker_suspend_callback,
-                                      generator_fifo_blocker_resume_callback};
+  generator_future_int_type generator{generator_fifo_blocker_suspend_callback, generator_fifo_blocker_resume_callback};
   auto res = co_await generator;
   co_return res;
 }
@@ -458,6 +457,60 @@ CASE_TEST(task_promise, task_future_multiple_callers_resume_fifo) {
     CASE_EXPECT_EQ(index, g_task_future_fifo_resume_order[static_cast<size_t>(index)]);
     CASE_EXPECT_TRUE(waiters[static_cast<size_t>(index)].is_ready());
   }
+}
+
+CASE_TEST(task_promise, task_future_caller_manager_dedup_and_remove) {
+  g_task_future_fifo_blocker_contexts.clear();
+  g_task_future_fifo_resume_order.clear();
+
+  task_future_int_type blocker = task_func_fifo_blocker();
+  CASE_EXPECT_TRUE(blocker.start());
+  CASE_EXPECT_FALSE(blocker.is_exiting());
+
+  // Suspended waiters give us valid, non-done coroutine handles to drive the caller manager directly.
+  callable_future_int_type waiter0 = task_future_func_fifo_waiter(blocker, 0);
+  callable_future_int_type waiter1 = task_future_func_fifo_waiter(blocker, 1);
+  callable_future_int_type waiter2 = task_future_func_fifo_waiter(blocker, 2);
+  CASE_EXPECT_FALSE(waiter0.is_ready());
+  CASE_EXPECT_FALSE(waiter1.is_ready());
+  CASE_EXPECT_FALSE(waiter2.is_ready());
+
+  using caller_delegate = copp::promise_caller_manager::handle_delegate;
+  copp::promise_caller_manager manager;
+  CASE_EXPECT_FALSE(manager.has_multiple_callers());
+
+  // Re-adding the same handle while it's the only caller keeps a single caller.
+  manager.add_caller(caller_delegate{waiter0.get_internal_handle()});
+  manager.add_caller(caller_delegate{waiter0.get_internal_handle()});
+  CASE_EXPECT_FALSE(manager.has_multiple_callers());
+
+  // Removing a handle that was never registered returns false while single caller.
+  CASE_EXPECT_FALSE(manager.remove_caller(caller_delegate{waiter1.get_internal_handle()}));
+
+  // Convert to multiple callers, then a repeated registration is still ignored.
+  manager.add_caller(caller_delegate{waiter1.get_internal_handle()});
+  manager.add_caller(caller_delegate{waiter0.get_internal_handle()});
+  manager.add_caller(caller_delegate{waiter1.get_internal_handle()});
+  CASE_EXPECT_TRUE(manager.has_multiple_callers());
+
+  // Removing a handle not present in multi-caller mode returns false.
+  CASE_EXPECT_FALSE(manager.remove_caller(caller_delegate{waiter2.get_internal_handle()}));
+
+  // Removing the registered handles returns true.
+  CASE_EXPECT_TRUE(manager.remove_caller(caller_delegate{waiter0.get_internal_handle()}));
+  CASE_EXPECT_TRUE(manager.remove_caller(caller_delegate{waiter1.get_internal_handle()}));
+
+  // Complete the blocker so the real waiters unwind cleanly.
+  CASE_EXPECT_EQ(1, static_cast<int>(g_task_future_fifo_blocker_contexts.size()));
+  if (!g_task_future_fifo_blocker_contexts.empty()) {
+    auto pending_context = g_task_future_fifo_blocker_contexts.front();
+    g_task_future_fifo_blocker_contexts.pop_front();
+    pending_context->set_value(0);
+  }
+  CASE_EXPECT_TRUE(blocker.is_exiting());
+  CASE_EXPECT_TRUE(waiter0.is_ready());
+  CASE_EXPECT_TRUE(waiter1.is_ready());
+  CASE_EXPECT_TRUE(waiter2.is_ready());
 }
 
 namespace {

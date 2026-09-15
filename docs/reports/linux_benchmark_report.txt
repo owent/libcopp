@@ -1,75 +1,1117 @@
 =======================================================================================
-Env: Linux version 3.14.3-200.fc20.x86_64 (mockbuild@bkernel02) (gcc version 4.8.2 20131212 (Red Hat 4.8.2-7) (GCC) ) #1 SMP Tue May 6 19:00:18 UTC 2014
+Source: GitHub Actions - job "Unix Build (ubuntu-latest, x64-linux, gcc, ON)"
+  https://github.com/owent/libcopp/actions/runs/34942431606
+Env: Ubuntu 24.04 (GitHub-hosted ubuntu-latest runner), gcc 13.3.0
 System: Linux
-CPU: AMD Phenom(tm) II X4 830 Processor (800MHz- 2800MHz)
-Memory: 8GB DDR3-1333
+CPU: GitHub-hosted runner (4 vCPU)
+Memory: 16 GB
 CMake Build Type: RelWithDebInfo
-Run Env => thread number: 1, stack memory cost 2.0GB
-Compile Options:-O2 -g -DNDEBUG -ggdb -std=gnu++11 -Wall -Werror -rdynamic -Wno-unused-local-typedefs -fsplit-stack
-
-###################### context coroutine (stack using memory pool) ###################
-########## Cmd: sample/sample_stress_test_coroutine_mem_pool 10000 1000 200
-allocate 10000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 400 ns
-create 10000 coroutine, cost time: 0 s, clock time: 50 ms, avg: 5000 ns
-switch 10000 coroutine contest 10000000 times, cost time: 4 s, clock time: 3706 ms, avg: 370 ns
-remove 10000 coroutine, cost time: 0 s, clock time: 9 ms, avg: 900 ns
-########## Cmd: sample/sample_stress_test_coroutines_mem_pool 1000 1000 2048
-allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
-create 1000 coroutine, cost time: 0 s, clock time: 5 ms, avg: 5000 ns
-switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 282 ms, avg: 282 ns
-remove 1000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 2000 ns
+Run Env => thread number: 1
+Each "Cmd" line shows the benchmark binary and its arguments: <object count> <switch times> <stack size KB>
+Captured from CI: 2026-09-15
+=======================================================================================
 
 ###################### context coroutine (stack using default allocator[mmap]) ###################
-########## Cmd: sample/sample_stress_test_coroutine 10000 1000 200
-allocate 10000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 200 ns
-create 10000 coroutine, cost time: 0 s, clock time: 74 ms, avg: 7400 ns
-switch 10000 coroutine contest 10000000 times, cost time: 4 s, clock time: 3407 ms, avg: 340 ns
-remove 10000 coroutine, cost time: 0 s, clock time: 30 ms, avg: 3000 ns
-########## Cmd: sample/sample_stress_test_coroutine 1000 1000 2048
+########## Cmd: sample/libcopp_sample_benchmark_coroutine 30000 100 64
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 30000 coroutine, cost time: 0 s, clock time: 230 ms, avg: 7697 ns
+switch 30000 coroutine contest 3000000 times, cost time: 0 s, clock time: 227 ms, avg: 75 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 205 ms, avg: 6833 ns
+###################### context coroutine (stack using default allocator[mmap]) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine 1000 1000 2048
+allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 1000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 7957 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 67 ms, avg: 67 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 6 ms, avg: 6569 ns
+###################### context coroutine (stack using default allocator[mmap]) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine 1 1000000 16
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 902 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 18625 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 51 ms, avg: 51 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 25227 ns
+###################### context coroutine (stack using malloc/free) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_malloc 30000 100 64
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 30000 coroutine, cost time: 0 s, clock time: 68 ms, avg: 2272 ns
+switch 30000 coroutine contest 3000000 times, cost time: 1 s, clock time: 246 ms, avg: 82 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 129 ms, avg: 4303 ns
+###################### context coroutine (stack using malloc/free) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_malloc 1000 1000 2048
+allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 4 ns
+create 1000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 8121 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 62 ms, avg: 62 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 6 ms, avg: 6311 ns
+###################### context coroutine (stack using malloc/free) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_malloc 1 1000000 16
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 942 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 10700 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 52 ms, avg: 52 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 11341 ns
+###################### context coroutine (stack using memory pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_mem_pool 30000 100 64
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 30000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 94 ns
+switch 30000 coroutine contest 3000000 times, cost time: 0 s, clock time: 296 ms, avg: 98 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 263 ns
+###################### context coroutine (stack using memory pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_mem_pool 1000 1000 2048
+allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 7 ns
+create 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 92 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 7445 ns
+###################### context coroutine (stack using memory pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_mem_pool 1 1000000 16
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 290 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 6823 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 51 ms, avg: 51 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 8886 ns
+###################### context coroutine (stack using stack pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_stack_pool 30000 100 64
+### Round: 1 ###
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 30000 coroutine, cost time: 0 s, clock time: 235 ms, avg: 7842 ns
+switch 30000 coroutine contest 3000000 times, cost time: 0 s, clock time: 350 ms, avg: 116 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 67 ns
+### Round: 2 ###
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 65 ns
+switch 30000 coroutine contest 3000000 times, cost time: 1 s, clock time: 371 ms, avg: 123 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 35 ns
+### Round: 3 ###
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 61 ns
+switch 30000 coroutine contest 3000000 times, cost time: 0 s, clock time: 287 ms, avg: 95 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 36 ns
+### Round: 4 ###
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 61 ns
+switch 30000 coroutine contest 3000000 times, cost time: 0 s, clock time: 263 ms, avg: 87 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 35 ns
+### Round: 5 ###
+allocate 30000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 61 ns
+switch 30000 coroutine contest 3000000 times, cost time: 1 s, clock time: 318 ms, avg: 106 ns
+remove 30000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 39 ns
+###################### context coroutine (stack using stack pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_stack_pool 1000 1000 2048
+### Round: 1 ###
+allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 3 ns
+create 1000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 7936 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 91 ns
+### Round: 2 ###
 allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
-create 1000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 8000 ns
-switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 223 ms, avg: 223 ns
-remove 1000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
-
-###################### context coroutine (stack using malloc/free [ptmalloc]) ###################
-########## Cmd: sample/sample_stress_test_coroutine_malloc 10000 1000 200
-allocate 10000 coroutine, cost time: 0 s, clock time: 6 ms, avg: 600 ns
-create 10000 coroutine, cost time: 0 s, clock time: 81 ms, avg: 8100 ns
-switch 10000 coroutine contest 10000000 times, cost time: 4 s, clock time: 3809 ms, avg: 380 ns
-remove 10000 coroutine, cost time: 0 s, clock time: 26 ms, avg: 2600 ns
-########## Cmd: sample/sample_stress_test_coroutine_malloc 1000 1000 2048
+create 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 62 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 41 ns
+### Round: 3 ###
 allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
-create 1000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 8000 ns
-switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 248 ms, avg: 248 ns
-remove 1000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
-
+create 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 62 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 40 ns
+### Round: 4 ###
+allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 61 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 38 ns
+### Round: 5 ###
+allocate 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 61 ns
+switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 56 ns
+###################### context coroutine (stack using stack pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_coroutine_stack_pool 1 1000000 16
+### Round: 1 ###
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 611 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 17943 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 9548 ns
+### Round: 2 ###
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 391 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1944 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 2524 ns
+### Round: 3 ###
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 291 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1132 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1592 ns
+### Round: 4 ###
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 311 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1082 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1022 ns
+### Round: 5 ###
+allocate 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 70 ns
+create 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 541 ns
+switch 1 coroutine contest 1000000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 coroutine, cost time: 0 s, clock time: 0 ms, avg: 4839 ns
+###################### std callable - create generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_create_generator 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 9 ms, avg: 322 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 312 ms, avg: 103 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 29 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 305 ms, avg: 100 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 33 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 110 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 292 ms, avg: 96 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 36 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 324 ms, avg: 107 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 34 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 111 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 324 ms, avg: 106 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+###################### std callable - create generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_create_generator 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 302 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 107 ms, avg: 106 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 34 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 99 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 110 ms, avg: 110 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 100 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 108 ms, avg: 108 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 98 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 108 ms, avg: 108 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 34 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 100 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 107 ms, avg: 107 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+###################### std callable - create generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_create_generator 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1172 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 1 s, clock time: 91 ms, avg: 91 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 4579 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 291 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 91 ms, avg: 91 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3397 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 371 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 90 ms, avg: 90 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3226 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 240 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 90 ms, avg: 90 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2785 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 361 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 90 ms, avg: 90 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1904 ns
+###################### std callable - create generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_create_generator_no_trivial 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 9 ms, avg: 321 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 328 ms, avg: 108 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 29 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 101 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 349 ms, avg: 115 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 36 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 109 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 342 ms, avg: 112 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 34 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 105 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 344 ms, avg: 113 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 33 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 106 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 336 ms, avg: 111 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+###################### std callable - create generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_create_generator_no_trivial 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 301 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 109 ms, avg: 109 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 108 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 109 ms, avg: 109 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 60 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 109 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 108 ms, avg: 108 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 99 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 109 ms, avg: 109 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 99 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 108 ms, avg: 108 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+###################### std callable - create generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_create_generator_no_trivial 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1222 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 105 ms, avg: 105 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3547 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 311 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 105 ms, avg: 105 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2414 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 211 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 1 s, clock time: 104 ms, avg: 104 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2915 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 381 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 104 ms, avg: 104 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1974 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 210 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 105 ms, avg: 105 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2965 ns
+###################### std callable - recursive ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_recursive 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 5 ms, avg: 189 ns
+resume 30000 callable(s) and generator(s) for 3000000 times, cost time: 0 s, clock time: 212 ms, avg: 70 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 27 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 215 ms, avg: 7184 ns
+resume 30000 callable(s) and generator(s) for 3000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 34 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 217 ms, avg: 7258 ns
+resume 30000 callable(s) and generator(s) for 3000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 40 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 1 s, clock time: 219 ms, avg: 7312 ns
+resume 30000 callable(s) and generator(s) for 3000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 2 ms, avg: 83 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 214 ms, avg: 7147 ns
+resume 30000 callable(s) and generator(s) for 3000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 55 ns
+###################### std callable - recursive ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_recursive 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 185 ns
+resume 1000 callable(s) and generator(s) for 1000000 times, cost time: 0 s, clock time: 75 ms, avg: 75 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 46 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 81 ms, avg: 81102 ns
+resume 1000 callable(s) and generator(s) for 1000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 40 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 80 ms, avg: 80520 ns
+resume 1000 callable(s) and generator(s) for 1000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 41 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 81 ms, avg: 81838 ns
+resume 1000 callable(s) and generator(s) for 1000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 45 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 81 ms, avg: 81328 ns
+resume 1000 callable(s) and generator(s) for 1000000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 43 ns
+###################### std callable - recursive ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_recursive 1 10000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 962 ns
+resume 1 callable(s) and generator(s) for 10000 times, cost time: 0 s, clock time: 2 ms, avg: 281 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1573 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 845252 ns
+resume 1 callable(s) and generator(s) for 10000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 351 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 875429 ns
+resume 1 callable(s) and generator(s) for 10000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 331 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 827260 ns
+resume 1 callable(s) and generator(s) for 10000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 311 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 849541 ns
+resume 1 callable(s) and generator(s) for 10000 times, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 250 ns
+###################### std callable - reuse channel generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_channel_generator 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 7 ms, avg: 264 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 101 ms, avg: 33 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 53 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 76 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 103 ms, avg: 34 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 53 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 77 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 103 ms, avg: 34 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 53 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 77 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 103 ms, avg: 34 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 53 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 76 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 103 ms, avg: 34 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 52 ns
+###################### std callable - reuse channel generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_channel_generator 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 256 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 55 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 77 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 52 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 72 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 54 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 105 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 53 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 83 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 54 ns
+###################### std callable - reuse channel generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_channel_generator 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 962 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2234 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 361 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 921 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 341 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1202 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 321 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 711 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 301 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 33 ms, avg: 33 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 942 ns
+###################### std callable - reuse channel generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_channel_generator_no_trivial 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 8 ms, avg: 272 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 144 ms, avg: 47 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 35 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 78 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 144 ms, avg: 47 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 80 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 146 ms, avg: 48 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 28 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 77 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 146 ms, avg: 48 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 34 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 2 ms, avg: 81 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 147 ms, avg: 48 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 28 ns
+###################### std callable - reuse channel generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_channel_generator_no_trivial 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 254 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 75 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 48 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 41 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 75 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 29 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 84 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 75 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+###################### std callable - reuse channel generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_channel_generator_no_trivial 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 971 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3387 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 341 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1453 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 201 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1663 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 280 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2334 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 290 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1353 ns
+###################### std callable - reuse generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_generator 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 9 ms, avg: 331 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 146 ms, avg: 48 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 107 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 152 ms, avg: 50 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 146 ms, avg: 48 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 29 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 150 ms, avg: 49 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 146 ms, avg: 48 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+###################### std callable - reuse generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_generator 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 315 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 98 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 100 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 48 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 98 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 99 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+###################### std callable - reuse generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_generator 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1022 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3456 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1013 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 1 s, clock time: 48 ms, avg: 48 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1613 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 480 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2124 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 701 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2735 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 792 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3216 ns
+###################### std callable - reuse generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_generator_no_trivial 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 9 ms, avg: 319 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 172 ms, avg: 56 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 29 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 183 ms, avg: 60 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 34 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 102 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 171 ms, avg: 56 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 28 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 103 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 184 ms, avg: 60 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 33 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 101 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 172 ms, avg: 56 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 28 ns
+###################### std callable - reuse generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_generator_no_trivial 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 297 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 97 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 97 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 29 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 96 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 56 ms, avg: 55 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 98 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+###################### std callable - reuse generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_generator_no_trivial 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1021 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 56 ms, avg: 56 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2053 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 280 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2134 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 260 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 71 ms, avg: 71 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1643 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 161 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 54 ms, avg: 54 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2515 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 371 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 54 ms, avg: 54 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2464 ns
+###################### std callable - reuse lightweight generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_lightweight_generator 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 8 ms, avg: 296 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 157 ms, avg: 51 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 30 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 105 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 159 ms, avg: 52 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 38 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 121 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 161 ms, avg: 53 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 41 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 130 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 162 ms, avg: 53 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 53 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 152 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 164 ms, avg: 54 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 45 ns
+###################### std callable - reuse lightweight generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_lightweight_generator 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 290 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 50 ms, avg: 50 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 102 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 50 ms, avg: 50 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 103 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 50 ms, avg: 50 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 102 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 50 ms, avg: 50 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 34 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 128 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 50 ms, avg: 50 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+###################### std callable - reuse lightweight generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_lightweight_generator 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1052 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 4248 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 682 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 4528 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 862 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1763 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 481 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1473 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 712 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 3297 ns
+###################### std callable - reuse lightweight generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_lightweight_generator_no_trivial 30000 100 64
+### Round: 1 ###
+create 30000 callable(s) and generator(s), cost time: 1 s, clock time: 9 ms, avg: 306 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 179 ms, avg: 59 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 28 ns
+### Round: 2 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 102 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 184 ms, avg: 60 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 38 ns
+### Round: 3 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 123 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 187 ms, avg: 61 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 40 ns
+### Round: 4 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 128 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 194 ms, avg: 64 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 43 ns
+### Round: 5 ###
+create 30000 callable(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 143 ns
+resume 30000 callable(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 196 ms, avg: 64 ns
+remove 30000 callable(s), cost time: 0 s, clock time: 1 ms, avg: 39 ns
+###################### std callable - reuse lightweight generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_lightweight_generator_no_trivial 1000 1000 2048
+### Round: 1 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 296 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 1 s, clock time: 58 ms, avg: 58 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 2 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 99 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 58 ms, avg: 58 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 3 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 114 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 58 ms, avg: 58 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 4 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 103 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 58 ms, avg: 58 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 5 ###
+create 1000 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 104 ns
+resume 1000 callable(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 58 ms, avg: 58 ns
+remove 1000 callable(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+###################### std callable - reuse lightweight generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_callable_reuse_lightweight_generator_no_trivial 1 1000000 16
+### Round: 1 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1102 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 4458 ns
+### Round: 2 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 420 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 2895 ns
+### Round: 3 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 280 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 561 ns
+### Round: 4 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 100 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 421 ns
+### Round: 5 ###
+create 1 callable(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 110 ns
+resume 1 callable(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1 callable(s), cost time: 0 s, clock time: 0 ms, avg: 1583 ns
+###################### std task - create generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_create_generator 30000 100 64
+### Round: 1 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 11 ms, avg: 395 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 352 ms, avg: 116 ns
+remove 30000 task(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 2 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 129 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 415 ms, avg: 137 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 45 ns
+### Round: 3 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 120 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 359 ms, avg: 118 ns
+remove 30000 task(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 4 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 127 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 419 ms, avg: 138 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 44 ns
+### Round: 5 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 119 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 354 ms, avg: 117 ns
+remove 30000 task(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+###################### std task - create generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_create_generator 1000 1000 2048
+### Round: 1 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 369 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 110 ms, avg: 110 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 35 ns
+### Round: 2 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 183 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 117 ms, avg: 117 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 35 ns
+### Round: 3 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 109 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 116 ms, avg: 116 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 4 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 109 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 116 ms, avg: 115 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 36 ns
+### Round: 5 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 119 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 1 s, clock time: 116 ms, avg: 116 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+###################### std task - create generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_create_generator 1 1000000 16
+### Round: 1 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 6833 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 90 ms, avg: 90 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3837 ns
+### Round: 2 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 612 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 92 ms, avg: 92 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3456 ns
+### Round: 3 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1053 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 90 ms, avg: 90 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 2083 ns
+### Round: 4 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 601 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 90 ms, avg: 90 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 2865 ns
+### Round: 5 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1122 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 91 ms, avg: 91 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3376 ns
+###################### std task - create generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_create_generator_no_trivial 30000 100 64
+### Round: 1 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 11 ms, avg: 397 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 328 ms, avg: 108 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 40 ns
+### Round: 2 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 135 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 373 ms, avg: 123 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 61 ns
+### Round: 3 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 128 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 348 ms, avg: 115 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 40 ns
+### Round: 4 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 151 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 409 ms, avg: 135 ns
+remove 30000 task(s), cost time: 0 s, clock time: 2 ms, avg: 87 ns
+### Round: 5 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 154 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 346 ms, avg: 114 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 40 ns
+###################### std task - create generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_create_generator_no_trivial 1000 1000 2048
+### Round: 1 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 400 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 111 ms, avg: 111 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 43 ns
+### Round: 2 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 128 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 112 ms, avg: 111 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 45 ns
+### Round: 3 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 138 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 112 ms, avg: 111 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 41 ns
+### Round: 4 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 105 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 112 ms, avg: 112 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 47 ns
+### Round: 5 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 103 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 111 ms, avg: 111 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 42 ns
+###################### std task - create generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_create_generator_no_trivial 1 1000000 16
+### Round: 1 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 6252 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 1 s, clock time: 104 ms, avg: 104 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 5510 ns
+### Round: 2 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1212 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 104 ms, avg: 104 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3386 ns
+### Round: 3 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1182 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 104 ms, avg: 104 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3767 ns
+### Round: 4 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 922 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 104 ms, avg: 104 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 4618 ns
+### Round: 5 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1503 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 107 ms, avg: 107 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3376 ns
+###################### std task - reuse generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_reuse_generator 30000 100 64
+### Round: 1 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 11 ms, avg: 398 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 146 ms, avg: 48 ns
+remove 30000 task(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+### Round: 2 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 126 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 187 ms, avg: 62 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 45 ns
+### Round: 3 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 121 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 151 ms, avg: 50 ns
+remove 30000 task(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+### Round: 4 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 134 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 185 ms, avg: 61 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 47 ns
+### Round: 5 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 3 ms, avg: 128 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 153 ms, avg: 50 ns
+remove 30000 task(s), cost time: 0 s, clock time: 0 ms, avg: 32 ns
+###################### std task - reuse generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_reuse_generator 1000 1000 2048
+### Round: 1 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 370 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 34 ns
+### Round: 2 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 109 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 35 ns
+### Round: 3 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 105 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 31 ns
+### Round: 4 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 108 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 34 ns
+### Round: 5 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 105 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 47 ms, avg: 47 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 33 ns
+###################### std task - reuse generator - trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_reuse_generator 1 1000000 16
+### Round: 1 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 6963 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 49 ms, avg: 49 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 4038 ns
+### Round: 2 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1593 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 2806 ns
+### Round: 3 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 881 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 1713 ns
+### Round: 4 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1333 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 1263 ns
+### Round: 5 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 371 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 48 ms, avg: 48 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 2485 ns
+###################### std task - reuse generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_reuse_generator_no_trivial 30000 100 64
+### Round: 1 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 12 ms, avg: 404 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 1 s, clock time: 170 ms, avg: 56 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 40 ns
+### Round: 2 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 137 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 224 ms, avg: 74 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 62 ns
+### Round: 3 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 135 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 188 ms, avg: 62 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 43 ns
+### Round: 4 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 147 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 233 ms, avg: 77 ns
+remove 30000 task(s), cost time: 0 s, clock time: 2 ms, avg: 73 ns
+### Round: 5 ###
+create 30000 task(s) and generator(s), cost time: 0 s, clock time: 4 ms, avg: 155 ns
+resume 30000 task(s) and generator(s) for 3030000 times, cost time: 0 s, clock time: 187 ms, avg: 61 ns
+remove 30000 task(s), cost time: 0 s, clock time: 1 ms, avg: 45 ns
+###################### std task - reuse generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_reuse_generator_no_trivial 1000 1000 2048
+### Round: 1 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 385 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 56 ms, avg: 56 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 54 ns
+### Round: 2 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 138 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 57 ms, avg: 57 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 45 ns
+### Round: 3 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 128 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 1 s, clock time: 55 ms, avg: 55 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 41 ns
+### Round: 4 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 105 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 57 ms, avg: 57 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 47 ns
+### Round: 5 ###
+create 1000 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 104 ns
+resume 1000 task(s) and generator(s) for 1001000 times, cost time: 0 s, clock time: 55 ms, avg: 55 ns
+remove 1000 task(s), cost time: 0 s, clock time: 0 ms, avg: 41 ns
+###################### std task - reuse generator - no trivial ###################
+########## Cmd: sample/libcopp_sample_benchmark_std_couroutine_task_reuse_generator_no_trivial 1 1000000 16
+### Round: 1 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 6492 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 53 ms, avg: 53 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 4328 ns
+### Round: 2 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1032 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 54 ms, avg: 54 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3005 ns
+### Round: 3 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 1182 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 54 ms, avg: 54 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3276 ns
+### Round: 4 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 952 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 53 ms, avg: 53 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 2445 ns
+### Round: 5 ###
+create 1 task(s) and generator(s), cost time: 0 s, clock time: 0 ms, avg: 331 ns
+resume 1 task(s) and generator(s) for 1000001 times, cost time: 0 s, clock time: 53 ms, avg: 53 ns
+remove 1 task(s), cost time: 0 s, clock time: 0 ms, avg: 3256 ns
+###################### context coroutine (stack using default allocator[mmap]) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task 30000 100 64
+create 30000 task, cost time: 0 s, clock time: 235 ms, avg: 7845 ns
+switch 30000 tasks 3000000 times, cost time: 1 s, clock time: 419 ms, avg: 139 ns
+remove 30000 tasks, cost time: 0 s, clock time: 187 ms, avg: 6238 ns
+###################### context coroutine (stack using default allocator[mmap]) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task 1000 1000 2048
+create 1000 task, cost time: 0 s, clock time: 8 ms, avg: 8043 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 78 ms, avg: 78 ns
+remove 1000 tasks, cost time: 0 s, clock time: 6 ms, avg: 6826 ns
+###################### context coroutine (stack using default allocator[mmap]) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task 1 1000000 16
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 26550 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 24576 ns
+###################### task (stack using malloc/free) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_malloc 30000 100 64
+create 30000 task, cost time: 0 s, clock time: 72 ms, avg: 2429 ns
+switch 30000 tasks 3000000 times, cost time: 0 s, clock time: 347 ms, avg: 115 ns
+remove 30000 tasks, cost time: 0 s, clock time: 10 ms, avg: 362 ns
+###################### task (stack using malloc/free) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_malloc 1000 1000 2048
+create 1000 task, cost time: 0 s, clock time: 6 ms, avg: 6296 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 75 ms, avg: 75 ns
+remove 1000 tasks, cost time: 0 s, clock time: 5 ms, avg: 5970 ns
+###################### task (stack using malloc/free) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_malloc 1 1000000 16
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 13475 ns
+switch 1 tasks 1000000 times, cost time: 1 s, clock time: 65 ms, avg: 65 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 9798 ns
 ###################### task (stack using memory pool) ###################
-########## Cmd: sample/sample_stress_test_task_mem_pool 10000 1000 200
-create 10000 task, cost time: 0 s, clock time: 46 ms, avg: 4600 ns
-switch 10000 tasks 10000000 times, cost time: 5 s, clock time: 4914 ms, avg: 491 ns
-remove 10000 tasks, cost time: 0 s, clock time: 1 ms, avg: 100 ns
-########## Cmd: sample/sample_stress_test_task_mem_pool 1000 1000 2048
-create 1000 task, cost time: 0 s, clock time: 6 ms, avg: 6000 ns
-switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 336 ms, avg: 336 ns
-remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 0 ns
-
-###################### task (stack using default allocator[mmap]) ###################
-########## Cmd: sample/sample_stress_test_task 10000 1000 200
-create 10000 task, cost time: 0 s, clock time: 78 ms, avg: 7800 ns
-switch 10000 tasks 10000000 times, cost time: 5 s, clock time: 5134 ms, avg: 513 ns
-remove 10000 tasks, cost time: 0 s, clock time: 34 ms, avg: 3400 ns
-########## Cmd: sample/sample_stress_test_task 1000 1000 2048
-create 1000 task, cost time: 0 s, clock time: 8 ms, avg: 8000 ns
-switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 330 ms, avg: 330 ns
-remove 1000 tasks, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
-
-###################### task (stack using malloc/free [ptmalloc]) ###################
-########## Cmd: sample/sample_stress_test_task_malloc 10000 1000 200
-create 10000 task, cost time: 0 s, clock time: 73 ms, avg: 7300 ns
-switch 10000 tasks 10000000 times, cost time: 5 s, clock time: 4803 ms, avg: 480 ns
-remove 10000 tasks, cost time: 0 s, clock time: 31 ms, avg: 3100 ns
-########## Cmd: sample/sample_stress_test_task_malloc 1000 1000 2048
-create 1000 task, cost time: 0 s, clock time: 9 ms, avg: 9000 ns
-switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 335 ms, avg: 335 ns
-remove 1000 tasks, cost time: 1 s, clock time: 4 ms, avg: 4000 ns
-
+########## Cmd: sample/libcopp_sample_benchmark_task_mem_pool 30000 100 64
+create 30000 task, cost time: 0 s, clock time: 3 ms, avg: 116 ns
+switch 30000 tasks 3000000 times, cost time: 0 s, clock time: 420 ms, avg: 140 ns
+remove 30000 tasks, cost time: 0 s, clock time: 1 ms, avg: 61 ns
+###################### task (stack using memory pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_mem_pool 1000 1000 2048
+create 1000 task, cost time: 0 s, clock time: 0 ms, avg: 137 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 70 ms, avg: 70 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 57 ns
+###################### task (stack using memory pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_mem_pool 1 1000000 16
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 11001 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 64 ms, avg: 64 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 5150 ns
+###################### task (stack using stack pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_stack_pool 30000 100 64
+### Round: 1 ###
+create 30000 task, cost time: 1 s, clock time: 231 ms, avg: 7712 ns
+switch 30000 tasks 3000000 times, cost time: 0 s, clock time: 417 ms, avg: 139 ns
+remove 30000 tasks, cost time: 0 s, clock time: 3 ms, avg: 107 ns
+### Round: 2 ###
+create 30000 task, cost time: 0 s, clock time: 2 ms, avg: 97 ns
+switch 30000 tasks 3000000 times, cost time: 1 s, clock time: 429 ms, avg: 143 ns
+remove 30000 tasks, cost time: 0 s, clock time: 2 ms, avg: 75 ns
+### Round: 3 ###
+create 30000 task, cost time: 0 s, clock time: 3 ms, avg: 101 ns
+switch 30000 tasks 3000000 times, cost time: 0 s, clock time: 444 ms, avg: 148 ns
+remove 30000 tasks, cost time: 0 s, clock time: 2 ms, avg: 68 ns
+### Round: 4 ###
+create 30000 task, cost time: 0 s, clock time: 2 ms, avg: 97 ns
+switch 30000 tasks 3000000 times, cost time: 0 s, clock time: 449 ms, avg: 149 ns
+remove 30000 tasks, cost time: 0 s, clock time: 1 ms, avg: 65 ns
+### Round: 5 ###
+create 30000 task, cost time: 0 s, clock time: 3 ms, avg: 107 ns
+switch 30000 tasks 3000000 times, cost time: 1 s, clock time: 445 ms, avg: 148 ns
+remove 30000 tasks, cost time: 0 s, clock time: 1 ms, avg: 65 ns
+###################### task (stack using stack pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_stack_pool 1000 1000 2048
+### Round: 1 ###
+create 1000 task, cost time: 0 s, clock time: 10 ms, avg: 10436 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 79 ms, avg: 79 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 105 ns
+### Round: 2 ###
+create 1000 task, cost time: 0 s, clock time: 0 ms, avg: 100 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 78 ms, avg: 78 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 59 ns
+### Round: 3 ###
+create 1000 task, cost time: 0 s, clock time: 0 ms, avg: 95 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 78 ms, avg: 78 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 63 ns
+### Round: 4 ###
+create 1000 task, cost time: 0 s, clock time: 0 ms, avg: 95 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 79 ms, avg: 79 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 61 ns
+### Round: 5 ###
+create 1000 task, cost time: 0 s, clock time: 0 ms, avg: 95 ns
+switch 1000 tasks 1000000 times, cost time: 0 s, clock time: 78 ms, avg: 78 ns
+remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 62 ns
+###################### task (stack using stack pool) ###################
+########## Cmd: sample/libcopp_sample_benchmark_task_stack_pool 1 1000000 16
+### Round: 1 ###
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 20980 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 65 ms, avg: 65 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 8415 ns
+### Round: 2 ###
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 6012 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 64 ms, avg: 64 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 2766 ns
+### Round: 3 ###
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 1323 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 64 ms, avg: 64 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 1223 ns
+### Round: 4 ###
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 822 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 64 ms, avg: 64 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 4799 ns
+### Round: 5 ###
+create 1 task, cost time: 0 s, clock time: 0 ms, avg: 2044 ns
+switch 1 tasks 1000000 times, cost time: 0 s, clock time: 64 ms, avg: 64 ns
+remove 1 tasks, cost time: 0 s, clock time: 0 ms, avg: 4648 ns

@@ -2,11 +2,12 @@
 
 ## Summary
 
-- Environment: Linux 3.14.3-200.fc20.x86_64 (gcc 4.8.2)
-- CPU: AMD Phenom(tm) II X4 830 Processor (800MHz- 2800MHz)
-- Memory: 8GB DDR3-1333
+- Environment: GitHub Actions `ubuntu-latest` (Ubuntu 24.04), gcc 13.3.0
+- CPU: GitHub-hosted runner (4 vCPU)
+- Memory: 16 GB
 - Build type: RelWithDebInfo
-- Thread number: 1, stack memory cost 2.0GB
+- Thread number: 1
+- Source: [CI run 34942431606](https://github.com/owent/libcopp/actions/runs/34942431606) — job "Unix Build (gcc, ON)"
 
 ## Raw report
 

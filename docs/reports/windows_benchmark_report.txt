@@ -1,75 +1,320 @@
 =======================================================================================
-Env: Windows 7, Visual Studio 2013 (VC 18)
-System: Windows 7
-CPU: AMD Phenom(tm) II X4 830 Processor (800MHz- 2800MHz)
-Memory: 8GB DDR3-1333
-CMake Build Type: Release
-Run Env => thread number: 1, stack memory cost 2.0GB
-Compile Options: /GS /TP /W3 /Zi /Gm- /O2 /Ob2 /GL /EHsc /nologo /D "NDEBUG"
+Source: GitHub Actions - job "MinGW Build (windows-latest, ON)"
+  https://github.com/owent/libcopp/actions/runs/34942431606
+Env: Windows Server (GitHub-hosted windows-latest runner), MinGW-w64 gcc 16.2.0
+System: Windows
+CPU: GitHub-hosted runner (4 vCPU)
+Memory: 16 GB
+CMake Build Type: RelWithDebInfo
+Run Env => thread number: 1
+Note: The MSVC (Visual Studio 17 2022) job logs were truncated by GitHub, so results
+      from the MinGW-w64 windows-latest build are shown here. Each case ran with its
+      default arguments (100000 coroutines/tasks, 10000000 switch operations).
+      Binary names are abbreviated (bin/libcopp_sb* = sample_benchmark_*); the category
+      of each case is described in its "######" header line.
+Captured from CI: 2026-09-15
+=======================================================================================
 
-###################### context coroutine (stack using memory pool) ################### 
-########## Cmd: sample/Release/sample_stress_test_coroutines_mem_pool 10000 1000 200 
-allocate 10000 coroutine, cost time: 0 s, clock time: 11 ms, avg: 1100 ns
-create 10000 coroutine, cost time: 0 s, clock time: 296 ms, avg: 29600 ns
-switch 10000 coroutine contest 10000000 times, cost time: 6 s, clock time: 6359 ms, avg: 635 ns
-remove 10000 coroutine, cost time: 1 s, clock time: 209 ms, avg: 20900 ns
-########## Cmd: sample/Release/sample_stress_test_coroutines_mem_pool 1000 1000 2048 
-allocate 1000 coroutine, cost time: 0 s, clock time: 2 ms, avg: 2000 ns
-create 1000 coroutine, cost time: 0 s, clock time: 37 ms, avg: 37000 ns
-switch 1000 coroutine contest 1000000 times, cost time: 0 s, clock time: 308 ms, avg: 308 ns
-remove 1000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 7000 ns
-  
-###################### context coroutine (stack using default allocator[VirtualAlloc]) ################### 
-########## Cmd: sample/Release/sample_stress_test_coroutine 10000 1000 200 
-allocate 10000 coroutine, cost time: 0 s, clock time: 11 ms, avg: 1100 ns
-create 10000 coroutine, cost time: 0 s, clock time: 139 ms, avg: 13900 ns
-switch 10000 coroutine contest 10000000 times, cost time: 6 s, clock time: 6251 ms, avg: 625 ns
-remove 10000 coroutine, cost time: 0 s, clock time: 21 ms, avg: 2100 ns
-########## Cmd: sample/Release/sample_stress_test_coroutine 1000 1000 2048 
-allocate 1000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 1000 ns
-create 1000 coroutine, cost time: 0 s, clock time: 15 ms, avg: 15000 ns
-switch 1000 coroutine contest 1000000 times, cost time: 1 s, clock time: 275 ms, avg: 275 ns
-remove 1000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
-  
-###################### context coroutine (stack using malloc/free) ################### 
-########## Cmd: sample/Release/sample_stress_test_coroutine_malloc 10000 1000 200 
-allocate 10000 coroutine, cost time: 0 s, clock time: 12 ms, avg: 1200 ns
-create 10000 coroutine, cost time: 0 s, clock time: 228 ms, avg: 22800 ns
-switch 10000 coroutine contest 10000000 times, cost time: 6 s, clock time: 6282 ms, avg: 628 ns
-remove 10000 coroutine, cost time: 0 s, clock time: 16 ms, avg: 1600 ns
-########## Cmd: sample/Release/sample_stress_test_coroutine_malloc 1000 1000 2048 
-allocate 1000 coroutine, cost time: 0 s, clock time: 1 ms, avg: 1000 ns
-create 1000 coroutine, cost time: 0 s, clock time: 22 ms, avg: 22000 ns
-switch 1000 coroutine contest 1000000 times, cost time: 1 s, clock time: 463 ms, avg: 463 ns
-remove 1000 coroutine, cost time: 0 s, clock time: 4 ms, avg: 4000 ns
-  
-###################### task (stack using memory pool) ################### 
-########## Cmd: sample/Release/sample_stress_test_task_mem_pool 10000 1000 200 
-create 10000 task, cost time: 0 s, clock time: 249 ms, avg: 24900 ns
-switch 10000 tasks 10000000 times, cost time: 9 s, clock time: 8873 ms, avg: 887 ns
-remove 10000 tasks, cost time: 0 s, clock time: 4 ms, avg: 400 ns
-########## Cmd: sample/Release/sample_stress_test_task_mem_pool 1000 1000 2048 
-create 1000 task, cost time: 0 s, clock time: 27 ms, avg: 27000 ns
-switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 564 ms, avg: 564 ns
-remove 1000 tasks, cost time: 0 s, clock time: 0 ms, avg: 0 ns
-  
-###################### task (stack using default allocator[VirtualAlloc]) ################### 
-########## Cmd: sample/Release/sample_stress_test_task 10000 1000 200 
-create 10000 task, cost time: 0 s, clock time: 167 ms, avg: 16700 ns
-switch 10000 tasks 10000000 times, cost time: 9 s, clock time: 9440 ms, avg: 944 ns
-remove 10000 tasks, cost time: 0 s, clock time: 29 ms, avg: 2900 ns
-########## Cmd: sample/Release/sample_stress_test_task 1000 1000 2048 
-create 1000 task, cost time: 0 s, clock time: 18 ms, avg: 18000 ns
-switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 515 ms, avg: 515 ns
-remove 1000 tasks, cost time: 0 s, clock time: 6 ms, avg: 6000 ns
-  
-###################### task (stack using malloc/free) ################### 
-########## Cmd: sample/Release/sample_stress_test_task_malloc 10000 1000 200 
-create 10000 task, cost time: 0 s, clock time: 335 ms, avg: 33500 ns
-switch 10000 tasks 10000000 times, cost time: 10 s, clock time: 10102 ms, avg: 1010 ns
-remove 10000 tasks, cost time: 0 s, clock time: 75 ms, avg: 7500 ns
-########## Cmd: sample/Release/sample_stress_test_task_malloc 1000 1000 2048 
-create 1000 task, cost time: 0 s, clock time: 44 ms, avg: 44000 ns
-switch 1000 tasks 1000000 times, cost time: 1 s, clock time: 543 ms, avg: 543 ns
-remove 1000 tasks, cost time: 0 s, clock time: 9 ms, avg: 9000 ns
-  
+###################### context coroutine (stack using default allocator[VirtualAlloc]) ###################
+########## Cmd: bin/libcopp_sbc.exe
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 2 ns
+create 100000 coroutine, cost time: 1 s, clock time: 367 ms, avg: 3679 ns
+switch 100000 coroutine contest 10000000 times, cost time: 2 s, clock time: 2190 ms, avg: 219 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 241 ms, avg: 2416 ns
+###################### context coroutine (stack using malloc/free) ###################
+########## Cmd: bin/libcopp_sbcm.exe
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1 ns
+create 100000 coroutine, cost time: 0 s, clock time: 335 ms, avg: 3352 ns
+switch 100000 coroutine contest 10000000 times, cost time: 4 s, clock time: 3648 ms, avg: 364 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 105 ms, avg: 1057 ns
+###################### context coroutine (stack using memory pool) ###################
+########## Cmd: bin/libcopp_sbcmp.exe
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 1 ns
+create 100000 coroutine, cost time: 0 s, clock time: 10 ms, avg: 107 ns
+switch 100000 coroutine contest 10000000 times, cost time: 2 s, clock time: 2195 ms, avg: 219 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 60 ms, avg: 604 ns
+###################### context coroutine (stack using stack pool) ###################
+########## Cmd: bin/libcopp_sbcsp.exe
+### Round: 1 ###
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 2 ns
+create 100000 coroutine, cost time: 0 s, clock time: 353 ms, avg: 3533 ns
+switch 100000 coroutine contest 10000000 times, cost time: 2 s, clock time: 2183 ms, avg: 218 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 75 ns
+### Round: 2 ###
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 100000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 87 ns
+switch 100000 coroutine contest 10000000 times, cost time: 3 s, clock time: 2181 ms, avg: 218 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 73 ns
+### Round: 3 ###
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 100000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 81 ns
+switch 100000 coroutine contest 10000000 times, cost time: 2 s, clock time: 2303 ms, avg: 230 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 12 ms, avg: 121 ns
+### Round: 4 ###
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 100000 coroutine, cost time: 0 s, clock time: 12 ms, avg: 129 ns
+switch 100000 coroutine contest 10000000 times, cost time: 2 s, clock time: 2266 ms, avg: 226 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 7 ms, avg: 78 ns
+### Round: 5 ###
+allocate 100000 coroutine, cost time: 0 s, clock time: 0 ms, avg: 0 ns
+create 100000 coroutine, cost time: 0 s, clock time: 8 ms, avg: 82 ns
+switch 100000 coroutine contest 10000000 times, cost time: 2 s, clock time: 2195 ms, avg: 219 ns
+remove 100000 coroutine, cost time: 0 s, clock time: 9 ms, avg: 90 ns
+###################### std callable - create generator - trivial ###################
+########## Cmd: bin/libcopp_sbscccg.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 44 ms, avg: 441 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 164 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 45 ms, avg: 453 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 17 ms, avg: 172 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 45 ms, avg: 458 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 163 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 415 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 160 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 417 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 169 ns
+###################### std callable - create generator - no trivial ###################
+########## Cmd: bin/libcopp_sbscccgnt.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 419 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 164 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 40 ms, avg: 407 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 17 ms, avg: 172 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 42 ms, avg: 425 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 162 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 45 ms, avg: 453 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 17 ms, avg: 177 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 42 ms, avg: 420 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 18 ms, avg: 181 ns
+###################### std callable - recursive ###################
+########## Cmd: bin/libcopp_sbsccr.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 1 s, clock time: 37 ms, avg: 379 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 159 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 1 s, clock time: 809 ms, avg: 8097 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 160 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 1 s, clock time: 807 ms, avg: 8079 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 157 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 1 s, clock time: 807 ms, avg: 8078 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 161 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 1 s, clock time: 800 ms, avg: 8003 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 156 ns
+###################### std callable - reuse channel generator - trivial ###################
+########## Cmd: bin/libcopp_sbsccrcg.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 34 ms, avg: 343 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 17 ms, avg: 178 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 48 ms, avg: 481 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 161 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 34 ms, avg: 346 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 158 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 34 ms, avg: 340 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 167 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 34 ms, avg: 349 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 168 ns
+###################### std callable - reuse channel generator - no trivial ###################
+########## Cmd: bin/libcopp_sbsccrcgnt.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 35 ms, avg: 350 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 17 ms, avg: 172 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 35 ms, avg: 353 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 166 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 34 ms, avg: 346 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 163 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 36 ms, avg: 360 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 163 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 410 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 167 ns
+###################### std callable - reuse generator - trivial ###################
+########## Cmd: bin/libcopp_sbsccrg.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 413 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 151 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 40 ms, avg: 404 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 159 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 40 ms, avg: 409 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 158 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 40 ms, avg: 402 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 157 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 411 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 156 ns
+###################### std callable - reuse generator - no trivial ###################
+########## Cmd: bin/libcopp_sbsccrgnt.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 43 ms, avg: 437 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 161 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 40 ms, avg: 408 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 157 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 40 ms, avg: 402 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 152 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 49 ms, avg: 498 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 159 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 41 ms, avg: 413 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 161 ns
+###################### std callable - reuse lightweight generator - trivial ###################
+########## Cmd: bin/libcopp_sbsccrlg.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 38 ms, avg: 387 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 154 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 38 ms, avg: 380 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 161 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 37 ms, avg: 373 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 159 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 37 ms, avg: 378 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 157 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 37 ms, avg: 377 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 155 ns
+###################### std callable - reuse lightweight generator - no trivial ###################
+########## Cmd: bin/libcopp_sbsccrlgnt.exe
+### Round: 1 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 38 ms, avg: 387 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 159 ns
+### Round: 2 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 38 ms, avg: 387 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 161 ns
+### Round: 3 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 38 ms, avg: 381 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 153 ns
+### Round: 4 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 37 ms, avg: 378 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 15 ms, avg: 153 ns
+### Round: 5 ###
+create 100000 callable(s) and generator(s), cost time: 0 s, clock time: 38 ms, avg: 383 ns
+remove 100000 callable(s), cost time: 0 s, clock time: 16 ms, avg: 168 ns
+###################### std task - create generator - trivial ###################
+########## Cmd: bin/libcopp_sbsctcg.exe
+### Round: 1 ###
+create 100000 task(s) and generator(s), cost time: 1 s, clock time: 127 ms, avg: 1272 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 213 ns
+### Round: 2 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 126 ms, avg: 1269 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 213 ns
+### Round: 3 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 131 ms, avg: 1313 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 212 ns
+### Round: 4 ###
+create 100000 task(s) and generator(s), cost time: 1 s, clock time: 132 ms, avg: 1326 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 213 ns
+### Round: 5 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 130 ms, avg: 1309 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 216 ns
+###################### std task - create generator - no trivial ###################
+########## Cmd: bin/libcopp_sbsctcgnt.exe
+### Round: 1 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 134 ms, avg: 1343 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 243 ns
+### Round: 2 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 125 ms, avg: 1256 ns
+remove 100000 task(s), cost time: 0 s, clock time: 23 ms, avg: 237 ns
+### Round: 3 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 125 ms, avg: 1254 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 245 ns
+### Round: 4 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 127 ms, avg: 1271 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 249 ns
+### Round: 5 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 127 ms, avg: 1271 ns
+remove 100000 task(s), cost time: 0 s, clock time: 25 ms, avg: 252 ns
+###################### std task - reuse generator - trivial ###################
+########## Cmd: bin/libcopp_sbsctrg.exe
+### Round: 1 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 128 ms, avg: 1289 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 213 ns
+### Round: 2 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 126 ms, avg: 1264 ns
+remove 100000 task(s), cost time: 0 s, clock time: 25 ms, avg: 251 ns
+### Round: 3 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 177 ms, avg: 1773 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 213 ns
+### Round: 4 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 145 ms, avg: 1450 ns
+remove 100000 task(s), cost time: 0 s, clock time: 26 ms, avg: 262 ns
+### Round: 5 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 144 ms, avg: 1441 ns
+remove 100000 task(s), cost time: 0 s, clock time: 21 ms, avg: 217 ns
+###################### std task - reuse generator - no trivial ###################
+########## Cmd: bin/libcopp_sbsctrgnt.exe
+### Round: 1 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 132 ms, avg: 1324 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 248 ns
+### Round: 2 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 126 ms, avg: 1268 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 248 ns
+### Round: 3 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 130 ms, avg: 1303 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 243 ns
+### Round: 4 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 125 ms, avg: 1255 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 248 ns
+### Round: 5 ###
+create 100000 task(s) and generator(s), cost time: 0 s, clock time: 136 ms, avg: 1366 ns
+remove 100000 task(s), cost time: 0 s, clock time: 24 ms, avg: 245 ns
+###################### context coroutine (stack using default allocator[VirtualAlloc]) ###################
+########## Cmd: bin/libcopp_sbt.exe
+create 100000 task, cost time: 1 s, clock time: 418 ms, avg: 4182 ns
+switch 100000 tasks 10000000 times, cost time: 2 s, clock time: 2351 ms, avg: 235 ns
+remove 100000 tasks, cost time: 0 s, clock time: 286 ms, avg: 2861 ns
+###################### task (stack using malloc/free) ###################
+########## Cmd: bin/libcopp_sbtm.exe
+create 100000 task, cost time: 1 s, clock time: 556 ms, avg: 5560 ns
+switch 100000 tasks 10000000 times, cost time: 4 s, clock time: 4213 ms, avg: 421 ns
+remove 100000 tasks, cost time: 0 s, clock time: 146 ms, avg: 1461 ns
+###################### task (stack using memory pool) ###################
+########## Cmd: bin/libcopp_sbtmp.exe
+create 100000 task, cost time: 0 s, clock time: 81 ms, avg: 816 ns
+switch 100000 tasks 10000000 times, cost time: 2 s, clock time: 2339 ms, avg: 233 ns
+remove 100000 tasks, cost time: 0 s, clock time: 15 ms, avg: 151 ns
+###################### task (stack using stack pool) ###################
+########## Cmd: bin/libcopp_sbtsp.exe
+### Round: 1 ###
+create 100000 task, cost time: 1 s, clock time: 466 ms, avg: 4669 ns
+switch 100000 tasks 10000000 times, cost time: 2 s, clock time: 2513 ms, avg: 251 ns
+remove 100000 tasks, cost time: 0 s, clock time: 15 ms, avg: 157 ns
+### Round: 2 ###
+create 100000 task, cost time: 0 s, clock time: 100 ms, avg: 1009 ns
+switch 100000 tasks 10000000 times, cost time: 3 s, clock time: 2658 ms, avg: 265 ns
+remove 100000 tasks, cost time: 0 s, clock time: 9 ms, avg: 99 ns
+### Round: 3 ###
+create 100000 task, cost time: 0 s, clock time: 82 ms, avg: 822 ns
+switch 100000 tasks 10000000 times, cost time: 2 s, clock time: 2340 ms, avg: 234 ns
+remove 100000 tasks, cost time: 0 s, clock time: 9 ms, avg: 96 ns
+### Round: 4 ###
+create 100000 task, cost time: 1 s, clock time: 81 ms, avg: 813 ns
+switch 100000 tasks 10000000 times, cost time: 2 s, clock time: 2343 ms, avg: 234 ns
+remove 100000 tasks, cost time: 0 s, clock time: 10 ms, avg: 108 ns
+### Round: 5 ###
+create 100000 task, cost time: 0 s, clock time: 80 ms, avg: 807 ns
+switch 100000 tasks 10000000 times, cost time: 2 s, clock time: 2334 ms, avg: 233 ns
+remove 100000 tasks, cost time: 0 s, clock time: 10 ms, avg: 102 ns

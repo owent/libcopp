@@ -1,6 +1,6 @@
 # Benchmarks
 
-This section summarizes the stress test reports captured in `docs/reports` and provides the raw logs for reference.
+This section summarizes the benchmark reports captured in `docs/reports` and provides the raw logs for reference.
 
 ## How to run
 
@@ -18,5 +18,5 @@ This section summarizes the stress test reports captured in `docs/reports` and p
 
 ## Summary
 
-- Each report measures allocate/create/switch/remove cycles for coroutine contexts and tasks with different stack allocators.
+- Each report measures allocate/create/switch/remove cycles for stackful coroutine contexts and cotask tasks (with different stack allocators), as well as C++20 std coroutine callable/task generator benchmarks.
 - Use the raw logs below for precise numbers and environment details.
