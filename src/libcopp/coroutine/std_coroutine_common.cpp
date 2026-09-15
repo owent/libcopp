@@ -55,7 +55,8 @@ LIBCOPP_COPP_API void promise_caller_manager::add_caller(handle_delegate delegat
   callers.add(delegate);
   callers_.emplace<multi_caller_container>(std::move(callers));
 #  else
-  if (!unique_caller_.handle) {
+  // The single-caller slot is resumed first, so only reuse it when no callers are queued.
+  if (!unique_caller_.handle && (!multiple_callers_ || multiple_callers_->size() == 0)) {
     unique_caller_ = delegate;
     return;
   }

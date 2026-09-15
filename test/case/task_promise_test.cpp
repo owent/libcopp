@@ -459,6 +459,43 @@ CASE_TEST(task_promise, task_future_multiple_callers_resume_fifo) {
   }
 }
 
+CASE_TEST(task_promise, task_future_multiple_callers_resume_fifo_after_first_killed) {
+  g_task_future_fifo_blocker_contexts.clear();
+  g_task_future_fifo_resume_order.clear();
+
+  task_future_int_type blocker = task_func_fifo_blocker();
+  CASE_EXPECT_TRUE(blocker.start());
+  callable_future_int_type waiter0 = task_future_func_fifo_waiter(blocker, 0);
+  callable_future_int_type waiter1 = task_future_func_fifo_waiter(blocker, 1);
+  CASE_EXPECT_FALSE(waiter0.is_ready());
+  CASE_EXPECT_FALSE(waiter1.is_ready());
+
+  // Killing the first waiter detaches it while the second waiter remains queued.
+  CASE_EXPECT_TRUE(waiter0.kill());
+  CASE_EXPECT_TRUE(waiter0.is_ready());
+  CASE_EXPECT_FALSE(blocker.is_exiting());
+  CASE_EXPECT_FALSE(waiter1.is_ready());
+  CASE_EXPECT_TRUE(g_task_future_fifo_resume_order.empty());
+
+  callable_future_int_type waiter2 = task_future_func_fifo_waiter(blocker, 2);
+  CASE_EXPECT_FALSE(waiter2.is_ready());
+  CASE_EXPECT_EQ(1, static_cast<int>(g_task_future_fifo_blocker_contexts.size()));
+  if (!g_task_future_fifo_blocker_contexts.empty()) {
+    auto pending_context = g_task_future_fifo_blocker_contexts.front();
+    g_task_future_fifo_blocker_contexts.pop_front();
+    pending_context->set_value(0);
+  }
+
+  CASE_EXPECT_TRUE(blocker.is_exiting());
+  CASE_EXPECT_TRUE(waiter1.is_ready());
+  CASE_EXPECT_TRUE(waiter2.is_ready());
+  CASE_EXPECT_EQ(2, static_cast<int>(g_task_future_fifo_resume_order.size()));
+  if (g_task_future_fifo_resume_order.size() == 2) {
+    CASE_EXPECT_EQ(1, g_task_future_fifo_resume_order[0]);
+    CASE_EXPECT_EQ(2, g_task_future_fifo_resume_order[1]);
+  }
+}
+
 CASE_TEST(task_promise, task_future_caller_manager_dedup_and_remove) {
   g_task_future_fifo_blocker_contexts.clear();
   g_task_future_fifo_resume_order.clear();
@@ -498,7 +535,12 @@ CASE_TEST(task_promise, task_future_caller_manager_dedup_and_remove) {
 
   // Removing the registered handles returns true.
   CASE_EXPECT_TRUE(manager.remove_caller(caller_delegate{waiter0.get_internal_handle()}));
+  // Re-adding the remaining caller must not duplicate it into the vacant single-caller slot.
+  manager.add_caller(caller_delegate{waiter1.get_internal_handle()});
+  CASE_EXPECT_FALSE(manager.has_multiple_callers());
   CASE_EXPECT_TRUE(manager.remove_caller(caller_delegate{waiter1.get_internal_handle()}));
+  CASE_EXPECT_FALSE(manager.remove_caller(caller_delegate{waiter1.get_internal_handle()}));
+  CASE_EXPECT_EQ(0, static_cast<int>(manager.resume_callers()));
 
   // Complete the blocker so the real waiters unwind cleanly.
   CASE_EXPECT_EQ(1, static_cast<int>(g_task_future_fifo_blocker_contexts.size()));

@@ -64,7 +64,8 @@ LIBCOPP_COPP_API void stackful_channel_context_base::add_caller(handle_delegate 
   callers.add(handle);
   callers_.emplace<multi_caller_container>(std::move(callers));
 #else
-  if (!unique_caller_) {
+  // The single-caller slot is resumed first, so only reuse it when no callers are queued.
+  if (!unique_caller_ && (!multiple_callers_ || multiple_callers_->size() == 0)) {
     unique_caller_ = handle;
     return;
   }
